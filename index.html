@@ -439,6 +439,7 @@
     font:600 11px "JetBrains Mono",monospace;box-shadow:0 2px 6px rgba(15,39,76,.35);
   }
 #trace-host .aerotip::before{display:none}
+#trace-host .aero-statut{display:inline-block;vertical-align:1px;margin:0 1px 0 4px;border:1.5px solid currentColor;border-radius:20px;padding:0 6px;font:700 9px "JetBrains Mono",monospace;line-height:1.6}
 #trace-host .aero-ic{background:none;border:none}
 #trace-host .nav-ic{background:none;border:none}
 #trace-host .poipanel{
@@ -1054,6 +1055,23 @@ function aeroIcon(rwys){
   const svg=`<svg width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">${disc}${bands}${squares}</svg>`;
   return L.divIcon({className:'aero-ic', html:svg, iconSize:[24,24], iconAnchor:[12,12]});
 }
+/* ---- Statut aérodrome : CAP / RST / PRIVÉ (base VAC FR_AERO_MAP) ou MILitaire ---- */
+const MIL_ICAO={LFBC:1,LFBM:1,LFKS:1,LFMO:1,LFOA:1,LFOJ:1,LFRJ:1,LFRL:1,LFSC:1,LFSO:1};
+const STATUT_INFO={CAP:['CAP','#4ade80'],RST:['RST','#fbbf24'],PRV:['PRIVÉ','#cbd5e1'],MIL:['MIL','#f87171']};
+function aeroStatut(icao,name){
+  try{ const r=(typeof FR_AERO_MAP!=='undefined')&&FR_AERO_MAP[icao]; if(r&&r.s) return r.s; }catch(e){}
+  if(MIL_ICAO[icao]||/^LF[XY]/.test(icao)||/\(MIL\)|CAMP D|LE CAMP/.test(String(name||''))) return 'MIL';
+  return null;
+}
+function statutBadge(icao,name){
+  const s=aeroStatut(icao,name); if(!s||!STATUT_INFO[s]) return '';
+  return `<span class="aero-statut" style="color:${STATUT_INFO[s][1]}">${STATUT_INFO[s][0]}</span>`;
+}
+function aeroElev(icao,elev){
+  if(elev) return elev;                             /* 0 = inconnue dans AERO -> secours base VAC */
+  try{ const r=(typeof FR_AERO_MAP!=='undefined')&&FR_AERO_MAP[icao]; if(r&&r.e!=null&&r.e!==''&&!isNaN(Number(r.e))) return Number(r.e); }catch(e){}
+  return elev;
+}
 const aeroGroup = L.layerGroup();
 const aeroIndex = {};
 AERO.forEach(a=>{
@@ -1063,11 +1081,12 @@ AERO.forEach(a=>{
     ? (rwys.length>1?'pistes ':'piste ') +
       rwys.map(r=>`${r[0]}${r[2]?` (${r[2]} m)`:''}`).join(', ')
     : '';
-  const tip = `${icao} — ${name}`+(elev!=null?` · ${elev} ft`:'')+(rtxt?` · ${rtxt}`:'');
+  const ev=aeroElev(icao,elev);
+  const tip = `${icao} — ${name}`+statutBadge(icao,name)+(ev!=null?` · ${ev} ft`:'')+(rtxt?` · ${rtxt}`:'');
   m.bindTooltip(tip,{direction:'top',className:'aerotip',offset:[0,-9]});
-  m.on('click', ev=>{ L.DomEvent.stopPropagation(ev); addWaypoint(L.latLng(lat,lon), icao); });
+  m.on('click', ev2=>{ L.DomEvent.stopPropagation(ev2); addWaypoint(L.latLng(lat,lon), icao); });
   aeroGroup.addLayer(m);
-  aeroIndex[icao]={lat,lon,name};
+  aeroIndex[icao]={lat,lon,name,elev:ev,st:aeroStatut(icao,name)};
 });
 aeroGroup.addTo(map);
 document.getElementById('showAero').addEventListener('change', e=>{
@@ -1263,7 +1282,11 @@ document.getElementById('poiLoad').addEventListener('click', loadPOI);
 
 /* recherche par code OACI ou nom */
 document.getElementById('aeroList').innerHTML =
-  AERO.map(a=>`<option value="${a[0]} — ${a[1]}"></option>`).join('');
+  AERO.map(a=>{
+    const st=aeroStatut(a[0],a[1]), ev=aeroElev(a[0],a[4]);
+    const extra=[st&&STATUT_INFO[st]?STATUT_INFO[st][0]:null, ev?`terrain ${ev} ft`:null].filter(Boolean).join(' · ');
+    return `<option value="${a[0]} — ${a[1]}"${extra?` label="${a[0]} — ${a[1]} · ${extra}"`:''}></option>`;
+  }).join('');
 function gotoAero(q){
   if(!q) return;
   q=q.trim();
@@ -1275,6 +1298,10 @@ function gotoAero(q){
   const a=aeroIndex[key];
   map.setView([a.lat,a.lon], 12);
   addWaypoint(L.latLng(a.lat,a.lon), key);
+  const parts=[key+' — '+a.name];
+  if(a.st&&STATUT_INFO[a.st]) parts.push(STATUT_INFO[a.st][0]);
+  if(a.elev) parts.push('terrain '+a.elev+' ft');
+  showToast(parts.join(' · '));
 }
 const aeroInput=document.getElementById('aeroSearch');
 aeroInput.addEventListener('keydown',e=>{ if(e.key==='Enter'){ gotoAero(aeroInput.value); aeroInput.value=''; }});
