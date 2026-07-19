@@ -1878,7 +1878,7 @@ window.__traceApplyRoute=function(payload){
     if((fillsA.length||fillsR.length) && typeof window.__LOGNAV_FILL==='function'){
       try{ window.__LOGNAV_FILL({aller:fillsA, retour:fillsR}); }catch(e){}
     }
-    active=(routes.aller.length?'aller':'retour'); selectedIdx=-1;
+    active=(routes.aller.length||!routes.retour.length)?'aller':'retour'; selectedIdx=-1;
     if(typeof setActiveSeg==='function') setActiveSeg();
     if(typeof recompute==='function') recompute();
     var all=routes.aller.concat(routes.retour);
@@ -1887,7 +1887,7 @@ window.__traceApplyRoute=function(payload){
     __applyingFromLog=false; try{__setSyncState(false);}catch(_){}
   }catch(e){ __applyingFromLog=false; try{ if(typeof showToast==='function') showToast('Liaison erreur : '+(e&&e.message||e)); }catch(_){}}
 };
-window.__traceClearRoute=function(){ try{ routes.aller=[]; routes.retour=[]; selectedIdx=-1; if(typeof setActiveSeg==='function')setActiveSeg(); if(typeof recompute==='function')recompute(); }catch(e){} };
+window.__traceClearRoute=function(){ try{ routes.aller=[]; routes.retour=[]; active='aller'; selectedIdx=-1; if(typeof setActiveSeg==='function')setActiveSeg(); if(typeof recompute==='function')recompute(); }catch(e){} };
 
 /* === FAVORIS PERSO sur la carte (étoile + nom) ===
    Cycle bouton FAV : 0 masqués -> 1 affichés -> 2 déplaçables -> 0. Positions mémorisées (localStorage). */
