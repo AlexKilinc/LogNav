@@ -1285,7 +1285,7 @@ document.getElementById('aeroList').innerHTML =
   AERO.map(a=>{
     const st=aeroStatut(a[0],a[1]), ev=aeroElev(a[0],a[4]);
     const extra=[st&&STATUT_INFO[st]?STATUT_INFO[st][0]:null, ev?`terrain ${ev} ft`:null].filter(Boolean).join(' · ');
-    return `<option value="${a[0]} — ${a[1]}"${extra?` label="${a[0]} — ${a[1]} · ${extra}"`:''}></option>`;
+    return `<option value="${a[0]} — ${a[1]}${extra?` · ${extra}`:''}"></option>`;
   }).join('');
 function gotoAero(q){
   if(!q) return;
