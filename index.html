@@ -2093,5 +2093,40 @@ class ErrB extends React.Component{constructor(p){super(p);this.state={e:null};}
 
 
 
+<script>
+/* === Taille de l'interface : sélecteur + détection auto (zoom CSS global, proportions conservées) === */
+(function(){
+  var KEY='akila_ui_scale';
+  function autoScale(){
+    var w=window.innerWidth||document.documentElement.clientWidth||1280;
+    return w>=3400?1.75:w>=2500?1.5:w>=1900?1.25:1;
+  }
+  function current(){ return localStorage.getItem(KEY)||'auto'; }
+  function apply(){
+    var v=current();
+    var z=(v==='auto')?autoScale():(parseFloat(v)||1);
+    document.body.style.zoom=(z===1)?'':String(z);
+  }
+  var st=document.createElement('style');
+  st.textContent='#uiScaleBox{position:fixed;right:10px;bottom:10px;z-index:80;display:inline-flex;align-items:center;gap:5px;background:rgba(15,39,76,.88);border:1px solid rgba(255,255,255,.28);border-radius:18px;padding:4px 9px;box-shadow:0 3px 10px rgba(0,0,0,.25)}'
+    +'#uiScaleBox svg{flex:none;opacity:.85}'
+    +'#uiScaleSel{background:transparent;color:#fff;border:0;outline:none;font:600 11px Poppins,ui-sans-serif,sans-serif;cursor:pointer}'
+    +'#uiScaleSel option{color:#1a1a2e;background:#fff}'
+    +'@media print{#uiScaleBox{display:none!important}body{zoom:1!important}}';
+  document.head.appendChild(st);
+  var box=document.createElement('div'); box.id='uiScaleBox'; box.className='no-print'; box.title="Taille de l'interface (Auto : selon la largeur de l'écran)";
+  box.innerHTML='<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3M8 11h6M11 8v6"/></svg>';
+  var sel=document.createElement('select'); sel.id='uiScaleSel';
+  [['auto','Auto'],['1','100%'],['1.25','125%'],['1.5','150%'],['1.75','175%'],['2','200%']].forEach(function(o){
+    var op=document.createElement('option'); op.value=o[0]; op.textContent=o[1]; sel.appendChild(op);
+  });
+  sel.value=current(); if(!sel.value) sel.value='auto';
+  sel.addEventListener('change',function(){ try{localStorage.setItem(KEY,sel.value);}catch(e){} apply(); });
+  box.appendChild(sel);
+  document.body.appendChild(box);
+  var rT; window.addEventListener('resize',function(){ if(current()==='auto'){ clearTimeout(rT); rT=setTimeout(apply,200); } });
+  apply();
+})();
+</script>
 </body>
 </html>
