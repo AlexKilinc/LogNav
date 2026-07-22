@@ -47,8 +47,8 @@
       linear-gradient(180deg,#0B1C38 0%, var(--navy-800) 45%, var(--navy-900) 100%);
   }
 #login-screen .wrap{
-    width:100%;max-width:440px;margin:0 auto;
-    padding:clamp(28px,6vw,48px) clamp(22px,6vw,32px);
+    width:100%;max-width:410px;margin:0 auto;
+    padding:clamp(14px,3vw,24px) clamp(20px,5vw,28px);
     flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
     text-align:center;
   }
@@ -68,23 +68,23 @@
 #login-screen .sound-toggle:focus-visible{outline:none;color:var(--blue-soft)}
 #login-screen .sound-toggle svg{width:15px;height:15px;display:block;fill:currentColor}
 #login-screen .eyebrow{
-    font-family:"Space Mono",monospace;font-size:12px;letter-spacing:.32em;
-    text-transform:uppercase;color:var(--muted);margin-bottom:14px;
-    display:inline-flex;align-items:center;gap:12px;
+    font-family:"Space Mono",monospace;font-size:11px;letter-spacing:.28em;
+    text-transform:uppercase;color:var(--muted);margin-bottom:8px;
+    display:inline-flex;align-items:center;gap:10px;
   }
 #login-screen .eyebrow::before, #login-screen .eyebrow::after{content:"";width:20px;height:1px;background:var(--red)}
 #login-screen h1{
     font-family:"Space Grotesk",sans-serif;font-weight:700;
-    font-size:clamp(28px,7vw,40px);letter-spacing:-.02em;margin-bottom:6px;
+    font-size:clamp(24px,5.5vw,32px);letter-spacing:-.02em;margin-bottom:4px;
   }
-#login-screen .sub{color:var(--muted);font-size:14.5px;margin-bottom:30px}
+#login-screen .sub{color:var(--muted);font-size:13px;margin-bottom:16px}
 #login-screen /* Module de connexion */
   .panel{
     width:100%;padding:28px 26px 26px;border-radius:18px;text-align:left;
     background:linear-gradient(180deg, rgba(19,49,95,.45), rgba(14,35,72,.55));
     border:1px solid var(--line);
   }
-#login-screen .field{margin-bottom:16px}
+#login-screen .field{margin-bottom:11px}
 #login-screen .panel, #login-screen .field, #login-screen .field label{cursor:default}
 #login-screen .field label{user-select:none}
 #login-screen .field input{cursor:text}
@@ -580,7 +580,7 @@
 }
 
 #login-screen .ak-tabs{flex-wrap:wrap}
-#login-screen .ak-tab{flex:1;min-width:110px;background:rgba(10,26,51,.5);border:1.5px solid #2A4372;color:#9fb8d6;border-radius:9px;padding:10px 8px;font:600 13px "Inter",sans-serif;cursor:pointer;transition:all .15s}
+#login-screen .ak-tab{flex:1 1 0;min-width:0;white-space:nowrap;background:rgba(10,26,51,.5);border:1.5px solid #2A4372;color:#9fb8d6;border-radius:9px;padding:9px 6px;font:600 12.5px "Inter",sans-serif;cursor:pointer;transition:all .15s}
 #login-screen .ak-tab:hover{color:#fff;border-color:#5b8def}
 #login-screen .ak-tab.is-on{background:rgba(59,110,190,.18);border-color:#5b8def;color:#fff}
 #login-screen .ak-link{color:#9fb8d6;font:600 12.5px "Inter",sans-serif;text-decoration:none;border-bottom:1px dotted #5b8def}
@@ -601,7 +601,7 @@
   var UKEY='akila_users_v1', SKEY='akila_session_v1';
   var OWNER_EMAIL='alexandre.kilinc@gmail.com';
   /* seed propriétaire : hash pré-calculé, le mot de passe n'apparaît pas en clair */
-  var OWNER_SEED={email:OWNER_EMAIL,prenom:'Alexandre',nom:'KILINC',tel:'',club:'',statut:'FI',
+  var OWNER_SEED={email:OWNER_EMAIL,prenom:'Alexandre',nom:'KILINC',tel:'',club:'',statut:'eleve',
     role:'owner',status:'approved',welcomeSeen:true,createdAt:0,
     salt:'akila-owner-fixed-2026',pwdHash:'c7ab5ecae679e101cf8352fb95c58c9ccea8401642c881e18baa9467a1185589'};
 
@@ -678,6 +678,16 @@
     reject:function(email){ var db=ensureOwner(), u=db[norm(email)]; if(u&&u.role!=='owner'){ u.status='rejected'; save(db);} return !!u; },
     remove:function(email){ var db=ensureOwner(); if(db[norm(email)]&&db[norm(email)].role!=='owner'){ delete db[norm(email)]; save(db); return true;} return false; },
     markWelcomeSeen:function(email){ var db=ensureOwner(), u=db[norm(email)]; if(u){ u.welcomeSeen=true; save(db);} },
+    setStatut:function(email,st){ var db=ensureOwner(), u=db[norm(email)]; if(u){ u.statut=st; save(db);} return !!u; },
+    verifyOwner:function(pwd){ var db=ensureOwner(), o=db[OWNER_EMAIL]; if(!o) return Promise.resolve(false);
+      return sha256(o.salt+String(pwd)).then(function(h){ return h===o.pwdHash; }); },
+    removeWithPassword:function(email,ownerPwd){
+      var db=ensureOwner(); if(!db[norm(email)]) return Promise.resolve({ok:false,err:'Compte introuvable.'});
+      if(db[norm(email)].role==='owner') return Promise.resolve({ok:false,err:'Le compte propriétaire ne peut pas être supprimé.'});
+      return API.verifyOwner(ownerPwd).then(function(ok){ if(!ok) return {ok:false,err:'Mot de passe propriétaire incorrect.'};
+        delete db[norm(email)]; save(db); return {ok:true}; });
+    },
+
     current:function(){ var db=ensureOwner(); try{ var e=localStorage.getItem(SKEY); return e&&db[e]?db[e]:null; }catch(x){ return null; } },
     signOut:function(){ try{ localStorage.removeItem(SKEY); }catch(e){} },
     isOwner:function(){ var u=API.current(); return !!(u&&u.role==='owner'); }
@@ -698,18 +708,22 @@
     ov.style.cssText='position:fixed;inset:0;z-index:9998;background:rgba(16,21,40,.66);backdrop-filter:blur(2px);display:flex;align-items:flex-start;justify-content:center;padding:26px 12px;overflow:auto';
     function row(u){
       var name=esc((u.prenom||'')+' '+(u.nom||'')).trim()||'—';
-      var meta=[STAT[u.statut]||u.statut, u.club, u.tel].filter(Boolean).map(esc).join(' · ');
+      var stChip='<button data-act="statut" data-e="'+esc(u.email)+'" title="Cliquer pour changer le statut" style="background:#eef3fc;color:#2c5282;border:1px solid #cddcf3;border-radius:20px;padding:1px 8px;font:700 10px ui-sans-serif;cursor:pointer">'+esc(STAT[u.statut]||u.statut)+'</button>';
+      var meta=[u.club, u.tel].filter(Boolean).map(esc).join(' · ');
       var acts='';
+      var delBtn='<button data-act="del" data-e="'+esc(u.email)+'" style="background:#fff;color:#b91c1c;border:1.4px solid #b91c1c;border-radius:7px;padding:5px 10px;font:700 11px ui-sans-serif;cursor:pointer">Supprimer</button>';
       if(u.role==='owner'){ acts='<span style="color:#64748b;font:600 11px ui-sans-serif">Propriétaire</span>'; }
-      else {
-        if(u.status==='pending') acts+='<button data-act="approve" data-e="'+esc(u.email)+'" style="background:#16a34a;color:#fff;border:0;border-radius:7px;padding:6px 11px;font:700 11px ui-sans-serif;cursor:pointer">Valider</button>';
-        if(u.status!=='rejected') acts+=' <button data-act="reject" data-e="'+esc(u.email)+'" style="background:#fff;color:#b91c1c;border:1.4px solid #b91c1c;border-radius:7px;padding:5px 10px;font:700 11px ui-sans-serif;cursor:pointer">Refuser</button>';
-        if(u.status==='rejected') acts+='<button data-act="approve" data-e="'+esc(u.email)+'" style="background:#16a34a;color:#fff;border:0;border-radius:7px;padding:6px 11px;font:700 11px ui-sans-serif;cursor:pointer">Réactiver</button>';
-        acts+=' <button data-act="remove" data-e="'+esc(u.email)+'" title="Supprimer" style="background:none;color:#94a3b8;border:0;font:800 14px ui-sans-serif;cursor:pointer">×</button>';
+      else if(u.status==='pending'){
+        acts='<button data-act="approve" data-e="'+esc(u.email)+'" style="background:#16a34a;color:#fff;border:0;border-radius:7px;padding:6px 11px;font:700 11px ui-sans-serif;cursor:pointer">Valider</button>'
+          +' <button data-act="reject" data-e="'+esc(u.email)+'" style="background:#fff;color:#b45309;border:1.4px solid #d9930b;border-radius:7px;padding:5px 10px;font:700 11px ui-sans-serif;cursor:pointer">Refuser</button>';
+      } else if(u.status==='rejected'){
+        acts='<button data-act="approve" data-e="'+esc(u.email)+'" style="background:#16a34a;color:#fff;border:0;border-radius:7px;padding:6px 11px;font:700 11px ui-sans-serif;cursor:pointer">Réactiver</button> '+delBtn;
+      } else {
+        acts=delBtn;
       }
-      return '<div style="display:flex;align-items:center;gap:10px;padding:10px 4px;border-top:1px solid #eceff3">'
+return '<div style="display:flex;align-items:center;gap:10px;padding:10px 4px;border-top:1px solid #eceff3">'
         +'<div style="flex:1;min-width:0"><div style="font:700 13px ui-sans-serif;color:#16213e">'+name+' '+badge(u.status)+'</div>'
-        +'<div style="font:400 11px ui-sans-serif;color:#64748b;margin-top:1px">'+esc(u.email)+(meta?' — '+meta:'')+'</div></div>'
+        +'<div style="font:400 11px ui-sans-serif;color:#64748b;margin-top:3px;display:flex;align-items:center;gap:6px;flex-wrap:wrap">'+stChip+'<span>'+esc(u.email)+(meta?' — '+meta:'')+'</span></div></div>'
         +'<div style="display:flex;align-items:center;gap:4px;flex:none">'+acts+'</div></div>';
     }
     function render(){
@@ -723,10 +737,14 @@
       ov.querySelector('#akUsersClose').onclick=function(){ ov.remove(); };
       Array.prototype.forEach.call(ov.querySelectorAll('button[data-act]'),function(b){
         b.onclick=function(){ var e=b.getAttribute('data-e'), a=b.getAttribute('data-act');
-          if(a==='approve') API.approve(e);
-          else if(a==='reject') API.reject(e);
-          else if(a==='remove'){ if(!confirm('Supprimer définitivement ce compte ?')) return; API.remove(e); }
-          render();
+          if(a==='approve'){ API.approve(e); render(); }
+          else if(a==='reject'){ API.reject(e); render(); }
+          else if(a==='statut'){ var order=['eleve','brevete','FE','FI']; var cur=(API.listUsers().find(function(x){return x.email===e;})||{}).statut||'eleve'; var ni=(order.indexOf(cur)+1)%order.length; API.setStatut(e,order[ni]); render(); }
+          else if(a==='del'){
+            var pwd=prompt('Suppression définitive du compte '+e+'.\nSaisissez le mot de passe du propriétaire pour confirmer :');
+            if(pwd==null) return;
+            API.removeWithPassword(e,pwd).then(function(r){ if(!r.ok){ alert(r.err); } render(); });
+          }
         };
       });
     }
