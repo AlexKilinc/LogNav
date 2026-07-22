@@ -601,7 +601,7 @@
   var UKEY='akila_users_v1', SKEY='akila_session_v1';
   var OWNER_EMAIL='alexandre.kilinc@gmail.com';
   /* seed propriétaire : hash pré-calculé, le mot de passe n'apparaît pas en clair */
-  var OWNER_SEED={email:OWNER_EMAIL,prenom:'Alexandre',nom:'KILINC',tel:'',club:'',statut:'eleve',
+  var OWNER_SEED={email:OWNER_EMAIL,prenom:'Alexandre',nom:'KILINC',tel:'',club:'',statut:'eleve',avion:'',
     role:'owner',status:'approved',welcomeSeen:true,createdAt:0,
     salt:'akila-owner-fixed-2026',pwdHash:'c7ab5ecae679e101cf8352fb95c58c9ccea8401642c881e18baa9467a1185589'};
 
@@ -639,10 +639,13 @@
       if(db[key]) return Promise.resolve({ok:false,err:'Un compte existe déjà pour cet e-mail.'});
       if(!d.pwd||String(d.pwd).length<6) return Promise.resolve({ok:false,err:'Mot de passe : 6 caractères minimum.'});
       if(!String(d.prenom||'').trim()||!String(d.nom||'').trim()) return Promise.resolve({ok:false,err:'Prénom et nom requis.'});
+      if(!String(d.tel||'').trim()) return Promise.resolve({ok:false,err:'Téléphone requis.'});
+      if(!String(d.club||'').trim()) return Promise.resolve({ok:false,err:'Club aéronautique requis.'});
+      if(!String(d.avion||'').trim()) return Promise.resolve({ok:false,err:'Avion principal requis.'});
       var salt=randSalt();
       return sha256(salt+String(d.pwd)).then(function(h){
         db[key]={email:key,prenom:String(d.prenom||'').trim(),nom:String(d.nom||'').trim(),
-          tel:String(d.tel||'').trim(),club:String(d.club||'').trim(),statut:d.statut||'eleve',
+          tel:String(d.tel||'').trim(),club:String(d.club||'').trim(),avion:String(d.avion||'').trim(),statut:d.statut||'eleve',
           role:'member',status:'pending',welcomeSeen:false,createdAt:Date.now?Date.now():0,salt:salt,pwdHash:h};
         save(db);
         try{ API._notifyAdmin(db[key]); }catch(e){}
@@ -686,8 +689,11 @@
       if(!ne||ne.indexOf('@')<0) return {ok:false,err:'E-mail invalide.'};
       if(ne!==ok && db[ne]) return {ok:false,err:'Un compte existe déjà avec ce nouvel e-mail.'};
       if(String(d.prenom||'').trim()==='' || String(d.nom||'').trim()==='') return {ok:false,err:'Prénom et nom requis.'};
+      if(String(d.tel||'').trim()==='') return {ok:false,err:'Téléphone requis.'};
+      if(String(d.club||'').trim()==='') return {ok:false,err:'Club aéronautique requis.'};
+      if(String(d.avion||'').trim()==='') return {ok:false,err:'Avion principal requis.'};
       u.prenom=String(d.prenom||'').trim(); u.nom=String(d.nom||'').trim();
-      u.tel=String(d.tel||'').trim(); u.club=String(d.club||'').trim();
+      u.tel=String(d.tel||'').trim(); u.club=String(d.club||'').trim(); u.avion=String(d.avion||'').trim();
       if(d.statut) u.statut=d.statut;
       if(ne!==ok){ u.email=ne; db[ne]=u; delete db[ok]; try{ if(localStorage.getItem(SKEY)===ok) localStorage.setItem(SKEY,ne); }catch(e){} }
       save(db); return {ok:true,user:u};
@@ -785,12 +791,12 @@ return '<div style="display:flex;align-items:center;gap:10px;padding:10px 4px;bo
         +(cur.role==='owner'?'<span style="display:inline-flex;align-items:center;line-height:1;background:#0f2748;color:#fff;border-radius:20px;padding:4px 11px;font:700 11px ui-sans-serif">Principal</span>':'')
         +'<span style="background:#eef3fc;color:#2c5282;display:inline-flex;align-items:center;line-height:1;border-radius:20px;padding:4px 11px;font:600 11px ui-sans-serif">'+esc(cur.email)+'</span>'
         +(cur.tel?'<span style="background:#eef3fc;color:#2c5282;display:inline-flex;align-items:center;line-height:1;border-radius:20px;padding:4px 11px;font:600 11px ui-sans-serif">☎ '+esc(cur.tel)+'</span>':'')
-        +(cur.club?'<span style="background:#eef3fc;color:#2c5282;display:inline-flex;align-items:center;line-height:1;border-radius:20px;padding:4px 11px;font:600 11px ui-sans-serif">'+esc(cur.club)+'</span>':'')
+        +(cur.club?'<span style="background:#eef3fc;color:#2c5282;display:inline-flex;align-items:center;line-height:1;border-radius:20px;padding:4px 11px;font:600 11px ui-sans-serif">'+esc(cur.club)+'</span>':'')+(cur.avion?'<span style="display:inline-flex;align-items:center;line-height:1;background:#eef3fc;color:#2c5282;border-radius:20px;padding:4px 11px;font:600 11px ui-sans-serif">\u2708 '+esc(cur.avion)+'</span>':'')
         +'</div>'
         +'<div style="border-top:1px solid #eceff3;padding-top:6px">'
         +'<div style="display:flex;gap:8px"><div style="flex:1">'+fld('Prénom','pf-prenom',cur.prenom)+'</div><div style="flex:1">'+fld('Nom','pf-nom',cur.nom)+'</div></div>'
         +fld('E-mail','pf-email',cur.email,'email')
-        +'<div style="display:flex;gap:8px"><div style="flex:1">'+fld('Téléphone','pf-tel',cur.tel,'tel')+'</div><div style="flex:1">'+fld('Club aéronautique','pf-club',cur.club)+'</div></div>'
+        +'<div style="display:flex;gap:8px"><div style="flex:1">'+fld('Téléphone','pf-tel',cur.tel,'tel')+'</div><div style="flex:1">'+fld('Club aéronautique','pf-club',cur.club)+'</div></div>'+fld('Avion principal','pf-avion',cur.avion)
         +'<label style="display:block;font:600 11px ui-sans-serif;color:#64748b;margin:8px 0 3px">Fonction</label>'
         +'<select id="pf-statut" style="width:100%;box-sizing:border-box;border:1px solid #c8ccd2;border-radius:8px;padding:9px 10px;font:14px ui-sans-serif;color:#1a1a1a;outline:none">'
         +['eleve','brevete','FI'].map(function(s){return '<option value="'+s+'"'+(cur.statut===s?' selected':'')+'>'+STAT[s]+'</option>';}).join('')+'</select>'
@@ -800,7 +806,7 @@ return '<div style="display:flex;align-items:center;gap:10px;padding:10px 4px;bo
       ov.querySelector('#akProfClose').onclick=function(){ ov.remove(); };
       ov.querySelector('#akProfSave').onclick=function(){
         var g=function(id){ return (ov.querySelector('#'+id)||{}).value; };
-        var r=API.updateProfile(cur.email,{prenom:g('pf-prenom'),nom:g('pf-nom'),email:g('pf-email'),tel:g('pf-tel'),club:g('pf-club'),statut:g('pf-statut')});
+        var r=API.updateProfile(cur.email,{prenom:g('pf-prenom'),nom:g('pf-nom'),email:g('pf-email'),tel:g('pf-tel'),club:g('pf-club'),avion:g('pf-avion'),statut:g('pf-statut')});
         var m=ov.querySelector('#pf-msg');
         if(!r.ok){ m.style.color='#b91c1c'; m.textContent=r.err; return; }
         try{ window.__AKILA_USER={name:((r.user.prenom||'')+' '+(r.user.nom||'')).trim()||r.user.email, email:r.user.email, role:r.user.role}; }catch(e){}
@@ -897,9 +903,10 @@ return '<div style="display:flex;align-items:center;gap:10px;padding:10px 4px;bo
       </div>
       <div class="field"><label>E-mail</label><input id="su-email" type="email" autocomplete="email" required></div>
       <div style="display:flex;gap:8px">
-        <div class="field" style="flex:1"><label>Téléphone</label><input id="su-tel" type="tel" autocomplete="tel"></div>
-        <div class="field" style="flex:1"><label>Club aéronautique</label><input id="su-club" type="text"></div>
+        <div class="field" style="flex:1"><label>Téléphone</label><input id="su-tel" type="tel" autocomplete="tel" required></div>
+        <div class="field" style="flex:1"><label>Club aéronautique</label><input id="su-club" type="text" required></div>
       </div>
+      <div class="field"><label>Avion principal</label><input id="su-avion" type="text" placeholder="ex. F-GXCF ou DR400" required></div>
       <div class="field"><label>Statut</label>
         <select id="su-statut" style="width:100%;box-sizing:border-box;border:1px solid #2A4372;border-radius:9px;padding:11px 12px;background:rgba(10,26,51,.5);color:#fff;font:inherit">
           <option value="eleve">Élève pilote</option>
@@ -995,7 +1002,7 @@ async function akSignup(e){
   if(g('su-pwd')!==g('su-pwd2')){ m.textContent='Les deux mots de passe ne correspondent pas.'; m.className='msg err'; return; }
   m.textContent='Envoi…'; m.className='msg';
   try{
-    var r=await window.AkilaAuth.signUp({prenom:g('su-prenom'),nom:g('su-nom'),email:g('su-email'),tel:g('su-tel'),club:g('su-club'),statut:g('su-statut'),pwd:g('su-pwd')});
+    var r=await window.AkilaAuth.signUp({prenom:g('su-prenom'),nom:g('su-nom'),email:g('su-email'),tel:g('su-tel'),club:g('su-club'),avion:g('su-avion'),statut:g('su-statut'),pwd:g('su-pwd')});
     if(!r.ok){ m.textContent=r.err; m.className='msg err'; return; }
     m.textContent='Demande envoyée ! Elle sera validée par l’administrateur avant activation.'; m.className='msg ok';
     document.getElementById('ak-signup').reset();
