@@ -15,7 +15,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/pocketbase@0.22.0/dist/pocketbase.umd.js"></script>
 <style>
-#login-screen{position:fixed;inset:0;z-index:9999;overflow:auto;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+#login-screen{position:fixed;inset:0;z-index:9999;overflow:auto;display:flex;flex-direction:column;align-items:center;justify-content:safe center;padding:18px 0;box-sizing:border-box}
 #login-screen{
     --navy-900:#081427;
     --navy-800:#0A1A33;
@@ -135,7 +135,7 @@
 #login-screen .panel{animation-delay:.12s}
 #login-screen footer{animation-delay:.2s}
 @media (max-width:400px){
-#login-screen .mark{gap:5px}
+#login-screen .mark{gap:5px;margin-top:14px}
 #login-screen .mark .bar{width:44px}
 #login-screen .mark::before, #login-screen .mark::after{width:148px}
 #login-screen .mark::before{right:calc(50% + 66px)}
@@ -580,7 +580,7 @@
 }
 
 #login-screen .ak-tabs{flex-wrap:wrap}
-#login-screen .ak-tab{flex:1 1 0;min-width:0;white-space:nowrap;background:rgba(10,26,51,.5);border:1.5px solid #2A4372;color:#9fb8d6;border-radius:9px;padding:9px 6px;font:600 12.5px "Inter",sans-serif;cursor:pointer;transition:all .15s}
+#login-screen .ak-tab{flex:1 1 0;min-width:0;white-space:nowrap;text-align:center;background:rgba(10,26,51,.5);border:1.5px solid #2A4372;color:#9fb8d6;border-radius:9px;padding:10px 4px;font:600 13px "Inter",sans-serif;cursor:pointer;transition:all .15s}
 #login-screen .ak-tab:hover{color:#fff;border-color:#5b8def}
 #login-screen .ak-tab.is-on{background:rgba(59,110,190,.18);border-color:#5b8def;color:#fff}
 #login-screen .ak-link{color:#9fb8d6;font:600 12.5px "Inter",sans-serif;text-decoration:none;border-bottom:1px dotted #5b8def}
@@ -799,7 +799,7 @@ return '<div style="display:flex;align-items:center;gap:10px;padding:10px 4px;bo
     <h1>Connexion</h1>
     <p class="sub">Accédez à votre application LogNavAK.</p>
 
-    <div class="ak-tabs" style="display:flex;gap:8px;margin-bottom:12px">
+    <div class="ak-tabs" style="display:flex;gap:10px;margin-bottom:12px;width:100%">
       <button type="button" class="ak-tab is-on" data-v="login" onclick="akView('login')">Connexion</button>
       <button type="button" class="ak-tab" data-v="signup" onclick="akView('signup')">Créer un compte</button>
     </div>
