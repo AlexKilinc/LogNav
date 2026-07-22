@@ -60,7 +60,7 @@
 #login-screen .mark .bar, #login-screen .mark .vtick, #login-screen .mark .prop{position:relative;z-index:1}
 #login-screen .mark .vtick{width:1px;height:12px;background:var(--blue-soft);opacity:.55}
 #login-screen .mark .bar{width:60px;height:4px;background:var(--text);opacity:.72;border-radius:2px}
-#login-screen .prop{width:114px;height:114px;flex:none}
+#login-screen .prop{width:96px;height:96px;flex:none}
 #login-screen .prop svg{width:114px;height:114px;display:block;animation:spin 2.2s linear infinite}
 #login-screen .sound-toggle{position:absolute;top:2px;left:calc(50% + 58px);width:30px;height:30px;display:flex;align-items:center;justify-content:center;padding:0;border:none;background:transparent;color:var(--muted);cursor:pointer;z-index:2;transition:color .2s ease, transform .15s ease}
 #login-screen .sound-toggle:hover{color:var(--blue-soft)}
@@ -69,7 +69,7 @@
 #login-screen .sound-toggle svg{width:15px;height:15px;display:block;fill:currentColor}
 #login-screen .eyebrow{
     font-family:"Space Mono",monospace;font-size:11px;letter-spacing:.28em;
-    text-transform:uppercase;color:var(--muted);margin-bottom:8px;
+    text-transform:uppercase;color:var(--muted);margin-bottom:5px;
     display:inline-flex;align-items:center;gap:10px;
   }
 #login-screen .eyebrow::before, #login-screen .eyebrow::after{content:"";width:20px;height:1px;background:var(--red)}
@@ -77,14 +77,14 @@
     font-family:"Space Grotesk",sans-serif;font-weight:700;
     font-size:clamp(24px,5.5vw,32px);letter-spacing:-.02em;margin-bottom:4px;
   }
-#login-screen .sub{color:var(--muted);font-size:13px;margin-bottom:16px}
+#login-screen .sub{color:var(--muted);font-size:13px;margin-bottom:11px}
 #login-screen /* Module de connexion */
   .panel{
-    width:100%;padding:28px 26px 26px;border-radius:18px;text-align:left;
+    width:100%;padding:18px 22px 18px;border-radius:16px;text-align:left;
     background:linear-gradient(180deg, rgba(19,49,95,.45), rgba(14,35,72,.55));
     border:1px solid var(--line);
   }
-#login-screen .field{margin-bottom:11px}
+#login-screen .field{margin-bottom:9px}
 #login-screen .panel, #login-screen .field, #login-screen .field label{cursor:default}
 #login-screen .field label{user-select:none}
 #login-screen .field input{cursor:text}
@@ -94,7 +94,7 @@
     letter-spacing:.2em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;
   }
 #login-screen .field input{
-    width:100%;padding:13px 14px;border-radius:11px;
+    width:100%;padding:10px 13px;border-radius:10px;
     background:rgba(8,20,39,.55);border:1px solid var(--line);
     color:var(--text);font-family:"Inter",sans-serif;font-size:15px;
     transition:border-color .2s ease, box-shadow .2s ease;
@@ -113,7 +113,7 @@
 #login-screen .eye:focus-visible{outline:none;color:var(--blue-soft)}
 #login-screen .eye svg{width:18px;height:18px;display:block;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
 #login-screen #submit, #login-screen .ak-view button[type=submit]{
-    width:100%;margin-top:6px;padding:14px;border:none;border-radius:11px;
+    width:100%;margin-top:6px;padding:11px;border:none;border-radius:11px;
     background:#e94560;color:#fff;cursor:pointer;
     font-family:"Space Grotesk",sans-serif;font-weight:500;font-size:15px;letter-spacing:.01em;
     transition:transform .2s ease, background .2s ease, opacity .2s ease;
@@ -135,7 +135,7 @@
 #login-screen .panel{animation-delay:.12s}
 #login-screen footer{animation-delay:.2s}
 @media (max-width:400px){
-#login-screen .mark{gap:5px;margin-top:14px}
+#login-screen .mark{gap:5px;margin-top:6px}
 #login-screen .mark .bar{width:44px}
 #login-screen .mark::before, #login-screen .mark::after{width:148px}
 #login-screen .mark::before{right:calc(50% + 66px)}
@@ -799,7 +799,7 @@ return '<div style="display:flex;align-items:center;gap:10px;padding:10px 4px;bo
     <h1>Connexion</h1>
     <p class="sub">Accédez à votre application LogNavAK.</p>
 
-    <div class="ak-tabs" style="display:flex;gap:10px;margin-bottom:12px;width:100%">
+    <div class="ak-tabs" style="display:flex;gap:10px;margin-bottom:10px;width:100%">
       <button type="button" class="ak-tab is-on" data-v="login" onclick="akView('login')">Connexion</button>
       <button type="button" class="ak-tab" data-v="signup" onclick="akView('signup')">Créer un compte</button>
     </div>
@@ -820,11 +820,11 @@ return '<div style="display:flex;align-items:center;gap:10px;padding:10px 4px;bo
         </div>
       </div>
       <div class="field">
-        <label for="capin-login">Vérification — combien font <b id="cap-login" style="color:#fff">? + ?</b> ?</label>
+        <label for="capin-login">Calcul&nbsp;: <b id="cap-login" style="color:#fff">? + ?</b> = ?</label>
         <input id="capin-login" type="text" inputmode="numeric" autocomplete="off" placeholder="résultat" required>
       </div>
       <button id="submit" type="submit">Se connecter</button>
-      <div style="text-align:center;margin-top:9px"><a href="#" class="ak-link" onclick="akView('reset');return false;">Mot de passe oublié ?</a></div>
+      <div style="text-align:center;margin-top:7px"><a href="#" class="ak-link" onclick="akView('reset');return false;">Mot de passe oublié ?</a></div>
       <div id="msg" class="msg" role="status"></div>
     </form>
 
@@ -851,7 +851,7 @@ return '<div style="display:flex;align-items:center;gap:10px;padding:10px 4px;bo
         <div class="field" style="flex:1"><label>Confirmer</label><div class="pw"><input id="su-pwd2" type="password" autocomplete="new-password" required minlength="6"><button type="button" class="eye" aria-label="Afficher" title="Afficher"><svg class="eye-on" viewBox="0 0 24 24"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg><svg class="eye-off" viewBox="0 0 24 24" style="display:none"><path d="M9.9 4.2A11 11 0 0 1 12 4c6.5 0 10 7 10 7a13.4 13.4 0 0 1-2.2 3M6.6 6.6A13.4 13.4 0 0 0 2 11s3.5 7 10 7a10.8 10.8 0 0 0 5.4-1.4"/><path d="M9.5 9.6a3 3 0 0 0 4.2 4.2"/><path d="m2 2 20 20"/></svg></button></div></div>
       </div>
       <div class="field">
-        <label for="capin-signup">Vérification — combien font <b id="cap-signup" style="color:#fff">? + ?</b> ?</label>
+        <label for="capin-signup">Calcul&nbsp;: <b id="cap-signup" style="color:#fff">? + ?</b> = ?</label>
         <input id="capin-signup" type="text" inputmode="numeric" autocomplete="off" placeholder="résultat" required>
       </div>
       <button type="submit">Envoyer ma demande</button>
@@ -1017,22 +1017,22 @@ async function akReset(e){
       function start(){
         if(on) return;
         if(!ctx) ctx=new (window.AudioContext||window.webkitAudioContext)();
-        const run=()=>{
-          if(ctx.state!=='running') return false;   // bloqué par le navigateur
-          nodes=build(ctx);
-          const t=ctx.currentTime, g=nodes.master.gain;
-          g.cancelScheduledValues(t);
-          g.setValueAtTime(0.0001,t);
-          g.exponentialRampToValueAtTime(VOL,t+0.6);   // montée
-          g.setValueAtTime(VOL,t+5);                    // maintien jusqu'à la 5e s
-          g.exponentialRampToValueAtTime(0.0001,t+8);   // descente douce 5 → 8 s
-          on=true; setIcon(true);
-          clearTimeout(autoTimer);
-          autoTimer=setTimeout(finish, 8300);           // fin (~8 s)
-          return true;
-        };
-        if(ctx.state==='suspended'){ ctx.resume().then(run).catch(()=>{}); return; }
-        return run();
+        /* débloque dans le contexte SYNCHRONE du geste (indispensable pour l'autoplay) */
+        try{ ctx.resume(); }catch(e){}
+        /* on construit et démarre les sources tout de suite : elles sonneront dès que le
+           contexte passe en "running" (au retour du resume déclenché par le geste). */
+        nodes=build(ctx);
+        const t=ctx.currentTime, g=nodes.master.gain;
+        g.cancelScheduledValues(t);
+        g.setValueAtTime(0.0001,t);
+        g.exponentialRampToValueAtTime(VOL,t+0.6);   // montée
+        g.setValueAtTime(VOL,t+5);                    // maintien jusqu'à la 5e s
+        g.exponentialRampToValueAtTime(0.0001,t+8);   // descente douce 5 → 8 s
+        on=true; setIcon(true);
+        clearTimeout(autoTimer);
+        autoTimer=setTimeout(finish, 8300);           // fin (~8 s)
+        /* filet de sécurité : si le contexte tarde à démarrer, on le relance encore */
+        try{ ctx.resume().catch(function(){}); }catch(e){}
       }
 
       function finish(){                              // fin naturelle à 8 s
@@ -1063,8 +1063,9 @@ async function akReset(e){
       // Lecture au lancement ; repli sur la 1re interaction (les navigateurs bloquent l'autoplay audio)
       function autoStart(){ if(!autoArmed) return; autoArmed=false; removeGestures(); start(); }
       function onGesture(e){ if(btn.contains(e.target)) return; autoStart(); }
-      function removeGestures(){ ['pointerdown','keydown','touchstart'].forEach(ev=>window.removeEventListener(ev,onGesture,true)); }
-      function armGestures(){ ['pointerdown','keydown','touchstart'].forEach(ev=>window.addEventListener(ev,onGesture,true)); }
+      var __gEv=['pointerdown','mousedown','touchend','click','keydown'];
+      function removeGestures(){ __gEv.forEach(ev=>window.removeEventListener(ev,onGesture,true)); }
+      function armGestures(){ __gEv.forEach(ev=>window.addEventListener(ev,onGesture,true)); }
       function bootAudio(){
         /* si l'app est déjà affichée (login masqué : session mémorisée), ne pas armer le son du tout */
         var ls=document.getElementById('login-screen');
