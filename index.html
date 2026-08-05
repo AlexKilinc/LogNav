@@ -1100,6 +1100,10 @@ return '<div style="display:flex;align-items:center;gap:10px;padding:10px 4px;bo
     ov.style.cssText='position:fixed;inset:0;z-index:9998;background:rgba(16,21,40,.66);backdrop-filter:blur(2px);display:flex;align-items:flex-start;justify-content:center;padding:26px 12px;overflow:auto';
     var STc={eleve:'#2563eb',brevete:'#16a34a',FI:'#b45309'};
     function fld(lbl,id,val,type){ return '<label style="display:block;font:600 11px ui-sans-serif;color:#64748b;margin:8px 0 3px">'+lbl+'</label><input id="'+id+'" type="'+(type||'text')+'" value="'+esc(val||'')+'" style="width:100%;box-sizing:border-box;border:1px solid #c8ccd2;border-radius:8px;padding:9px 10px;font:14px ui-sans-serif;color:#1a1a1a;outline:none">'; }
+    /* chapitres du profil : fine ligne de séparation + titre */
+    function sect(t,sub){ return '<div style="border-top:1px solid #eceff3;margin:15px 0 8px"></div>'
+      +'<div style="font:700 10.5px ui-sans-serif;color:#94a3b8;letter-spacing:.07em;text-transform:uppercase;margin-bottom:7px">'+t
+      +(sub?' <span style="font-weight:500;text-transform:none;letter-spacing:0">— '+sub+'</span>':'')+'</div>'; }
     function render(){
       var cur=API.current()||u;
       var bg=STc[cur.statut]||'#64748b';
@@ -1109,24 +1113,21 @@ return '<div style="display:flex;align-items:center;gap:10px;padding:10px 4px;bo
         +'<div style="display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 10px">'
         +'<span style="display:inline-flex;align-items:center;line-height:1;background:'+bg+';color:#fff;border-radius:20px;padding:4px 11px;font:700 11px ui-sans-serif">'+esc(STAT[cur.statut]||cur.statut)+'</span>'
         +(cur.role==='owner'?'<span style="display:inline-flex;align-items:center;line-height:1;background:#0f2748;color:#fff;border-radius:20px;padding:4px 11px;font:700 11px ui-sans-serif">Principal</span>':'')
-        +'<span style="background:#eef3fc;color:#2c5282;display:inline-flex;align-items:center;line-height:1;border-radius:20px;padding:4px 11px;font:600 11px ui-sans-serif">'+esc(cur.email)+'</span>'
-        +(cur.tel?'<span style="background:#eef3fc;color:#2c5282;display:inline-flex;align-items:center;line-height:1;border-radius:20px;padding:4px 11px;font:600 11px ui-sans-serif">☎ '+esc(cur.tel)+'</span>':'')
-        +(cur.club?'<span style="background:#eef3fc;color:#2c5282;display:inline-flex;align-items:center;line-height:1;border-radius:20px;padding:4px 11px;font:600 11px ui-sans-serif">'+esc(cur.club)+'</span>':'')+((Array.isArray(cur.avions)?cur.avions:[]).filter(function(a){return a&&(a.immat||a.modele);}).map(function(a){var lbl=[a.immat,a.modele].filter(Boolean).map(esc).join(' \u00b7 ');return '<span style="display:inline-flex;align-items:center;line-height:1;background:#eef3fc;color:#2c5282;border-radius:20px;padding:4px 11px;font:600 11px ui-sans-serif">\u2708 '+lbl+'</span>';}).join(''))
         +'</div>'
-        +'<div style="border-top:1px solid #eceff3;padding:8px 0 4px">'
-        +'<label style="display:flex;align-items:center;gap:8px;font:600 12px ui-sans-serif;color:#16213e;cursor:pointer;white-space:nowrap">'
-        +'<input type="checkbox" id="pf-sia250off" style="width:16px;height:16px;flex:none;accent-color:#e94560">'
-        +'Carte OACI 1/250 000 disponible hors-ligne</label>'
-        +'<div id="pf-sia250msg" style="font:500 11px ui-sans-serif;color:#64748b;margin:3px 0 0 24px"></div>'
-        +'</div>'
-        +'<div style="border-top:1px solid #eceff3;padding-top:6px">'
+        +'<div style="border-top:1px solid #eceff3;padding-top:10px">'
         +'<div style="display:flex;gap:8px"><div style="flex:1">'+fld('Prénom','pf-prenom',cur.prenom)+'</div><div style="flex:1">'+fld('Nom','pf-nom',cur.nom)+'</div></div>'
         +fld('E-mail','pf-email',cur.email,'email')
         +'<div style="display:flex;gap:8px"><div style="flex:1">'+fld('Téléphone','pf-tel',cur.tel,'tel')+'</div><div style="flex:1">'+fld('Club aéronautique','pf-club',cur.club)+'</div></div>'
-        +fld('Aérodrome de recentrage de la carte — code OACI (défaut LFPN)','pf-homead',cur.homeAd||'')
-        +'<label style="display:block;font:600 11px ui-sans-serif;color:#64748b;margin:12px 0 4px">Mes avions <span style="font-weight:400;color:#94a3b8">— immat. · modèle · conso (L/h) · réservoirs (1 · 2 D/G · 3 D/C/G)</span></label>'
+        +sect('Préférences')
+        +'<label style="display:block;font:600 11px ui-sans-serif;color:#64748b;margin:0 0 3px">Aérodrome de centrage préférentiel de la carte <span style="font-weight:400;color:#94a3b8">— code OACI, 4 lettres (défaut LFPN)</span></label>'
+        +'<input id="pf-homead" value="'+esc(cur.homeAd||'')+'" maxlength="4" placeholder="LFPN" autocapitalize="characters" spellcheck="false" style="width:104px;box-sizing:border-box;border:1px solid #c8ccd2;border-radius:8px;padding:9px 10px;font:14px ui-sans-serif;letter-spacing:1.5px;text-transform:uppercase;color:#1a1a1a;outline:none">'
+        +'<label style="display:flex;align-items:center;gap:8px;font:600 12px ui-sans-serif;color:#16213e;cursor:pointer;white-space:nowrap;margin-top:12px">'
+        +'<input type="checkbox" id="pf-sia250off" style="width:16px;height:16px;flex:none;accent-color:#e94560">'
+        +'Carte OACI 1/250 000 disponible hors-ligne</label>'
+        +'<div id="pf-sia250msg" style="font:500 11px ui-sans-serif;color:#64748b;margin:3px 0 0 24px"></div>'
+        +sect('Mes avions','immat. · modèle · conso (L/h) · réservoirs (1 · 2 D/G · 3 D/C/G)')
         +'<div id="pf-fleet"></div>'
-        +'<label style="display:block;font:600 11px ui-sans-serif;color:#64748b;margin:8px 0 3px">Fonction</label>'
+        +sect('Fonction')
         +'<select id="pf-statut" style="width:100%;box-sizing:border-box;border:1px solid #c8ccd2;border-radius:8px;padding:9px 10px;font:14px ui-sans-serif;color:#1a1a1a;outline:none">'
         +['eleve','brevete','FI'].map(function(s){return '<option value="'+s+'"'+(cur.statut===s?' selected':'')+'>'+STAT[s]+'</option>';}).join('')+'</select>'
         +'<div id="pf-msg" style="font:600 12px ui-sans-serif;margin-top:8px;min-height:14px"></div>'
@@ -1621,7 +1622,7 @@ window.__TRACE_MARKUP="\n\n<header>\n  <div class=\"hdr-row1\">\n    <span class
    accessible depuis le bouton ⓘ du bandeau du log, avant toute ouverture de la carte */
 (function(){
   var host=document.createElement('div');
-  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Carte OACI :</b> donnée IGN non libre — nécessite votre propre clé Géoplateforme filtrée sur votre domaine. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.148</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
+  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Carte OACI :</b> donnée IGN non libre — nécessite votre propre clé Géoplateforme filtrée sur votre domaine. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.150</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
   (document.body||document.documentElement).appendChild(host.firstElementChild);
   window.__OPEN_INFO=function(){ document.getElementById('infoModal').hidden=false; };
   /* iPadOS : les pastilles de fen\xEAtrage (coin haut-gauche) recouvrent le burger
@@ -3981,7 +3982,7 @@ const wrap=document.createElement("div");sheets.forEach((s,i)=>{const c=s.cloneN
           #root .approot>.sheet.mswipe.mmap{padding:calc(env(safe-area-inset-top) + 1.5px) 0 0 0!important;background:#0A1A33!important;display:flex!important;flex-direction:column!important;overflow:hidden!important;}
           #root .mswipe.mmap #trace-host{flex:1 1 auto!important;display:flex!important;flex-direction:column!important;min-height:0!important;height:auto!important;}
           #root .mswipe.mmap #trace-host header{flex:0 0 auto;border-radius:0 0 12px 12px!important;margin:0!important;position:relative!important;z-index:3!important;box-shadow:0 3px 14px rgba(0,0,0,.42)!important;}
-          #root .mswipe.mmap #trace-host main{flex:1 1 auto!important;height:auto!important;min-height:0!important;margin:-12px 0 0 0!important;border-radius:0!important;border:none!important;}
+          #root .mswipe.mmap #trace-host main{flex:1 1 auto!important;height:auto!important;min-height:0!important;margin:-12px 0 0 0!important;border-radius:0!important;border:none!important;position:relative!important;z-index:0!important;}
           /* la carte remonte de 12 px sous les angles arrondis : on redescend d'autant les contrôles et la vignette */
           #root .mswipe.mmap #trace-host .leaflet-top{margin-top:12px!important;}
           #root .mswipe.mmap #trace-host .maphint{top:20px!important;}
