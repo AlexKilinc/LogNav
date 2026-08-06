@@ -895,6 +895,12 @@ html:has(.ovl) #uiScaleBox,html:has(body.rec-full) #uiScaleBox{display:none!impo
 .nc-tkc.on{border-color:#48d597;background:rgba(72,213,151,.10)}
 .nc-tkc i{display:block;font:700 10px "Poppins",sans-serif;font-style:normal;color:#8fa9cc;text-transform:uppercase;letter-spacing:.05em;min-height:24px}
 .nc-tkc b{display:block;font:800 19px "JetBrains Mono",monospace;color:#fff;margin-top:2px}
+.nc-tkc u{display:block;text-decoration:none;font:700 9.5px "Poppins",sans-serif;color:#7fd1ff;margin-top:1px}
+.nc-avt{display:flex;align-items:center;gap:5px;margin-top:4px}
+.nc-avt span{font:700 9.5px "Poppins",sans-serif;color:#7fd1ff;letter-spacing:.04em;white-space:nowrap}
+.nc-avt input{flex:1 1 auto;min-width:0;box-sizing:border-box;background:#0d2247;border:1px solid #2a4372;border-radius:7px;padding:5px 6px;font:700 13px "JetBrains Mono",monospace;color:#7fd1ff;outline:none;text-align:center}
+.nc-avtot{background:rgba(233,69,96,.12);border:1px solid rgba(233,69,96,.5);border-radius:10px;padding:8px 11px;font:700 11.5px "Poppins",sans-serif;color:#ffc2ce}
+.nc-avtot.ok{background:rgba(72,213,151,.12);border-color:rgba(72,213,151,.45);color:#7ee7b6}
 .nc-seg-s button{padding:9px;font-size:13px}
 .nc-msg{background:rgba(72,213,151,.12);border:1px solid rgba(72,213,151,.45);border-radius:10px;padding:9px 11px;font:700 12px "Poppins",sans-serif;color:#7ee7b6}
 
@@ -1740,7 +1746,7 @@ window.__TRACE_MARKUP="\n\n<header>\n  <div class=\"hdr-row1\">\n    <span class
    accessible depuis le bouton ⓘ du bandeau du log, avant toute ouverture de la carte */
 (function(){
   var host=document.createElement('div');
-  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Carte OACI :</b> donnée IGN non libre — nécessite votre propre clé Géoplateforme filtrée sur votre domaine. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.169</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
+  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Carte OACI :</b> donnée IGN non libre — nécessite votre propre clé Géoplateforme filtrée sur votre domaine. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.170</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
   (document.body||document.documentElement).appendChild(host.firstElementChild);
   window.__OPEN_INFO=function(){ document.getElementById('infoModal').hidden=false; };
   /* iPadOS : les pastilles de fen\xEAtrage (coin haut-gauche) recouvrent le burger
@@ -4204,7 +4210,11 @@ function NavCards({nav,setNav,tsvOf,tavOf,capOf}){
   const av=(()=>{try{return __fleet().find(a=>a.immat===(nav.meta.immat||""))||null;}catch(e){return null;}})();
   const nres=av&&av.res?parseInt(av.res,10):0;
   const tanks=nres===3?[["d","Rés. D"],["c","Rés. C"],["g","Rés. G"]]:nres===2?[["d","Rés. D"],["g","Rés. G"]]:[["d","Réservoir"]];
-  const totFuel=tanks.reduce((s,t)=>s+numv(fu[t[0]]),0)+numv(fu.avt);
+  const avT=numv(fu.avt);
+  const avOf=k=>numv(fu["av_"+k]);
+  const avDist=tanks.reduce((s,t)=>s+avOf(t[0]),0);
+  const avRest=Math.max(0,avT-avDist);
+  const totFuel=tanks.reduce((s,t)=>s+numv(fu[t[0]])+avOf(t[0]),0)+avRest;
   const start=()=>{
     setNav({meta:{...nav.meta,ventDir:dr,ventKt:kt},flight:{...F,block:selBlock,qnh,fuel:{...fu,total:String(totFuel)},tank:tanks[0][0],tankSince:null,used:{},log:[],tEnd:null}});
     setK(0); setMode("fly");
@@ -4220,7 +4230,8 @@ function NavCards({nav,setNav,tsvOf,tavOf,capOf}){
   const r1=v=>Math.round(v*10)/10;
   const usedTot=tanks.reduce((s,t)=>s+numv(used[t[0]]),0)+liveUsed;
   const usedTank=useTank||curTank;
-  const tankLeft=key=>Math.max(0,numv((F.fuel||{})[key])-numv(used[key])-(key===usedTank?liveUsed:0));
+  const tankInit=key=>numv((F.fuel||{})[key])+numv((F.fuel||{})["av_"+key]);
+  const tankLeft=key=>Math.max(0,tankInit(key)-numv(used[key])-(key===usedTank?liveUsed:0));
   const sinceTxt=since?hhmm(since):"—";
   const sinceMin=since?Math.max(0,Math.round((( F.tEnd||Date.now())-since)/60000)):0;
   const dispo=Math.max(0,numv((F.fuel||{}).total)-usedTot);
@@ -4237,7 +4248,7 @@ function NavCards({nav,setNav,tsvOf,tavOf,capOf}){
     const nk=newTank||usedTank;
     const u={...used}; u[usedTank]=String(r1(numv(used[usedTank])+liveUsed));
     const now=Date.now();
-    const ent={t:now,k:usedTank,l:r1(liveUsed),left:r1(Math.max(0,numv((F.fuel||{})[usedTank])-numv(u[usedTank]))),
+    const ent={t:now,k:usedTank,l:r1(liveUsed),left:r1(Math.max(0,tankInit(usedTank)-numv(u[usedTank]))),
       dispo:r1(Math.max(0,numv((F.fuel||{}).total)-tanks.reduce((s,t)=>s+numv(u[t[0]]),0)))};
     setNav({flight:{...F,tank:nk,tankSince:now,used:u,log:(F.log||[]).concat([ent]).slice(-14)}});
     setUseTank(nk); setNewTank(nk);
@@ -4256,7 +4267,7 @@ function NavCards({nav,setNav,tsvOf,tavOf,capOf}){
     const now=Date.now(), t=hhmm(now);
     const arr=(nav[block]||[]).map((l,i)=>i===legs.length-1?{...l,hReel:t}:l);
     const u={...used}; u[curTank]=String(r1(numv(used[curTank])+liveUsed));
-    const ent={t:now,k:curTank,l:r1(liveUsed),fin:true,left:r1(Math.max(0,numv((F.fuel||{})[curTank])-numv(u[curTank]))),
+    const ent={t:now,k:curTank,l:r1(liveUsed),fin:true,left:r1(Math.max(0,tankInit(curTank)-numv(u[curTank]))),
       dispo:r1(Math.max(0,numv((F.fuel||{}).total)-tanks.reduce((s,t)=>s+numv(u[t[0]]),0)))};
     const patch={flight:{...F,tEnd:now,used:u,log:(F.log||[]).concat([ent]).slice(-14)}}; patch[block]=arr;
     setNav(patch);
@@ -4347,9 +4358,18 @@ function NavCards({nav,setNav,tsvOf,tavOf,capOf}){
         h("div",{className:"nc-f"},h("div",{className:"nc-lg"},"Carburant"+(av?" — "+av.immat:""),nres?null:h("span",{className:"nc-u"},"nombre de réservoirs non renseigné dans le profil")),
           h("div",{className:"nc-grid"},
             tanks.map(t=>h("div",{key:t[0],className:"nc-f"},h("label",null,t[1],h("span",{className:"nc-u"},"litres")),
-              h("input",{value:fu[t[0]]||"",inputMode:"decimal",onChange:e=>setFu(f=>({...f,[t[0]]:e.target.value})),placeholder:"0"}))),
+              h("input",{value:fu[t[0]]||"",inputMode:"decimal",onChange:e=>setFu(f=>({...f,[t[0]]:e.target.value})),placeholder:"0"}),
+              avT>0?h("div",{className:"nc-avt"},h("span",null,"+ AVT"),
+                h("input",{value:fu["av_"+t[0]]||"",inputMode:"decimal",placeholder:"0",
+                  onChange:e=>setFu(f=>({...f,["av_"+t[0]]:e.target.value}))})):null)),
             h("div",{key:"avt",className:"nc-f"},h("label",null,"AVT",h("span",{className:"nc-u"},"avitaillement · litres")),
-              h("input",{value:fu.avt||"",inputMode:"decimal",onChange:e=>setFu(f=>({...f,avt:e.target.value})),placeholder:"0"})))),
+              h("input",{value:fu.avt||"",inputMode:"decimal",placeholder:"0",onChange:e=>setFu(f=>{
+                const n={...f,avt:e.target.value};
+                if(tanks.length===1) n["av_"+tanks[0][0]]=e.target.value;
+                return n;})})))),
+        avT>0?h("div",{className:"nc-avtot"+(Math.abs(avDist-avT)<.05?" ok":"")},
+          "Avitaillement réparti : "+r1(avDist)+" / "+r1(avT)+" L"
+          +(Math.abs(avDist-avT)<.05?" \u2713":" \u2014 corrigez le volume de chaque réservoir, reste "+r1(avRest)+" L")):null,
         h("div",{className:"nc-tot"},h("span",null,"Total essence à bord"),h("b",null,String(Math.round(totFuel*10)/10).replace(".",",")+" L")),
         h("button",{className:"nc-go",onClick:start},"▶ Démarrer le vol"),
         h("button",{className:"nc-cancel",onClick:()=>setMode(t0?"fly":"idle")},"Annuler"))));
@@ -4408,7 +4428,8 @@ function NavCards({nav,setNav,tsvOf,tavOf,capOf}){
           h("div",{className:"nc-lbl"},"Réservoir utilisé au départ"),
           h("div",{className:"nc-seg nc-seg-s"},tanks.map(t=>h("button",{key:t[0],className:(newTank||tanks[0][0])===t[0]?"on":"",onClick:()=>{setNewTank(t[0]);setUseTank(t[0]);}},t[1]))),
           h("div",{className:"nc-tk"},tanks.map(t=>h("div",{key:t[0],className:"nc-tkc"+((newTank||tanks[0][0])===t[0]?" on":"")},
-            h("i",null,t[1]),h("b",null,r1(numv((F.fuel||{})[t[0]]))+" L")))),
+            h("i",null,t[1]),h("b",null,r1(tankInit(t[0]))+" L"),
+            numv((F.fuel||{})["av_"+t[0]])?h("u",null,"dont AVT +"+r1(numv((F.fuel||{})["av_"+t[0]]))+" L"):null))),
           h("button",{className:"nc-go",onClick:startTank},"Valider le réservoir de départ")):
         h("div",{className:"nc-fuel"},
           h("div",{className:"nc-fuel-h"},h("span",null,"Carburant disponible"),h("b",null,r1(dispo)+" L")),
@@ -4420,7 +4441,8 @@ function NavCards({nav,setNav,tsvOf,tavOf,capOf}){
           h("div",{className:"nc-seg nc-seg-s"},tanks.map(t=>h("button",{key:t[0],className:usedTank===t[0]?"on":"",onClick:()=>{setUseTank(t[0]);setNewTank(tanks.length===1?t[0]:oppTank(t[0]));}},t[1]))),
           h("div",{className:"nc-lbl"},"Quantité restante après imputation"),
           h("div",{className:"nc-tk"},tanks.map(t=>h("div",{key:t[0],className:"nc-tkc"+(t[0]===usedTank?" on":"")},
-            h("i",null,t[1]+(t[0]===usedTank?" · utilisé":"")),h("b",null,r1(tankLeft(t[0]))+" L")))),
+            h("i",null,t[1]+(t[0]===usedTank?" · utilisé":"")),h("b",null,r1(tankLeft(t[0]))+" L"),
+            numv((F.fuel||{})["av_"+t[0]])?h("u",null,"dont AVT +"+r1(numv((F.fuel||{})["av_"+t[0]]))+" L"):null))),
           tanks.length>1?h(React.Fragment,null,
             h("div",{className:"nc-lbl"},"Réservoir mis en service"),
             h("div",{className:"nc-seg nc-seg-s"},tanks.map(t=>h("button",{key:t[0],className:(newTank||usedTank)===t[0]?"on":"",onClick:()=>setNewTank(t[0])},t[1]))),
