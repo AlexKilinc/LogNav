@@ -878,6 +878,9 @@ html:has(.ovl) #uiScaleBox,html:has(body.rec-full) #uiScaleBox{display:none!impo
 @keyframes ncRecalA{50%{background:#e94560;border-color:#fff}}
 .nc-recal.done{background:linear-gradient(180deg,#16a34a,#12833c);border-color:#16a34a;box-shadow:0 2px 12px rgba(22,163,74,.25);animation:none}
 .nc-recal.done span{color:#d6f5e3}
+.nc-fuelb{font-size:17px!important}
+.nc-close30{background:linear-gradient(180deg,#1E6E8C,#175A73);color:#fff;border:2px solid #7fd1ff;border-radius:12px;padding:14px;font:800 16px "Poppins",sans-serif;cursor:pointer}
+.nc-close30:active{background:linear-gradient(180deg,#2b86a6,#1E6E8C)}
 .nc-recal span{font:600 11.5px "Poppins",sans-serif;color:#9fb8d8;text-transform:none}
 .nc-fuel{display:flex;flex-direction:column;gap:9px;background:#0d2247;border:1px solid #24406f;border-radius:12px;padding:12px}
 .nc-fuel-h{display:flex;justify-content:space-between;align-items:baseline;font:700 12.5px "Poppins",sans-serif;color:#9fb8d8}
@@ -1750,7 +1753,7 @@ window.__TRACE_MARKUP="\n\n<header>\n  <div class=\"hdr-row1\">\n    <span class
    accessible depuis le bouton ⓘ du bandeau du log, avant toute ouverture de la carte */
 (function(){
   var host=document.createElement('div');
-  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Carte OACI :</b> donnée IGN non libre — nécessite votre propre clé Géoplateforme filtrée sur votre domaine. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.171</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
+  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Carte OACI :</b> donnée IGN non libre — nécessite votre propre clé Géoplateforme filtrée sur votre domaine. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.172</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
   (document.body||document.documentElement).appendChild(host.firstElementChild);
   window.__OPEN_INFO=function(){ document.getElementById('infoModal').hidden=false; };
   /* iPadOS : les pastilles de fen\xEAtrage (coin haut-gauche) recouvrent le burger
@@ -4186,6 +4189,7 @@ function NavCards({nav,setNav,tsvOf,tavOf,capOf}){
   const [useTank,setUseTank]=React.useState("");
   const [adj,setAdj]=React.useState(null);
   const [recalOK,setRecalOK]=React.useState(false);
+  const [fuelAt,setFuelAt]=React.useState(0);
   const lpT=React.useRef(null), lpDone=React.useRef(false);
   const [msg,setMsg]=React.useState("");
   React.useEffect(()=>{ if(mode!=="fly"||!F.t0) return; const id=setInterval(()=>tick(v=>v+1),1000); return ()=>clearInterval(id); },[mode,F.t0]);
@@ -4223,7 +4227,7 @@ function NavCards({nav,setNav,tsvOf,tavOf,capOf}){
     setNav({meta:{...nav.meta,ventDir:dr,ventKt:kt},flight:{...F,block:selBlock,qnh,fuel:{...fu,total:String(totFuel)},tank:tanks[0][0],tankSince:null,used:{},log:[],tEnd:null}});
     setK(0); setMode("fly");
     /* le contrôle en vol s'ouvre pour choisir le réservoir de départ */
-    setUseTank(tanks[0][0]); setNewTank(tanks[0][0]); setRecalOK(false); if(tanks.length>1) setPop("start");
+    setUseTank(tanks[0][0]); setNewTank(tanks[0][0]); setRecalOK(false); setFuelAt(0); if(tanks.length>1) setPop("start");
   };
   /* ---- gestion carburant : conso attribuée au réservoir en service ---- */
   const consoLh=numv(nav.meta.conso);
@@ -4254,7 +4258,7 @@ function NavCards({nav,setNav,tsvOf,tavOf,capOf}){
   };
   const startTank=()=>{
     setNav({flight:{...F,tank:newTank||tanks[0][0],tankSince:null}});
-    setPop(false);
+    setFuelAt(Date.now());
   };
   const doSwitch=()=>{
     const nk=newTank||usedTank;
@@ -4263,7 +4267,7 @@ function NavCards({nav,setNav,tsvOf,tavOf,capOf}){
     const ent={t:now,k:usedTank,l:r1(liveUsed),left:r1(Math.max(0,tankInit(usedTank)-numv(u[usedTank]))),
       dispo:r1(Math.max(0,numv((F.fuel||{}).total)-tanks.reduce((s,t)=>s+numv(u[t[0]]),0)))};
     setNav({flight:{...F,tank:nk,tankSince:now,used:u,log:(F.log||[]).concat([ent]).slice(-14)}});
-    setUseTank(nk); setNewTank(nk);
+    setUseTank(nk); setNewTank(nk); setFuelAt(now);
     setMsg(r1(liveUsed)+" L imputés au réservoir "+lbl(usedTank)+(nk!==usedTank?" · "+lbl(nk)+" mis en service":" · comptage relancé"));
     setTimeout(()=>setMsg(""),4500);
   };
@@ -4348,7 +4352,7 @@ function NavCards({nav,setNav,tsvOf,tavOf,capOf}){
       title:t0?"Terminer le vol":"Préparer et lancer le vol"},
       h(Ic,{name:t0?"x":"play",size:13}),t0?" Fin":" Play"):null,
     h("div",{className:"nc-b2"},
-    h("button",{className:"nc-pl"+(blink?" blink":""),style:{"--p":(t0&&!F.tEnd?Math.min(100,Math.round((Date.now()-(diAt||t0))/1800000*100)):0)+"%"},onClick:()=>{setPop(true);setRecalOK(false);setUseTank(curTank);setNewTank(oppTank(curTank));},
+    h("button",{className:"nc-pl"+(blink?" blink":""),style:{"--p":(t0&&!F.tEnd?Math.min(100,Math.round((Date.now()-(diAt||t0))/1800000*100)):0)+"%"},onClick:()=>{setPop(true);setRecalOK(false);setFuelAt(0);setUseTank(curTank);setNewTank(oppTank(curTank));},
       title:"Contrôle en vol : recalage du directionnel et gestion des réservoirs"},h(Ic,{name:"fuelcomp",size:24,sw:1.7})),
     h("div",{className:"nc-times"},
       h("span",{className:"nc-t"},"Départ ",h("b",null,t0?hhmm(t0):"--:--")),
@@ -4413,7 +4417,7 @@ function NavCards({nav,setNav,tsvOf,tavOf,capOf}){
     onTouchEnd:e=>{ if(sy==null) return; const dy=e.changedTouches[0].clientY-sy, dx=e.changedTouches[0].clientX-sxx; sy=null;
       if(Math.abs(dy)<55||Math.abs(dy)<Math.abs(dx)*1.4) return;
       setK(v=>Math.max(0,Math.min(nb-1,v+(dy<0?1:-1)))); }};
-  const openPop=()=>{ setPop(true); setRecalOK(false); setUseTank(curTank); setNewTank(oppTank(curTank)); };
+  const openPop=()=>{ setPop(true); setRecalOK(false); setFuelAt(0); setUseTank(curTank); setNewTank(oppTank(curTank)); };
   /* le modal et l'alerte sortent de la feuille (portail) : sinon ils suivraient le
      décalage de la page et resteraient invisibles depuis les autres pages */
   const portal=(el)=>{ try{ return ReactDOM.createPortal(el,document.body); }catch(e){ return el; } };
@@ -4444,7 +4448,7 @@ function NavCards({nav,setNav,tsvOf,tavOf,capOf}){
           h("div",{className:"nc-tk"},tanks.map(t=>h("div",{key:t[0],className:"nc-tkc"+((newTank||tanks[0][0])===t[0]?" on":"")},
             h("i",null,t[1]),h("b",null,r1(tankInit(t[0]))+" L"),
             numv((F.fuel||{})["av_"+t[0]])?h("u",null,"dont AVT +"+r1(numv((F.fuel||{})["av_"+t[0]]))+" L"):null))),
-          h("button",{className:"nc-go",onClick:startTank},"Valider le réservoir de départ")):
+          null):
         h("div",{className:"nc-fuel"},
           h("div",{className:"nc-fuel-h"},h("span",null,"Carburant disponible"),h("b",null,r1(dispo)+" L")),
           h("div",{className:"nc-conso"},
@@ -4460,8 +4464,12 @@ function NavCards({nav,setNav,tsvOf,tavOf,capOf}){
           tanks.length>1?h(React.Fragment,null,
             h("div",{className:"nc-lbl"},"Réservoir mis en service"),
             h("div",{className:"nc-seg nc-seg-s"},tanks.map(t=>h("button",{key:t[0],className:(newTank||usedTank)===t[0]?"on":"",onClick:()=>setNewTank(t[0])},t[1]))),
-            h("button",{className:"nc-go",onClick:doSwitch},(newTank||usedTank)!==usedTank?"Valider le changement de réservoir":"Valider la consommation")):
-            h("button",{className:"nc-go",onClick:doSwitch},"Valider la consommation")),
+            null):null),
+        h("button",{className:"nc-recal nc-fuelb"+(fuelAt?" done":""),onClick:()=>{ if(pop==="start") startTank(); else doSwitch(); }},
+          fuelAt?"✓ Bilan carbu validé":(pop==="start"?"Valider le réservoir de départ":((newTank||usedTank)!==usedTank?"Valider le changement de réservoir":"Valider la consommation")),
+          h("span",null,fuelAt?("à "+hhmm(fuelAt)):(pop==="start"?"réservoir en service au décollage":r1(liveUsed)+" L imputés au réservoir "+lbl(usedTank)))),
+        (recalOK&&fuelAt)?h("button",{className:"nc-close30",onClick:()=>{ setNav({flight:{...F,diAt:Date.now()}}); setAck(Date.now()); buzzRef.current=-1; setPop(false); }},
+          "Fermer et lancer le chrono 30 min"):null,
         (F.log&&F.log.length)?h("div",{className:"nc-hist"},
           h("div",{className:"nc-lbl"},"Suivi carburant du vol"),
           F.log.map((e,i)=>({e,i})).reverse().map(({e,i})=>h("div",{key:i,className:"nc-hl"},
