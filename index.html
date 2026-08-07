@@ -818,6 +818,9 @@ html:has(.ovl) #uiScaleBox,html:has(body.rec-full) #uiScaleBox{display:none!impo
 .nc-h .vl.fly{color:#48d597;font:800 22px "Poppins",sans-serif;letter-spacing:.04em}
 .nc-h .vl.breathe{color:#48d597;font:800 17px "Poppins",sans-serif;letter-spacing:.06em;animation:ncBreathe 2.6s ease-in-out infinite;transform-origin:center}
 @keyframes ncBreathe{0%,100%{opacity:.5;transform:scale(.97)}50%{opacity:1;transform:scale(1.04)}}
+.nc-swup{flex:none;display:flex;flex-direction:column;align-items:center;gap:1px;margin:-4px 8px 8px;padding:6px;border:0;background:transparent;color:#7fd1ff;cursor:pointer;font:800 11px "Poppins",sans-serif;text-transform:uppercase;letter-spacing:.08em;animation:ncSwUp 1.5s ease-in-out infinite}
+.nc-swup svg{display:block}
+@keyframes ncSwUp{0%,100%{opacity:.28;transform:translateY(4px)}50%{opacity:1;transform:translateY(-4px)}}
 .nc-h .vw{display:block;font:700 11px "JetBrains Mono",monospace;color:#7fd1ff;margin-top:1px}
 .nc-info{flex:1 1 auto;min-height:104px;border-top:1px solid #1d3a6b;background:#0d2247;padding:10px 12px 12px;display:flex;flex-direction:column;gap:12px;overflow:auto;-webkit-overflow-scrolling:touch}
 .nc-blk{flex:none}
@@ -1767,7 +1770,7 @@ window.__TRACE_MARKUP="\n\n<header>\n  <div class=\"hdr-row1\">\n    <span class
    accessible depuis le bouton ⓘ du bandeau du log, avant toute ouverture de la carte */
 (function(){
   var host=document.createElement('div');
-  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Carte OACI :</b> donnée IGN non libre — nécessite votre propre clé Géoplateforme filtrée sur votre domaine. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.179</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
+  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Carte OACI :</b> donnée IGN non libre — nécessite votre propre clé Géoplateforme filtrée sur votre domaine. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.180</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
   (document.body||document.documentElement).appendChild(host.firstElementChild);
   window.__OPEN_INFO=function(){ document.getElementById('infoModal').hidden=false; };
   /* iPadOS : les pastilles de fen\xEAtrage (coin haut-gauche) recouvrent le burger
@@ -4362,7 +4365,7 @@ function NavCards({nav,setNav,tsvOf,tavOf,capOf}){
     const patch={}; patch[block]=arr;
     if(idx===0){ patch.flight={...F,block,t0:now,diAt:null,tankSince:null}; buzzRef.current=-1; setAck(0); }
     setNav(patch);
-    if(idx<nb-1) setTimeout(()=>setK(idx+1),450);
+    /* on reste sur la carte : une flèche clignotante invite à balayer vers le haut */
   };
   const stop=()=>{ if(!window.confirm("Terminer le vol et effacer l’heure de départ ?")) return;
     setNav({flight:{...F,t0:null}}); setMode("idle"); setK(0); };
@@ -4544,7 +4547,12 @@ function NavCards({nav,setNav,tsvOf,tavOf,capOf}){
             onContextMenu:e=>e.preventDefault(),
             title:"Appui court : enregistre l\u2019heure · appui long : ajuster"},
             h("span",{className:"lb"},kk===0?"Heure réelle départ":"Heure réelle"),
-            h("span",{className:"vl"+(b.hReel?"":" breathe")},b.hReel||(kk===0?"Prêt au départ":"TRAZMER")))),
+            h("span",{className:"vl"+(b.hReel?"":" breathe")},b.hReel||(kk===0?"Prêt au départ":(kk===nb-1?"Atterrissage":"TRAZMER"))))),
+        (b.hReel&&kk<nb-1)?h("button",{className:"nc-swup",onClick:()=>{setK(kk+1);setPane(0);},
+          title:"Branche suivante"},
+          h("svg",{viewBox:"0 0 24 24",width:20,height:20,fill:"none",stroke:"currentColor",strokeWidth:2.4,strokeLinecap:"round",strokeLinejoin:"round"},
+            h("path",{d:"M12 19V6"}),h("path",{d:"M6 12l6-6 6 6"})),
+          h("span",null,"Balayez vers le haut — branche suivante")):null,
         h("div",{className:"nc-info nc-swipe"},
           blocks.length?blocks.map(p=>h("div",{key:p[0],className:"nc-blk"},
             h("div",{className:"hd"},p[0]),
