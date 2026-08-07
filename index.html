@@ -861,7 +861,6 @@ html:has(.ovl) #uiScaleBox,html:has(body.rec-full) #uiScaleBox{display:none!impo
 .nc-tkf.on input{border-color:#e94560}
 .nc-dep{display:inline-flex;align-items:center;gap:4px;margin-top:5px;background:#e94560;color:#fff;border-radius:999px;padding:3px 9px;font:800 9.5px "Poppins",sans-serif;text-transform:uppercase;letter-spacing:.07em;white-space:nowrap}
 .nc-dep svg{display:block}
-.nc-dephint{font:600 11px/1.45 "Poppins",sans-serif;color:#8fa9cc;margin-top:-3px}
 .nc-tot{display:flex;justify-content:space-between;align-items:baseline;gap:10px;background:#0d2247;border:1px solid #2a4372;border-radius:10px;padding:11px 13px;font:700 13.5px "Poppins",sans-serif;color:#9fb8d8}
 .nc-tot b{font:800 25px "JetBrains Mono",monospace;color:#48d597}
 .nc-go{background:#e94560;color:#fff;border:0;border-radius:11px;padding:13px;font:800 15px "Poppins",sans-serif;cursor:pointer}
@@ -923,7 +922,9 @@ html:has(.ovl) #uiScaleBox,html:has(body.rec-full) #uiScaleBox{display:none!impo
 .nc-avt{display:flex;align-items:center;gap:5px;margin-top:4px}
 .nc-avt span{font:700 9.5px "Poppins",sans-serif;color:#7fd1ff;letter-spacing:.04em;white-space:nowrap}
 .nc-avt input{flex:1 1 auto;min-width:0;box-sizing:border-box;background:#0d2247;border:1px solid #2a4372;border-radius:7px;padding:5px 6px;font:700 13px "JetBrains Mono",monospace;color:#7fd1ff;outline:none;text-align:center}
-.nc-avtot{background:rgba(233,69,96,.12);border:1px solid rgba(233,69,96,.5);border-radius:10px;padding:8px 11px;font:700 11.5px "Poppins",sans-serif;color:#ffc2ce}
+.nc-avtot{margin-top:4px;background:rgba(233,69,96,.12);border:1px solid rgba(233,69,96,.5);border-radius:8px;padding:4px 6px;text-align:center;color:#ffc2ce}
+.nc-avtot b{display:block;font:800 12.5px "JetBrains Mono",monospace;letter-spacing:.01em;white-space:nowrap}
+.nc-avtot span{display:block;font:700 9.5px "Poppins",sans-serif;opacity:.9;letter-spacing:.03em}
 .nc-avtot.ok{background:rgba(72,213,151,.12);border-color:rgba(72,213,151,.45);color:#7ee7b6}
 .nc-seg-s button{padding:9px;font-size:13px}
 .nc-msg{background:rgba(72,213,151,.12);border:1px solid rgba(72,213,151,.45);border-radius:10px;padding:9px 11px;font:700 12px "Poppins",sans-serif;color:#7ee7b6}
@@ -1770,7 +1771,7 @@ window.__TRACE_MARKUP="\n\n<header>\n  <div class=\"hdr-row1\">\n    <span class
    accessible depuis le bouton ⓘ du bandeau du log, avant toute ouverture de la carte */
 (function(){
   var host=document.createElement('div');
-  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Carte OACI :</b> donnée IGN non libre — nécessite votre propre clé Géoplateforme filtrée sur votre domaine. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.180</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
+  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Carte OACI :</b> donnée IGN non libre — nécessite votre propre clé Géoplateforme filtrée sur votre domaine. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.182</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
   (document.body||document.documentElement).appendChild(host.firstElementChild);
   window.__OPEN_INFO=function(){ document.getElementById('infoModal').hidden=false; };
   /* iPadOS : les pastilles de fen\xEAtrage (coin haut-gauche) recouvrent le burger
@@ -4424,11 +4425,11 @@ function NavCards({nav,setNav,tsvOf,tavOf,capOf}){
               h("input",{value:fu.avt||"",inputMode:"decimal",placeholder:"0",onChange:e=>setFu(f=>{
                 const n={...f,avt:e.target.value};
                 if(tanks.length===1) n["av_"+tanks[0][0]]=e.target.value;
-                return n;})})))),
-        tanks.length>1?h("div",{className:"nc-dephint"},"Décollage sur le réservoir le plus plein — appuyez sur un réservoir pour changer."):null,
-        (avT>0&&tanks.length>1)?h("div",{className:"nc-avtot"+(Math.abs(avDist-avT)<.05?" ok":"")},
-          "Avitaillement réparti : "+r1(avDist)+" / "+r1(avT)+" L"
-          +(Math.abs(avDist-avT)<.05?" \u2713":" \u2014 corrigez le volume de chaque réservoir, reste "+r1(avRest)+" L")):null,
+                return n;})}),
+              /* bilan de répartition juste sous la saisie : gain de hauteur */
+              (avT>0&&tanks.length>1)?h("div",{className:"nc-avtot"+(Math.abs(avDist-avT)<.05?" ok":"")},
+                h("b",null,r1(avDist)+" / "+r1(avT)+" L"),
+                h("span",null,Math.abs(avDist-avT)<.05?"réparti \u2713":"reste "+r1(avRest)+" L")):null))),
         h("div",{className:"nc-tot"},h("span",null,"Total essence à bord"),h("b",null,String(Math.round(totFuel*10)/10).replace(".",",")+" L")),
         h("button",{className:"nc-go nc-go-play",onClick:start},h(Ic,{name:"takeoff",size:19}),"Démarrer le vol"),
         h("button",{className:"nc-cancel",onClick:()=>setMode(t0?"fly":"idle")},"Annuler"))));
@@ -4547,7 +4548,7 @@ function NavCards({nav,setNav,tsvOf,tavOf,capOf}){
             onContextMenu:e=>e.preventDefault(),
             title:"Appui court : enregistre l\u2019heure · appui long : ajuster"},
             h("span",{className:"lb"},kk===0?"Heure réelle départ":"Heure réelle"),
-            h("span",{className:"vl"+(b.hReel?"":" breathe")},b.hReel||(kk===0?"Prêt au départ":(kk===nb-1?"Atterrissage":"TRAZMER"))))),
+            h("span",{className:"vl"+(b.hReel?"":" breathe")},b.hReel||(kk===0?"Prêt au départ":(kk===nb-1?"C/L Arrivée":"TRAZMER"))))),
         (b.hReel&&kk<nb-1)?h("button",{className:"nc-swup",onClick:()=>{setK(kk+1);setPane(0);},
           title:"Branche suivante"},
           h("svg",{viewBox:"0 0 24 24",width:20,height:20,fill:"none",stroke:"currentColor",strokeWidth:2.4,strokeLinecap:"round",strokeLinejoin:"round"},
