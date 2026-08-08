@@ -1846,7 +1846,7 @@ window.__TRACE_MARKUP="\n\n<header>\n  <div class=\"hdr-row1\">\n    <span class
    accessible depuis le bouton ⓘ du bandeau du log, avant toute ouverture de la carte */
 (function(){
   var host=document.createElement('div');
-  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Carte OACI :</b> donnée IGN non libre — nécessite votre propre clé Géoplateforme filtrée sur votre domaine. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.192</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
+  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Carte OACI :</b> donnée IGN non libre — nécessite votre propre clé Géoplateforme filtrée sur votre domaine. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.193</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
   (document.body||document.documentElement).appendChild(host.firstElementChild);
   window.__OPEN_INFO=function(){ document.getElementById('infoModal').hidden=false; };
   /* iPadOS : les pastilles de fen\xEAtrage (coin haut-gauche) recouvrent le burger
@@ -4339,7 +4339,9 @@ function NavCards({nav,setNav,tsvOf,tavOf,capOf}){
   const totMin=brs.reduce((s,b)=>s+durOf(b),0);
   const cumBefore=idx=>brs.slice(0,idx).reduce((s,b)=>s+durOf(b),0);
   const t0=F.t0||null;
-  const eta=t0?t0+totMin*60000:null;
+  /* l'estimée d'arrivée inclut le forfait d'intégration de circuit */
+  const tInt=numv(((legs[legs.length-1]||{}).arrTint)||0);
+  const eta=t0?t0+(totMin+tInt)*60000:null;
   const elapsed=t0?Math.max(0,Date.now()-t0):0;
   const hms=ms=>{const s=Math.floor(ms/1000);return pad2(Math.floor(s/3600))+":"+pad2(Math.floor(s%3600/60))+":"+pad2(s%60);};
   const av=(()=>{try{return __fleet().find(a=>a.immat===(nav.meta.immat||""))||null;}catch(e){return null;}})();
@@ -4716,6 +4718,17 @@ function NavCards({nav,setNav,tsvOf,tavOf,capOf}){
   const branchCard=ci=>{
     const b=brs[ci]; if(!b) return null;
     const est=estOf(ci), blocks=blocksOf(ci,b);
+    const hOf=i=>String(((legs[i]||{}).hReel)||"").trim();
+    /* la première carte gère deux tops : le départ et la fin de la 1re branche */
+    const hBtn=(i,lab,ph)=>h("button",{onClick:()=>{ if(lpDone.current){ lpDone.current=false; return; } setReel(i); },
+      onTouchStart:()=>lpStart(i),onTouchEnd:lpEnd,onTouchMove:lpEnd,onTouchCancel:lpEnd,
+      onMouseDown:()=>lpStart(i),onMouseUp:lpEnd,onMouseLeave:lpEnd,
+      onContextMenu:e=>e.preventDefault(),
+      title:"Appui court : enregistre l\u2019heure · appui long : ajuster"},
+      h("span",{className:"lb"},lab),
+      h("span",{className:"vl"+(hOf(i)?"":" breathe")},hOf(i)||ph));
+    /* l'invite à balayer n'apparaît qu'une fois la fin de la branche relevée */
+    const swOk=ci===0?!!hOf(1):!!hOf(ci);
     return h("div",{key:ci,className:"nc-card",...(wide?{}:vsw)},
       h("div",{className:"nc-end"+((ci===0||ci===nb-1)?" nc-endc":"")},
         ci===0?atisChip(true,"l"):null,
@@ -4730,18 +4743,13 @@ function NavCards({nav,setNav,tsvOf,tavOf,capOf}){
           h("div",{className:"nc-v"},h("i",null,"Durée ",h("em",null,"TSV")),h("b",null,(b.tsv||"—")+"′"),
             h("s",null,b.tav?"TAV : "+b.tav+"′":"TAV : —"))),
         h("div",{className:"nc-h"},
-          h("div",null,h("span",{className:"lb"},"Heure estimée"),
-            ci===0?h("span",{className:"vl fly"},"Fly Safe")
-                  :h(React.Fragment,null,h("span",{className:"vl"},(est&&est.sv)||"--:--"),
+          ci===0?hBtn(0,"Heure départ","Prêt au départ")
+                :h("div",null,h("span",{className:"lb"},"Heure estimée"),
+                   h(React.Fragment,null,h("span",{className:"vl"},(est&&est.sv)||"--:--"),
                      (est&&est.av)?h("span",{className:"vw"},"avec vent "+est.av):null)),
-          h("button",{onClick:()=>{ if(lpDone.current){ lpDone.current=false; return; } setReel(ci); },
-            onTouchStart:()=>lpStart(ci),onTouchEnd:lpEnd,onTouchMove:lpEnd,onTouchCancel:lpEnd,
-            onMouseDown:()=>lpStart(ci),onMouseUp:lpEnd,onMouseLeave:lpEnd,
-            onContextMenu:e=>e.preventDefault(),
-            title:"Appui court : enregistre l\u2019heure · appui long : ajuster"},
-            h("span",{className:"lb"},ci===0?"Heure réelle départ":"Heure réelle"),
-            h("span",{className:"vl"+(b.hReel?"":" breathe")},b.hReel||(ci===0?"Prêt au départ":(ci===nb-1?"C/L Arrivée":"TRAZMER"))))),
-        (!wide&&b.hReel&&ci<nb-1)?h("button",{className:"nc-swup",onClick:()=>{setK(ci+1);setPane(0);},
+          ci===0?hBtn(1,"Heure fin 1re branche",(1>=nb-1?"C/L Arrivée":"TRAZMER"))
+                :hBtn(ci,"Heure réelle",(ci===nb-1?"C/L Arrivée":"TRAZMER"))),
+        (!wide&&swOk&&ci<nb-1)?h("button",{className:"nc-swup",onClick:()=>{setK(ci+1);setPane(0);},
           title:"Branche suivante"},
           h("svg",{viewBox:"0 0 24 24",width:16,height:16,fill:"none",stroke:"currentColor",strokeWidth:2.6,strokeLinecap:"round",strokeLinejoin:"round"},
             h("path",{d:"M12 19V6"}),h("path",{d:"M6 12l6-6 6 6"})),
@@ -4762,7 +4770,7 @@ function NavCards({nav,setNav,tsvOf,tavOf,capOf}){
       title:"Rappel : recalage du directionnel et contrôle carburant"},h(Ic,{name:"fuelcomp",size:27,sw:1.7}))):null,
     adj?portal(h("div",{className:"nc-ov",onClick:e=>{if(e.target===e.currentTarget)setAdj(null);}},
       h("div",{className:"nc-pop nc-pop-s"},
-        h("div",{className:"nc-pop-h"},"Heure réelle · "+((brs[adj.k]||{}).from||"départ"),
+        h("div",{className:"nc-pop-h"},"Heure réelle · "+((String(((legs[adj.k]||{}).position)||"").trim())||"départ"),
           h("button",{className:"nc-x",onClick:()=>setAdj(null),title:"Fermer"},"×")),
         h("div",{className:"nc-timew"},
           h("button",{onClick:()=>adjBump(-1),title:"Une minute de moins"},"−"),
