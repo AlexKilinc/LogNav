@@ -1846,7 +1846,7 @@ window.__TRACE_MARKUP="\n\n<header>\n  <div class=\"hdr-row1\">\n    <span class
    accessible depuis le bouton ⓘ du bandeau du log, avant toute ouverture de la carte */
 (function(){
   var host=document.createElement('div');
-  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Carte OACI :</b> donnée IGN non libre — nécessite votre propre clé Géoplateforme filtrée sur votre domaine. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.196</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
+  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Carte OACI :</b> donnée IGN non libre — nécessite votre propre clé Géoplateforme filtrée sur votre domaine. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.197</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
   (document.body||document.documentElement).appendChild(host.firstElementChild);
   window.__OPEN_INFO=function(){ document.getElementById('infoModal').hidden=false; };
   /* iPadOS : les pastilles de fen\xEAtrage (coin haut-gauche) recouvrent le burger
@@ -4446,11 +4446,13 @@ function NavCards({nav,setNav,tsvOf,tavOf,capOf}){
     for(let i=0;i<nb;i++){ if(tsOf((legs[i]||{}).hReel)!=null) bi=i; }
     return bi; })();
   const brStart=curBi<0?null:(((F.tops||{})[curBi]!=null)?F.tops[curBi]:tsOf((legs[curBi]||{}).hReel));
-  const brElapsed=brStart!=null?Math.max(0,(F.tEnd||Date.now())-brStart):null;
+  const arrTs=(((F.tops||{})[nb]!=null)?F.tops[nb]:tsOf((legs[nb]||{}).hReel));
+  const brElapsed=brStart!=null?Math.max(0,(F.tEnd||arrTs||Date.now())-brStart):null;
   /* estimée d'arrivée : chaînée sur le dernier top relevé, plus les branches
      qu'il reste à parcourir et le forfait d'intégration ; avant tout top on
      part de l'heure de départ et du vol complet */
   const eta=(()=>{ if(!t0) return null;
+    if(arrTs!=null) return arrTs;   /* arrivée relevée : l'estimée devient l'heure réelle */
     const from=curBi>0?curBi:0, base=(curBi>0&&brStart!=null)?brStart:t0;
     let rest=0; for(let j=from;j<nb;j++){ const br=brs[j]; if(br) rest+=durOf(br); }
     return base+(rest+tInt)*60000; })();
@@ -4737,7 +4739,7 @@ function NavCards({nav,setNav,tsvOf,tavOf,capOf}){
       h("span",{className:"vl"+(hOf(i)?"":" breathe")},hOf(i)||ph),
       sub||null);
     /* l'invite à balayer n'apparaît qu'une fois la fin de la branche relevée */
-    const swOk=ci===0?!!hOf(1):!!hOf(ci);
+    const swOk=!!hOf(ci+1);
     return h("div",{key:ci,className:"nc-card",...(wide?{}:vsw)},
       h("div",{className:"nc-end"+((ci===0||ci===nb-1)?" nc-endc":"")},
         ci===0?atisChip(true,"l"):null,
@@ -4756,9 +4758,9 @@ function NavCards({nav,setNav,tsvOf,tavOf,capOf}){
                 :h("div",null,h("span",{className:"lb"},"Heure estimée"),
                    h(React.Fragment,null,h("span",{className:"vl"},(est&&est.sv)||"--:--"),
                      (est&&est.av)?h("span",{className:"vw"},"avec vent "+est.av):null)),
-          ci===0?hBtn(1,"Heure fin 1re branche",(1>=nb-1?"C/L Arrivée":"TRAZMER"),
+          ci===0?hBtn(1,"Heure fin 1re branche",(nb===1?"C/L Arrivée":"TRAZMER"),
                    (!hOf(1)&&est&&est.sv)?h("span",{className:"vw"},"estimée "+est.sv+(est.av?" · vent "+est.av:"")):null)
-                :hBtn(ci,"Heure réelle",(ci===nb-1?"C/L Arrivée":"TRAZMER"))),
+                :hBtn(ci+1,"Heure réelle",(ci===nb-1?"C/L Arrivée":"TRAZMER"))),
         (!wide&&swOk&&ci<nb-1)?h("button",{className:"nc-swup",onClick:()=>{setK(ci+1);setPane(0);},
           title:"Branche suivante"},
           h("svg",{viewBox:"0 0 24 24",width:16,height:16,fill:"none",stroke:"currentColor",strokeWidth:2.6,strokeLinecap:"round",strokeLinejoin:"round"},
