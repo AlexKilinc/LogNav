@@ -1846,7 +1846,7 @@ window.__TRACE_MARKUP="\n\n<header>\n  <div class=\"hdr-row1\">\n    <span class
    accessible depuis le bouton ⓘ du bandeau du log, avant toute ouverture de la carte */
 (function(){
   var host=document.createElement('div');
-  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Carte OACI :</b> donnée IGN non libre — nécessite votre propre clé Géoplateforme filtrée sur votre domaine. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.194</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
+  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Carte OACI :</b> donnée IGN non libre — nécessite votre propre clé Géoplateforme filtrée sur votre domaine. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.195</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
   (document.body||document.documentElement).appendChild(host.firstElementChild);
   window.__OPEN_INFO=function(){ document.getElementById('infoModal').hidden=false; };
   /* iPadOS : les pastilles de fen\xEAtrage (coin haut-gauche) recouvrent le burger
@@ -4689,14 +4689,16 @@ function NavCards({nav,setNav,tsvOf,tavOf,capOf}){
      depuis ce point ; la version avec vent est rappelée en petit. */
   const addMin=(hm,m)=>{const p=String(hm||"").split(":");let t=(parseInt(p[0],10)||0)*60+(parseInt(p[1],10)||0)+Math.round(m);
     t=((t%1440)+1440)%1440; return pad2(Math.floor(t/60))+":"+pad2(t%60);};
+  /* l'estimée d'une carte annonce la FIN de sa branche : heure réelle du début
+     de branche + son TSV. Tant que ce début n'est pas relevé, on chaîne depuis
+     le dernier top connu. La version avec vent est rappelée en petit. */
   const estOf=idx=>{
-    if(idx<=0) return null;
     let bi=-1,bt="";
-    for(let i=idx-1;i>=0;i--){ const hr=((legs[i]||{}).hReel||"").trim();
+    for(let i=idx;i>=0;i--){ const hr=((legs[i]||{}).hReel||"").trim();
       if(/^\d{1,2}:\d{2}$/.test(hr)){ bi=i; bt=hr; break; } }
-    if(bi<0) return t0?{sv:hhmm(t0+cumBefore(idx)*60000),av:null}:null;
+    if(bi<0) return t0?{sv:hhmm(t0+cumBefore(idx+1)*60000),av:null}:null;
     let sv=0,av=0;
-    for(let j=bi;j<idx;j++){ const br=brs[j]; if(!br) continue; sv+=numv(br.tsv); av+=numv(br.tav||br.tsv); }
+    for(let j=bi;j<=idx;j++){ const br=brs[j]; if(!br) continue; sv+=numv(br.tsv); av+=numv(br.tav||br.tsv); }
     const a=addMin(bt,av), s=addMin(bt,sv);
     return {sv:s,av:(a!==s?a:null)};
   };
