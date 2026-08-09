@@ -1924,7 +1924,7 @@ window.__TRACE_MARKUP="\n\n<header>\n  <div class=\"hdr-row1\">\n    <span class
    accessible depuis le bouton ⓘ du bandeau du log, avant toute ouverture de la carte */
 (function(){
   var host=document.createElement('div');
-  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Carte OACI :</b> donnée IGN non libre — nécessite votre propre clé Géoplateforme filtrée sur votre domaine. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.216</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
+  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Carte OACI :</b> donnée IGN non libre — nécessite votre propre clé Géoplateforme filtrée sur votre domaine. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.217</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
   (document.body||document.documentElement).appendChild(host.firstElementChild);
   window.__OPEN_INFO=function(){ document.getElementById('infoModal').hidden=false; };
   /* iPadOS : les pastilles de fen\xEAtrage (coin haut-gauche) recouvrent le burger
@@ -3443,26 +3443,56 @@ window.__traceRefreshFavs=__renderFavs;
   });
 })();
 
-/* bouton rond : centrer sur la trace de navigation si présente, sinon région parisienne (LFPN au centre) */
+/* bouton rond de recentrage : trois cibles à tour de rôle —
+   la navigation entière, la position GPS, l'aérodrome de base du profil */
+var __ctrMode=0, __ctrPos=null;
+function __ctrMsg(m){ try{ if(typeof showToast==='function') showToast(m); }catch(e){} }
+function __ctrHome(){
+  var tgt=[48.75,2.11], z=10, nom='LFPN';
+  try{
+    var u=window.AkilaAuth&&window.AkilaAuth.current&&window.AkilaAuth.current();
+    var code=u&&u.homeAd?String(u.homeAd).trim().toUpperCase():'';
+    if(code&&typeof AERO!=='undefined'){
+      var a=AERO.find(function(x){return x[0]===code;});
+      if(a){ tgt=[a[2],a[3]]; z=11; nom=code; }
+    }
+  }catch(_){}
+  return {ll:tgt,z:z,nom:nom};
+}
+function __ctrNav(){
+  var all=routes.aller.concat(routes.retour);
+  if(all.length>=2){ map.fitBounds(all.map(function(w){return [w.lat,w.lng];}),{padding:[40,40]}); return true; }
+  if(all.length===1){ map.setView([all[0].lat,all[0].lng],11); return true; }
+  return false;
+}
+function __ctrGps(done){
+  if(!navigator.geolocation){ __ctrMsg('GPS non disponible sur cet appareil.'); done(false); return; }
+  navigator.geolocation.getCurrentPosition(function(pos){
+    var c=pos.coords, ll=[c.latitude,c.longitude];
+    map.setView(ll,Math.max(map.getZoom(),12));
+    try{
+      if(__ctrPos){ map.removeLayer(__ctrPos); __ctrPos=null; }
+      __ctrPos=L.circleMarker(ll,{radius:8,color:'#fff',weight:3,fillColor:'#3A7BFF',fillOpacity:.95,className:'no-print'}).addTo(map);
+    }catch(_){}
+    done(true);
+  },function(){ __ctrMsg('Position GPS indisponible — autorisez la localisation.'); done(false); },
+  {enableHighAccuracy:true,timeout:8000,maximumAge:15000});
+}
 (function(){
   var b=document.getElementById('centerLfpn'); if(!b) return;
+  var LBL=['la navigation','votre position','l\u2019a\u00e9rodrome de base'];
+  function tip(){ b.title='Recentrer sur '+LBL[__ctrMode]+' \u2014 appui suivant : '+LBL[(__ctrMode+1)%3]; }
+  tip();
   b.addEventListener('click',function(){ try{
-    var all=routes.aller.concat(routes.retour);
-    if(all.length>=2){ map.fitBounds(all.map(function(w){return [w.lat,w.lng];}),{padding:[40,40]}); }
-    else if(all.length===1){ map.setView([all[0].lat,all[0].lng],11); }
-    else {
-      /* pas de navigation : aérodrome du profil (code OACI), sinon LFPN */
-      var tgt=[48.75,2.11], z=10;
-      try{
-        var u=window.AkilaAuth&&window.AkilaAuth.current&&window.AkilaAuth.current();
-        var code=u&&u.homeAd?String(u.homeAd).trim().toUpperCase():'';
-        if(code&&typeof AERO!=='undefined'){
-          var a=AERO.find(function(x){return x[0]===code;});
-          if(a){ tgt=[a[2],a[3]]; z=11; }
-        }
-      }catch(_){}
-      map.setView(tgt,z);
-    }
+    var m=__ctrMode;
+    var suite=function(ok){ __ctrMode=(m+1)%3; tip();
+      if(ok) __ctrMsg('Centr\u00e9 sur '+LBL[m]+' \u2014 appui suivant : '+LBL[__ctrMode]+'.'); };
+    if(m===0){
+      if(__ctrNav()) suite(true);
+      else { __ctrMsg('Aucune navigation trac\u00e9e \u2014 centrage sur votre position.');
+        __ctrGps(function(){ __ctrMode=2; tip(); }); }
+    } else if(m===1){ __ctrGps(suite); }
+    else { var h=__ctrHome(); map.setView(h.ll,h.z); suite(true); }
   }catch(e){} });
 })();
 
@@ -3569,6 +3599,7 @@ function __snapToKnown(w){
 
 /* badge de liaison cliquable : bascule Map liée <-> Map non liée (sans fermer la carte) */
 window.__SEND_MAP_TO_LOG=function(){ try{ __sendRoutesToLog(); __setSyncState(false); }catch(e){} };
+try{ window.__MAP_VIEW=function(ll,z){ if(ll) map.setView(ll,z||map.getZoom()); var c=map.getCenter(); return {lat:c.lat,lng:c.lng,z:map.getZoom()}; }; }catch(e){}
 function openRelinkChoice(){
   var ov=document.createElement('div'); ov.className='vac-ov'; ov.style.zIndex='4200';
   ov.innerHTML='<div class="rl-card">'
