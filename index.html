@@ -470,11 +470,15 @@
 .rec-hud .rec-hud-stop{margin-left:4px;background:#e11d48;color:#fff;border:none;border-radius:15px;padding:5px 12px;font:700 12px "Poppins",sans-serif;cursor:pointer;display:inline-flex;align-items:center;gap:4px;-webkit-tap-highlight-color:transparent}
 .rec-hud .rec-hud-stop:active{background:#be123c}
 /* page Cards (mobile) : le bandeau REC se cale à gauche, à la place du titre « Log de Nav : Card » */
-html.mp-cards .rec-hud{left:10px;transform:none;font-size:11.5px;padding:6px 7px 6px 10px;gap:5px;max-width:calc(100vw - 150px);box-sizing:border-box}
-html.mp-cards .rec-hud .rec-hud-txt{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-html.mp-cards .rec-hud .dot{flex:none;width:9px;height:9px}
-html.mp-cards .rec-hud .rec-hud-stop{padding:4px 8px;font-size:11px;margin-left:2px;flex:none}
-html.mp-cards body.rec-live .nc-title{visibility:hidden}
+@media screen and (max-width:820px){
+  .rec-hud{font-size:11.5px;padding:6px 7px 6px 10px;gap:5px;box-sizing:border-box}
+  .rec-hud .rec-hud-txt{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .rec-hud .dot{flex:none;width:9px;height:9px}
+  .rec-hud .rec-hud-stop{padding:4px 8px;font-size:11px;margin-left:2px;flex:none}
+  html.mp-cards .rec-hud{left:10px;transform:none;max-width:calc(100vw - 150px)}
+  html.mp-cards.rec-live .nc-title{visibility:hidden}
+  html.rec-live:not(.mp-cards) #mdots{visibility:hidden}
+}
 
 @keyframes recPulse{0%,100%{box-shadow:0 0 0 0 rgba(225,29,72,.55)}50%{box-shadow:0 0 0 7px rgba(225,29,72,0)}}
 /* décompte avant enregistrement */
@@ -974,15 +978,18 @@ html:has(.ovl) #uiScaleBox,html:has(body.rec-full) #uiScaleBox{display:none!impo
 .nc-endfl{flex:none;margin:0;border:0;display:flex;align-items:center;justify-content:center;gap:9px;border-top:1px solid #1d3a6b;background:#e94560;color:#fff;padding:14px;font:800 16px "Poppins",sans-serif;cursor:pointer}
 .nc-endfl:disabled{background:#0d2247;color:#5b7396;font-size:14px;cursor:not-allowed}
 .nc-endfl.done,.nc-endfl.done:disabled{background:#0d2247;color:#48d597;font-size:14px;cursor:default}
-.nc-hm{flex:none;display:flex;align-items:flex-end;gap:10px;border-top:1px solid #1d3a6b;background:#0d2247;padding:9px 11px}
-.nc-hml{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:3px}
-.nc-hml label{font:700 10.5px "Poppins",sans-serif;color:#8fa9cc;text-transform:uppercase;letter-spacing:.06em}
-.nc-hml input{width:100%;box-sizing:border-box;background:#102A52;border:1px solid #2a4372;border-radius:8px;padding:8px 9px;font:800 17px "JetBrains Mono",monospace;color:#fff;outline:none;text-align:center}
-.nc-hml input:focus{border-color:#3A7BFF;box-shadow:0 0 0 3px rgba(58,123,255,.18)}
-.nc-hmr{flex:0 0 auto;display:flex;flex-direction:column;gap:3px;text-align:right}
-.nc-hmr i{font:700 10px "Poppins",sans-serif;font-style:normal;color:#8fa9cc;text-transform:uppercase;letter-spacing:.05em;white-space:nowrap}
-.nc-hmr b{font:800 15px "JetBrains Mono",monospace;color:#cfe0f5;text-transform:none;letter-spacing:0}
-.nc-hmr b.ok{color:#48d597}
+/* horamètre : bandeau récapitulatif sur la dernière carte, saisie dans un modal */
+.nc-hmb{flex:none;display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;box-sizing:border-box;border:0;border-top:1px solid #1d3a6b;background:#0d2247;padding:11px;text-align:left;cursor:pointer;font:inherit}
+.nc-hmb:active{background:#123058}
+.nc-hmb i{flex:none;font:700 10.5px "Poppins",sans-serif;font-style:normal;color:#8fa9cc;text-transform:uppercase;letter-spacing:.06em}
+.nc-hmb b{min-width:0;font:800 12.5px "JetBrains Mono",monospace;color:#7fd1ff;text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.nc-hmb.ok b{color:#48d597}
+.nc-pop-s .nc-af>label{flex:0 0 118px}
+.nc-hmi{text-align:center;letter-spacing:.5px;font-size:18px!important}
+.nc-hmres{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:4px 0 2px;padding:9px 11px;background:#102A52;border:1px solid #2a4372;border-radius:10px}
+.nc-hmres i{font:700 10.5px "Poppins",sans-serif;font-style:normal;color:#8fa9cc;text-transform:uppercase;letter-spacing:.06em}
+.nc-hmres b{font:800 16px "JetBrains Mono",monospace;color:#cfe0f5}
+.nc-hmres b.ok{color:#48d597}
 .nc-reuse{flex:none;border:0;border-top:1px solid #1d3a6b;background:#12294f;color:#7fd1ff;padding:12px;font:800 13px "Poppins",sans-serif;cursor:pointer;text-align:center}
 .nc-reuse:active{background:#17325C}
 .nc-fab{position:fixed;right:14px;bottom:104px;z-index:118;width:54px;height:54px;border-radius:50%;border:2px solid #fff;background:#e94560;color:#fff;display:inline-flex;align-items:center;justify-content:center;padding:0;cursor:pointer;box-shadow:0 6px 22px rgba(0,0,0,.5);animation:ncFab 1s steps(2,start) infinite}
@@ -1882,7 +1889,7 @@ window.__TRACE_MARKUP="\n\n<header>\n  <div class=\"hdr-row1\">\n    <span class
    accessible depuis le bouton ⓘ du bandeau du log, avant toute ouverture de la carte */
 (function(){
   var host=document.createElement('div');
-  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Carte OACI :</b> donnée IGN non libre — nécessite votre propre clé Géoplateforme filtrée sur votre domaine. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.204</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
+  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Carte OACI :</b> donnée IGN non libre — nécessite votre propre clé Géoplateforme filtrée sur votre domaine. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.206</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
   (document.body||document.documentElement).appendChild(host.firstElementChild);
   window.__OPEN_INFO=function(){ document.getElementById('infoModal').hidden=false; };
   /* iPadOS : les pastilles de fen\xEAtrage (coin haut-gauche) recouvrent le burger
@@ -3898,12 +3905,27 @@ function openRelinkChoice(){
           var nxt=document.querySelector('#navcards .nc-nav,#navcards .nc-play');
           var lim=nxt?Math.round(nxt.getBoundingClientRect().left-lft-10):Math.round(window.innerWidth-lft-10);
           recHud.style.maxWidth=Math.max(96,lim)+'px';
-        } else { recHud.style.left=''; recHud.style.top=''; recHud.style.transform=''; recHud.style.maxWidth=''; }
+        } else {
+          /* toutes les autres pages (mobile) : en bas, par-dessus l'indicateur de pages */
+          var dots=document.getElementById('mdots'), dr=dots?dots.getBoundingClientRect():null;
+          if(dr&&dr.height>0&&isMobileView()){
+            var zb=document.getElementById('uiScaleBox');
+            var rl=zb?Math.round(zb.getBoundingClientRect().left-8):Math.round(window.innerWidth-8);
+            recHud.style.transform='none';
+            recHud.style.maxWidth=Math.max(120,rl-8)+'px';
+            var w=recHud.offsetWidth, h2=recHud.offsetHeight||34;
+            var l2=Math.round(dr.left+dr.width/2-w/2);
+            if(l2+w>rl) l2=Math.round(rl-w);
+            if(l2<8) l2=8;
+            recHud.style.left=l2+'px';
+            recHud.style.top=Math.round(dr.top+dr.height/2-h2/2)+'px';
+          } else { recHud.style.left=''; recHud.style.top=''; recHud.style.transform=''; recHud.style.maxWidth=''; }
+        }
       }catch(e){}
       rec.classList.add('recording');
-      try{ document.body.classList.add('rec-live'); }catch(e){}
+      try{ document.body.classList.add('rec-live'); document.documentElement.classList.add('rec-live'); }catch(e){}
     } else { if(recHud){ recHud.remove(); recHud=null; } rec.classList.remove('recording');
-      try{ document.body.classList.remove('rec-live'); }catch(e){}
+      try{ document.body.classList.remove('rec-live'); document.documentElement.classList.remove('rec-live'); }catch(e){}
     }
   }
   function isMobileView(){ try{ return !!(window.matchMedia && window.matchMedia('(max-width:820px)').matches); }catch(e){ return false; } }
@@ -4503,6 +4525,8 @@ function NavCards({nav,setNav,tsvOf,tavOf,capOf}){
     setNav(patch); clrRef.current=false;
     /* la trace s'arrête avec le vol : le récapitulatif d'enregistrement s'ouvre */
     try{ if(window.__REC_STOP) window.__REC_STOP(); }catch(e){}
+    /* puis on invite à relever l'horamètre d'arrivée (facultatif) */
+    setTimeout(()=>setPop("hm"),260);
   };
   const buzzRef=React.useRef(-1), clrRef=React.useRef(false);
   const buzz=()=>{
@@ -4527,6 +4551,12 @@ function NavCards({nav,setNav,tsvOf,tavOf,capOf}){
     for(let i=0;i<nb;i++){ if(tsOf((legs[i]||{}).hReel)!=null) bi=i; }
     return bi; })();
   const brStart=curBi<0?null:(((F.tops||{})[curBi]!=null)?F.tops[curBi]:tsOf((legs[curBi]||{}).hReel));
+  /* horamètre : jusqu'à 7 chiffres avant la virgule et 2 après */
+  const hmFmt=v=>{ let x=String(v==null?"":v).replace(/[^0-9.,]/g,"").replace(/\./g,",");
+    const i=x.indexOf(","); if(i>=0) x=x.slice(0,i+1)+x.slice(i+1).replace(/,/g,"");
+    const p=x.split(","); const a=p[0].slice(0,7);
+    return p.length>1?a+","+p[1].slice(0,2):a; };
+  const putHm=(k,v)=>setNav({flight:{...F,[k]:hmFmt(v)}});
   /* horamètre : la différence arrivée − départ donne la durée facturée du vol */
   const hmDur=(()=>{ const a=numv(F.hmStart),b=numv(F.hmEnd);
     if(!String(F.hmStart||"").trim()||!String(F.hmEnd||"").trim()) return null;
@@ -4691,6 +4721,20 @@ function NavCards({nav,setNav,tsvOf,tavOf,capOf}){
         arow("Remarques",ainp(A.rem,v=>put({rem:v}),"travaux, TdP…",0,1)),
         h("button",{className:"nc-go",onClick:()=>setPop(false)},"Fermer")));
   };
+  /* fin de vol : saisie de l'horamètre — départ rappelé, arrivée facultative */
+  const hmRow=(lab,unit,val,k,ph)=>h("div",{className:"nc-af"},
+    h("label",null,subl(lab,unit)),
+    h("input",{className:"nc-hmi",value:val||"",inputMode:"decimal",maxLength:10,placeholder:ph,
+      onChange:e=>putHm(k,e.target.value)}));
+  const hmModal=()=>h("div",{className:"nc-ov",onClick:e=>{if(e.target===e.currentTarget)setPop(false);}},
+    h("div",{className:"nc-pop nc-pop-a nc-pop-s"},
+      h("div",{className:"nc-pop-h"},"Horamètre"+(F.tEnd?" · fin de vol":""),
+        h("button",{className:"nc-x",onClick:()=>setPop(false),title:"Fermer"},"×")),
+      hmRow("Horamètre départ","relevé avant le vol",F.hmStart,"hmStart","1234,56"),
+      hmRow("Horamètre fin de vol","facultatif",F.hmEnd,"hmEnd","1235,30"),
+      h("div",{className:"nc-hmres"},h("i",null,"Durée horamètre"),
+        h("b",{className:hmDur!=null?"ok":""},hmDur!=null?hmTxt:"—")),
+      h("button",{className:"nc-go",onClick:()=>setPop(false)},"Valider")));
   const atisChip=(dep,side)=>h("button",{className:"nc-atisc "+side+((dep?depTxt:arrTxt)?"":" empty"),
     onClick:e=>{e.stopPropagation();setPop(dep?"atis":"atisA");},
     title:"ATIS "+(dep?"départ":"arrivée")},
@@ -4744,8 +4788,8 @@ function NavCards({nav,setNav,tsvOf,tavOf,capOf}){
           h("div",{className:"nc-f"},h("label",null,"Vent — vit.",h("span",{className:"nc-u"},"kt")),h("input",{value:kt,inputMode:"decimal",onChange:e=>setKt(e.target.value),placeholder:"15"})),
           h("div",{className:"nc-f"},h("label",null,"QNH",h("span",{className:"nc-u"},"hPa")),h("input",{value:qnh,inputMode:"decimal",onChange:e=>setQnh(e.target.value),placeholder:"1013"})),
           h("div",{className:"nc-f"},h("label",null,"Horamètre",h("span",{className:"nc-u"},"départ · heures")),
-            h("input",{value:F.hmStart||"",inputMode:"decimal",placeholder:"1234,5",
-              onChange:e=>setNav({flight:{...F,hmStart:e.target.value}})}))),
+            h("input",{value:F.hmStart||"",inputMode:"decimal",maxLength:10,placeholder:"1234,56",
+              onChange:e=>putHm("hmStart",e.target.value)}))),
         h("div",{className:"nc-f"},h("div",{className:"nc-lg"},"Carburant"+(av?" — "+av.immat:""),nres?null:h("span",{className:"nc-u"},"nombre de réservoirs non renseigné dans le profil")),
           h("div",{className:"nc-grid nc-gridf"},
             tanks.map(t=>h("div",{key:t[0],className:"nc-f nc-tkf"+(tanks.length>1&&depK===t[0]?" on":""),
@@ -4881,14 +4925,14 @@ function NavCards({nav,setNav,tsvOf,tavOf,capOf}){
         h("span",{className:"nm"+(shortName(b.to).length>12?" lg":"")},rev===ci+"b"?b.to:shortName(b.to))),
       ci===nb-1?h("button",{className:"nc-endfl"+(F.tEnd?" done":""),onClick:endFlight,disabled:!t0||!!F.tEnd},
         F.tEnd?"Vol terminé à "+hhmm(F.tEnd)+" · log complété":h(React.Fragment,null,h(Ic,{name:"landing",size:19}),"Fin de vol")):null,
-      (ci===nb-1&&F.tEnd)?h("div",{className:"nc-hm"},
-        h("div",{className:"nc-hml"},
-          h("label",null,"Horamètre arrivée"),
-          h("input",{value:F.hmEnd||"",inputMode:"decimal",placeholder:"1235,3",
-            onChange:e=>setNav({flight:{...F,hmEnd:e.target.value}})})),
-        h("div",{className:"nc-hmr"},
-          h("i",null,"Départ ",h("b",null,String(F.hmStart||"").trim()||"—")),
-          h("i",null,"Durée ",h("b",{className:hmDur!=null?"ok":""},hmDur!=null?hmTxt:"—")))):null,
+      (ci===nb-1&&F.tEnd)?h("button",{className:"nc-hmb"+(hmDur!=null?" ok":""),onClick:()=>setPop("hm"),
+        title:"Relever l'horamètre de fin de vol"},
+        h("i",null,"Horamètre"),
+        h("b",null,hmDur!=null
+          ?((String(F.hmStart||"").trim()||"—")+" → "+(String(F.hmEnd||"").trim()||"—")+" · "+hmTxt.split(" · ")[0])
+          :(String(F.hmEnd||"").trim()
+            ?(String(F.hmStart||"").trim()||"—")+" → "+String(F.hmEnd).trim()
+            :"Saisir l'horamètre de fin de vol"))):null,
       (ci===nb-1&&F.tEnd)?h("button",{className:"nc-reuse",
         title:"Le vol qui vient d'être effectué reste consultable ; une copie vierge est créée pour le prochain",
         onClick:()=>{ setMode("idle"); setK(0); setPane(0);
@@ -4897,6 +4941,7 @@ function NavCards({nav,setNav,tsvOf,tavOf,capOf}){
   };
   return h("div",{className:"nc-wrap"},bar,
     (pop==="atis"||pop==="atisA")?portal(atisModal(pop==="atis")):null,
+    pop==="hm"?portal(hmModal()):null,
     (blink&&!pop)?portal(h("button",{key:"fab",className:"nc-fab no-print",onClick:openPop,
       title:"Rappel : recalage du directionnel et contrôle carburant"},h(Ic,{name:"fuelcomp",size:27,sw:1.7}))):null,
     adj?portal(h("div",{className:"nc-ov",onClick:e=>{if(e.target===e.currentTarget)setAdj(null);}},
