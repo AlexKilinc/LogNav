@@ -470,9 +470,10 @@
 .rec-hud .rec-hud-stop{margin-left:4px;background:#e11d48;color:#fff;border:none;border-radius:15px;padding:5px 12px;font:700 12px "Poppins",sans-serif;cursor:pointer;display:inline-flex;align-items:center;gap:4px;-webkit-tap-highlight-color:transparent}
 .rec-hud .rec-hud-stop:active{background:#be123c}
 /* page Cards (mobile) : le bandeau REC se cale à gauche, à la place du titre « Log de Nav : Card » */
-html.mp-cards .rec-hud{left:10px;transform:none;font-size:12px;padding:6px 8px 6px 11px;gap:6px;max-width:calc(100vw - 150px);box-sizing:border-box}
-html.mp-cards .rec-hud .rec-hud-txt{overflow:hidden;text-overflow:ellipsis}
-html.mp-cards .rec-hud .rec-hud-stop{padding:4px 9px;font-size:11.5px;flex:none}
+html.mp-cards .rec-hud{left:10px;transform:none;font-size:11.5px;padding:6px 7px 6px 10px;gap:5px;max-width:calc(100vw - 150px);box-sizing:border-box}
+html.mp-cards .rec-hud .rec-hud-txt{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+html.mp-cards .rec-hud .dot{flex:none;width:9px;height:9px}
+html.mp-cards .rec-hud .rec-hud-stop{padding:4px 8px;font-size:11px;margin-left:2px;flex:none}
 html.mp-cards body.rec-live .nc-title{visibility:hidden}
 
 @keyframes recPulse{0%,100%{box-shadow:0 0 0 0 rgba(225,29,72,.55)}50%{box-shadow:0 0 0 7px rgba(225,29,72,0)}}
@@ -1881,7 +1882,7 @@ window.__TRACE_MARKUP="\n\n<header>\n  <div class=\"hdr-row1\">\n    <span class
    accessible depuis le bouton ⓘ du bandeau du log, avant toute ouverture de la carte */
 (function(){
   var host=document.createElement('div');
-  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Carte OACI :</b> donnée IGN non libre — nécessite votre propre clé Géoplateforme filtrée sur votre domaine. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.203</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
+  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Carte OACI :</b> donnée IGN non libre — nécessite votre propre clé Géoplateforme filtrée sur votre domaine. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.204</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
   (document.body||document.documentElement).appendChild(host.firstElementChild);
   window.__OPEN_INFO=function(){ document.getElementById('infoModal').hidden=false; };
   /* iPadOS : les pastilles de fen\xEAtrage (coin haut-gauche) recouvrent le burger
@@ -3889,10 +3890,15 @@ function openRelinkChoice(){
         if(slot&&onCards&&slot.offsetParent!==null){
           var rb=slot.getBoundingClientRect(), hh=recHud.offsetHeight||34;
           var isT=slot.classList.contains('nc-title');
+          var lft=Math.max(6,Math.round(rb.left-(isT?4:-8)));
           recHud.style.transform='none';
-          recHud.style.left=Math.max(6,Math.round(rb.left-(isT?4:-8)))+'px';
+          recHud.style.left=lft+'px';
           recHud.style.top=Math.max(4,Math.round(isT?(rb.top+rb.height/2-hh/2):(rb.top+6)))+'px';
-        } else { recHud.style.left=''; recHud.style.top=''; recHud.style.transform=''; }
+          /* jamais par-dessus les flèches de branche ni le bouton du chrono */
+          var nxt=document.querySelector('#navcards .nc-nav,#navcards .nc-play');
+          var lim=nxt?Math.round(nxt.getBoundingClientRect().left-lft-10):Math.round(window.innerWidth-lft-10);
+          recHud.style.maxWidth=Math.max(96,lim)+'px';
+        } else { recHud.style.left=''; recHud.style.top=''; recHud.style.transform=''; recHud.style.maxWidth=''; }
       }catch(e){}
       rec.classList.add('recording');
       try{ document.body.classList.add('rec-live'); }catch(e){}
