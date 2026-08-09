@@ -477,7 +477,7 @@
   .rec-hud .rec-hud-stop{padding:4px 8px;font-size:11px;margin-left:2px;flex:none}
   html.mp-cards .rec-hud{left:10px;transform:none;max-width:calc(100vw - 150px)}
   html.mp-cards.rec-live .nc-title{visibility:hidden}
-  html.rec-live:not(.mp-cards) #mdots{visibility:hidden}
+  html.rec-live #mdots{z-index:4200}
 }
 
 @keyframes recPulse{0%,100%{box-shadow:0 0 0 0 rgba(225,29,72,.55)}50%{box-shadow:0 0 0 7px rgba(225,29,72,0)}}
@@ -488,7 +488,7 @@
 .rec-cd-cancel{margin-top:32px;background:#1e293b;color:#fff;border:1px solid #334155;border-radius:22px;padding:11px 28px;font:700 14px "Poppins",sans-serif;cursor:pointer}
 /* plein écran d'enregistrement (smartphone) : carte plein cadre, bandeaux masqués */
 body.rec-full #trace-host{position:fixed!important;inset:0!important;width:100vw!important;height:100vh!important;height:100dvh!important;z-index:4000!important;margin:0!important;border-radius:0!important;max-width:none!important}
-body.rec-full #trace-host header,body.rec-full #trace-host .controls,body.rec-full #trace-host .maphint,body.rec-full #trace-host .legend,body.rec-full #uiScaleBox{display:none!important}
+body.rec-full #trace-host .controls,body.rec-full #trace-host .maphint,body.rec-full #trace-host .legend,body.rec-full #uiScaleBox{display:none!important}
 @media (max-width:820px){
   #trace-host .hdr-row1{flex-wrap:wrap;gap:4px!important}
   #trace-host .map-sq{display:inline-flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;width:38px;height:38px;flex:0 0 auto;border:1px solid var(--line);border-radius:10px;background:rgba(10,26,51,.6);color:#cfe0f5;cursor:pointer;padding:0}
@@ -1891,7 +1891,7 @@ window.__TRACE_MARKUP="\n\n<header>\n  <div class=\"hdr-row1\">\n    <span class
    accessible depuis le bouton ⓘ du bandeau du log, avant toute ouverture de la carte */
 (function(){
   var host=document.createElement('div');
-  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Carte OACI :</b> donnée IGN non libre — nécessite votre propre clé Géoplateforme filtrée sur votre domaine. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.207</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
+  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Carte OACI :</b> donnée IGN non libre — nécessite votre propre clé Géoplateforme filtrée sur votre domaine. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.208</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
   (document.body||document.documentElement).appendChild(host.firstElementChild);
   window.__OPEN_INFO=function(){ document.getElementById('infoModal').hidden=false; };
   /* iPadOS : les pastilles de fen\xEAtrage (coin haut-gauche) recouvrent le burger
@@ -3908,19 +3908,15 @@ function openRelinkChoice(){
           var lim=nxt?Math.round(nxt.getBoundingClientRect().left-lft-10):Math.round(window.innerWidth-lft-10);
           recHud.style.maxWidth=Math.max(96,lim)+'px';
         } else {
-          /* toutes les autres pages (mobile) : en bas, par-dessus l'indicateur de pages */
+          /* toutes les autres pages (mobile) : juste au-dessus de l'indicateur de
+             pages, qui reste visible et cliquable pour changer de page */
           var dots=document.getElementById('mdots'), dr=dots?dots.getBoundingClientRect():null;
           if(dr&&dr.height>0&&isMobileView()){
-            var zb=document.getElementById('uiScaleBox');
-            var rl=zb?Math.round(zb.getBoundingClientRect().left-8):Math.round(window.innerWidth-8);
             recHud.style.transform='none';
-            recHud.style.maxWidth=Math.max(120,rl-8)+'px';
+            recHud.style.maxWidth=Math.max(180,Math.round(window.innerWidth-16))+'px';
             var w=recHud.offsetWidth, h2=recHud.offsetHeight||34;
-            var l2=Math.round(dr.left+dr.width/2-w/2);
-            if(l2+w>rl) l2=Math.round(rl-w);
-            if(l2<8) l2=8;
-            recHud.style.left=l2+'px';
-            recHud.style.top=Math.round(dr.top+dr.height/2-h2/2)+'px';
+            recHud.style.left=Math.max(8,Math.round((window.innerWidth-w)/2))+'px';
+            recHud.style.top=Math.max(8,Math.round(dr.top-h2-8))+'px';
           } else { recHud.style.left=''; recHud.style.top=''; recHud.style.transform=''; recHud.style.maxWidth=''; }
         }
       }catch(e){}
@@ -4385,6 +4381,10 @@ function NavCards({nav,setNav,tsvOf,tavOf,capOf}){
   const [dr,setDr]=React.useState(nav.meta.ventDir||"");
   const [kt,setKt]=React.useState(nav.meta.ventKt||"");
   const [qnh,setQnh]=React.useState(F.qnh||"1013");
+  /* vent et QNH : le log de nav et la carte partagent la même valeur, dans les deux sens */
+  React.useEffect(()=>{ setDr(nav.meta.ventDir||""); },[nav.meta.ventDir]);
+  React.useEffect(()=>{ setKt(nav.meta.ventKt||""); },[nav.meta.ventKt]);
+  React.useEffect(()=>{ if(String(F.qnh||"").trim()) setQnh(F.qnh); },[F.qnh]);
   const [fu,setFu]=React.useState(F.fuel||{});
   const [,tick]=React.useState(0);
   const [pop,setPop]=React.useState(false);
@@ -4787,8 +4787,8 @@ function NavCards({nav,setNav,tsvOf,tavOf,capOf}){
             h("button",{className:selBlock==="aller"?"on":"",onClick:()=>setSelBlock("aller")},"Log Aller"),
             h("button",{className:selBlock==="retour"?"on":"",onClick:()=>setSelBlock("retour")},"Log Retour"))):null,
         h("div",{className:"nc-grid"},
-          h("div",{className:"nc-f"},h("label",null,"Vent — dir.",h("span",{className:"nc-u"},"degrés")),h("input",{value:dr,inputMode:"decimal",onChange:e=>setDr(e.target.value),placeholder:"270"})),
-          h("div",{className:"nc-f"},h("label",null,"Vent — vit.",h("span",{className:"nc-u"},"kt")),h("input",{value:kt,inputMode:"decimal",onChange:e=>setKt(e.target.value),placeholder:"15"})),
+          h("div",{className:"nc-f"},h("label",null,"Vent — dir.",h("span",{className:"nc-u"},"degrés")),h("input",{value:dr,inputMode:"decimal",onChange:e=>setWDir(e.target.value),placeholder:"270"})),
+          h("div",{className:"nc-f"},h("label",null,"Vent — vit.",h("span",{className:"nc-u"},"kt")),h("input",{value:kt,inputMode:"decimal",onChange:e=>setWKt(e.target.value),placeholder:"15"})),
           h("div",{className:"nc-f"},h("label",null,"QNH",h("span",{className:"nc-u"},"hPa")),h("input",{value:qnh,inputMode:"decimal",onChange:e=>setQnh(e.target.value),placeholder:"1013"})),
           h("div",{className:"nc-f nc-fhm"},h("label",null,"Horamètre",h("span",{className:"nc-u"},"départ · heures")),
             h("input",{value:F.hmStart||"",inputMode:"decimal",maxLength:10,placeholder:"1234,56",
