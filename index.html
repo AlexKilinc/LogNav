@@ -478,6 +478,7 @@
   html.mp-cards .rec-hud{left:10px;transform:none;max-width:calc(100vw - 150px)}
   html.mp-cards.rec-live .nc-title{visibility:hidden}
   html.rec-live #mdots{z-index:4200}
+  html.rec-live .rec-hud{z-index:4300}
 }
 
 @keyframes recPulse{0%,100%{box-shadow:0 0 0 0 rgba(225,29,72,.55)}50%{box-shadow:0 0 0 7px rgba(225,29,72,0)}}
@@ -487,7 +488,7 @@
 .rec-cd-lbl{margin-top:16px;font-size:16px;font-weight:600;color:#cbd5e1;letter-spacing:.02em}
 .rec-cd-cancel{margin-top:32px;background:#1e293b;color:#fff;border:1px solid #334155;border-radius:22px;padding:11px 28px;font:700 14px "Poppins",sans-serif;cursor:pointer}
 /* plein écran d'enregistrement (smartphone) : carte plein cadre, bandeaux masqués */
-body.rec-full #trace-host{position:fixed!important;inset:0!important;width:100vw!important;height:100vh!important;height:100dvh!important;z-index:4000!important;margin:0!important;border-radius:0!important;max-width:none!important}
+body.rec-full #trace-host{position:fixed!important;inset:0!important;width:100vw!important;height:100vh!important;height:100dvh!important;z-index:4000!important;margin:0!important;border-radius:0!important;max-width:none!important;box-sizing:border-box!important;padding-top:env(safe-area-inset-top,0px)!important}
 body.rec-full #trace-host .controls,body.rec-full #trace-host .maphint,body.rec-full #trace-host .legend,body.rec-full #uiScaleBox{display:none!important}
 @media (max-width:820px){
   #trace-host .hdr-row1{flex-wrap:wrap;gap:4px!important}
@@ -1891,7 +1892,7 @@ window.__TRACE_MARKUP="\n\n<header>\n  <div class=\"hdr-row1\">\n    <span class
    accessible depuis le bouton ⓘ du bandeau du log, avant toute ouverture de la carte */
 (function(){
   var host=document.createElement('div');
-  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Carte OACI :</b> donnée IGN non libre — nécessite votre propre clé Géoplateforme filtrée sur votre domaine. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.208</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
+  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Carte OACI :</b> donnée IGN non libre — nécessite votre propre clé Géoplateforme filtrée sur votre domaine. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.209</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
   (document.body||document.documentElement).appendChild(host.firstElementChild);
   window.__OPEN_INFO=function(){ document.getElementById('infoModal').hidden=false; };
   /* iPadOS : les pastilles de fen\xEAtrage (coin haut-gauche) recouvrent le burger
@@ -3908,15 +3909,15 @@ function openRelinkChoice(){
           var lim=nxt?Math.round(nxt.getBoundingClientRect().left-lft-10):Math.round(window.innerWidth-lft-10);
           recHud.style.maxWidth=Math.max(96,lim)+'px';
         } else {
-          /* toutes les autres pages (mobile) : juste au-dessus de l'indicateur de
-             pages, qui reste visible et cliquable pour changer de page */
+          /* toutes les autres pages (mobile) : centré en bas, par-dessus
+             l'indicateur de pages */
           var dots=document.getElementById('mdots'), dr=dots?dots.getBoundingClientRect():null;
           if(dr&&dr.height>0&&isMobileView()){
             recHud.style.transform='none';
             recHud.style.maxWidth=Math.max(180,Math.round(window.innerWidth-16))+'px';
             var w=recHud.offsetWidth, h2=recHud.offsetHeight||34;
             recHud.style.left=Math.max(8,Math.round((window.innerWidth-w)/2))+'px';
-            recHud.style.top=Math.max(8,Math.round(dr.top-h2-8))+'px';
+            recHud.style.top=Math.max(8,Math.round(dr.top+dr.height/2-h2/2))+'px';
           } else { recHud.style.left=''; recHud.style.top=''; recHud.style.transform=''; recHud.style.maxWidth=''; }
         }
       }catch(e){}
