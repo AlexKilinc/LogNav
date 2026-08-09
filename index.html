@@ -800,7 +800,7 @@ html:has(.ovl) #uiScaleBox,html:has(body.rec-full) #uiScaleBox{display:none!impo
 #navcards{background:#0A1A33;color:#EAF1FB;border:1px solid #16305c;border-radius:14px;padding:10px;box-sizing:border-box;max-width:1180px;margin:0 auto;box-shadow:0 4px 18px rgba(0,0,0,.18)}
 .nc-wrap{display:flex;flex-direction:column;gap:10px;min-height:560px}
 .nc-bar{background:linear-gradient(180deg,#0E2348,#0A1A33);border:1px solid #1d3a6b;border-radius:12px;padding:9px 12px;display:flex;flex-wrap:wrap;align-items:center;gap:8px;box-shadow:0 3px 14px rgba(0,0,0,.35)}
-.nc-title{font:800 13.5px "Poppins",sans-serif;color:#fff;white-space:nowrap;display:inline-flex;align-items:center}
+.nc-title{font:800 13.5px "Poppins",sans-serif;color:#fff;white-space:nowrap;display:inline-block;min-width:0;max-width:44vw;overflow:hidden;text-overflow:ellipsis}
 .nc-play{display:inline-flex;align-items:center;gap:5px;background:#e94560;color:#fff;border:0;border-radius:10px;padding:8px 13px;font:800 12.5px "Poppins",sans-serif;cursor:pointer}
 .nc-nav{display:inline-flex;align-items:center;gap:6px;margin-left:auto}
 .nc-nav button{width:34px;height:34px;border-radius:10px;border:1px solid rgba(255,255,255,.28);background:rgba(255,255,255,.08);color:#EAF1FB;font:700 18px/1 sans-serif;cursor:pointer}
@@ -957,6 +957,8 @@ html:has(.ovl) #uiScaleBox,html:has(body.rec-full) #uiScaleBox{display:none!impo
 .nc-pop-a .nc-anb button.on+input{border-color:#e94560}
 .nc-pop-a{max-height:82vh;overflow:auto}
 .nc-gridf{align-items:start}
+.nc-grid .nc-fhm{grid-column:span 2;min-width:0}
+.nc-fhm input{text-align:center;letter-spacing:.5px}
 .nc-tkf,.nc-tkp{border:1px solid transparent;border-radius:12px;padding:6px;background:transparent}
 .nc-tkf{cursor:pointer;transition:background .18s,border-color .18s}
 .nc-tkf.on{border-color:#e94560;background:rgba(233,69,96,.12)}
@@ -1889,7 +1891,7 @@ window.__TRACE_MARKUP="\n\n<header>\n  <div class=\"hdr-row1\">\n    <span class
    accessible depuis le bouton ⓘ du bandeau du log, avant toute ouverture de la carte */
 (function(){
   var host=document.createElement('div');
-  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Carte OACI :</b> donnée IGN non libre — nécessite votre propre clé Géoplateforme filtrée sur votre domaine. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.206</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
+  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Carte OACI :</b> donnée IGN non libre — nécessite votre propre clé Géoplateforme filtrée sur votre domaine. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.207</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
   (document.body||document.documentElement).appendChild(host.firstElementChild);
   window.__OPEN_INFO=function(){ document.getElementById('infoModal').hidden=false; };
   /* iPadOS : les pastilles de fen\xEAtrage (coin haut-gauche) recouvrent le burger
@@ -4742,7 +4744,8 @@ function NavCards({nav,setNav,tsvOf,tavOf,capOf}){
   /* ---- bandeau fixe ---- */
   const flying=(mode==="fly"&&nb);
   const bar=h("div",{className:"nc-bar"},
-    flying?h("span",{className:"nc-title"},"Log de Nav : Card"):null,
+    flying?h("span",{className:"nc-title",title:(nav.name||"").trim()||"Log de Nav : Card"},
+      (nav.name||"").trim()||"Log de Nav : Card"):null,
     mode==="fly"&&nb>1&&!wide?h("span",{className:"nc-nav"},
       h("button",{onClick:()=>{setK(Math.max(0,kk-1));setPane(0);},disabled:kk<=0,title:"Branche précédente"},"‹"),
       h("span",null,(kk+1)+" / "+nb),
@@ -4787,7 +4790,7 @@ function NavCards({nav,setNav,tsvOf,tavOf,capOf}){
           h("div",{className:"nc-f"},h("label",null,"Vent — dir.",h("span",{className:"nc-u"},"degrés")),h("input",{value:dr,inputMode:"decimal",onChange:e=>setDr(e.target.value),placeholder:"270"})),
           h("div",{className:"nc-f"},h("label",null,"Vent — vit.",h("span",{className:"nc-u"},"kt")),h("input",{value:kt,inputMode:"decimal",onChange:e=>setKt(e.target.value),placeholder:"15"})),
           h("div",{className:"nc-f"},h("label",null,"QNH",h("span",{className:"nc-u"},"hPa")),h("input",{value:qnh,inputMode:"decimal",onChange:e=>setQnh(e.target.value),placeholder:"1013"})),
-          h("div",{className:"nc-f"},h("label",null,"Horamètre",h("span",{className:"nc-u"},"départ · heures")),
+          h("div",{className:"nc-f nc-fhm"},h("label",null,"Horamètre",h("span",{className:"nc-u"},"départ · heures")),
             h("input",{value:F.hmStart||"",inputMode:"decimal",maxLength:10,placeholder:"1234,56",
               onChange:e=>putHm("hmStart",e.target.value)}))),
         h("div",{className:"nc-f"},h("div",{className:"nc-lg"},"Carburant"+(av?" — "+av.immat:""),nres?null:h("span",{className:"nc-u"},"nombre de réservoirs non renseigné dans le profil")),
