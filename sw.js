@@ -26,6 +26,8 @@ const PRECACHE = [
   'https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500&family=Space+Mono:wght@400;700&display=swap'
 ];
 const SKIP = [
+  /aviationweather\.gov/i,
+  /open-meteo\.com/i,
   /\.pmtiles(\?|$)/i,
   /tile\.openstreetmap\.org/i,
   /mt\d\.google(?:apis)?\.com/i,
