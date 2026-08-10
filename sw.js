@@ -27,6 +27,8 @@ const PRECACHE = [
 ];
 const SKIP = [
   /aviationweather\.gov/i,
+  /corsproxy\.io/i,
+  /allorigins\.win/i,
   /api\.met\.no/i,
   /open-meteo\.com/i,
   /\.pmtiles(\?|$)/i,
