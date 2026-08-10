@@ -932,9 +932,13 @@ html:has(.ovl) #uiScaleBox,html:has(body.rec-full) #uiScaleBox{display:none!impo
 .nc-astep b.ph{color:#5f7ba3}
 .nc-astep span{flex:none;font:700 11px "Poppins",sans-serif;color:#7fa0c8}
 /* piste : numéro puis R / L / H */
-.nc-arwy{display:flex;align-items:stretch;gap:5px}
+.nc-arwy{display:flex;align-items:stretch;gap:5px;flex-wrap:wrap}
 .nc-pop-a .nc-arwy input{flex:1 1 auto;min-width:0;width:auto}
-.nc-arwy button{flex:0 0 44px;border-radius:9px;border:1px solid #2a4372;background:#0d2247;color:#cfe0f5;font:800 15px "Poppins",sans-serif;cursor:pointer;padding:0}
+.nc-arwy button{flex:0 0 44px;min-height:38px;border-radius:9px;border:1px solid #2a4372;background:#0d2247;color:#cfe0f5;font:800 15px "Poppins",sans-serif;cursor:pointer;padding:0}
+.nc-arwy button.wide{flex:0 0 auto;padding:0 11px;font-size:13px}
+.nc-aab{flex:0 0 auto;border-radius:9px;border:1px solid #2a4372;background:#0d2247;color:#8fa9cc;font:800 12px "Poppins",sans-serif;cursor:pointer;padding:0 12px;min-height:38px}
+.nc-aab.on{background:#1E9FE0;border-color:#1E9FE0;color:#fff}
+.nc-a2 .nc-astep{flex:1 1 auto}
 .nc-arwy button.on{background:#e94560;border-color:#e94560;color:#fff}
 /* nébulosité : 4 couches, chacune avec sa base en pieds sous la case */
 .nc-anebs{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;min-width:0}
@@ -1905,7 +1909,7 @@ window.__TRACE_MARKUP="\n\n<header>\n  <div class=\"hdr-row1\">\n    <span class
    accessible depuis le bouton ⓘ du bandeau du log, avant toute ouverture de la carte */
 (function(){
   var host=document.createElement('div');
-  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Carte OACI :</b> donnée IGN non libre — nécessite votre propre clé Géoplateforme filtrée sur votre domaine. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.237</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
+  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Carte OACI :</b> donnée IGN non libre — nécessite votre propre clé Géoplateforme filtrée sur votre domaine. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.238</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
   (document.body||document.documentElement).appendChild(host.firstElementChild);
   window.__OPEN_INFO=function(){ document.getElementById('infoModal').hidden=false; };
   /* iPadOS : les pastilles de fen\xEAtrage (coin haut-gauche) recouvrent le burger
@@ -4295,6 +4299,7 @@ function openRelinkChoice(){
   window.addEventListener('orientationchange',function(){setTimeout(place,120)});
   try{ map.on('resize',place); map.whenReady(function(){ setTimeout(place,300); setTimeout(place,1200); }); }catch(e){}
   btn.addEventListener('click',function(e){ e.stopPropagation(); panel.hidden=!panel.hidden; place(); });
+  try{ map.on('zoomend',function(){ draw(); }); }catch(e){}
   function samples(){
     var pts=[],seen={};
     [routes.aller,routes.retour].forEach(function(a){
@@ -4311,7 +4316,7 @@ function openRelinkChoice(){
     });
     return pts;
   }
-  function barbHtml(dir,kt){
+  function barbHtml(dir,kt,sc){ sc=sc||1;
     var k5=Math.max(0,Math.round(kt/5)*5), parts='', y=7;
     var r=k5;
     while(r>=50){parts+='<path d="M22 '+y+' L31 '+(y+2.5)+' L22 '+(y+5)+' Z" fill="currentColor" stroke="none"/>';y+=6;r-=50;}
@@ -4319,17 +4324,21 @@ function openRelinkChoice(){
     if(r>=5){ if(y===7)y=11; parts+='<line x1="22" y1="'+y+'" x2="27" y2="'+(y-2.2)+'"/>'; }
     var core=k5<5?'<circle cx="22" cy="26" r="3.4" fill="none"/>'
       :'<g transform="rotate('+(+dir||0)+' 22 26)"><line x1="22" y1="26" x2="22" y2="7"/>'+parts+'</g>';
-    return '<div class="wbarb"><svg width="56" height="51" viewBox="0 0 44 40" stroke="currentColor" stroke-width="2.4" fill="none" stroke-linecap="round">'+core+'</svg><b>'+Math.round(kt)+'</b></div>';
+    var W=Math.round(56*sc),H=Math.round(51*sc);
+    return '<div class="wbarb"><svg width="'+W+'" height="'+H+'" viewBox="0 0 44 40" stroke="currentColor" stroke-width="2.4" fill="none" stroke-linecap="round">'+core+'</svg><b style="font-size:'+(10.5*sc).toFixed(1)+'px">'+Math.round(kt)+'</b></div>';
   }
   function draw(){
     windGroup.clearLayers();
     if(!cur||!data) return;
+    /* léger grossissement avec le zoom : ×1 au zoom 9, jusqu'à ×1.4 */
+    var z=(map.getZoom&&map.getZoom())||9;
+    var sc=Math.max(1,Math.min(1.4,1+(z-9)*0.09));
     var idx=Math.min(new Date().getUTCHours(),23);
     data.list.forEach(function(loc,i){
       var h=loc.hourly||{}, sp=h['wind_speed_'+cur+'hPa'], di=h['wind_direction_'+cur+'hPa'];
       if(!sp||!di) return;
       var kt=sp[idx], dir=di[idx]; if(kt==null||dir==null) return;
-      var ic=L.divIcon({className:'',iconSize:[56,64],iconAnchor:[28,33],html:barbHtml(dir,kt)});
+      var ic=L.divIcon({className:'',iconSize:[Math.round(56*sc),Math.round(64*sc)],iconAnchor:[Math.round(28*sc),Math.round(33*sc)],html:barbHtml(dir,kt,sc)});
       windGroup.addLayer(L.marker(data.pts[i],{icon:ic,interactive:false,keyboard:false}));
     });
   }
@@ -4569,11 +4578,11 @@ const wrap=document.createElement("div");sheets.forEach((s,i)=>{const c=s.cloneN
       `),React.createElement(MobileLog,{nav:nav,openLeg:openLeg,addPoint:addPoint,changeType:changeType,onName:v=>setNavQuiet({name:v}),onMeta:pm=>setNavQuiet({meta:{...nav.meta,...pm}}),regen:regenInverse,desync:inverseDesync,syncArmed:syncArmed,setSyncArmed:setSyncArmed,tsvOf:tsvOf,tavOf:tavOf,capOf:capOf}),React.createElement("div",{className:"no-print mtoolbar"+(mMore?" mob-exp":""),style:{maxWidth:1180,margin:"0 auto 14px",display:"flex",flexWrap:"nowrap",gap:5,alignItems:"center",justifyContent:"center",background:BARGRAD,borderRadius:12,padding:"9px 11px",boxShadow:"0 3px 14px rgba(26,26,46,.4)"}},React.createElement("div",{style:{display:"flex",alignItems:"center",gap:9,marginRight:4}},React.createElement("svg",{viewBox:"0 0 1024 1024",width:"30",height:"30",style:{display:"block",borderRadius:9,flex:"0 0 auto"}},React.createElement("rect",{x:"8",y:"8",width:"1008",height:"1008",rx:"200",fill:"#16213e"}),React.createElement("g",{fill:"none",stroke:"#e94560",strokeWidth:"92",strokeLinecap:"round",strokeLinejoin:"round"},React.createElement("path",{d:"M360 320 H300 a120 120 0 0 0 -120 120 a120 120 0 0 0 120 120 H720 a120 120 0 0 1 120 120 a120 120 0 0 1 -120 120 H360"}),React.createElement("circle",{cx:"745",cy:"245",r:"95"}),React.createElement("circle",{cx:"270",cy:"770",r:"95"}))),React.createElement("span",{style:{font:"800 17px/1 'Eurostile','Bahnschrift','DIN Alternate','Arial Narrow',ui-sans-serif",letterSpacing:"1.2px",color:"#fff",textTransform:"none"}},React.createElement("span",null,"LogNav"),React.createElement("span",{style:{color:RED}},"AK"))),React.createElement("button",{onClick:()=>setDrawer(true),title:"Param\xE8tres"+((typeof window!=="undefined"&&window.__AKILA_IS_OWNER&&window.__AKILA_IS_OWNER()&&window.AkilaAuth&&window.AkilaAuth.pendingCount())?" \u2014 "+window.AkilaAuth.pendingCount()+" inscription(s) \xE0 valider":""),"aria-label":"Param\xE8tres",style:{...btn("#fff"),color:DARK,padding:"8px 10px",position:"relative"}},React.createElement(Ic,{name:"settings"}),(typeof window!=="undefined"&&window.__AKILA_IS_OWNER&&window.__AKILA_IS_OWNER()&&window.AkilaAuth&&window.AkilaAuth.pendingCount())?React.createElement("span",{style:{position:"absolute",top:-4,right:-4,minWidth:16,height:16,padding:"0 4px",borderRadius:9,background:"#e94560",color:"#fff",font:"700 10px ui-sans-serif",display:"flex",alignItems:"center",justifyContent:"center",boxShadow:"0 0 0 2px #16213e"}},window.AkilaAuth.pendingCount()):null),React.createElement("button",{onClick:undo,disabled:!hist.past.length,title:"Annuler la derni\xE8re modification",style:{...ghostW,opacity:hist.past.length?1:.35,cursor:hist.past.length?"pointer":"not-allowed"}},React.createElement(Ic,{name:"undo"})),React.createElement("button",{onClick:redo,disabled:!hist.future.length,title:"R\xE9tablir",style:{...ghostW,opacity:hist.future.length?1:.35,cursor:hist.future.length?"pointer":"not-allowed"}},React.createElement(Ic,{name:"redo"})),React.createElement("div",{style:{fontWeight:700,fontSize:13,color:"#fff",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",maxWidth:330}},routeLabel(nav)),React.createElement("div",{className:"tb-brk tb-brkA"}),(nav.type==="ar"?React.createElement("span",{className:"tb-badge",title:"Log Aller et retour — se modifie dans les param\xE8tres (menu lat\xE9ral)",style:{fontSize:11,padding:"2px 9px",borderRadius:20,background:"rgba(255,255,255,.18)",color:"#fff",fontWeight:600,textTransform:"uppercase",cursor:"default"}},"Aller / Retour"):React.createElement("span",{className:"tb-badge",onClick:()=>setNav({single:nav.single==="retour"?"aller":"retour"}),title:"Cliquer pour basculer ce log en Vol Aller ou Vol Retour",style:{fontSize:11,padding:"2px 9px",borderRadius:20,background:nav.single==="retour"?"rgba(27,163,75,.92)":"rgba(30,159,224,.92)",color:"#fff",fontWeight:700,textTransform:"uppercase",cursor:"pointer",userSelect:"none"}},nav.single==="retour"?"Vol Retour":"Vol Aller")),React.createElement("span",{style:{display:"inline-flex",alignItems:"center",gap:6}},React.createElement("span",{className:"tb-badge wx-badge",title:"METAR / TAF des a\xE9rodromes de la navigation",onClick:()=>{try{const arrL=nav.aller||[];const cs=[];const seen=new Set();const add=(pos,role)=>{const c=String(pos||"").trim().toUpperCase();if(c.length===4&&AERO_POS[c]&&!seen.has(c)){seen.add(c);cs.push({code:c,role:role})}};arrL.forEach((l,i)=>add(l.position,i===0?"dep":(i===arrL.length-1?"arr":"mid")));if(nav.type==="ar")(nav.retour||[]).forEach(l=>add(l.position,"mid"));window.__WX_OPEN&&window.__WX_OPEN({codes:cs,date:nav.meta.date})}catch(e){}},style:{fontSize:11,padding:"2px 9px",borderRadius:20,background:"#1E9FE0",color:"#fff",fontWeight:700,whiteSpace:"nowrap",cursor:"pointer",fontFamily:'"Poppins",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif'}},"METAR TAF"),React.createElement("span",{className:"tb-badge",title:"Base de donn\xE9es a\xE9rodromes & fr\xE9quences utilis\xE9e",style:{fontSize:11,padding:"2px 9px",borderRadius:20,background:RED,color:"#fff",fontWeight:700,whiteSpace:"nowrap",fontFamily:'"Poppins",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif'}},AIRAC_INFO)),React.createElement("div",{className:"tb-spacer",style:{flex:1}}),React.createElement("button",{className:"tb-mpi",onClick:()=>setApp(a=>({...a,mapState:((a.mapState||0)+1)%3})),style:mapState===0?{...ghostW}:{...btn(mapState===1?SLATE:BLUE2)},title:mapState===0?"Carte LogNav Trace masqu\xE9e \u2014 cliquer pour l'afficher (li\xE9e au log)":mapState===1?"Carte affich\xE9e et LI\xC9E au log \u2014 cliquer pour la d\xE9lier":"Carte affich\xE9e NON li\xE9e au log \u2014 cliquer pour la masquer"},React.createElement(Ic,{name:mapState===0?"map":mapState===1?"link":"unlink"})," Map"),React.createElement("button",{className:"tb-mpi",onClick:toggleProfilPage,style:nav.profilPage&&nav.profilPage.on?{...btn(SLATE)}:{...ghostW},title:"Ajouter/retirer une page A4 paysage avec le profil vertical du vol (aller et retour)"},React.createElement(Ic,{name:"activity"})," ",nav.profilPage&&nav.profilPage.on?"Profil \u2715":"Profil"),React.createElement("button",{className:"tb-mpi",onClick:toggleMapPage,style:nav.mapPage&&nav.mapPage.on?{...btn(SLATE)}:{...ghostW},title:"Ajouter/retirer une page A4 paysage pour l'image de la navigation (capture d'\xE9cran)"},React.createElement(Ic,{name:"image"})," ",nav.mapPage&&nav.mapPage.on?"Image \u2715":"Image"),React.createElement("button",{className:"tb-more",onClick:()=>setMMore(v=>!v),title:mMore?"Masquer les exports":"Exports : GPX, PDF, enregistrer","aria-label":"Exports",style:{...btn(RED),padding:0,display:"inline-flex",alignItems:"center",justifyContent:"center",flex:"0 0 auto"}},React.createElement(Ic,{name:"download"})),React.createElement("div",{className:"tb-brk tb-brkB"}),React.createElement("div",{className:"tb-gpx",style:{position:"relative",flex:"0 0 auto"}},React.createElement("button",{onClick:()=>setGpxMenu(v=>!v),style:gpxMenu?{...btn(ACCENT),background:BLUE2,borderColor:BLUE2}:btn(ACCENT),title:"Exporter / importer la trace de navigation (GPX, Garmin FPL)"},React.createElement(Ic,{name:"download"})," GPX"),gpxMenu&&React.createElement("div",{style:{position:"absolute",top:"calc(100% + 7px)",right:0,zIndex:80,background:"#fff",border:"1px solid #c4c9d4",borderRadius:9,boxShadow:"0 12px 30px rgba(16,21,40,.4)",padding:5,display:"flex",flexDirection:"column",gap:2,minWidth:200}},[["Exporter GPX","gpx"],["Exporter FPL (Garmin)","fpl"],["Importer GPX…","imp"]].map(([lbl,kind])=>React.createElement("button",{key:kind,onClick:()=>{setGpxMenu(false);if(kind==="imp"){if(!window.__traceImportRoute){alert("Ouvrez d'abord la carte (bouton Map, id\xE9alement \xAB Map li\xE9e \xBB), puis r\xE9essayez.");return;}gpxFileRef.current&&gpxFileRef.current.click();return;}const g=(window.__traceGetRoutes&&window.__traceGetRoutes())||null;const ok=g&&(g.aller.length>=2||g.retour.length>=2);if(!ok){alert("Aucune trace \xE0 exporter : ouvrez la carte (bouton Map) et posez ou liez la navigation d'abord.");return;}const base=(navName(nav)||"navigation").normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[^\w\-]+/g,"_").replace(/^_+|_+$/g,"").slice(0,40)||"navigation";if(kind==="gpx")__dlFile(base+".gpx",__gpxBuild(g,navName(nav)),"application/gpx+xml");else{const arr=g.aller.length>=2?g.aller:g.retour;__dlFile(base+".fpl",__fplBuild(arr,navName(nav)),"application/xml");}},style:{textAlign:"left",background:"none",border:0,padding:"7px 10px",borderRadius:6,font:"600 12.5px ui-sans-serif",color:INK,cursor:"pointer",whiteSpace:"nowrap"}},lbl)))),React.createElement("input",{type:"file",accept:".gpx,application/gpx+xml,application/xml,text/xml",ref:gpxFileRef,style:{display:"none"},onChange:e=>{const f=e.target.files&&e.target.files[0];e.target.value="";if(!f)return;const rd=new FileReader();rd.onload=()=>{const arr=__gpxParse(String(rd.result||""));if(!arr||arr.length<2){alert("Fichier GPX illisible ou contenant moins de 2 points.");return;}if(!window.__traceImportRoute){alert("Ouvrez d'abord la carte (bouton Map), puis r\xE9essayez.");return;}if(!window.__traceImportRoute(arr))alert("Import impossible.");};rd.readAsText(f);}}),React.createElement("button",{className:"tb-pr",onClick:()=>guardAction("Print/PDF",()=>window.print()),title:"Imprimer ou cr\xE9er le PDF via la bo\xEEte d'impression (A4 paysage)",style:btn(RED)},React.createElement(Ic,{name:"printer"})," Print/PDF"),React.createElement("button",{className:"tb-pr",onClick:()=>guardAction("SAVE",exportPDF),disabled:pdfBusy,title:"Enregistrer le log de nav (fichier PDF, A4 paysage)",style:{...btn(BLUE2),opacity:pdfBusy?.6:1}},React.createElement(Ic,{name:"download"})," ",pdfBusy?"\u2026":"SAVE"),React.createElement("button",{className:"tb-mpi tb-cards",onClick:toggleCardPage,style:nav.cardPage&&nav.cardPage.on?{...btn(SLATE)}:{...ghostW},title:"Log de nav en cartes de branche pour le vol : heure de d\xE9part, dur\xE9e, ETA"},React.createElement(Ic,{name:"play"})," ",nav.cardPage&&nav.cardPage.on?"Cards \u2715":"Cards"),React.createElement("button",{className:"tb-info",title:"Informations & mentions l\xE9gales",onClick:()=>{if(window.__OPEN_INFO)window.__OPEN_INFO();else{const m=document.getElementById("infoModal");if(m)m.hidden=false;}}},React.createElement("svg",{width:14,height:14,viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:2.2,strokeLinecap:"round"},React.createElement("circle",{cx:12,cy:12,r:10}),React.createElement("path",{d:"M12 16v-4M12 8h.01"})))),(()=>{const MAXTP=4;const tpA=Math.max(0,nav.aller.length-2);const tpR=hasRetour?Math.max(0,nav.retour.length-2):0;const split=hasRetour&&(tpA>MAXTP||tpR>MAXTP);const rowH=ROWH;const Head=React.createElement("div",{className:"zone",onClick:openTop,style:{display:"flex"}},React.createElement("div",{style:{width:P1W,padding:"3px 7px",borderRight:`1px solid ${HAIR}`,borderBottom:`1px solid ${HAIR}`,minWidth:0,boxSizing:"border-box"}},React.createElement("div",{style:{display:"flex",gap:6}},React.createElement(KV,{k:"Mod.",v:nav.meta.modele}),React.createElement(KV,{k:"Immat",v:nav.meta.immat})),React.createElement(KV,{k:"CDB",v:nav.meta.commandant}),(nav.meta.conso||nav.meta.vitesse)&&React.createElement("div",{style:{display:"flex",gap:6}},nav.meta.conso?React.createElement(KV,{k:"L/h",v:nav.meta.conso}):null,nav.meta.vitesse?React.createElement(KV,{k:"Vp",v:nav.meta.vitesse}):null,num(nav.meta.vitesse)?React.createElement(KV,{k:"Fb",v:(60/num(nav.meta.vitesse)).toFixed(2)}):null,nav.meta.ventDir?React.createElement(KV,{k:"V dir",v:nav.meta.ventDir+"\xB0"}):null,nav.meta.ventKt?React.createElement(KV,{k:"Vw",v:nav.meta.ventKt+" kt"}):null)),React.createElement("div",{style:{width:GREYW,background:GREYFILL,borderLeft:`2px dashed ${CUT}`,borderRight:`2px dashed ${CUT}`,borderBottom:`2px dashed ${CUT}`,display:"flex",alignItems:"center",justifyContent:"center",textAlign:"center",minWidth:0,boxSizing:"border-box"}},React.createElement("span",{style:{font:"700 10px ui-sans-serif",color:"#777",letterSpacing:.5,display:"inline-flex",alignItems:"center",gap:5}},React.createElement(Ic,{name:"scissors",size:12})," ZONE \xC0 D\xC9COUPER & JETER \u2014 POUR LE PLIAGE")),React.createElement("div",{style:{width:RIGHTW,padding:"3px 7px",borderBottom:`1px solid ${HAIR}`,minWidth:0,boxSizing:"border-box"}},React.createElement("div",{style:{font:"800 11px ui-sans-serif",color:INK,letterSpacing:.3,marginBottom:1}},"LOG DE NAV ",React.createElement("span",{style:{color:ACCENT}},"AK")),React.createElement(KV,{k:"Date",v:nav.meta.date}),React.createElement(KV,{k:"Nav",v:nav.name||trajet})));const P4=React.createElement("div",{style:{width:PANEL,borderLeft:`1px solid ${HAIR}`,display:"flex",flexDirection:"column",minWidth:0,padding:"4px 6px",overflow:"visible"}},React.createElement(CarbuHoraires,{nav}),React.createElement("div",{style:{display:"flex",alignItems:"baseline",gap:8,padding:"5px 2px 7px",font:"600 10px ui-sans-serif",color:INK,lineHeight:1}},React.createElement("span",{style:{whiteSpace:"nowrap"}},"H max atterrissage"),React.createElement("span",{style:{flex:1,borderBottom:`1px solid #999`,alignSelf:"stretch",transform:"translateY(-1px)"}}),React.createElement("span",{style:{display:"inline-flex",alignItems:"center",gap:4,whiteSpace:"nowrap"}},"PITO",React.createElement("span",{style:{display:"inline-block",width:10,height:10,border:`1.2px solid ${INK}`,borderRadius:2,boxSizing:"border-box",transform:"translateY(1px)"}})),React.createElement("span",{style:{display:"inline-flex",alignItems:"center",gap:4,whiteSpace:"nowrap"}},"Xmax",xmaxVal(nav.meta)!=null?React.createElement(React.Fragment,null,React.createElement("b",{style:{color:RED,fontSize:13}},xmaxVal(nav.meta),"\xB0"),React.createElement("span",{className:"no-print",style:{display:"inline-flex"}},React.createElement(Info,{text:xmaxTip(nav.meta),pos:"bottomLeft"}))):React.createElement("span",{style:{display:"inline-block",width:40,borderBottom:`1px solid #999`,height:13}}))),React.createElement(RTable,{header:["ATIS","D\xE9part","\xC9tape","Arriv\xE9e"],widths:[1.35,1,1,1],bodyH:21,merge:{from:5,to:7,label:"Nuages"},rows:(function(){var FL=nav.flight||{},A=FL.atis||{},B=FL.atisA||{};
 var tr=function(v){return String(v==null?"":v).trim()};
 var vis=function(X){return X.cavok?"CAVOK":(tr(X.visi)?tr(X.visi)+" km":"")};
-var pi=function(X){var r=tr(X.rwy);return (r||X.rwyH)?(r+(X.rwyS||"")+(X.rwyH?" herbe":"")):""};
+var pi=function(X){var r=tr(X.rwy);return (r||X.rwyH||X.rwyD)?(r+(X.rwyS||"")+(X.rwyH?" herbe":(X.rwyD?" dur":""))):""};
 var td=function(X){var a=tr(X.t),c=tr(X.dp);return (a||c)?((a||"—")+" / "+(c||"—")):""};
 var lay=function(X,k){var N=X.nebs||{};if(!(k in N))return "";var v=tr(N[k]);return v?v+" ft":"✓"};
 var nrow=function(k){return [lay(A,k),"",lay(B,k)]};
-var inf=function(X){var q=[];if(tr(X.let))q.push("Info "+tr(X.let).toUpperCase());var o=lay(X,"OVC");if(o)q.push("OVC "+o);if(tr(X.rem))q.push(tr(X.rem));return q.join(" \xB7 ")};
+var inf=function(X){var q=[];if(X.aa)q.push("A/A");if(tr(X.let))q.push("Info "+tr(X.let).toUpperCase());var o=lay(X,"OVC");if(o)q.push("OVC "+o);if(tr(X.rem))q.push(tr(X.rem));return q.join(" \xB7 ")};
 return [["Fr\xE9quence","","",""],
 ["Piste",pi(A),"",pi(B)],
 ["Vent (\xB0)",tr(nav.meta.ventDir),"",tr(B.dir)],
@@ -4876,9 +4885,10 @@ function NavCards({nav,setNav,tsvOf,tavOf,capOf}){
   const atisOf=key=>(F[key]||{});
   const putAtis=(key,patch)=>setNav({flight:{...F,[key]:{...(F[key]||{}),...patch}}});
   const rwyTxt=A=>{const r=String(A.rwy||"").trim();
-    return (r||A.rwyH)?(r+(A.rwyS||"")+(A.rwyH?" herbe":"")):"";};
+    return (r||A.rwyH||A.rwyD)?(r+(A.rwyS||"")+(A.rwyH?" herbe":(A.rwyD?" dur":""))):"";};
   const atisTxt=(A,dir,kt)=>{
     const p=[];
+    if(A.aa) p.push("A/A");
     if((A.let||"").trim()) p.push(String(A.let).trim().toUpperCase());
     if(rwyTxt(A)) p.push("Piste "+rwyTxt(A));
     if(A.cavok) p.push("CAVOK");
@@ -4904,14 +4914,18 @@ function NavCards({nav,setNav,tsvOf,tavOf,capOf}){
     h("b",{className:val?"":"ph"},val||ph),unit?h("span",null,unit):null,
     h("button",{onClick:plus,title:"Valeur suivante"},"+"));
   const subl=(t,n)=>h(React.Fragment,null,t,n?h("span",{className:"nc-u"},n):null);
-  /* piste : numéro au clavier, côté et nature d'un appui */
-  const rwyRow=(A,put)=>h("div",{className:"nc-af"},h("label",null,"Piste"),
+  /* piste : numéros proposés par la base AIRAC (l'ATIS donne le QFU), côté et
+     nature d'un appui — la tour précise R / L avec la clairance */
+  const rwyRow=(A,put,rwys)=>h("div",{className:"nc-af"},h("label",null,"Piste"),
     h("div",{className:"nc-arwy"},
+      (rwys||[]).map(n=>h("button",{key:n,className:String(A.rwy||"").trim()===n?"on":"",
+        onClick:()=>put({rwy:String(A.rwy||"").trim()===n?"":n}),title:"Piste "+n+" (base AIRAC)"},n)),
       h("input",{value:A.rwy||"",inputMode:"decimal",maxLength:2,placeholder:"—",
         onChange:e=>put({rwy:e.target.value})}),
       h("button",{className:A.rwyS==="R"?"on":"",onClick:()=>put({rwyS:A.rwyS==="R"?"":"R"}),title:"Piste droite (right)"},"R"),
       h("button",{className:A.rwyS==="L"?"on":"",onClick:()=>put({rwyS:A.rwyS==="L"?"":"L"}),title:"Piste gauche (left)"},"L"),
-      h("button",{className:A.rwyH?"on":"",onClick:()=>put({rwyH:!A.rwyH}),title:"Piste en herbe"},"H")));
+      h("button",{className:A.rwyH?"on":"",onClick:()=>put({rwyH:!A.rwyH,rwyD:false}),title:"Piste en herbe"},"H"),
+      h("button",{className:"wide"+(A.rwyD?" on":""),onClick:()=>put({rwyD:!A.rwyD,rwyH:false}),title:"Piste revêtue (dur)"},"Dur")));
   /* nébulosité : une case par couche, avec sa base en pieds juste dessous */
   const nebRow=(A,put)=>{
     const NB=A.nebs||{};
@@ -4927,6 +4941,13 @@ function NavCards({nav,setNav,tsvOf,tavOf,capOf}){
     const A=dep?atisDep:atisArr, key=dep?"atis":"atisA";
     const put=p=>putAtis(key,p);
     const aero=dep?(((legs[0]||{}).position||"").trim()):(((legs[legs.length-1]||{}).position||"").trim());
+    /* base AIRAC : service ATS (A/A par défaut si pas de TWR/AFIS) et numéros de piste */
+    const alook=aeroLookup(aero);
+    const aaOn=(A.aa==null)?!/TWR|AFIS/i.test(((alook&&alook.tc)||"TWR")):!!A.aa;
+    const aaBtn=h("button",{className:"nc-aab"+(aaOn?" on":""),onClick:()=>put({aa:!aaOn}),
+      title:"Auto-information A/A — terrain non contrôlé ou hors horaires ATS. La lettre reste saisissable (METAR, terrain voisin)."},"A/A");
+    const rwys=(()=>{ const s=(alook&&alook.dp)||"", out=[]; const re=/(\d{2})[LRC]?\/(\d{2})[LRC]?/g; let m;
+      while(m=re.exec(s)){ [m[1],m[2]].forEach(n=>{ if(out.indexOf(n)<0) out.push(n); }); } return out.sort(); })();
     const D=dep?dr:(A.dir||""), K=dep?kt:(A.kt||""), Q=dep?qnh:(A.qnh||"");
     const sD=dep?setWDir:(v=>put({dir:v})), sK=dep?setWKt:(v=>put({kt:v})), sQ=dep?setQnhV:(v=>put({qnh:v}));
     const dq=(!dep&&String(A.qnh||"").trim()&&String(qnh||"").trim())?(numv(A.qnh)-numv(qnh)):null;
@@ -4949,10 +4970,10 @@ function NavCards({nav,setNav,tsvOf,tavOf,capOf}){
       h("div",{className:"nc-pop nc-pop-a"},
         h("div",{className:"nc-pop-h"},"ATIS "+(dep?"départ":"arrivée")+(aero?" · "+aero:""),
           h("button",{className:"nc-x",onClick:()=>setPop(false),title:"Fermer"},"×")),
-        dep?arow("Information",ainp(A.let,v=>put({let:v}),"B",2))
+        dep?arow("Information",h("div",{className:"nc-a2"},ainp(A.let,v=>put({let:v}),"B",2),aaBtn))
            :arow(subl("Lettre",depLet?"départ "+depLet:null),
-              astep(letCur,"—",()=>bumpLet(-1),()=>bumpLet(1))),
-        rwyRow(A,put),
+              h("div",{className:"nc-a2"},astep(letCur,"—",()=>bumpLet(-1),()=>bumpLet(1)),aaBtn)),
+        rwyRow(A,put,rwys),
         arow("Vent",h("div",{className:"nc-a2"},
           ainp(D,sD,"270"),h("span",null,"°"),ainp(K,sK,"15"),h("span",null,"kt")),
           dep?null:((dr||kt)?"départ "+(dr||"—")+"° / "+(kt||"—")+" kt":null)),
@@ -5016,7 +5037,7 @@ function NavCards({nav,setNav,tsvOf,tavOf,capOf}){
   const atisChip=(dep,side)=>h("button",{className:"nc-atisc "+side+((dep?depTxt:arrTxt)?"":" empty"),
     onClick:e=>{e.stopPropagation();setPop(dep?"atis":"atisA");},
     title:"ATIS "+(dep?"départ":"arrivée")},
-    h("i",null,"ATIS"),h("b",null,((dep?atisDep:atisArr).let||"—").toUpperCase()));
+    h("i",null,"ATIS"),h("b",null,(((dep?atisDep:atisArr).let||"").trim()||((dep?atisDep:atisArr).aa?"A/A":"—")).toUpperCase()));
   /* ---- bandeau fixe ---- */
   const flying=(mode==="fly"&&nb);
   const bar=h("div",{className:"nc-bar"},
