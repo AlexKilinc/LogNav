@@ -1887,7 +1887,7 @@ window.__TRACE_MARKUP="\n\n<header>\n  <div class=\"hdr-row1\">\n    <span class
    accessible depuis le bouton ⓘ du bandeau du log, avant toute ouverture de la carte */
 (function(){
   var host=document.createElement('div');
-  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Carte OACI :</b> donnée IGN non libre — nécessite votre propre clé Géoplateforme filtrée sur votre domaine. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.221</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
+  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Carte OACI :</b> donnée IGN non libre — nécessite votre propre clé Géoplateforme filtrée sur votre domaine. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.222</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
   (document.body||document.documentElement).appendChild(host.firstElementChild);
   window.__OPEN_INFO=function(){ document.getElementById('infoModal').hidden=false; };
   /* iPadOS : les pastilles de fen\xEAtrage (coin haut-gauche) recouvrent le burger
@@ -3091,7 +3091,13 @@ document.getElementById('asideToggle').addEventListener('click', toggleAside);
     document.getElementById('vfPanel').hidden=!on;
     document.getElementById('vfCards').hidden=!on;
     vfBtn.classList.toggle('act',on);
-    if(on){ render(); try{ window.__VF_PLACE&&window.__VF_PLACE(); }catch(e){} } else { pause(); if(planeOn){map.removeLayer(plane);planeOn=false;} vfHlGroup.clearLayers(); }
+    if(on){ render();
+      /* le vol virtuel se lance depuis le burger : on referme le menu pour que le
+         panneau se cale sous le bandeau replié */
+      try{ var th2=document.getElementById('trace-host'), bg2=document.getElementById('mapBurger');
+           if(th2) th2.classList.remove('map-menu-open'); if(bg2) bg2.classList.remove('on'); }catch(e){}
+      try{ window.__VF_PLACE&&window.__VF_PLACE();
+           setTimeout(function(){ try{ window.__VF_PLACE&&window.__VF_PLACE(); }catch(e){} },140); }catch(e){} } else { pause(); if(planeOn){map.removeLayer(plane);planeOn=false;} vfHlGroup.clearLayers(); }
   });
   {const vc=document.getElementById('vfClose');
    if(vc) vc.addEventListener('click',e=>{ e.stopPropagation(); if(!document.getElementById('vfPanel').hidden) vfBtn.click(); });}
