@@ -1905,7 +1905,7 @@ window.__TRACE_MARKUP="\n\n<header>\n  <div class=\"hdr-row1\">\n    <span class
    accessible depuis le bouton ⓘ du bandeau du log, avant toute ouverture de la carte */
 (function(){
   var host=document.createElement('div');
-  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Carte OACI :</b> donnée IGN non libre — nécessite votre propre clé Géoplateforme filtrée sur votre domaine. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.227</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
+  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Carte OACI :</b> donnée IGN non libre — nécessite votre propre clé Géoplateforme filtrée sur votre domaine. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.231</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
   (document.body||document.documentElement).appendChild(host.firstElementChild);
   window.__OPEN_INFO=function(){ document.getElementById('infoModal').hidden=false; };
   /* iPadOS : les pastilles de fen\xEAtrage (coin haut-gauche) recouvrent le burger
@@ -5737,6 +5737,10 @@ class ErrB extends React.Component{constructor(p){super(p);this.state={e:null};}
   padding:8px 13px;font:700 12px "Poppins",sans-serif;cursor:pointer}
 .wx-del{flex:none;background:transparent;border:0;color:#5f7ba3;font:700 15px/1 sans-serif;cursor:pointer;padding:2px 6px}
 .wx-role.fav{background:#f59e0b;color:#1a1a2e}
+.wx-raw.dec{font:600 12px/1.55 "Poppins",sans-serif;color:#dce8fa}
+.wx-raw.taf.dec{font-size:11.5px;color:#9fc0e8}
+#wxRefresh{font-size:15px;padding:7px 10px}
+#wxMode{min-width:74px}
 </style>
 <script>
 /* ===== Météo METAR / TAF — source NOAA aviationweather.gov ===== */
@@ -5759,6 +5763,66 @@ class ErrB extends React.Component{constructor(p){super(p);this.state={e:null};}
       else if(m=t.match(/^Q(\d{3,4})$/)){ o.qnh=String(+m[1]); }
     }
     return o;
+  }
+  /* traduction en clair des METAR / TAF (tokens OMM courants) */
+  var WXI={'-':'faible ','+':'forte '};
+  var WXD={MI:'mince',BC:'bancs de',PR:'partiel',DR:'chasse basse de',BL:'chasse haute de',SH:'averses de',TS:'orage',FZ:'se congelant'};
+  var WXP={DZ:'bruine',RA:'pluie',SN:'neige',SG:'neige en grains',PL:'granules de glace',GR:'grêle',GS:'grésil',UP:'précipitations',FG:'brouillard',BR:'brume',HZ:'brume sèche',FU:'fumée',DU:'poussière',SA:'sable',VA:'cendres',SQ:'grains',PO:'tourbillons',FC:'trombe',DS:'tempête de poussière',SS:'tempête de sable'};
+  var CLD={FEW:'peu nuageux 1-2/8',SCT:'épars 3-4/8',BKN:'fragmenté 5-7/8',OVC:'couvert 8/8'};
+  function decTime(t){ var m=t.match(/^(\d{2})(\d{2})(\d{2})Z$/); return m?('le '+(+m[1])+' à '+m[2]+':'+m[3]+' UTC'):null; }
+  function decTok(t){
+    var m;
+    if(m=t.match(/^(\d{3}|VRB)(\d{2,3})(?:G(\d{2,3}))?KT$/))
+      return 'vent '+(m[1]==='VRB'?'variable':(+m[1])+'°')+' '+(+m[2])+' kt'+(m[3]?', rafales '+(+m[3])+' kt':'');
+    if(t==='00000KT') return 'vent calme';
+    if(m=t.match(/^(\d{3})V(\d{3})$/)) return 'direction variable entre '+(+m[1])+'° et '+(+m[2])+'°';
+    if(t==='CAVOK') return 'CAVOK — visi ≥ 10 km, pas de nuage sous 5000 ft, pas de temps significatif';
+    if(t==='9999') return 'visibilité ≥ 10 km';
+    if(/^\d{4}$/.test(t)) return 'visibilité '+(+t)+' m';
+    if(m=t.match(/^R(\d{2}[LRC]?)\/(P?M?)(\d{4})/)) return 'RVR piste '+m[1]+' : '+(m[2]==='P'?'≥ ':'')+(+m[3])+' m';
+    if(m=t.match(/^(FEW|SCT|BKN|OVC)(\d{3})(CB|TCU)?$/))
+      return CLD[m[1]]+' à '+((+m[2])*100)+' ft'+(m[3]==='CB'?' (cumulonimbus)':(m[3]==='TCU'?' (bourgeonnant)':''));
+    if(m=t.match(/^VV(\d{3})$/)) return 'ciel invisible, visibilité verticale '+((+m[1])*100)+' ft';
+    if(t==='NSC'||t==='NCD'||t==='SKC'||t==='CLR') return 'pas de nuage significatif';
+    if(t==='NSW') return 'fin du temps significatif';
+    if(m=t.match(/^(M?)(\d{2})\/(M?)(\d{2})$/))
+      return 'température '+(m[1]?'−':'')+(+m[2])+' °C · point de rosée '+(m[3]?'−':'')+(+m[4])+' °C';
+    if(m=t.match(/^Q(\d{3,4})$/)) return 'QNH '+(+m[1])+' hPa';
+    if(t==='NOSIG') return 'pas de changement significatif attendu';
+    if(t==='AUTO') return 'observation automatique';
+    if(m=t.match(/^TX(M?)(\d{2})\/(\d{2})(\d{2})Z$/)) return 'max '+(m[1]?'−':'')+(+m[2])+' °C le '+(+m[3])+' à '+m[4]+'h';
+    if(m=t.match(/^TN(M?)(\d{2})\/(\d{2})(\d{2})Z$/)) return 'min '+(m[1]?'−':'')+(+m[2])+' °C le '+(+m[3])+' à '+m[4]+'h';
+    if(m=t.match(/^([-+])?(VC)?(MI|BC|PR|DR|BL|SH|TS|FZ)?((?:DZ|RA|SN|SG|PL|GR|GS|UP|FG|BR|HZ|FU|DU|SA|VA|SQ|PO|FC|DS|SS)+)?$/)){
+      if(m[3]||m[4]){
+        var out=(WXI[m[1]]||'');
+        if(m[3]) out+=WXD[m[3]]+' ';
+        if(m[4]) for(var k=0;k<m[4].length;k+=2) out+=(k?' et ':'')+WXP[m[4].substr(k,2)];
+        if(m[2]) out+=' à proximité';
+        return out.trim();
+      }
+    }
+    return null;
+  }
+  function decodeWx(raw,isTaf){
+    var w=String(raw||'').trim().split(/\s+/), out=[], line=[], i=0, m;
+    var push=function(){ if(line.length){ out.push(line.join(' · ')); line=[]; } };
+    for(;i<w.length;i++){
+      var t=w[i];
+      if(i<3&&(t==='METAR'||t==='TAF'||t==='SPECI'||t==='COR'||t==='AMD'||/^[A-Z]{4}$/.test(t))) continue;
+      if(t==='RMK'){ push(); out.push('remarques : '+w.slice(i+1).join(' ')); break; }
+      var dt=decTime(t); if(dt){ line.push('émis '+dt); continue; }
+      if(isTaf&&(m=t.match(/^(\d{2})(\d{2})\/(\d{2})(\d{2})$/))){
+        line.push('valide du '+(+m[1])+' à '+m[2]+'h au '+(+m[3])+' à '+m[4]+'h UTC'); continue; }
+      if(isTaf&&(m=t.match(/^FM(\d{2})(\d{2})(\d{2})$/))){
+        push(); line.push('À PARTIR du '+(+m[1])+' à '+m[2]+':'+m[3]); continue; }
+      if(t==='TEMPO'){ push(); line.push('TEMPORAIREMENT'); continue; }
+      if(t==='BECMG'){ push(); line.push('ÉVOLUANT'); continue; }
+      if(m=t.match(/^PROB(\d{2})$/)){ push(); line.push('PROBABILITÉ '+m[1]+' %'); continue; }
+      var d=decTok(t);
+      line.push(d!==null?d:t);
+    }
+    push();
+    return out.join('\n');
   }
   window.__WX_OPEN=function(pl){
     /* départ puis arrivée d'abord, survols ensuite, favoris toujours en dessous */
@@ -5785,7 +5849,7 @@ class ErrB extends React.Component{constructor(p){super(p);this.state={e:null};}
     var flightRows=base.map(rowHtml).join('');
     var favRows=codes.filter(function(c){return c.role==='fav'}).map(rowHtml).join('');
     ov.innerHTML='<div class="wx-hd"><h3>M\u00e9t\u00e9o \u2014 METAR / TAF</h3>'
-      +'<button id="wxRefresh">\u27f3 Actualiser</button><button id="wxClose">Fermer</button></div>'
+      +'<button id="wxMode"></button><button id="wxRefresh" title="Actualiser">\u27f3</button><button id="wxClose">Fermer</button></div>'
       +'<div class="wx-src" id="wxSrc">Source : NOAA \u2014 aviationweather.gov \u00b7 chargement\u2026</div>'
       +'<div class="wx-list">'
       +(flightRows||'<div class="wx-empty">Aucun a\u00e9rodrome (code OACI) dans la navigation.</div>')
@@ -5795,6 +5859,15 @@ class ErrB extends React.Component{constructor(p){super(p);this.state={e:null};}
       +(favRows||'')
       +'</div>';
     document.body.appendChild(ov);
+    var mode=localStorage.getItem('lognav_wx_mode')||'raw';
+    var lastC=cget(), lastStatus=' \u00b7 chargement\u2026';
+    var modeBtn=ov.querySelector('#wxMode');
+    function modeLbl(){ modeBtn.textContent=(mode==='raw')?'D\u00e9cod\u00e9':'Brut';
+      modeBtn.title=(mode==='raw')?'Afficher les messages traduits en clair':'Afficher les messages bruts'; }
+    modeLbl();
+    modeBtn.onclick=function(){ mode=(mode==='raw')?'dec':'raw';
+      try{localStorage.setItem('lognav_wx_mode',mode)}catch(e){}
+      modeLbl(); render(lastC,lastStatus); };
     ov.querySelector('#wxClose').onclick=function(){ov.remove()};
     ov.querySelector('#wxRefresh').onclick=function(){load()};
     ov.querySelector('#wxFavAdd').onclick=function(){
@@ -5809,13 +5882,16 @@ class ErrB extends React.Component{constructor(p){super(p);this.state={e:null};}
     });
     function render(c,status){
       if(!document.getElementById('wxOv'))return;
-      document.getElementById('wxSrc').textContent='Source : NOAA \u2014 aviationweather.gov'+status;
+      lastC=c; lastStatus=status;
+      document.getElementById('wxSrc').textContent='Source : '+((c&&c.src)||'NOAA \u2014 aviationweather.gov')+status;
       codes.forEach(function(cd){
         var mEl=document.getElementById('wxM'+cd.code), tEl=document.getElementById('wxT'+cd.code);
         var raw=(c.metar||{})[cd.code], taf=(c.taf||{})[cd.code];
-        if(mEl){ if(raw){mEl.textContent=raw;mEl.classList.remove('wx-none');}
-          else {mEl.textContent='Pas de METAR publi\u00e9 pour ce terrain.';mEl.classList.add('wx-none');} }
-        if(tEl){ if(taf){tEl.hidden=false;tEl.textContent=taf;} else tEl.hidden=true; }
+        if(mEl){ if(raw){mEl.textContent=(mode==='dec')?decodeWx(raw,false):raw;
+            mEl.classList.toggle('dec',mode==='dec');mEl.classList.remove('wx-none');}
+          else {mEl.textContent='Pas de METAR publi\u00e9 pour ce terrain.';mEl.classList.add('wx-none');mEl.classList.remove('dec');} }
+        if(tEl){ if(taf){tEl.hidden=false;tEl.textContent=(mode==='dec')?decodeWx(taf,true):taf;
+            tEl.classList.toggle('dec',mode==='dec');} else tEl.hidden=true; }
         var b=ov.querySelector('.wx-apply[data-c="'+cd.code+'"]');
         if(b){ b.hidden=!raw;
           b.onclick=function(){ var p=parseMetar(raw);
@@ -5825,23 +5901,54 @@ class ErrB extends React.Component{constructor(p){super(p);this.state={e:null};}
       });
     }
     function load(){
-      var ids=codes.map(function(c){return c.code}).join(',');
-      if(!ids){ render(cget(),' \u00b7 aucun a\u00e9rodrome'); return; }
-      var basePath='https://aviationweather.gov/api/data/';
-      var grab=function(u){ return fetch(u).then(function(r){ if(!r.ok) throw 0; return r.json(); })
-        .catch(function(){ return null; }); };
-      Promise.all([grab(basePath+'metar?ids='+ids+'&format=json'),
-                   grab(basePath+'taf?ids='+ids+'&format=json')])
-      .then(function(res){
-        var ms=res[0], ts=res[1];
-        var c=cget(); c.metar=c.metar||{}; c.taf=c.taf||{};
-        var okAny=false;
-        if(Array.isArray(ms)){ okAny=true; ms.forEach(function(m){var id=m.icaoId||m.station_id;var raw=m.rawOb||m.raw_text;if(id&&raw)c.metar[id]=raw;}); }
-        if(Array.isArray(ts)){ okAny=true; ts.forEach(function(t){var id=t.icaoId||t.station_id;var raw=t.rawTAF||t.raw_text;if(id&&raw)c.taf[id]=raw;}); }
-        if(okAny){ c.t=Date.now(); cset(c); render(c,' \u00b7 mise \u00e0 jour '+hm(c.t)); }
-        else { var cc=cget();
-          render(cc, cc.t?' \u00b7 \u00e9chec r\u00e9seau \u2014 donn\u00e9es du '+hm(cc.t)
-                         :' \u00b7 \u00e9chec de r\u00e9cup\u00e9ration (r\u00e9seau)'); }
+      var ids=codes.map(function(c){return c.code});
+      if(!ids.length){ render(cget(),' \u00b7 aucun a\u00e9rodrome'); return; }
+      var lastErr='';
+      var c=cget(); c.metar=c.metar||{}; c.taf=c.taf||{};
+      var done=function(src){ c.t=Date.now(); c.src=src; cset(c);
+        render(c,' \u00b7 mise \u00e0 jour '+hm(c.t)); };
+      var fail=function(){ var cc=cget();
+        render(cc, cc.t?' \u00b7 \u00e9chec ('+(lastErr||'r\u00e9seau')+') \u2014 donn\u00e9es du '+hm(cc.t)
+                       :' \u00b7 \u00e9chec de r\u00e9cup\u00e9ration ('+(lastErr||'r\u00e9seau')+')'); };
+      /* garde-fou : 7 s maximum par requête, sinon bascule vers la source suivante */
+      var fT=function(u){ var ac=('AbortController' in window)?new AbortController():null;
+        var t=ac?setTimeout(function(){try{ac.abort()}catch(e){}},7000):null;
+        return fetch(u,ac?{signal:ac.signal}:{}).then(
+          function(r){ if(t)clearTimeout(t); return r; },
+          function(e){ if(t)clearTimeout(t); if(!lastErr)lastErr='d\u00e9lai d\u00e9pass\u00e9'; throw e; });
+      };
+      /* source principale : NOAA Aviation Weather Center (flux OPMET mondial, domaine public) */
+      var tryNoaa=function(){
+        var basePath='https://aviationweather.gov/api/data/';
+        var grab=function(u){ return fT(u).then(function(r){ if(!r.ok){ lastErr='HTTP '+r.status; throw 0; } return r.json(); })
+          .catch(function(){ if(!lastErr) lastErr='r\u00e9seau'; return null; }); };
+        return Promise.all([grab(basePath+'metar?ids='+ids.join(',')+'&format=json'),
+                            grab(basePath+'taf?ids='+ids.join(',')+'&format=json')])
+        .then(function(res){
+          var ms=res[0], ts=res[1], ok=false;
+          if(Array.isArray(ms)){ ok=true; ms.forEach(function(m){var id=m.icaoId||m.station_id;var raw=m.rawOb||m.raw_text;if(id&&raw)c.metar[id]=raw;}); }
+          if(Array.isArray(ts)){ ok=true; ts.forEach(function(t){var id=t.icaoId||t.station_id;var raw=t.rawTAF||t.raw_text;if(id&&raw)c.taf[id]=raw;}); }
+          return ok;
+        });
+      };
+      /* secours : MET Norway (api.met.no), METAR/TAF mondiaux en texte */
+      var tryMetno=function(){
+        var ok=false;
+        var grabTxt=function(kind,code){
+          return fT('https://api.met.no/weatherapi/tafmetar/1.0/'+kind+'.txt?icao='+code)
+            .then(function(r){ if(!r.ok){ lastErr='HTTP '+r.status; throw 0; } ok=true; return r.text(); })
+            .then(function(tx){ var lines=String(tx||'').split('\n').map(function(l){return l.trim()})
+                .filter(function(l){return l.length>8});
+              if(lines.length) c[kind==='metar'?'metar':'taf'][code]=lines[lines.length-1]; })
+            .catch(function(){});
+        };
+        var jobs=[];
+        ids.forEach(function(code){ jobs.push(grabTxt('metar',code)); jobs.push(grabTxt('taf',code)); });
+        return Promise.all(jobs).then(function(){ return ok; });
+      };
+      tryNoaa().then(function(ok){
+        if(ok){ done('NOAA \u2014 aviationweather.gov'); return; }
+        tryMetno().then(function(ok2){ if(ok2) done('MET Norway \u2014 api.met.no'); else fail(); });
       });
     }
     var c0=cget(); if(c0.t) render(c0,' \u00b7 donn\u00e9es du '+hm(c0.t)+' \u2014 actualisation\u2026');
