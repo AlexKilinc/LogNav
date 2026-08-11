@@ -36,6 +36,7 @@ const SKIP = [
   /mt\d\.google(?:apis)?\.com/i,
   /data\.geopf\.fr/i,
   /overpass/i,
+  /akila-flight\.fr/i,
   /supabase/i,
   /pocketbase\.io/i
 ];
