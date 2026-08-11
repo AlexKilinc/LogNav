@@ -23,6 +23,7 @@ const PRECACHE = [
   'https://cdnjs.cloudflare.com/ajax/libs/Turf.js/6.5.0/turf.min.js',
   'https://cdn.jsdelivr.net/npm/pocketbase@0.22.0/dist/pocketbase.umd.js',
   'https://unpkg.com/pmtiles@3.2.0/dist/pmtiles.js',
+  'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js',
   'https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500&family=Space+Mono:wght@400;700&display=swap'
 ];
 const SKIP = [
