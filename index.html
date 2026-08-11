@@ -474,7 +474,7 @@
   html.rec-live .rec-hud{z-index:4300}
   /* un enregistrement en cours : les modals des cartes démarrent sous le badge REC */
   html.rec-live.mp-cards .nc-ov{padding-top:calc(env(safe-area-inset-top) + 66px)}
-  .nc-ov:has(.nc-pop-a){padding:calc(env(safe-area-inset-top) + 10px) 6px calc(env(safe-area-inset-bottom, 0px) + 12px)}
+  .nc-ov:has(.nc-pop-a){padding:calc(env(safe-area-inset-top) + 6px) 6px calc(env(safe-area-inset-bottom, 0px) + 4px)}
   html.rec-live.mp-cards .nc-pop-a{max-height:calc(100svh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 96px)}
   /* messages de la carte : le conteneur dépasse l'écran en mobile, le bandeau
      serait coupé en bas — on l'ancre à la fenêtre, au-dessus du badge REC */
@@ -944,6 +944,11 @@ html:has(.ovl) #uiScaleBox,html:has(body.rec-full) #uiScaleBox{display:none!impo
 .nc-arwy button.wide{flex:0 0 auto;padding:0 9px;font-size:13px}
 .nc-aab{flex:0 0 auto;border-radius:9px;border:1px solid #2a4372;background:#0d2247;color:#8fa9cc;font:800 12px "Poppins",sans-serif;cursor:pointer;padding:0 12px;min-height:37px}
 .nc-aab.on{background:#1E9FE0;border-color:#1E9FE0;color:#fff}
+.nc-axp{display:flex;gap:6px;align-items:stretch}
+.nc-pop-a .nc-af>.nc-axp{flex:1 1 0;min-width:0}
+.nc-axp>input:first-child{flex:0 0 54px;width:54px}
+.nc-axp .nc-xpdr{flex:1 1 64px;min-width:60px;width:auto;letter-spacing:2px}
+.nc-axp .nc-astep{flex:1 1 auto;min-width:0}
 .nc-a2 .nc-astep{flex:1 1 auto}
 .nc-arwy button.on{background:#e94560;border-color:#e94560;color:#fff}
 /* nébulosité : 4 couches, chacune avec sa base en pieds sous la case */
@@ -953,7 +958,8 @@ html:has(.ovl) #uiScaleBox,html:has(body.rec-full) #uiScaleBox{display:none!impo
 .nc-anb button.on{background:#e94560;border-color:#e94560;color:#fff}
 .nc-pop-a .nc-anb input{width:100%;box-sizing:border-box;background:#0d2247;border:1px solid #2a4372;border-radius:8px;padding:7px 2px;font:800 13px "JetBrains Mono",monospace;color:#fff;outline:none;text-align:center}
 .nc-pop-a .nc-anb button.on+input{border-color:#e94560}
-.nc-pop.nc-pop-a{max-width:520px;max-height:calc(100vh - 80px);max-height:calc(100svh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 36px);overflow:auto;gap:6px;padding:12px}
+.nc-pop.nc-pop-a>.nc-go{position:sticky;bottom:-12px;z-index:3;flex:none;box-shadow:0 -10px 16px rgba(13,31,61,.85)}
+.nc-pop.nc-pop-a{max-width:520px;max-height:calc(100vh - 60px);max-height:calc(100svh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 14px);overflow:auto;gap:6px;padding:12px}
 .nc-gridf{align-items:start}
 .nc-grid .nc-fhm{grid-column:span 2;min-width:0}
 .nc-fhm input{text-align:center;letter-spacing:.5px}
@@ -1915,7 +1921,7 @@ window.__TRACE_MARKUP="\n\n<header>\n  <div class=\"hdr-row1\">\n    <span class
    accessible depuis le bouton ⓘ du bandeau du log, avant toute ouverture de la carte */
 (function(){
   var host=document.createElement('div');
-  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Carte OACI :</b> donnée IGN non libre — nécessite votre propre clé Géoplateforme filtrée sur votre domaine. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.243</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
+  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Carte OACI :</b> donnée IGN non libre — nécessite votre propre clé Géoplateforme filtrée sur votre domaine. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.245</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
   (document.body||document.documentElement).appendChild(host.firstElementChild);
   window.__OPEN_INFO=function(){ document.getElementById('infoModal').hidden=false; };
   /* iPadOS : les pastilles de fen\xEAtrage (coin haut-gauche) recouvrent le burger
@@ -4964,6 +4970,17 @@ function NavCards({nav,setNav,tsvOf,tavOf,capOf}){
     const aaOn=(A.aa==null)?!/TWR|AFIS/i.test(((alook&&alook.tc)||"TWR")):!!A.aa;
     const aaBtn=h("button",{className:"nc-aab"+(aaOn?" on":""),onClick:()=>put({aa:!aaOn}),
       title:"Auto-information A/A — terrain non contrôlé ou hors horaires ATS. La lettre reste saisissable (METAR, terrain voisin)."},"A/A");
+    /* transpondeur : 4 chiffres, VFR 7000 par défaut ; double clic ou appui long = retour à 7000 */
+    const xpT={t:null};
+    const xpdrInp=h("input",{className:"nc-xpdr",inputMode:"numeric",maxLength:4,
+      value:(A.xpdr==null||A.xpdr==="")?"7000":String(A.xpdr),
+      onChange:e=>put({xpdr:e.target.value.replace(/\D/g,"").slice(0,4)}),
+      onDoubleClick:()=>put({xpdr:"7000"}),
+      onTouchStart:()=>{ xpT.t=setTimeout(()=>{ put({xpdr:"7000"});
+        try{ if(navigator.vibrate) navigator.vibrate(10); }catch(err){} },550); },
+      onTouchEnd:()=>{ if(xpT.t){clearTimeout(xpT.t);xpT.t=null;} },
+      onTouchMove:()=>{ if(xpT.t){clearTimeout(xpT.t);xpT.t=null;} },
+      title:"Transpondeur — double clic ou appui long : retour au code VFR 7000"});
     const rwys=(()=>{ const s=(alook&&alook.dp)||"", out=[], seen={};
       s.split(";").forEach(seg=>{
         const pm=seg.match(/(\d{2})([LRC])?(\*)?\/(\d{2})([LRC])?(\*)?/);
@@ -4998,9 +5015,9 @@ function NavCards({nav,setNav,tsvOf,tavOf,capOf}){
       h("div",{className:"nc-pop nc-pop-a"},
         h("div",{className:"nc-pop-h"},"ATIS "+(dep?"départ":"arrivée")+(aero?" · "+aero:""),
           h("button",{className:"nc-x",onClick:()=>setPop(false),title:"Fermer"},"×")),
-        dep?arow("Information",h("div",{className:"nc-a2"},ainp(A.let,v=>put({let:v}),"B",2),aaBtn))
-           :arow(subl("Lettre",depLet?"départ "+depLet:null),
-              h("div",{className:"nc-a2"},astep(letCur,"—",()=>bumpLet(-1),()=>bumpLet(1)),aaBtn)),
+        dep?arow(subl("Information","lettre · xpdr"),h("div",{className:"nc-axp"},ainp(A.let,v=>put({let:v}),"B",2),xpdrInp,aaBtn))
+           :arow(subl("Lettre",depLet?"départ "+depLet+" · xpdr":"xpdr"),
+              h("div",{className:"nc-axp"},astep(letCur,"—",()=>bumpLet(-1),()=>bumpLet(1)),xpdrInp,aaBtn)),
         rwyRow(A,put,rwys),
         arow("Vent",h("div",{className:"nc-a2"},
           ainp(D,sD,"270"),h("span",null,"°"),ainp(K,sK,"15"),h("span",null,"kt")),
