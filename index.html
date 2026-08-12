@@ -953,6 +953,10 @@ html:has(.ovl) #uiScaleBox,html:has(body.rec-full) #uiScaleBox{display:none!impo
 .nc-axp .nc-astep{flex:1 1 auto;min-width:0}
 .nc-a2 .nc-astep{flex:1 1 auto}
 .nc-arwy button.on{background:#e94560;border-color:#e94560;color:#fff}
+.nc-arwy button.rn.grass{background:#bfe3c0;border-color:#7cc47f;color:#14381d}
+.nc-arwy button.rn.grass small{color:#2c5233}
+.nc-arwy button.rn.grass.on{background:#1BA34B;border-color:#1BA34B;color:#fff}
+.nc-arwy button.rn.grass.on small{color:rgba(255,255,255,.85)}
 /* nébulosité : 4 couches, chacune avec sa base en pieds sous la case */
 .nc-anebs{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;min-width:0}
 .nc-anb{display:flex;flex-direction:column;gap:4px;min-width:0}
@@ -1937,7 +1941,7 @@ window.__TRACE_MARKUP="\n\n<header>\n  <div class=\"hdr-row1\">\n    <span class
    accessible depuis le bouton ⓘ du bandeau du log, avant toute ouverture de la carte */
 (function(){
   var host=document.createElement('div');
-  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Carte OACI :</b> donnée IGN non libre — nécessite votre propre clé Géoplateforme filtrée sur votre domaine. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.261</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
+  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Carte OACI :</b> donnée IGN non libre — nécessite votre propre clé Géoplateforme filtrée sur votre domaine. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.262</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
   (document.body||document.documentElement).appendChild(host.firstElementChild);
   window.__OPEN_INFO=function(){ document.getElementById('infoModal').hidden=false; };
   /* iPadOS : les pastilles de fen\xEAtrage (coin haut-gauche) recouvrent le burger
@@ -4982,12 +4986,14 @@ function NavCards({nav,setNav,tsvOf,tavOf,capOf}){
     return h("div",{className:"nc-af"},h("label",null,"Piste"),
       h("div",{className:"nc-arwy"},
         (rwys&&rwys.length)?h("div",{className:"rwr"},
-          rwys.map(o=>h("button",{key:o.n,className:"rn"+(cur===o.n?" on":""),
-            onClick:()=>put({rwy:cur===o.n?"":o.n}),
-            title:"Piste "+o.n+(o.len?" — "+o.len+" m":"")+(o.pref?" · préférentielle":"")+" (base AIRAC)"},
+          rwys.map(o=>{const sel=cur===o.n&&String(A.rwyS||"")===o.suf;
+            return h("button",{key:o.n+o.suf,className:"rn"+(o.grass?" grass":"")+(sel?" on":""),
+            onClick:()=>put(sel?{rwy:"",rwyS:"",rwyH:false,rwyD:false}
+                               :{rwy:o.n,rwyS:o.suf,rwyH:o.grass,rwyD:o.hard}),
+            title:"Piste "+o.n+o.suf+(o.len?" — "+o.len+" m":"")+(o.grass?" · herbe":(o.hard?" · revêtue":""))+(o.pref?" · préférentielle":"")+" (base AIRAC)"},
             o.pref?h("span",{className:"st"},"★"):null,
-            o.n,
-            o.len?h("small",null,o.len+" m"):null)))
+            o.n+o.suf,
+            o.len?h("small",null,o.len+" m"):null);}))
         :h("div",{className:"rwr"},
           h("input",{value:A.rwy||"",inputMode:"decimal",maxLength:2,placeholder:"—",
             onChange:e=>put({rwy:e.target.value})})),
@@ -5029,18 +5035,17 @@ function NavCards({nav,setNav,tsvOf,tavOf,capOf}){
       onTouchEnd:()=>{ if(xpT.t){clearTimeout(xpT.t);xpT.t=null;} },
       onTouchMove:()=>{ if(xpT.t){clearTimeout(xpT.t);xpT.t=null;} },
       title:"Transpondeur — double clic ou appui long : retour au code VFR 7000"});
-    const rwys=(()=>{ const s=(alook&&alook.dp)||"", out=[], seen={};
+    const rwys=(()=>{ const s=(alook&&alook.dp)||"", out=[];
       s.split(";").forEach(seg=>{
         const pm=seg.match(/(\d{2})([LRC])?(\*)?\/(\d{2})([LRC])?(\*)?/);
         if(!pm) return;
         const lm=seg.match(/\((\d+)\s*m/); const len=lm?+lm[1]:null;
-        [[pm[1],pm[3]],[pm[4],pm[6]]].forEach(q=>{
-          const n=q[0], pref=!!q[1];
-          if(!seen[n]){ seen[n]={n:n,len:len,pref:pref}; out.push(seen[n]); }
-          else { if(len&&(!seen[n].len||len>seen[n].len)) seen[n].len=len; if(pref) seen[n].pref=true; }
+        const grass=/non\s*rev/i.test(seg), hard=!grass&&/rev/i.test(seg);
+        [[pm[1],pm[2],pm[3]],[pm[4],pm[5],pm[6]]].forEach(q=>{
+          out.push({n:q[0],suf:q[1]||"",pref:!!q[2],len:len,grass:grass,hard:hard});
         });
       });
-      return out.sort((a,b)=>a.n<b.n?-1:1); })();
+      return out.sort((a,b)=>(a.n+a.suf)<(b.n+b.suf)?-1:1); })();
     const D=dep?dr:(A.dir||""), K=dep?kt:(A.kt||""), Q=dep?qnh:(A.qnh||"");
     const sD=dep?setWDir:(v=>put({dir:v})), sK=dep?setWKt:(v=>put({kt:v})), sQ=dep?setQnhV:(v=>put({qnh:v}));
     const dq=(!dep&&String(A.qnh||"").trim()&&String(qnh||"").trim())?(numv(A.qnh)-numv(qnh)):null;
