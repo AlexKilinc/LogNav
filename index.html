@@ -1947,7 +1947,7 @@ window.__TRACE_MARKUP="\n\n<header>\n  <div class=\"hdr-row1\">\n    <span class
    accessible depuis le bouton ⓘ du bandeau du log, avant toute ouverture de la carte */
 (function(){
   var host=document.createElement('div');
-  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Carte OACI :</b> donnée IGN non libre — nécessite votre propre clé Géoplateforme filtrée sur votre domaine. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.269</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
+  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Carte OACI :</b> donnée IGN non libre — nécessite votre propre clé Géoplateforme filtrée sur votre domaine. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.270</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
   (document.body||document.documentElement).appendChild(host.firstElementChild);
   window.__OPEN_INFO=function(){ document.getElementById('infoModal').hidden=false; };
   /* iPadOS : les pastilles de fen\xEAtrage (coin haut-gauche) recouvrent le burger
@@ -6017,6 +6017,8 @@ class ErrB extends React.Component{constructor(p){super(p);this.state={e:null};}
 .wx-row.wx-grab{border-color:#1E9FE0;box-shadow:0 8px 22px rgba(0,0,0,.55);opacity:.95;position:relative;z-index:6}
 .wx-del{flex:none;background:transparent;border:0;color:#5f7ba3;font:700 15px/1 sans-serif;cursor:pointer;padding:2px 6px}
 .wx-role.fav{background:#f59e0b;color:#1a1a2e}
+.wx-role.prox{background:#1E9FE0;color:#fff}
+.wx-sect #wxProxBtn{flex:none;background:rgba(30,159,224,.16);border:1px solid #1E9FE0;color:#7fd1ff;border-radius:8px;padding:5px 10px;font:700 11px "Poppins",sans-serif;cursor:pointer}
 .wx-raw.dec{font:600 12px/1.55 "Poppins",sans-serif;color:#dce8fa}
 .wx-raw.taf.dec{font-size:11.5px;color:#9fc0e8}
 #wxRefresh{font-size:15px;padding:7px 10px}
@@ -6127,6 +6129,7 @@ window.__pickGpx=function(cb){
     push();
     return out.join('\n');
   }
+  var wxProx=[]; /* aerodromes a proximite (session, non persistes) */
   window.__WX_OPEN=function(pl){
     /* départ puis arrivée d'abord, survols ensuite, favoris toujours en dessous */
     var base=((pl&&pl.codes)||[]).slice().sort(function(a,b){
@@ -6134,14 +6137,16 @@ window.__pickGpx=function(cb){
     var seen=new Set(base.map(function(c){return c.code}));
     var codes=base.concat(favs().filter(function(c){return !seen.has(c)})
       .map(function(c){return {code:c,role:'fav'}}));
+    codes=codes.concat(wxProx.filter(function(p){return !codes.some(function(c){return c.code===p.code})})
+      .map(function(p){return {code:p.code,role:'prox',nm:p.nm}}));
     var old=document.getElementById('wxOv'); if(old) old.remove();
     var ov=document.createElement('div'); ov.className='wx-ov no-print'; ov.id='wxOv';
     function rowHtml(c){
-      var R={dep:'D\u00e9part',arr:'Arriv\u00e9e',mid:'Survol',fav:'Favori'};
+      var R={dep:'D\u00e9part',arr:'Arriv\u00e9e',mid:'Survol',fav:'Favori',prox:'Proche'};
       return '<div class="wx-row'+(c.role==='fav'?' favrow':'')+'" data-code="'+c.code+'">'
         +'<div class="top"><span class="wx-role '+c.role+'">'+R[c.role]+'</span>'
-        +'<span class="wx-code">'+c.code+'</span><span class="wx-name">'+aeroName(c.code)+'</span>'
-        +(c.role==='fav'?'<button class="wx-del" data-c="'+c.code+'" title="Retirer ce favori">\u00d7</button>':'')
+        +'<span class="wx-code">'+c.code+'</span><span class="wx-name">'+aeroName(c.code)+(c.role==='prox'&&c.nm!=null?' \u00b7 '+c.nm+' NM':'')+'</span>'
+        +(c.role==='fav'?'<button class="wx-del" data-c="'+c.code+'" title="Retirer ce favori">\u00d7</button>':(c.role==='prox'?'<button class="wx-del" data-p="'+c.code+'" title="Retirer">\u00d7</button>':''))
         +'</div>'
         +'<div class="wx-raw" id="wxM'+c.code+'">\u2026</div>'
         +'<div class="wx-raw taf" id="wxT'+c.code+'" hidden></div>'
@@ -6160,6 +6165,8 @@ window.__pickGpx=function(cb){
       +'<div class="wx-addrow"><input id="wxFavIn" placeholder="Code OACI ou nom de terrain" autocapitalize="characters" autocomplete="off">'
       +'<button id="wxFavAdd">+ Ajouter</button><div class="wx-sug" id="wxSug" hidden></div></div>'
       +(favRows||'')
+      +'<div class="wx-sect"><h4>\u00c0 proximit\u00e9</h4><button id="wxProxBtn" type="button" title="Rechercher les a\u00e9rodromes les plus proches de ma position (GPS \u2014 sinon autour du d\u00e9part)">\ud83d\udccd Autour de moi</button></div>'
+      +(codes.filter(function(c){return c.role==='prox'}).map(rowHtml).join('')||'<div class="wx-empty" style="margin:0 2px">Appuyez sur \u00ab Autour de moi \u00bb pour lister les terrains les plus proches.</div>')
       +'</div>';
     document.body.appendChild(ov);
     var mode=localStorage.getItem('lognav_wx_mode')||'raw';
@@ -6209,9 +6216,39 @@ window.__pickGpx=function(cb){
       alert('Entrez un code OACI (ex. LFPO) ou choisissez un terrain dans la liste.');
     };
     ov.querySelectorAll('.wx-del').forEach(function(b){
-      b.onclick=function(){ setFavs(favs().filter(function(c){return c!==b.getAttribute('data-c')}));
+      b.onclick=function(){
+        var p=b.getAttribute('data-p');
+        if(p){ wxProx=wxProx.filter(function(x){return x.code!==p}); }
+        else setFavs(favs().filter(function(c){return c!==b.getAttribute('data-c')}));
         window.__WX_OPEN(pl); };
     });
+    var proxBtn=ov.querySelector('#wxProxBtn');
+    var distNm=function(la1,lo1,la2,lo2){ var toR=Math.PI/180,R=3440.065;
+      var dLa=(la2-la1)*toR,dLo=(lo2-lo1)*toR;
+      var s=Math.sin(dLa/2)*Math.sin(dLa/2)+Math.cos(la1*toR)*Math.cos(la2*toR)*Math.sin(dLo/2)*Math.sin(dLo/2);
+      return 2*R*Math.asin(Math.sqrt(s)); };
+    if(proxBtn) proxBtn.onclick=function(){
+      proxBtn.disabled=true; proxBtn.textContent='Recherche\u2026';
+      var found=function(lat,lng){
+        var near=[];
+        try{ for(var k in AERO_POS){ if(!/^LF[A-Z]{2}$/.test(k)) continue;
+          var q=AERO_POS[k]; near.push({code:k,nm:Math.round(distNm(lat,lng,q[0],q[1]))}); } }catch(e){}
+        near.sort(function(a,b){return a.nm-b.nm});
+        var cur=new Set(base.concat(codes.filter(function(c){return c.role==='fav'})).map(function(c){return c.code}));
+        wxProx=near.filter(function(x){return !cur.has(x.code)}).slice(0,6);
+        window.__WX_OPEN(pl);
+      };
+      var fallback=function(){
+        var ref=(base[0]&&AERO_POS[base[0].code])||null;
+        if(ref) found(ref[0],ref[1]);
+        else { alert('Position indisponible \u2014 autorisez la localisation ou ajoutez un a\u00e9rodrome \u00e0 la navigation.');
+          proxBtn.disabled=false; proxBtn.textContent='\ud83d\udccd Autour de moi'; }
+      };
+      if(navigator.geolocation) navigator.geolocation.getCurrentPosition(
+        function(pos){ found(pos.coords.latitude,pos.coords.longitude); },
+        fallback,{enableHighAccuracy:true,timeout:6000,maximumAge:60000});
+      else fallback();
+    };
     /* r\u00e9organisation des favoris : appui long pour attraper, glisser pour d\u00e9placer */
     var favEls=function(){ return [].slice.call(ov.querySelectorAll('.wx-row.favrow')); };
     var saveOrder=function(){
