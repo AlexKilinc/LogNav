@@ -1947,7 +1947,7 @@ window.__TRACE_MARKUP="\n\n<header>\n  <div class=\"hdr-row1\">\n    <span class
    accessible depuis le bouton ⓘ du bandeau du log, avant toute ouverture de la carte */
 (function(){
   var host=document.createElement('div');
-  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Carte OACI :</b> donnée IGN non libre — nécessite votre propre clé Géoplateforme filtrée sur votre domaine. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.275</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
+  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Carte OACI :</b> donnée IGN non libre — nécessite votre propre clé Géoplateforme filtrée sur votre domaine. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.276</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
   (document.body||document.documentElement).appendChild(host.firstElementChild);
   window.__OPEN_INFO=function(){ document.getElementById('infoModal').hidden=false; };
   /* iPadOS : les pastilles de fen\xEAtrage (coin haut-gauche) recouvrent le burger
@@ -3746,12 +3746,124 @@ function openRelinkChoice(){
   }
 
   /* --- import image --- */
-  function openImport(){ var inp=document.createElement('input'); inp.type='file'; inp.accept='image/*';
-    inp.onchange=function(){ var f=inp.files&&inp.files[0]; if(!f) return; var fr=new FileReader();
+  function openImport(){ var inp=document.createElement('input'); inp.type='file'; inp.accept='image/*,application/pdf';
+    inp.onchange=function(){ var f=inp.files&&inp.files[0]; if(!f) return;
+      if(f.type==='application/pdf'||/\.pdf$/i.test(f.name||'')){ openPdfPick(f); return; }
+      var fr=new FileReader();
       fr.onload=function(){ var im=new Image(); im.onload=function(){ var MAX=2200,w=im.naturalWidth,h=im.naturalHeight,url=fr.result;
         if(w>MAX){ var sc=MAX/w, cw=Math.round(w*sc), ch=Math.round(h*sc); var cv=document.createElement('canvas'); cv.width=cw; cv.height=ch; cv.getContext('2d').drawImage(im,0,0,cw,ch); url=cv.toDataURL('image/jpeg',0.9); w=cw; h=ch; }
         openCalib(url,w,h); }; im.src=fr.result; }; fr.readAsDataURL(f); };
     inp.click(); }
+
+  /* --- PDF SIA : choisir la page approche puis la recadrer --- */
+  function vacLoadScript(u){ return new Promise(function(res,rej){ var s=document.createElement('script'); s.src=u; s.onload=res; s.onerror=rej; document.head.appendChild(s); }); }
+  function ensurePdfJs(cb){
+    if(window.pdfjsLib){ cb(true); return; }
+    vacLoadScript('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js').then(function(){
+      try{ window.pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js'; }catch(e){}
+      cb(!!window.pdfjsLib);
+    }).catch(function(){ cb(false); });
+  }
+  function openPdfPick(f){
+    tt('Ouverture du PDF…');
+    ensurePdfJs(function(ok){
+      if(!ok){ tt('Lecture PDF impossible : connexion internet requise la première fois.'); return; }
+      var fr=new FileReader();
+      fr.onload=function(){
+        window.pdfjsLib.getDocument({data:new Uint8Array(fr.result)}).promise.then(function(doc){
+          buildPdfPageChooser(doc);
+        }).catch(function(e){ tt('PDF illisible : '+((e&&e.message)||e)); });
+      };
+      fr.readAsArrayBuffer(f);
+    });
+  }
+  function buildPdfPageChooser(doc){
+    var ov=document.createElement('div'); ov.className='vac-ov'; var card=document.createElement('div'); card.className='vac-card'; ov.appendChild(card);
+    card.innerHTML='<div style="font:800 16px Poppins,sans-serif;color:#16213e;margin-bottom:4px">Choisir la page</div>'
+      +'<div style="font:500 12px Poppins,sans-serif;color:#475569;margin-bottom:10px">Touchez la page contenant la carte d\u2019approche \xe0 vue \u2014 vous pourrez ensuite la recadrer.</div>'
+      +'<div id="vacPages" style="display:flex;flex-wrap:wrap;gap:10px;max-height:min(60vh,520px);overflow:auto;justify-content:center"></div>'
+      +'<div style="display:flex;gap:8px;margin-top:12px"><button class="vac-btn sec" id="vacPdfCancel" style="flex:1">Annuler</button></div>';
+    document.body.appendChild(ov);
+    ov.addEventListener('click',function(e){ if(e.target===ov) ov.remove(); });
+    card.querySelector('#vacPdfCancel').onclick=function(){ ov.remove(); };
+    var host=card.querySelector('#vacPages');
+    var n=Math.min(doc.numPages,20);
+    (function render(i){
+      if(i>n) return;
+      doc.getPage(i).then(function(pg){
+        var vp=pg.getViewport({scale:1}); var sc=150/vp.width; var v2=pg.getViewport({scale:sc});
+        var cv=document.createElement('canvas'); cv.width=Math.round(v2.width); cv.height=Math.round(v2.height);
+        pg.render({canvasContext:cv.getContext('2d'),viewport:v2}).promise.then(function(){
+          var w=document.createElement('div');
+          var bt=document.createElement('button'); bt.type='button'; bt.className='vac-pgbtn';
+          bt.style.cssText='border:2px solid #cbd5e1;border-radius:8px;padding:3px;background:#fff;cursor:pointer;display:block';
+          bt.appendChild(cv);
+          var lb=document.createElement('div'); lb.textContent='p.'+i;
+          lb.style.cssText='font:600 11px Poppins,sans-serif;color:#475569;text-align:center;margin-top:2px';
+          w.appendChild(bt); w.appendChild(lb); host.appendChild(w);
+          bt.onclick=function(){ renderPdfPageFull(doc,i,function(url,W,H){ ov.remove(); openCrop(url,W,H); }); };
+          render(i+1);
+        });
+      });
+    })(1);
+  }
+  function renderPdfPageFull(doc,i,cb){
+    tt('Préparation de la page…');
+    doc.getPage(i).then(function(pg){
+      var vp=pg.getViewport({scale:1}); var sc=Math.min(3,2200/vp.width); var v2=pg.getViewport({scale:sc});
+      var cv=document.createElement('canvas'); cv.width=Math.round(v2.width); cv.height=Math.round(v2.height);
+      pg.render({canvasContext:cv.getContext('2d'),viewport:v2}).promise.then(function(){
+        cb(cv.toDataURL('image/jpeg',0.9),cv.width,cv.height);
+      });
+    });
+  }
+  function openCrop(url,W,H){
+    var ov=document.createElement('div'); ov.className='vac-ov'; var card=document.createElement('div'); card.className='vac-card'; ov.appendChild(card);
+    var disp=Math.min(1,Math.min(560,window.innerWidth-70)/W);
+    var maxH=Math.min(520,window.innerHeight-230); if(H*disp>maxH) disp=maxH/H;
+    var dw=Math.round(W*disp), dh=Math.round(H*disp);
+    card.innerHTML='<div style="font:800 16px Poppins,sans-serif;color:#16213e;margin-bottom:4px">Recadrer la partie approche</div>'
+      +'<div style="font:500 12px Poppins,sans-serif;color:#475569;margin-bottom:8px">Déplacez le cadre rouge et ses coins pour ne garder que la carte d\u2019approche.</div>'
+      +'<div id="vacCropW" style="position:relative;width:'+dw+'px;height:'+dh+'px;touch-action:none;overflow:hidden;border-radius:6px">'
+      +'<img src="'+url+'" draggable="false" style="width:100%;height:100%;display:block;user-select:none;-webkit-user-drag:none;pointer-events:none">'
+      +'<div id="vacCropR" style="position:absolute;border:2px solid #e94560;box-shadow:0 0 0 2000px rgba(22,33,62,.45);box-sizing:border-box;cursor:move;touch-action:none"></div></div>'
+      +'<div style="display:flex;gap:8px;margin-top:12px"><button class="vac-btn" id="vacCropOk">Valider le recadrage</button><button class="vac-btn sec" id="vacCropCancel">Annuler</button></div>';
+    document.body.appendChild(ov);
+    ov.addEventListener('click',function(e){ if(e.target===ov) ov.remove(); });
+    card.querySelector('#vacCropCancel').onclick=function(){ ov.remove(); };
+    var wdiv=card.querySelector('#vacCropW'), rct=card.querySelector('#vacCropR');
+    var geo={x:Math.round(dw*.06),y:Math.round(dh*.06),w:Math.round(dw*.88),h:Math.round(dh*.88)};
+    var hs=[];
+    [[0,0],[1,0],[1,1],[0,1]].forEach(function(q){
+      var h=document.createElement('div');
+      h.style.cssText='position:absolute;width:18px;height:18px;background:#e94560;border:2px solid #fff;border-radius:5px;box-sizing:border-box;margin:-10px;cursor:pointer;touch-action:none;z-index:2';
+      wdiv.appendChild(h); hs.push({el:h,q:q});
+    });
+    function apply(){ rct.style.left=geo.x+'px'; rct.style.top=geo.y+'px'; rct.style.width=geo.w+'px'; rct.style.height=geo.h+'px';
+      hs.forEach(function(o){ o.el.style.left=(geo.x+o.q[0]*geo.w)+'px'; o.el.style.top=(geo.y+o.q[1]*geo.h)+'px'; }); }
+    function drag(el,cb2){ el.addEventListener('pointerdown',function(e){ e.preventDefault(); e.stopPropagation();
+      try{ el.setPointerCapture(e.pointerId); }catch(er){}
+      var sx=e.clientX,sy=e.clientY,g0={x:geo.x,y:geo.y,w:geo.w,h:geo.h};
+      var mv=function(ev){ cb2(g0,ev.clientX-sx,ev.clientY-sy); apply(); };
+      var up=function(){ el.removeEventListener('pointermove',mv); el.removeEventListener('pointerup',up); el.removeEventListener('pointercancel',up); };
+      el.addEventListener('pointermove',mv); el.addEventListener('pointerup',up); el.addEventListener('pointercancel',up); }); }
+    drag(rct,function(g0,dx,dy){ geo.x=Math.max(0,Math.min(dw-g0.w,g0.x+dx)); geo.y=Math.max(0,Math.min(dh-g0.h,g0.y+dy)); });
+    hs.forEach(function(o){ drag(o.el,function(g0,dx,dy){
+      var x2=g0.x+g0.w, y2=g0.y+g0.h;
+      if(o.q[0]){ geo.w=Math.max(30,Math.min(dw-g0.x,g0.w+dx)); } else { var nx=Math.max(0,Math.min(x2-30,g0.x+dx)); geo.w=x2-nx; geo.x=nx; }
+      if(o.q[1]){ geo.h=Math.max(30,Math.min(dh-g0.y,g0.h+dy)); } else { var ny=Math.max(0,Math.min(y2-30,g0.y+dy)); geo.h=y2-ny; geo.y=ny; }
+    }); });
+    apply();
+    card.querySelector('#vacCropOk').onclick=function(){
+      var sx=Math.round(geo.x/disp), sy=Math.round(geo.y/disp), sw2=Math.round(geo.w/disp), sh2=Math.round(geo.h/disp);
+      sw2=Math.min(sw2,W-sx); sh2=Math.min(sh2,H-sy);
+      var im=new Image();
+      im.onload=function(){ var cv=document.createElement('canvas'); cv.width=sw2; cv.height=sh2;
+        cv.getContext('2d').drawImage(im,sx,sy,sw2,sh2,0,0,sw2,sh2);
+        ov.remove(); openCalib(cv.toDataURL('image/jpeg',0.9),sw2,sh2); };
+      im.src=url;
+    };
+  }
 
   /* --- fenêtre de calage --- */
   function openCalib(url,W,H){
@@ -3866,13 +3978,13 @@ function openRelinkChoice(){
   /* --- panneau de gestion --- */
   function renderPanel(){ if(!panel){ panel=document.createElement('div'); panel.className='vac-panel'; panel.style.display='none'; document.body.appendChild(panel); }
     var html='<h4>Cartes VAC</h4>';
-    if(!vacs.length) html+='<div style="font:400 12px Poppins,sans-serif;color:#94a3b8;margin-bottom:8px">Aucune carte. Importez une VAC et calez-la sur une piste.</div>';
+    if(!vacs.length) html+='<div style="font:400 12px Poppins,sans-serif;color:#94a3b8;margin-bottom:8px">Aucune carte. Importez une VAC (PDF SIA ou image) : choisissez la page approche, recadrez, puis calez-la sur une piste.</div>';
     vacs.forEach(function(v){ html+='<div class="vac-row"><div style="flex:1;min-width:0"><div style="font:700 12px Poppins,sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+v.name+'</div>'
       +'<input type="range" min="15" max="100" value="'+Math.round(v.opacity*100)+'" data-op="'+v.id+'" style="width:100%"></div>'
       +'<button class="vac-btn sec" data-adj="'+v.id+'" style="padding:5px 8px;font-size:11px;'+(adjId===v.id?'background:#e94560;color:#fff':'')+'">Ajuster</button>'
       +'<button class="vac-btn sec" data-reset="'+v.id+'" title="Revenir à l’original importé" style="padding:5px 8px;font-size:13px">↺</button>'
       +'<button class="vac-btn sec" data-del="'+v.id+'" style="padding:5px 8px;font-size:11px;color:#b91c1c;border-color:#f0c2c2">✕</button></div>'; });
-    html+='<button class="vac-btn" id="vacImp" style="width:100%;margin-top:6px">+ Importer une VAC</button>';
+    html+='<button class="vac-btn" id="vacImp" style="width:100%;margin-top:6px">+ Importer une VAC (PDF ou image)</button>';
     panel.innerHTML=html;
     panel.querySelector('#vacImp').onclick=function(){ openImport(); };
     Array.prototype.forEach.call(panel.querySelectorAll('[data-op]'),function(r){ r.oninput=function(){ var v=find(r.getAttribute('data-op')); if(v){ v.opacity=(+r.value)/100; if(v.ovl)v.ovl.setOpacity(v.opacity); persist(); } }; });
