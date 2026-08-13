@@ -1947,7 +1947,7 @@ window.__TRACE_MARKUP="\n\n<header>\n  <div class=\"hdr-row1\">\n    <span class
    accessible depuis le bouton ⓘ du bandeau du log, avant toute ouverture de la carte */
 (function(){
   var host=document.createElement('div');
-  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Carte OACI :</b> donnée IGN non libre — nécessite votre propre clé Géoplateforme filtrée sur votre domaine. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.276</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
+  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Carte OACI :</b> donnée IGN non libre — nécessite votre propre clé Géoplateforme filtrée sur votre domaine. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.278</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
   (document.body||document.documentElement).appendChild(host.firstElementChild);
   window.__OPEN_INFO=function(){ document.getElementById('infoModal').hidden=false; };
   /* iPadOS : les pastilles de fen\xEAtrage (coin haut-gauche) recouvrent le burger
@@ -2703,11 +2703,12 @@ function menusOpen(){ return !document.getElementById('dispPanel').hidden || !do
 function closeMenus(){ document.getElementById('dispPanel').hidden=true; document.getElementById('poiPanel').hidden=true; }
 map.on('click', e => {
   if(menusOpen()){ closeMenus(); return; }        // 1er clic hors menu = fermeture, sans waypoint
+  if(window.__VAC_ADJUSTING) return;              /* réglage VAC en cours : la carte ne réagit pas */
   const ll=e.latlng;
   clearTimeout(clickTimer);
   clickTimer=setTimeout(()=>{ addWaypoint(ll); }, 240);   // annulé si un double-clic suit
 });
-map.on('dblclick', e => { clearTimeout(clickTimer); openAspStackAt(e.latlng); });
+map.on('dblclick', e => { clearTimeout(clickTimer); if(window.__VAC_ADJUSTING) return; openAspStackAt(e.latlng); });
 ['movestart','zoomstart','click'].forEach(ev=>map.on(ev,()=>{ if(hintNeeded()) refreshHint(); }));
 document.getElementById('map').addEventListener('touchstart',()=>{ if(hintNeeded()) refreshHint(); },{passive:true});
 /* clic hors carte (bandeau…) : fermer les menus, sauf sur leurs boutons */
@@ -3690,8 +3691,45 @@ function openRelinkChoice(){
   var vacLayer=L.layerGroup().addTo(map);
   var vacs=[], panel=null, adjId=null;
   function tt(m){ try{ if(typeof showToast==='function') showToast(m); }catch(e){} }
-  function load(){ try{ return JSON.parse(localStorage.getItem(VKEY)||'[]')||[]; }catch(e){ return []; } }
-  function persist(){ try{ localStorage.setItem(VKEY, JSON.stringify(vacs.map(function(v){ return {id:v.id,aero:v.aero,name:v.name,corners:v.corners,orig:v.orig,w:v.w,h:v.h,img:v.img,opacity:v.opacity}; }))); }catch(e){} }
+  /* --- stockage IndexedDB : métadonnées sous 'meta', images sous 'img:<id>' ---
+     (localStorage était limité à ~5 Mo ; IndexedDB permet des dizaines de cartes) */
+  function idbOpen(cb){ try{ var rq=indexedDB.open('lognav_vac',1);
+    rq.onupgradeneeded=function(){ try{ rq.result.createObjectStore('kv'); }catch(e){} };
+    rq.onsuccess=function(){ cb(rq.result); }; rq.onerror=function(){ cb(null); }; }catch(e){ cb(null); } }
+  function idbGet(k,cb){ idbOpen(function(db){ if(!db){ cb(undefined); return; }
+    try{ var r=db.transaction('kv','readonly').objectStore('kv').get(k);
+      r.onsuccess=function(){ cb(r.result); db.close(); }; r.onerror=function(){ cb(undefined); db.close(); };
+    }catch(e){ cb(undefined); try{ db.close(); }catch(e2){} } }); }
+  function idbSet(k,v,cb){ idbOpen(function(db){ if(!db){ if(cb)cb(false); return; }
+    try{ var tx=db.transaction('kv','readwrite'); tx.objectStore('kv').put(v,k);
+      tx.oncomplete=function(){ if(cb)cb(true); db.close(); }; tx.onerror=function(){ if(cb)cb(false); db.close(); };
+    }catch(e){ if(cb)cb(false); try{ db.close(); }catch(e2){} } }); }
+  function idbDel(k){ idbOpen(function(db){ if(!db) return;
+    try{ var tx=db.transaction('kv','readwrite'); tx.objectStore('kv').delete(k); tx.oncomplete=function(){ db.close(); }; }catch(e){} }); }
+  function metaOf(v){ return {id:v.id,aero:v.aero,name:v.name,corners:v.corners,orig:v.orig,w:v.w,h:v.h,opacity:v.opacity}; }
+  function persist(){ idbSet('meta', vacs.map(metaOf)); }
+  function saveImg(v){ idbSet('img:'+v.id, v.img); }
+  /* --- pack VAC : fichier JSON transportable entre appareils (AirDrop, Fichiers…) --- */
+  function importPack(f){
+    var fr=new FileReader();
+    fr.onload=function(){
+      var pk=null; try{ pk=JSON.parse(String(fr.result||'')); }catch(e){}
+      if(!pk||pk.type!=='lognav-vac-pack'||!pk.vacs||!pk.vacs.length){ tt('Fichier pack VAC illisible.'); return; }
+      var n=0;
+      pk.vacs.forEach(function(m){
+        if(!m||!m.img||!m.corners) return;
+        /* une carte de même nom est remplacée (réimport après mise à jour AIRAC) */
+        vacs.filter(function(x){ return x.name===m.name; }).forEach(function(x){
+          if(adjId===x.id) stopAdjust(); if(x.ovl) vacLayer.removeLayer(x.ovl); idbDel('img:'+x.id); });
+        vacs=vacs.filter(function(x){ return x.name!==m.name; });
+        var v=Object.assign({},m); v.id='v'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+        vacs.push(v); addOverlay(v); saveImg(v); n++;
+      });
+      persist(); if(n&&vacState===0) vacState=1; applyVacState();
+      tt(n?(n+' carte(s) VAC import\u00e9e(s).'):'Aucune carte valide dans ce pack.');
+    };
+    fr.readAsText(f);
+  }
   function find(id){ for(var i=0;i<vacs.length;i++) if(vacs[i].id===id) return vacs[i]; return null; }
 
   /* --- couche image pivotée (transform matrix à partir de 3 coins) --- */
@@ -3746,9 +3784,10 @@ function openRelinkChoice(){
   }
 
   /* --- import image --- */
-  function openImport(){ var inp=document.createElement('input'); inp.type='file'; inp.accept='image/*,application/pdf';
+  function openImport(){ var inp=document.createElement('input'); inp.type='file'; inp.accept='image/*,application/pdf,.json,application/json';
     inp.onchange=function(){ var f=inp.files&&inp.files[0]; if(!f) return;
       if(f.type==='application/pdf'||/\.pdf$/i.test(f.name||'')){ openPdfPick(f); return; }
+      if(f.type==='application/json'||/\.json$/i.test(f.name||'')){ importPack(f); return; }
       var fr=new FileReader();
       fr.onload=function(){ var im=new Image(); im.onload=function(){ var MAX=2200,w=im.naturalWidth,h=im.naturalHeight,url=fr.result;
         if(w>MAX){ var sc=MAX/w, cw=Math.round(w*sc), ch=Math.round(h*sc); var cv=document.createElement('canvas'); cv.width=cw; cv.height=ch; cv.getContext('2d').drawImage(im,0,0,cw,ch); url=cv.toDataURL('image/jpeg',0.9); w=cw; h=ch; }
@@ -3871,7 +3910,15 @@ function openRelinkChoice(){
     var disp=Math.min(1,560/W), dw=Math.round(W*disp), dh=Math.round(H*disp);
     card.innerHTML='<div style="font:800 16px Poppins,sans-serif;color:#16213e;margin-bottom:10px">Caler une carte VAC</div>'
       +'<div style="display:flex;gap:16px;flex-wrap:wrap">'
-      +'<div class="vac-imgwrap" id="vacIW" style="width:'+dw+'px"><img src="'+url+'" style="width:'+dw+'px;height:'+dh+'px;display:block"></div>'
+      +'<div style="width:'+dw+'px;max-width:100%">'
+      +'<div style="display:flex;gap:6px;margin-bottom:6px;align-items:center">'
+      +'<button type="button" class="vac-btn sec" id="vacZm" style="padding:3px 12px;font-size:15px;line-height:1">\u2212</button>'
+      +'<button type="button" class="vac-btn sec" id="vacZp" style="padding:3px 12px;font-size:15px;line-height:1">+</button>'
+      +'<span id="vacZv" style="font:600 11px Poppins,sans-serif;color:#475569">\u00d71</span>'
+      +'<span style="font:600 10.5px Poppins,sans-serif;color:#94a3b8;margin-left:auto">zoomez pour viser les seuils</span></div>'
+      +'<div id="vacSC" style="width:100%;max-height:min(58vh,560px);overflow:auto;-webkit-overflow-scrolling:touch;border-radius:6px">'
+      +'<div class="vac-imgwrap" id="vacIW" style="width:'+dw+'px"><img id="vacImgEl" src="'+url+'" draggable="false" style="width:'+dw+'px;height:'+dh+'px;display:block"></div>'
+      +'</div></div>'
       +'<div style="flex:1;min-width:230px">'
       +'<label style="font:600 12px Poppins,sans-serif;color:#475569">Aérodrome (code OACI)</label>'
       +'<input id="vacAero" placeholder="ex. LFPN" style="width:100%;box-sizing:border-box;border:1px solid #cbd5e1;border-radius:8px;padding:8px;margin:3px 0 8px;text-transform:uppercase;font:14px Poppins,sans-serif">'
@@ -3883,7 +3930,19 @@ function openRelinkChoice(){
       +'<div style="display:flex;gap:8px;margin-top:12px"><button class="vac-btn" id="vacPlace" disabled style="opacity:.5">Placer sur la carte</button><button class="vac-btn sec" id="vacCancel">Annuler</button></div>'
       +'</div></div>';
     document.body.appendChild(ov);
-    var iw=card.querySelector('#vacIW'), clicks=[], aeroSel=null, rwySel=null;
+    var iw=card.querySelector('#vacIW'), clicks=[], aeroSel=null, rwySel=null, zf=1;
+    /* zoom : centre conservé, pastilles repositionnées, clics convertis avec le facteur */
+    function setZoom(nz){ var sc=card.querySelector('#vacSC');
+      nz=Math.max(1,Math.min(5,nz)); if(Math.abs(nz-zf)<0.01) return;
+      var r=sc.getBoundingClientRect();
+      var cx=r.width/2+sc.scrollLeft, cy=r.height/2+sc.scrollTop, ratio=nz/zf; zf=nz;
+      iw.style.width=(dw*zf)+'px';
+      var im=card.querySelector('#vacImgEl'); im.style.width=(dw*zf)+'px'; im.style.height=(dh*zf)+'px';
+      sc.scrollLeft=cx*ratio-r.width/2; sc.scrollTop=cy*ratio-r.height/2;
+      card.querySelector('#vacZv').textContent='\u00d7'+(Math.round(zf*10)/10);
+      dots(); }
+    card.querySelector('#vacZp').onclick=function(){ setZoom(zf*1.6); };
+    card.querySelector('#vacZm').onclick=function(){ setZoom(zf/1.6); };
     function idents(){ return rwySel?String(rwySel[0]).split('/'):['A','B']; }
     function step(){ var s=card.querySelector('#vacStep'), id=idents();
       if(!rwySel){ s.textContent='Saisissez le code OACI puis choisissez la piste.'; return; }
@@ -3891,11 +3950,12 @@ function openRelinkChoice(){
       else if(clicks.length===1) s.innerHTML='Cliquez maintenant le seuil <b>'+id[1]+'</b>.';
       else s.innerHTML='✓ Piste '+id[0]+'/'+id[1]+' repérée. Cliquez « Placer ».'; }
     function dots(){ Array.prototype.forEach.call(iw.querySelectorAll('.vac-dot'),function(d){d.remove();});
-      clicks.forEach(function(c,i){ var d=document.createElement('div'); d.className='vac-dot'; d.style.left=c.dx+'px'; d.style.top=c.dy+'px'; d.textContent=i+1; iw.appendChild(d); }); }
+      clicks.forEach(function(c,i){ var d=document.createElement('div'); d.className='vac-dot'; d.style.left=(c.x*disp*zf)+'px'; d.style.top=(c.y*disp*zf)+'px'; d.textContent=i+1; iw.appendChild(d); }); }
     function placeBtn(){ var pb=card.querySelector('#vacPlace'), ok=clicks.length===2&&rwySel; pb.disabled=!ok; pb.style.opacity=ok?'1':'.5'; }
     iw.addEventListener('click',function(e){ if(e.target.classList.contains('vac-dot'))return; if(!rwySel){ tt('Choisissez d’abord la piste'); return; }
-      if(clicks.length>=2) clicks=[]; var r=iw.getBoundingClientRect(); var dx=e.clientX-r.left, dy=e.clientY-r.top;
-      clicks.push({dx:dx,dy:dy,x:dx/disp,y:dy/disp}); dots(); step(); placeBtn(); });
+      if(clicks.length>=2) clicks=[]; var r=iw.getBoundingClientRect();
+      var x=(e.clientX-r.left)/(disp*zf), y=(e.clientY-r.top)/(disp*zf);
+      clicks.push({x:x,y:y}); dots(); step(); placeBtn(); });
     function setAero(code){ aeroSel=null; rwySel=null; var sel=card.querySelector('#vacRwy'); sel.innerHTML='';
       var a=null; for(var i=0;i<AERO.length;i++){ if(AERO[i][0]===code){ a=AERO[i]; break; } }
       if(a&&a[5]&&a[5].length){ aeroSel=a; a[5].forEach(function(rw,i){ var o=document.createElement('option'); o.value=i; o.textContent='Piste '+rw[0]+' · '+rw[2]+' m'; sel.appendChild(o); }); rwySel=a[5][0]; }
@@ -3910,7 +3970,7 @@ function openRelinkChoice(){
       var corners=computeCorners(aeroSel,rwySel,{x:clicks[0].x,y:clicks[0].y},{x:clicks[1].x,y:clicks[1].y},W,H);
       var op=(+card.querySelector('#vacOp').value)/100;
       var v={id:'v'+(vacs.length+1)+'_'+W+'x'+H,aero:aeroSel[0],name:aeroSel[0]+' · '+rwySel[0],corners:corners,orig:corners.map(function(p){return p.slice();}),w:W,h:H,img:url,opacity:op};
-      vacs.push(v); addOverlay(v); persist(); ov.remove();
+      vacs.push(v); addOverlay(v); saveImg(v); persist(); ov.remove();
       try{ map.fitBounds(L.latLngBounds(corners.map(function(c){return L.latLng(c[0],c[1]);})).pad(0.25)); }catch(e){}
       renderPanel(); tt('VAC '+v.name+' superposée'); });
     try{ var dep=(routes.aller&&routes.aller[0]&&routes.aller[0].name||'').toUpperCase(); if(dep){ var ai=card.querySelector('#vacAero'); ai.value=dep; setAero(dep); } }catch(e){}
@@ -3969,9 +4029,9 @@ function openRelinkChoice(){
     var ctr=centroid(c), topMid=midLL(c[0],c[1]); if(handles[8]) handles[8].setLatLng([topMid[0]+(topMid[0]-ctr[0])*0.6, topMid[1]+(topMid[1]-ctr[1])*0.6]); }
   function syncHandles(v){ syncCornerSide(v); var c=v.corners, ctr=centroid(c), topMid=midLL(c[0],c[1]);
     if(handles[8]) handles[8].setLatLng([topMid[0]+(topMid[0]-ctr[0])*0.6, topMid[1]+(topMid[1]-ctr[1])*0.6]); }
-  function stopAdjust(){ if(!adjId) return; clearHandles(); adjId=null; }
+  function stopAdjust(){ if(!adjId) return; clearHandles(); adjId=null; window.__VAC_ADJUSTING=false; }
   function toggleAdjust(id){ if(adjId===id){ stopAdjust(); renderPanel(); return; } stopAdjust();
-    var v=find(id); if(!v||!v.ovl){ renderPanel(); return; } adjId=id;
+    var v=find(id); if(!v||!v.ovl){ renderPanel(); return; } adjId=id; window.__VAC_ADJUSTING=true;
     buildHandles(v);
     tt('Réglage : ✥ centre = déplacer · coins = déformer · côtés = étirer · ⟳ = pivoter'); renderPanel(); }
 
@@ -3984,11 +4044,19 @@ function openRelinkChoice(){
       +'<button class="vac-btn sec" data-adj="'+v.id+'" style="padding:5px 8px;font-size:11px;'+(adjId===v.id?'background:#e94560;color:#fff':'')+'">Ajuster</button>'
       +'<button class="vac-btn sec" data-reset="'+v.id+'" title="Revenir à l’original importé" style="padding:5px 8px;font-size:13px">↺</button>'
       +'<button class="vac-btn sec" data-del="'+v.id+'" style="padding:5px 8px;font-size:11px;color:#b91c1c;border-color:#f0c2c2">✕</button></div>'; });
-    html+='<button class="vac-btn" id="vacImp" style="width:100%;margin-top:6px">+ Importer une VAC (PDF ou image)</button>';
+    html+='<button class="vac-btn" id="vacImp" style="width:100%;margin-top:6px">+ Importer une VAC (PDF, image ou pack)</button>';
+    if(vacs.length) html+='<button class="vac-btn sec" id="vacExp" style="width:100%;margin-top:6px">Exporter mes VAC (pack)</button>';
     panel.innerHTML=html;
     panel.querySelector('#vacImp').onclick=function(){ openImport(); };
+    var xb=panel.querySelector('#vacExp');
+    if(xb) xb.onclick=function(){
+      var pack={type:'lognav-vac-pack',version:1,vacs:vacs.map(function(v){ var m=metaOf(v); m.img=v.img; return m; })};
+      try{ (window.__dlFile)('vac_pack_lognav.json', JSON.stringify(pack), 'application/json');
+        tt(vacs.length+' carte(s) export\u00e9e(s) \u2014 partagez le fichier vers l\u2019autre appareil.'); }
+      catch(e){ tt('Export impossible : '+e); }
+    };
     Array.prototype.forEach.call(panel.querySelectorAll('[data-op]'),function(r){ r.oninput=function(){ var v=find(r.getAttribute('data-op')); if(v){ v.opacity=(+r.value)/100; if(v.ovl)v.ovl.setOpacity(v.opacity); persist(); } }; });
-    Array.prototype.forEach.call(panel.querySelectorAll('[data-del]'),function(b){ b.onclick=function(){ var id=b.getAttribute('data-del'); if(adjId===id) stopAdjust(); var v=find(id); if(v&&v.ovl) vacLayer.removeLayer(v.ovl); vacs=vacs.filter(function(x){return x.id!==id;}); persist(); renderPanel(); }; });
+    Array.prototype.forEach.call(panel.querySelectorAll('[data-del]'),function(b){ b.onclick=function(){ var id=b.getAttribute('data-del'); if(adjId===id) stopAdjust(); var v=find(id); if(v&&v.ovl) vacLayer.removeLayer(v.ovl); vacs=vacs.filter(function(x){return x.id!==id;}); idbDel('img:'+id); persist(); renderPanel(); }; });
     Array.prototype.forEach.call(panel.querySelectorAll('[data-adj]'),function(b){ b.onclick=function(){ toggleAdjust(b.getAttribute('data-adj')); }; });
     Array.prototype.forEach.call(panel.querySelectorAll('[data-reset]'),function(b){ b.onclick=function(){ var id=b.getAttribute('data-reset'); var v=find(id); if(v&&v.orig){ v.corners=v.orig.map(function(p){return p.slice();}); if(v.ovl) v.ovl.setCorners(v.corners); persist(); if(adjId===id) buildHandles(v); tt('VAC '+v.name+' : original restauré'); } }; });
   }
@@ -4012,9 +4080,28 @@ function openRelinkChoice(){
   /* clic ailleurs pendant Réglage : on repasse en On (cartes affichées, menu fermé) */
   document.addEventListener('click',function(e){ if(vacState===2 && panel && !panel.contains(e.target) && e.target!==vb && !vb.contains(e.target)){ vacState=1; applyVacState(); } });
 
-  /* --- restauration des VAC mémorisées --- */
-  vacs=load(); vacs.forEach(function(v){ addOverlay(v); });
-  vacState=vacs.length?1:0; applyVacState();
+  /* --- restauration des VAC mémorisées (IndexedDB ; migration depuis localStorage) --- */
+  (function initVacs(){
+    var finish=function(list){
+      vacs=(list||[]).filter(function(v){ return v&&v.img&&v.corners; });
+      vacs.forEach(function(v){ addOverlay(v); });
+      vacState=vacs.length?1:0; applyVacState();
+    };
+    var old=null; try{ old=JSON.parse(localStorage.getItem(VKEY)||'null'); }catch(e){}
+    if(old&&old.length){ /* migration : images vers IndexedDB, localStorage libéré */
+      old.forEach(function(v){ idbSet('img:'+v.id, v.img); });
+      idbSet('meta', old.map(metaOf), function(){ try{ localStorage.removeItem(VKEY); }catch(e){} });
+      finish(old); return;
+    }
+    idbGet('meta',function(meta){
+      if(!meta||!meta.length){ finish([]); return; }
+      var out=[], left=meta.length;
+      meta.forEach(function(m,i){ idbGet('img:'+m.id,function(img){
+        var v=Object.assign({},m); v.img=img||null; out[i]=v;
+        if(--left===0) finish(out.filter(function(x){ return x&&x.img; }));
+      }); });
+    });
+  })();
   window.__VAC_LIST=function(){ return vacs.map(function(v){ return {id:v.id,name:v.name,corners:v.corners,orig:v.orig,opacity:v.opacity}; }); };
 })();
 
