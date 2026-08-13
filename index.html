@@ -1947,7 +1947,7 @@ window.__TRACE_MARKUP="\n\n<header>\n  <div class=\"hdr-row1\">\n    <span class
    accessible depuis le bouton ⓘ du bandeau du log, avant toute ouverture de la carte */
 (function(){
   var host=document.createElement('div');
-  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Carte OACI :</b> donnée IGN non libre — nécessite votre propre clé Géoplateforme filtrée sur votre domaine. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.270</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
+  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Carte OACI :</b> donnée IGN non libre — nécessite votre propre clé Géoplateforme filtrée sur votre domaine. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.274</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
   (document.body||document.documentElement).appendChild(host.firstElementChild);
   window.__OPEN_INFO=function(){ document.getElementById('infoModal').hidden=false; };
   /* iPadOS : les pastilles de fen\xEAtrage (coin haut-gauche) recouvrent le burger
@@ -4035,34 +4035,59 @@ function openRelinkChoice(){
   function clearFlightInst(){
     if(recInst){ try{recInst.remove();}catch(e){} recInst=null; }
     if(recProjG){ try{recProjG.clearLayers(); map.removeLayer(recProjG);}catch(e){} recProjG=null; } }
+  var recProjOn=(function(){ try{ return localStorage.getItem('lognav_proj25')!=='0'; }catch(e){ return true; } })();
+  var recLastSpd=null, recLastDeg=null, recLastLL=null;
+  function updProjBtnUI(){
+    if(!recInst) return; var bt=recInst.querySelector('#riProj'); if(!bt) return;
+    bt.style.background=recProjOn?'#24406e':'#1a2336';
+    bt.style.color=recProjOn?'#7fd1ff':'#64748b';
+    bt.title=recProjOn?'Masquer les arcs 2 et 5 minutes':'Afficher les arcs 2 et 5 minutes';
+  }
+  function drawProj(){
+    if(!recProjG){ if(!recOn) return; recProjG=L.layerGroup().addTo(map); }
+    recProjG.clearLayers();
+    if(!recProjOn||!recOn) return;
+    var spdMs=recLastSpd, deg=recLastDeg, ll=recLastLL;
+    if(spdMs==null||deg==null||!ll||spdMs<7.7) return; /* ~15 kt : au sol, pas d'arcs */
+    var pp2=gcDest(ll[0],ll[1],deg,spdMs*120), pp5=gcDest(ll[0],ll[1],deg,spdMs*300);
+    L.polyline([ll,pp5],{color:'#0f172a',weight:2,opacity:.8,dashArray:'2 7',interactive:false}).addTo(recProjG);
+    /* arc d'environ 30° (±15° autour du cap) à la distance donnée */
+    var mkArc=function(dM){ var pts=[]; for(var aa=-15;aa<=15;aa+=3) pts.push(gcDest(ll[0],ll[1],deg+aa,dM)); return pts; };
+    [[spdMs*120,pp2,'2 min','#E8730C'],[spdMs*300,pp5,'5 min','#1E6FD9']].forEach(function(z){
+      var arc=mkArc(z[0]);
+      /* liseré blanc sous le trait de couleur : contraste en pleine luminosité */
+      L.polyline(arc,{color:'#fff',weight:6.5,opacity:.95,interactive:false,lineCap:'round',lineJoin:'round'}).addTo(recProjG);
+      L.polyline(arc,{color:z[3],weight:3.2,opacity:1,interactive:false,lineCap:'round',lineJoin:'round'}).addTo(recProjG);
+      L.marker(z[1],{icon:L.divIcon({className:'',iconSize:[0,0],html:'<div style="position:absolute;left:0;top:0;transform:translate(-50%,-50%);white-space:nowrap;background:#0f172a;color:#fff;border:1.6px solid '+z[3]+';border-radius:11px;padding:3px 9px;font:800 11px Poppins,sans-serif;box-shadow:0 2px 8px rgba(0,0,0,.45)">'+z[2]+'</div>'}),interactive:false,keyboard:false}).addTo(recProjG);
+    });
+  }
   function updFlightInst(c,deg,ll){
     if(!recOn) return;
     var host=document.getElementById('map')||document.body;
     if(!recInst){ recInst=document.createElement('div'); recInst.id='recInst'; recInst.className='no-print';
-      recInst.style.cssText='position:absolute;top:12px;left:50%;transform:translateX(-50%);z-index:705;display:flex;align-items:baseline;gap:12px;background:rgba(10,26,51,.9);border:1px solid #173159;border-radius:12px;padding:6px 13px;box-shadow:0 3px 12px rgba(0,0,0,.35);pointer-events:none;white-space:nowrap';
+      recInst.style.cssText='position:absolute;top:12px;left:50%;transform:translateX(-50%);z-index:705;display:flex;align-items:center;gap:11px;background:#0f172a;border:none;border-radius:22px;padding:7px 9px 7px 16px;box-shadow:0 6px 20px rgba(0,0,0,.4);pointer-events:none;white-space:nowrap';
       recInst.innerHTML='<span><b id="riSpd" style="font:800 16px \'JetBrains Mono\',monospace;color:#fff">—</b> <i style="font:600 10px Poppins,sans-serif;color:#8FA6C8;font-style:normal">kt</i></span>'
         +'<span><b id="riAlt" style="font:800 16px \'JetBrains Mono\',monospace;color:#fff">—</b> <i style="font:600 10px Poppins,sans-serif;color:#8FA6C8;font-style:normal">ft</i></span>'
-        +'<span><b id="riCap" style="font:800 16px \'JetBrains Mono\',monospace;color:#fff">—</b> <i style="font:600 10px Poppins,sans-serif;color:#8FA6C8;font-style:normal">cap</i></span>';
-      host.appendChild(recInst); }
+        +'<span><b id="riCap" style="font:800 16px \'JetBrains Mono\',monospace;color:#fff">—</b> <i style="font:600 10px Poppins,sans-serif;color:#8FA6C8;font-style:normal">cap</i></span>'
+        +'<button id="riProj" type="button" style="pointer-events:auto;flex:none;border:none;border-radius:15px;padding:6px 11px;font:800 10.5px Poppins,sans-serif;cursor:pointer;-webkit-tap-highlight-color:transparent">2/5 min</button>';
+      recInst.querySelector('#riProj').addEventListener('click',function(ev){ ev.stopPropagation();
+        recProjOn=!recProjOn; try{ localStorage.setItem('lognav_proj25',recProjOn?'1':'0'); }catch(e){}
+        updProjBtnUI(); drawProj(); });
+      host.appendChild(recInst); updProjBtnUI(); }
     var spdMs=(c.speed!=null&&!isNaN(c.speed)&&c.speed>=0)?c.speed:null;
     if(spdMs==null&&recPts.length>1){ var q1=recPts[recPts.length-2],q2=recPts[recPts.length-1];
       var qdt=((q2.t||0)-(q1.t||0))/1000; if(qdt>0.5) spdMs=__havM(q1,q2)/qdt; }
+    /* derniers relevés valides mémorisés : un trou GPS (vitesse ou cap absents sur un fix)
+       ne fait plus disparaître ni les valeurs ni les arcs — affichage permanent en vol */
+    if(spdMs!=null) recLastSpd=spdMs;
+    if(deg!=null&&!isNaN(deg)&&deg>=0) recLastDeg=deg;
+    recLastLL=ll;
     var altFt=(c.altitude!=null&&!isNaN(c.altitude))?Math.round(c.altitude*3.28084):null;
-    var spdKt=(spdMs!=null)?Math.round(spdMs*1.94384):null;
+    var dispSpd=(spdMs!=null?spdMs:recLastSpd);
     var st=function(id,v){ var e2=recInst.querySelector('#'+id); if(e2) e2.textContent=(v==null?'—':v); };
-    st('riSpd',spdKt); st('riAlt',altFt);
-    st('riCap',(deg!=null&&!isNaN(deg))?(String(Math.round((deg%360+360)%360)).padStart(3,'0')+'\u00b0'):null);
-    /* zones d'arrivée projetées à 2 et 5 minutes sur le cap courant (dès 20 kt) */
-    if(!recProjG) recProjG=L.layerGroup().addTo(map);
-    recProjG.clearLayers();
-    if(spdMs!=null&&spdMs>=10&&deg!=null&&!isNaN(deg)){
-      var pp2=gcDest(ll[0],ll[1],deg,spdMs*120), pp5=gcDest(ll[0],ll[1],deg,spdMs*300);
-      L.polyline([ll,pp5],{color:'#fff',weight:1.5,opacity:.7,dashArray:'2 7',interactive:false}).addTo(recProjG);
-      [[pp2,spdMs*120,'2 min','#ffd166'],[pp5,spdMs*300,'5 min','#4db6ff']].forEach(function(z){
-        L.circle(z[0],{radius:Math.max(150,z[1]*.12),color:z[3],weight:2,opacity:.9,fill:true,fillColor:z[3],fillOpacity:.1,interactive:false}).addTo(recProjG);
-        L.marker(z[0],{icon:L.divIcon({className:'',iconSize:[0,0],html:'<div style="transform:translate(-50%,-165%);white-space:nowrap;background:rgba(10,26,51,.85);color:'+z[3]+';border:1px solid '+z[3]+';border-radius:8px;padding:2px 7px;font:700 10px Poppins,sans-serif">'+z[2]+'</div>'}),interactive:false,keyboard:false}).addTo(recProjG);
-      });
-    }
+    st('riSpd',dispSpd!=null?Math.round(dispSpd*1.94384):null); st('riAlt',altFt);
+    st('riCap',recLastDeg!=null?(String(Math.round((recLastDeg%360+360)%360)).padStart(3,'0')+'\u00b0'):null);
+    drawProj();
   }
   function updRecUI(){
     if(recOn){
@@ -4149,7 +4174,7 @@ function openRelinkChoice(){
       var c=pos.coords, ll=[c.latitude,c.longitude];
       recPts.push({lat:c.latitude,lng:c.longitude,ele:c.altitude,t:pos.timestamp,spd:c.speed,hdg:c.heading});
       try{ recLine.addLatLng(ll); }catch(e){}
-      var deg=(c.heading!=null&&!isNaN(c.heading))?c.heading:(recPts.length>1?legCalc(recPts[recPts.length-2],recPts[recPts.length-1]).track:0);
+      var deg=(c.heading!=null&&!isNaN(c.heading)&&c.heading>=0)?c.heading:(recPts.length>1?legCalc(recPts[recPts.length-2],recPts[recPts.length-1]).track:0);
       if(!planeMk){ planeMk=L.marker(ll,{icon:planeIcon(deg),interactive:false,keyboard:false,zIndexOffset:1000}).addTo(map); }
       else { planeMk.setLatLng(ll); planeMk.setIcon(planeIcon(deg)); }
       try{ if(recFollow && !map.getBounds().pad(-0.25).contains(L.latLng(ll))) map.panTo(ll,{animate:true}); }catch(e){}
@@ -6160,10 +6185,10 @@ window.__pickGpx=function(cb){
       +'<button id="wxMode"></button><button id="wxRefresh" title="Actualiser">\u27f3</button><button id="wxClose">Fermer</button></div>'
       +'<div class="wx-src" id="wxSrc">Source : NOAA \u2014 aviationweather.gov \u00b7 chargement\u2026</div>'
       +'<div class="wx-list">'
+      +'<div class="wx-addrow"><input id="wxFavIn" placeholder="Code OACI ou nom de terrain" autocapitalize="characters" autocomplete="off">'
+      +'<button id="wxFavAdd">Ajouter aux favoris</button><div class="wx-sug" id="wxSug" hidden></div></div>'
       +(flightRows||'<div class="wx-empty">Aucun a\u00e9rodrome (code OACI) dans la navigation.</div>')
       +'<div class="wx-sect"><h4>A\u00e9rodromes favoris</h4><span class="wx-hint">appui long : r\u00e9ordonner</span></div>'
-      +'<div class="wx-addrow"><input id="wxFavIn" placeholder="Code OACI ou nom de terrain" autocapitalize="characters" autocomplete="off">'
-      +'<button id="wxFavAdd">+ Ajouter</button><div class="wx-sug" id="wxSug" hidden></div></div>'
       +(favRows||'')
       +'<div class="wx-sect"><h4>\u00c0 proximit\u00e9</h4><button id="wxProxBtn" type="button" title="Rechercher les a\u00e9rodromes les plus proches de ma position (GPS \u2014 sinon autour du d\u00e9part)">\ud83d\udccd Autour de moi</button></div>'
       +(codes.filter(function(c){return c.role==='prox'}).map(rowHtml).join('')||'<div class="wx-empty" style="margin:0 2px">Appuyez sur \u00ab Autour de moi \u00bb pour lister les terrains les plus proches.</div>')
@@ -6295,7 +6320,7 @@ window.__pickGpx=function(cb){
     function render(c,status){
       if(!document.getElementById('wxOv'))return;
       lastC=c; lastStatus=status;
-      document.getElementById('wxSrc').textContent='Source : '+((c&&c.src)||'NOAA \u2014 aviationweather.gov')+status+(APP_VER?' \u00b7 Appli V.'+APP_VER.split('.').pop():'');
+      document.getElementById('wxSrc').textContent='Source : '+((c&&c.src)||'NOAA \u2014 aviationweather.gov')+status;
       codes.forEach(function(cd){
         var mEl=document.getElementById('wxM'+cd.code), tEl=document.getElementById('wxT'+cd.code);
         var raw=(c.metar||{})[cd.code], taf=(c.taf||{})[cd.code];
