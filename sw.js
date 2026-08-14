@@ -67,31 +67,48 @@ self.addEventListener('fetch', e => {
   const url = req.url;
   if (SKIP.some(rx => rx.test(url))) return;
 
-  /* Navigation (index.html) : réseau d'abord, cache en secours */
+  /* Navigation (index.html) : réseau d'abord, cache en secours.
+     Wi-Fi sans internet : le réseau ne doit pas bloquer (délai 3,5 s puis cache).
+     Portail captif : une réponse redirigée hors origine ou non-200 est refusée
+     (jamais mise en cache à la place de l'app, jamais affichée). */
   if (req.mode === 'navigate' || /\/index\.html(\?|$)/.test(url)) {
     e.respondWith((async () => {
       const c = await caches.open(CACHE);
+      const cached = (await c.match(req, { ignoreSearch: true })) ||
+                     (await c.match('./index.html')) ||
+                     (await c.match('./'));
       try {
-        const r = await fetch(req);
-        c.put(req, r.clone());
-        return r;
+        const ctl = new AbortController();
+        const tm = setTimeout(() => ctl.abort(), cached ? 3500 : 12000);
+        const r = await fetch(req, { signal: ctl.signal });
+        clearTimeout(tm);
+        let sameOrigin = false;
+        try { sameOrigin = new URL(r.url).origin === self.location.origin; } catch (_) {}
+        if (r && r.ok && sameOrigin && !r.redirected) { c.put(req, r.clone()); return r; }
+        throw new Error('réponse invalide (portail captif ?)');
       } catch (_) {
-        return (await c.match(req, { ignoreSearch: true })) ||
-               (await c.match('./index.html')) ||
-               (await c.match('./')) || Response.error();
+        return cached || Response.error();
       }
     })());
     return;
   }
 
-  /* Ressources : cache d'abord (?v= ignoré), réseau + mise en cache sinon */
+  /* Ressources : cache d'abord (?v= ignoré), réseau + mise en cache sinon.
+     Délai 8 s, et une ressource locale répondue par un portail captif
+     (redirection hors origine) n'est jamais mise en cache. */
   e.respondWith((async () => {
     const c = await caches.open(CACHE);
     const hit = await c.match(req, { ignoreSearch: true });
     if (hit) return hit;
     try {
-      const r = await fetch(req);
-      if (r && (r.ok || r.type === 'opaque')) c.put(req, r.clone());
+      const ctl = new AbortController();
+      const tm = setTimeout(() => ctl.abort(), 8000);
+      const r = await fetch(req, { signal: ctl.signal });
+      clearTimeout(tm);
+      const localReq = url.indexOf(self.location.origin) === 0;
+      let portal = false;
+      if (localReq) { try { portal = new URL(r.url).origin !== self.location.origin; } catch (_) { portal = true; } }
+      if (r && !portal && (r.ok || r.type === 'opaque')) c.put(req, r.clone());
       return r;
     } catch (err) {
       return Response.error();
