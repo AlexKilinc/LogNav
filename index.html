@@ -1947,7 +1947,7 @@ window.__TRACE_MARKUP="\n\n<header>\n  <div class=\"hdr-row1\">\n    <span class
    accessible depuis le bouton ⓘ du bandeau du log, avant toute ouverture de la carte */
 (function(){
   var host=document.createElement('div');
-  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Carte OACI :</b> donnée IGN non libre — nécessite votre propre clé Géoplateforme filtrée sur votre domaine. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.279</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
+  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Carte OACI :</b> donnée IGN non libre — nécessite votre propre clé Géoplateforme filtrée sur votre domaine. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.280</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
   (document.body||document.documentElement).appendChild(host.firstElementChild);
   window.__OPEN_INFO=function(){ document.getElementById('infoModal').hidden=false; };
   /* iPadOS : les pastilles de fen\xEAtrage (coin haut-gauche) recouvrent le burger
@@ -4224,6 +4224,34 @@ function openRelinkChoice(){
   function releaseWake(){ try{ if(wakeLock){ wakeLock.release(); wakeLock=null; } }catch(e){} }
   document.addEventListener('visibilitychange',function(){ if(recOn && document.visibilityState==='visible' && !wakeLock) requestWake(); });
   try{ map.on('dragstart',function(){ if(recOn) recFollow=false; }); }catch(e){}
+  /* ---- cap : route GPS fiable en vol, sinon boussole interne de l'appareil (stable),
+     sinon route entre les 2 derniers points ; lissage circulaire contre les à-coups
+     dus aux interférences et aux signaux GPS dégradés ---- */
+  var recCompass=null, recCompassT=0, recCompassBound=false, recSmHdg=null;
+  function recOnDo(e){ var h=null;
+    if(e.webkitCompassHeading!=null&&!isNaN(e.webkitCompassHeading)&&e.webkitCompassHeading>=0) h=e.webkitCompassHeading;
+    else if(e.absolute&&e.alpha!=null&&!isNaN(e.alpha)) h=(360-e.alpha)%360;
+    if(h!=null){ recCompass=h; recCompassT=Date.now(); } }
+  function bindCompass(){ if(recCompassBound) return; recCompassBound=true;
+    try{ window.addEventListener('deviceorientation',recOnDo,true); }catch(e){} }
+  function unbindCompass(){ if(!recCompassBound) return; recCompassBound=false;
+    try{ window.removeEventListener('deviceorientation',recOnDo,true); }catch(e){} recCompass=null; }
+  function askCompass(){ try{
+    if(typeof DeviceOrientationEvent!=='undefined'&&typeof DeviceOrientationEvent.requestPermission==='function'){
+      DeviceOrientationEvent.requestPermission().then(function(s){ if(s==='granted') bindCompass(); }).catch(function(){});
+    } else bindCompass(); }catch(e){} }
+  function recPickHdg(c){
+    var raw=null;
+    if(c.heading!=null&&!isNaN(c.heading)&&c.heading>=0&&c.speed!=null&&!isNaN(c.speed)&&c.speed>=8) raw=c.heading; /* route GPS, fiable dès ~15 kt */
+    else if(recCompass!=null&&(Date.now()-recCompassT)<3000) raw=recCompass;                                        /* boussole interne */
+    else if(recPts.length>1){ var p1=recPts[recPts.length-2],p2=recPts[recPts.length-1];
+      if(__havM(p1,p2)>15) raw=legCalc(p1,p2).track; }                                                              /* route sol, si déplacement net */
+    if(raw==null) return recSmHdg!=null?recSmHdg:0;
+    if(recSmHdg==null){ recSmHdg=raw; return raw; }
+    var d=((raw-recSmHdg+540)%360)-180;
+    recSmHdg=(recSmHdg+d*0.35+360)%360;
+    return recSmHdg;
+  }
   /* ---- instruments de vol (enregistrement en cours) : kt, ft, cap + zones à 2 et 5 min ---- */
   var recInst=null, recProjG=null;
   function gcDest(lat,lng,brg,dM){ var R=6371000,toR=Math.PI/180,toD=180/Math.PI;
@@ -4341,6 +4369,7 @@ function openRelinkChoice(){
   function startRecCountdown(){
     if(recOn||recCd) return;
     if(!navigator.geolocation){ tt2('GPS non disponible sur cet appareil.'); return; }
+    askCompass(); /* demandée pendant le geste : iOS n'accorde la boussole que là */
     var n=5;
     var ov=document.createElement('div'); ov.className='rec-cd'; ov.id='recCd';
     ov.innerHTML='<div class="rec-cd-num">'+n+'</div><div class="rec-cd-lbl">Enregistrement du vol dans…</div><button class="rec-cd-cancel" type="button">Annuler</button>';
@@ -4363,7 +4392,7 @@ function openRelinkChoice(){
   }
   function startRec(){
     if(!navigator.geolocation){ tt2('GPS non disponible sur cet appareil.'); return; }
-    recOn=true; recPts=[]; recFollow=true; recT0=nowMs();
+    recOn=true; recPts=[]; recFollow=true; recT0=nowMs(); recSmHdg=null; askCompass();
     th.classList.remove('map-menu-open'); burger.classList.remove('on');
     if(recLine){ try{map.removeLayer(recLine);}catch(e){} }
     if(planeMk){ try{map.removeLayer(planeMk);}catch(e){} planeMk=null; }
@@ -4374,7 +4403,7 @@ function openRelinkChoice(){
       var c=pos.coords, ll=[c.latitude,c.longitude];
       recPts.push({lat:c.latitude,lng:c.longitude,ele:c.altitude,t:pos.timestamp,spd:c.speed,hdg:c.heading});
       try{ recLine.addLatLng(ll); }catch(e){}
-      var deg=(c.heading!=null&&!isNaN(c.heading)&&c.heading>=0)?c.heading:(recPts.length>1?legCalc(recPts[recPts.length-2],recPts[recPts.length-1]).track:0);
+      var deg=recPickHdg(c);
       if(!planeMk){ planeMk=L.marker(ll,{icon:planeIcon(deg),interactive:false,keyboard:false,zIndexOffset:1000}).addTo(map); }
       else { planeMk.setLatLng(ll); planeMk.setIcon(planeIcon(deg)); }
       try{ if(recFollow && !map.getBounds().pad(-0.25).contains(L.latLng(ll))) map.panTo(ll,{animate:true}); }catch(e){}
@@ -4389,7 +4418,7 @@ function openRelinkChoice(){
     if(!recOn) return;
     recOn=false; clearInterval(recTimer); recTimer=null;
     if(recWatch!=null){ try{ navigator.geolocation.clearWatch(recWatch); }catch(e){} recWatch=null; }
-    releaseWake(); exitRecFull(); updRecUI(); clearFlightInst();
+    releaseWake(); exitRecFull(); updRecUI(); clearFlightInst(); unbindCompass();
     if(!silent) openRecSummary();
   }
   function clearRec(){ clearFlightInst(); if(recLine){ try{map.removeLayer(recLine);}catch(e){} recLine=null; } if(planeMk){ try{map.removeLayer(planeMk);}catch(e){} planeMk=null; } recPts=[]; }
@@ -4443,7 +4472,7 @@ function openRelinkChoice(){
   rec.addEventListener('click',function(e){ e.stopPropagation(); if(recCd) return; if(recOn) confirmStop(); else startRecCountdown(); });
   window.__REC_STATE=function(){ return {on:recOn, pts:recPts.length, nm:+trackNm().toFixed(2)}; };
   /* pilotage depuis la page Cards : d\xE9marrage au lancement du vol, arr\xEAt \xE0 la fin */
-  window.__REC_START=function(){ if(recOn||recCd) return false; startRec(); return true; };
+  window.__REC_START=function(){ if(recOn||recCd) return false; askCompass(); startRec(); return true; };
   window.__REC_STOP=function(){ if(!recOn) return false; exitRecFull();
     /* fin de vol : la trace est conserv\u00e9e d\u2019office, sans r\u00e9capitulatif */
     var ok=false; try{ ok=saveRec(); }catch(e){}
