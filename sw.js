@@ -21,7 +21,7 @@ const PRECACHE = [
   'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js',
   'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css',
   'https://cdnjs.cloudflare.com/ajax/libs/Turf.js/6.5.0/turf.min.js',
-  'https://cdn.jsdelivr.net/npm/pocketbase@0.22.0/dist/pocketbase.umd.js',
+  'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js',
   'https://unpkg.com/pmtiles@3.2.0/dist/pmtiles.js',
   'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js',
   'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js',
@@ -40,7 +40,7 @@ const SKIP = [
   /data\.geopf\.fr/i,
   /overpass/i,
   /akila-flight\.fr/i,
-  /supabase/i,
+  /\.supabase\.co/i,
   /pocketbase\.io/i
 ];
 
