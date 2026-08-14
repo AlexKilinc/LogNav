@@ -1947,7 +1947,7 @@ window.__TRACE_MARKUP="\n\n<header>\n  <div class=\"hdr-row1\">\n    <span class
    accessible depuis le bouton ⓘ du bandeau du log, avant toute ouverture de la carte */
 (function(){
   var host=document.createElement('div');
-  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Carte OACI :</b> donnée IGN non libre — nécessite votre propre clé Géoplateforme filtrée sur votre domaine. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.281</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
+  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Carte OACI :</b> donnée IGN non libre — nécessite votre propre clé Géoplateforme filtrée sur votre domaine. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.282</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
   (document.body||document.documentElement).appendChild(host.firstElementChild);
   window.__OPEN_INFO=function(){ document.getElementById('infoModal').hidden=false; };
   /* iPadOS : les pastilles de fen\xEAtrage (coin haut-gauche) recouvrent le burger
@@ -6211,18 +6211,40 @@ class ErrB extends React.Component{constructor(p){super(p);this.state={e:null};}
 })();
 (function(){
   var vv=window.visualViewport; if(!vv) return;
+  function kbOpen(){ return vv.height < window.innerHeight-80; }
   function fit(){
     var cards=document.querySelectorAll('.ovl .modal-card, .ovl .vac-card, .ovl .rl-card');
     if(!cards.length) return;
     for(var i=0;i<cards.length;i++){
-      var r=cards[i].getBoundingClientRect();
-      var top=Math.max(0, r.top-(vv.offsetTop||0));
-      var h=Math.max(220, Math.round(vv.height-top-10));
+      var ov=cards[i].closest('.ovl');
+      /* hauteur bornée au viewport VISUEL, mesurée depuis le padding haut de
+         l'overlay — jamais depuis la position courante de la carte : quand iOS
+         fait défiler l'overlay à l'ouverture du clavier, celle-ci devient
+         négative et la carte débordait sous l'horloge */
+      var padTop=14; try{ padTop=parseFloat(getComputedStyle(ov).paddingTop)||14; }catch(e){}
+      var h=Math.max(200, Math.round(vv.height-padTop-10));
       cards[i].style.maxHeight=h+'px';
-      var ov=cards[i].closest('.ovl'); if(ov&&ov.scrollTop&&vv.height>window.innerHeight-80) ov.scrollTop=0;
+      /* le haut de la carte reste ancré sous la zone sûre */
+      if(ov&&ov.scrollTop) ov.scrollTop=0;
     }
+    try{ if(window.scrollY) window.scrollTo(0,0); }catch(e){}
+    /* le champ en cours de saisie reste visible via le défilement INTERNE de la carte */
+    try{
+      var ae=document.activeElement;
+      if(kbOpen()&&ae&&(/^(INPUT|TEXTAREA)$/.test(ae.tagName)||ae.isContentEditable)&&ae.closest('.ovl')){
+        var r=ae.getBoundingClientRect(), topLim=(vv.offsetTop||0)+6, botLim=(vv.offsetTop||0)+vv.height-6;
+        if(r.top<topLim||r.bottom>botLim){
+          ae.scrollIntoView({block:'center'});
+          var ov2=ae.closest('.ovl'); if(ov2&&ov2.scrollTop) ov2.scrollTop=0;
+        }
+      }
+    }catch(e){}
   }
   try{ vv.addEventListener('resize',fit); vv.addEventListener('scroll',fit); }catch(e){}
+  document.addEventListener('focusin',function(e){
+    if(e.target&&e.target.closest&&e.target.closest('.ovl')) setTimeout(fit,320);
+  });
+  document.addEventListener('focusout',function(){ setTimeout(fit,250); });
   try{ new MutationObserver(function(){ if(document.querySelector('.ovl')) fit(); }).observe(document.body,{childList:true,subtree:true}); }catch(e){}
 })();
 </script>
