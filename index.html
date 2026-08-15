@@ -1411,6 +1411,7 @@ html:has(.ovl) #uiScaleBox,html:has(body.rec-full) #uiScaleBox{display:none!impo
             lu.salt=salt; lu.pwdHash=h;
             var u=mirror(lu);
             try{ localStorage.setItem(SKEY,lu.email); }catch(e){}
+            try{ if(u.role==='owner') API.refreshUsers(); }catch(e){}
             return {ok:true,user:u};
           });
         });
@@ -1434,7 +1435,7 @@ html:has(.ovl) #uiScaleBox,html:has(body.rec-full) #uiScaleBox{display:none!impo
       if(!navigator.onLine) return API.__localRequestReset(email);
       try{
         return sb.auth.resetPasswordForEmail(norm(email),{redirectTo:location.origin+location.pathname})
-          .then(function(){ return true; }).catch(function(){ return API.__localRequestReset(email); });
+          .then(function(){ return 'cloud'; }).catch(function(){ return API.__localRequestReset(email); });
       }catch(e){ return API.__localRequestReset(email); }
     };
     API.applyReset=function(email,newPwd){
@@ -1470,6 +1471,20 @@ html:has(.ovl) #uiScaleBox,html:has(body.rec-full) #uiScaleBox{display:none!impo
         window.__AKILA_USER={name:((u.prenom||'')+' '+(u.nom||'')).trim()||u.email,email:u.email,role:u.role}; }catch(e){}
     }catch(e){} };
     API.signOut=function(){ try{ sb.auth.signOut(); }catch(e){} API.__localSignOut(); };
+    /* résiliation : le compte est bloqué au niveau Supabase (status 'rejected' —
+       la connexion est refusée partout), puis retiré du miroir local. La
+       suppression définitive de l'authentification n'est pas possible avec la
+       clé publique de l'appli : elle se fait dans le tableau de bord Supabase. */
+    API.__localRemoveWithPassword=API.removeWithPassword;
+    API.removeWithPassword=function(email,ownerPwd){
+      return API.__localRemoveWithPassword(email,ownerPwd).then(function(r){
+        if(r&&r.ok){
+          cloudProf(email,{status:'rejected'});
+          r.info='Compte bloqué : la connexion est refusée sur tous les appareils.\nSuppression définitive (facultative) : supabase.com \u2192 Authentication \u2192 Users.';
+        }
+        return r;
+      });
+    };
 
     /* --- boîte « nouveau mot de passe » : ouverte automatiquement par le lien
        de récupération e-mail (événement PASSWORD_RECOVERY), ou depuis
@@ -1479,33 +1494,34 @@ html:has(.ovl) #uiScaleBox,html:has(body.rec-full) #uiScaleBox{display:none!impo
       var ov=document.createElement('div'); ov.id='pwdOv';
       ov.style.cssText='position:fixed;inset:0;z-index:100000;background:rgba(16,21,40,.66);backdrop-filter:blur(2px);display:flex;align-items:center;justify-content:center;padding:20px';
       var card=document.createElement('div');
-      card.style.cssText='background:#fff;border-radius:14px;padding:18px 20px;max-width:360px;width:100%;box-shadow:0 12px 40px rgba(0,0,0,.35)';
-      card.innerHTML='<div style="font:800 16px Poppins,ui-sans-serif,sans-serif;color:#16213e;margin-bottom:4px">Nouveau mot de passe</div>'
-        +(fromRecovery?'<div style="font:500 12.5px Poppins,ui-sans-serif,sans-serif;color:#475569;margin-bottom:10px">Lien de récupération reconnu — choisissez votre nouveau mot de passe.</div>':'<div style="height:6px"></div>')
-        +'<input id="pwdN1" type="password" autocomplete="new-password" placeholder="Nouveau mot de passe (6 min.)" style="width:100%;box-sizing:border-box;border:1px solid #cbd5e1;border-radius:9px;padding:10px;margin:0 0 8px;font:14px Poppins,ui-sans-serif,sans-serif">'
-        +'<input id="pwdN2" type="password" autocomplete="new-password" placeholder="Confirmez le mot de passe" style="width:100%;box-sizing:border-box;border:1px solid #cbd5e1;border-radius:9px;padding:10px;margin:0 0 6px;font:14px Poppins,ui-sans-serif,sans-serif">'
-        +'<div id="pwdMsg" style="min-height:18px;font:600 12px Poppins,ui-sans-serif,sans-serif;color:#b91c1c;margin-bottom:8px"></div>'
-        +'<div style="display:flex;gap:8px"><button id="pwdOk" type="button" style="flex:1;background:#e94560;color:#fff;border:none;border-radius:9px;padding:10px;font:700 13px Poppins,ui-sans-serif,sans-serif;cursor:pointer">Valider</button>'
-        +'<button id="pwdCancel" type="button" style="flex:1;background:#e9ebee;color:#333;border:none;border-radius:9px;padding:10px;font:700 13px Poppins,ui-sans-serif,sans-serif;cursor:pointer">Annuler</button></div>';
+      card.style.cssText='background:linear-gradient(180deg,#0E2348,#0A1A33);border:1px solid #173159;border-radius:14px;padding:18px 20px;max-width:360px;width:100%;color:#EAF1FB;box-shadow:0 18px 50px rgba(0,0,0,.5)';
+      var pwdInp='width:100%;box-sizing:border-box;background:rgba(8,20,39,.55);border:1px solid #173159;border-radius:10px;padding:10px 13px;color:#EAF1FB;font:16px Inter,Poppins,ui-sans-serif,sans-serif';
+      card.innerHTML='<div style="font:800 16px Poppins,ui-sans-serif,sans-serif;color:#EAF1FB;margin-bottom:4px">Nouveau mot de passe</div>'
+        +(fromRecovery?'<div style="font:500 12.5px Poppins,ui-sans-serif,sans-serif;color:#92A7C9;margin-bottom:10px">Lien de récupération reconnu — choisissez votre nouveau mot de passe.</div>':'<div style="height:6px"></div>')
+        +'<input id="pwdN1" type="password" autocomplete="new-password" placeholder="Nouveau mot de passe (6 min.)" style="'+pwdInp+';margin:0 0 8px">'
+        +'<input id="pwdN2" type="password" autocomplete="new-password" placeholder="Confirmez le mot de passe" style="'+pwdInp+';margin:0 0 6px">'
+        +'<div id="pwdMsg" style="min-height:18px;font:600 12px Poppins,ui-sans-serif,sans-serif;color:#E23744;margin-bottom:8px"></div>'
+        +'<div style="display:flex;gap:8px"><button id="pwdOk" type="button" style="flex:1;background:#e94560;color:#fff;border:none;border-radius:11px;padding:10px;font:700 13px Poppins,ui-sans-serif,sans-serif;cursor:pointer">Valider</button>'
+        +'<button id="pwdCancel" type="button" style="flex:1;background:transparent;color:#92A7C9;border:1px solid #173159;border-radius:11px;padding:10px;font:700 13px Poppins,ui-sans-serif,sans-serif;cursor:pointer">Annuler</button></div>';
       ov.appendChild(card); document.body.appendChild(ov);
       var msg=card.querySelector('#pwdMsg');
       card.querySelector('#pwdCancel').onclick=function(){ ov.remove(); };
       ov.addEventListener('click',function(e){ if(e.target===ov) ov.remove(); });
       card.querySelector('#pwdOk').onclick=function(){
         var p1=card.querySelector('#pwdN1').value, p2=card.querySelector('#pwdN2').value;
-        if(!p1||p1.length<6){ msg.style.color='#b91c1c'; msg.textContent='6 caractères minimum.'; return; }
-        if(p1!==p2){ msg.style.color='#b91c1c'; msg.textContent='Les deux mots de passe ne correspondent pas.'; return; }
-        msg.style.color='#475569'; msg.textContent='Enregistrement…';
+        if(!p1||p1.length<6){ msg.style.color='#E23744'; msg.textContent='6 caractères minimum.'; return; }
+        if(p1!==p2){ msg.style.color='#E23744'; msg.textContent='Les deux mots de passe ne correspondent pas.'; return; }
+        msg.style.color='#92A7C9'; msg.textContent='Enregistrement…';
         sb.auth.updateUser({password:p1}).then(function(r){
-          if(r.error){ msg.style.color='#b91c1c'; msg.textContent=r.error.message||'Échec — réessayez.'; return; }
+          if(r.error){ msg.style.color='#E23744'; msg.textContent=r.error.message||'Échec — réessayez.'; return; }
           /* miroir hors-ligne aligné : le nouveau mot de passe marche aussi en mode avion */
           var em=null; try{ em=(r.data&&r.data.user&&r.data.user.email)||localStorage.getItem(SKEY); }catch(e){}
-          var fin=function(){ msg.style.color='#15803d'; msg.textContent='Mot de passe modifié \u2713';
+          var fin=function(){ msg.style.color='#5B9BFF'; msg.textContent='Mot de passe modifié \u2713';
             setTimeout(function(){ try{ ov.remove(); }catch(e){} },900); };
           if(em){ var salt=randSalt();
             sha256(salt+String(p1)).then(function(h){ var db=load(); var u=db[norm(em)]; if(u){ u.salt=salt; u.pwdHash=h; save(db); } fin(); });
           } else fin();
-        },function(){ msg.style.color='#b91c1c'; msg.textContent='Réseau indisponible — réessayez en ligne.'; });
+        },function(){ msg.style.color='#E23744'; msg.textContent='Réseau indisponible — réessayez en ligne.'; });
       };
     };
     try{ sb.auth.onAuthStateChange(function(ev){
@@ -1708,7 +1724,7 @@ return '<div style="display:flex;align-items:center;gap:10px;padding:10px 4px;bo
         +'<div style="display:flex;align-items:center;gap:9px;margin-bottom:4px"><span style="font:800 16px ui-sans-serif;color:#16213e"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;margin-right:5px"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Gestion des utilisateurs</span>'
         +(pend?'<span style="background:#e94560;color:#fff;border-radius:20px;padding:2px 9px;font:700 11px ui-sans-serif">'+pend+' en attente</span>':'')
         +'<span style="flex:1"></span><button id="akUsersClose" style="background:none;border:0;font:700 20px ui-sans-serif;color:#94a3b8;cursor:pointer">×</button></div>'
-        +'<div style="font:400 11.5px ui-sans-serif;color:#64748b;margin-bottom:8px">Validez ou refusez les inscriptions. Un compte validé peut se connecter ; un compte refusé est bloqué. (Stockage local — synchronisé avec Supabase à terme.)</div>'
+        +'<div style="font:400 11.5px ui-sans-serif;color:#64748b;margin-bottom:8px">Validez ou refusez les inscriptions. Un compte validé peut se connecter ; un compte refusé est bloqué. (Décisions appliquées au cloud Supabase : valables sur tous les appareils.)</div>'
         +'<div style="max-height:60vh;overflow:auto">'+users.map(row).join('')+'</div></div>';
       ov.querySelector('#akUsersClose').onclick=function(){ ov.remove(); };
       Array.prototype.forEach.call(ov.querySelectorAll('button[data-act]'),function(b){
@@ -1717,9 +1733,9 @@ return '<div style="display:flex;align-items:center;gap:10px;padding:10px 4px;bo
           else if(a==='reject'){ API.reject(e); render(); }
           else if(a==='statut'){ var order=['eleve','brevete','FI']; var cur=(API.listUsers().find(function(x){return x.email===e;})||{}).statut||'eleve'; var ni=(order.indexOf(cur)+1)%order.length; API.setStatut(e,order[ni]); render(); }
           else if(a==='del'){
-            var pwd=prompt('Suppression définitive du compte '+e+'.\nSaisissez le mot de passe du compte principal pour confirmer :');
+            var pwd=prompt('Résiliation du compte '+e+' : il sera bloqué (connexion refusée).\nSaisissez le mot de passe du compte principal pour confirmer :');
             if(pwd==null) return;
-            API.removeWithPassword(e,pwd).then(function(r){ if(!r.ok){ alert(r.err); } render(); });
+            API.removeWithPassword(e,pwd).then(function(r){ if(!r.ok){ alert(r.err); } else if(r.info){ alert(r.info); } render(); });
           }
         };
       });
@@ -2056,6 +2072,12 @@ async function akReset(e){
   try{
     var exists=await window.AkilaAuth.requestReset(em);
     if(!exists){ m.textContent='Aucun compte pour cet e-mail.'; m.className='msg err'; return; }
+    if(exists==='cloud'){
+      /* Supabase a envoyé le lien de réinitialisation : rien d'autre à faire ici */
+      m.textContent='E-mail de réinitialisation envoyé ! Ouvrez le lien reçu depuis cet appareil : la fenêtre « Nouveau mot de passe » s’ouvrira automatiquement.'; m.className='msg ok';
+      return;
+    }
+    /* secours hors-ligne / local : demande transmise à l'administrateur */
     var sub=encodeURIComponent('LogNavAK — Réinitialisation de mot de passe');
     var body=encodeURIComponent('Bonjour,\n\nMerci de réinitialiser le mot de passe du compte LogNavAK associé à cet e-mail : '+em+'\n\n(Demande envoyée depuis la page de connexion LogNavAK.)');
     try{ window.location.href='mailto:'+AK_ADMIN_EMAIL+'?subject='+sub+'&body='+body; }catch(_){}
@@ -2259,7 +2281,7 @@ window.__TRACE_MARKUP="\n\n<header>\n  <div class=\"hdr-row1\">\n    <span class
    accessible depuis le bouton ⓘ du bandeau du log, avant toute ouverture de la carte */
 (function(){
   var host=document.createElement('div');
-  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Carte OACI :</b> donnée IGN non libre — nécessite votre propre clé Géoplateforme filtrée sur votre domaine. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.288</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
+  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Carte OACI :</b> donnée IGN non libre — nécessite votre propre clé Géoplateforme filtrée sur votre domaine. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.289</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
   (document.body||document.documentElement).appendChild(host.firstElementChild);
   window.__OPEN_INFO=function(){ document.getElementById('infoModal').hidden=false; };
   /* iPadOS : les pastilles de fen\xEAtrage (coin haut-gauche) recouvrent le burger
