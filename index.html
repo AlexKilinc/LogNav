@@ -1497,16 +1497,29 @@ html:has(.ovl) #uiScaleBox,html:has(body.rec-full) #uiScaleBox{display:none!impo
       ov.style.cssText='position:fixed;inset:0;z-index:100000;background:rgba(16,21,40,.66);backdrop-filter:blur(2px);display:flex;align-items:center;justify-content:center;padding:20px';
       var card=document.createElement('div');
       card.style.cssText='background:linear-gradient(180deg,#0E2348,#0A1A33);border:1px solid #173159;border-radius:14px;padding:18px 20px;max-width:360px;width:100%;color:#EAF1FB;box-shadow:0 18px 50px rgba(0,0,0,.5)';
-      var pwdInp='width:100%;box-sizing:border-box;background:rgba(8,20,39,.55);border:1px solid #173159;border-radius:10px;padding:10px 13px;color:#EAF1FB;font:16px Inter,Poppins,ui-sans-serif,sans-serif';
+      var pwdInp='width:100%;box-sizing:border-box;background:rgba(8,20,39,.55);border:1px solid #173159;border-radius:10px;padding:10px 44px 10px 13px;color:#EAF1FB;font:16px Inter,Poppins,ui-sans-serif,sans-serif';
+      /* œil afficher/masquer — mêmes pictos que l'écran de connexion */
+      var pwdEye=function(id){ return '<button type="button" data-eye="'+id+'" aria-label="Afficher le mot de passe" title="Afficher le mot de passe" style="position:absolute;top:50%;right:8px;transform:translateY(-50%);width:30px;height:30px;display:flex;align-items:center;justify-content:center;padding:0;border:none;background:transparent;color:#92A7C9;cursor:pointer">'
+        +'<svg class="eye-on" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>'
+        +'<svg class="eye-off" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="display:none"><path d="M9.9 4.2A11 11 0 0 1 12 4c6.5 0 10 7 10 7a13.4 13.4 0 0 1-2.2 3M6.6 6.6A13.4 13.4 0 0 0 2 11s3.5 7 10 7a10.8 10.8 0 0 0 5.4-1.4"/><path d="M9.5 9.6a3 3 0 0 0 4.2 4.2"/><path d="m2 2 20 20"/></svg></button>'; };
       card.innerHTML='<div style="font:800 16px Poppins,ui-sans-serif,sans-serif;color:#EAF1FB;margin-bottom:4px">Nouveau mot de passe</div>'
         +(fromRecovery?'<div style="font:500 12.5px Poppins,ui-sans-serif,sans-serif;color:#92A7C9;margin-bottom:10px">Lien de récupération reconnu — choisissez votre nouveau mot de passe.</div>':'<div style="height:6px"></div>')
-        +'<input id="pwdN1" type="password" autocomplete="new-password" placeholder="Nouveau mot de passe (6 min.)" style="'+pwdInp+';margin:0 0 8px">'
-        +'<input id="pwdN2" type="password" autocomplete="new-password" placeholder="Confirmez le mot de passe" style="'+pwdInp+';margin:0 0 6px">'
+        +'<div style="position:relative;margin:0 0 8px"><input id="pwdN1" type="password" autocomplete="new-password" placeholder="Nouveau mot de passe (6 min.)" style="'+pwdInp+'">'+pwdEye('pwdN1')+'</div>'
+        +'<div style="position:relative;margin:0 0 6px"><input id="pwdN2" type="password" autocomplete="new-password" placeholder="Confirmez le mot de passe" style="'+pwdInp+'">'+pwdEye('pwdN2')+'</div>'
         +'<div id="pwdMsg" style="min-height:18px;font:600 12px Poppins,ui-sans-serif,sans-serif;color:#E23744;margin-bottom:8px"></div>'
         +'<div style="display:flex;gap:8px"><button id="pwdOk" type="button" style="flex:1;background:#e94560;color:#fff;border:none;border-radius:11px;padding:10px;font:700 13px Poppins,ui-sans-serif,sans-serif;cursor:pointer">Valider</button>'
         +'<button id="pwdCancel" type="button" style="flex:1;background:transparent;color:#92A7C9;border:1px solid #173159;border-radius:11px;padding:10px;font:700 13px Poppins,ui-sans-serif,sans-serif;cursor:pointer">Annuler</button></div>';
       ov.appendChild(card); document.body.appendChild(ov);
       var msg=card.querySelector('#pwdMsg');
+      Array.prototype.forEach.call(card.querySelectorAll('button[data-eye]'),function(bt){
+        bt.onclick=function(){
+          var inp=card.querySelector('#'+bt.getAttribute('data-eye')); if(!inp) return;
+          var show=inp.type==='password'; inp.type=show?'text':'password';
+          var on=bt.querySelector('.eye-on'), off=bt.querySelector('.eye-off');
+          if(on) on.style.display=show?'none':''; if(off) off.style.display=show?'':'none';
+          try{ inp.focus(); }catch(e){}
+        };
+      });
       card.querySelector('#pwdCancel').onclick=function(){ ov.remove(); };
       ov.addEventListener('click',function(e){ if(e.target===ov) ov.remove(); });
       card.querySelector('#pwdOk').onclick=function(){
@@ -2420,7 +2433,7 @@ window.__TRACE_MARKUP="\n\n<header>\n  <div class=\"hdr-row1\">\n    <span class
    accessible depuis le bouton ⓘ du bandeau du log, avant toute ouverture de la carte */
 (function(){
   var host=document.createElement('div');
-  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Carte OACI :</b> donnée IGN non libre — nécessite votre propre clé Géoplateforme filtrée sur votre domaine. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.301</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
+  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Carte OACI :</b> donnée IGN non libre — nécessite votre propre clé Géoplateforme filtrée sur votre domaine. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.302</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
   (document.body||document.documentElement).appendChild(host.firstElementChild);
   window.__OPEN_INFO=function(){ document.getElementById('infoModal').hidden=false; };
   /* iPadOS : les pastilles de fen\xEAtrage (coin haut-gauche) recouvrent le burger
