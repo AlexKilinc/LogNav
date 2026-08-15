@@ -901,6 +901,8 @@ html:has(.ovl) #uiScaleBox,html:has(body.rec-full) #uiScaleBox{display:none!impo
 .nc-pitb .tx{font:700 12.5px "Poppins",sans-serif;color:#cfe0f5;white-space:nowrap}
 .nc-pitb.on{border-color:#1BA34B;background:rgba(27,163,75,.14)}
 .nc-pitb.on .bx{background:#1BA34B;border-color:#1BA34B}
+.mtoolbar .tb-sync.sync-dirty{border-color:#e94560;box-shadow:0 0 0 1px rgba(233,69,96,.55);color:#ffb9c6}
+.mtoolbar .tb-sync.sync-ok{border-color:#2ecc71;box-shadow:0 0 0 1px rgba(46,204,113,.4);color:#b4ecce}
 .tb-sync .ico-arrow{display:none}.tb-sync.spin .ico-arrow{display:block}.tb-sync.spin .ico-cloud{display:none}.tb-sync.spin svg{animation:tbspin 1s linear infinite}
 @keyframes tbspin{to{transform:rotate(360deg)}}
 .nc-golr{display:flex;align-items:stretch;gap:9px}
@@ -1540,7 +1542,7 @@ html:has(.ovl) #uiScaleBox,html:has(body.rec-full) #uiScaleBox{display:none!impo
     var sb=window.sb; if(!sb) return;
     var KEY='lognav_app_v7', MT='lognav_local_mt', ST='lognav_sync_t';
     var TR='lognav_tracks_v1', TRS='lognav_tr_synced';
-    var pushT=null, lastSent={}, trSent={};
+    var pushT=null, lastSent={}, trSent={}, syncBooted=false;
     function getTracks(){ try{ return JSON.parse(localStorage.getItem(TR)||'[]')||[]; }catch(e){ return []; } }
     function setTracks(l){ try{ localStorage.setItem(TR,JSON.stringify(l)); }catch(e){} }
     function trSyncedSet(){ try{ return new Set(JSON.parse(localStorage.getItem(TRS)||'[]')||[]); }catch(e){ return new Set(); } }
@@ -1554,7 +1556,7 @@ html:has(.ovl) #uiScaleBox,html:has(body.rec-full) #uiScaleBox{display:none!impo
     function sessUser(cb){ try{ sb.auth.getSession().then(function(s){ cb(s&&s.data&&s.data.session?s.data.session.user:null); },function(){ cb(null); }); }catch(e){ cb(null); } }
     function pull(timeoutMs){
       return new Promise(function(res){
-        var done=false, end=function(){ if(!done){ done=true; res(); } };
+        var done=false, end=function(){ if(!done){ done=true; syncBooted=true; res(); } };
         setTimeout(end, timeoutMs||4500);
         if(!navigator.onLine){ end(); return; }
         sessUser(function(user){
@@ -1685,6 +1687,32 @@ html:has(.ovl) #uiScaleBox,html:has(body.rec-full) #uiScaleBox{display:none!impo
         });
       });
     };
+    /* ---- indicateur du bouton nuage : rouge-rose = modifications locales pas
+       encore envoyées au cloud (ou synchro de démarrage pas encore faite) ;
+       vert = tout est synchronisé. Repeint par balayage léger, car le bouton
+       React peut être recréé à tout moment. ---- */
+    function syncState(){
+      try{
+        if(!localStorage.getItem('akila_session_v1')) return '';
+        if(!syncBooted) return 'dirty';
+        return (+(localStorage.getItem(MT)||0) > +(localStorage.getItem(ST)||0)+1500)?'dirty':'ok';
+      }catch(e){ return ''; }
+    }
+    function paint(){
+      var st=syncState(), els=document.querySelectorAll('.tb-sync');
+      for(var i=0;i<els.length;i++){ els[i].classList.toggle('sync-dirty',st==='dirty'); els[i].classList.toggle('sync-ok',st==='ok'); }
+    }
+    window.__SYNC_PAINT=paint;
+    setTimeout(paint,800); setInterval(paint,2000);
+    /* ---- synchro automatique SILENCIEUSE toutes les 5 minutes (aucun message) :
+       pousse les modifications locales et récupère celles des autres appareils.
+       La synchro manuelle (clic sur le nuage) garde son message de confirmation. ---- */
+    setInterval(function(){
+      try{
+        if(!navigator.onLine||!localStorage.getItem('akila_session_v1')) return;
+        window.__SYNC_NOW().then(paint,function(){});
+      }catch(e){}
+    },300000);
     window.addEventListener('online',function(){ pushSoon(1200); });
   })();
 
@@ -2353,7 +2381,7 @@ window.__TRACE_MARKUP="\n\n<header>\n  <div class=\"hdr-row1\">\n    <span class
    accessible depuis le bouton ⓘ du bandeau du log, avant toute ouverture de la carte */
 (function(){
   var host=document.createElement('div');
-  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Carte OACI :</b> donnée IGN non libre — nécessite votre propre clé Géoplateforme filtrée sur votre domaine. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.295</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
+  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Carte OACI :</b> donnée IGN non libre — nécessite votre propre clé Géoplateforme filtrée sur votre domaine. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.296</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
   (document.body||document.documentElement).appendChild(host.firstElementChild);
   window.__OPEN_INFO=function(){ document.getElementById('infoModal').hidden=false; };
   /* iPadOS : les pastilles de fen\xEAtrage (coin haut-gauche) recouvrent le burger
@@ -5522,7 +5550,7 @@ const wrap=document.createElement("div");sheets.forEach((s,i)=>{const c=s.cloneN
     const say=t=>{try{const d=document.createElement("div");d.textContent=t;d.style.cssText="position:fixed;left:50%;top:64px;transform:translateX(-50%);z-index:100001;background:#0f172a;color:#fff;border-radius:18px;padding:8px 16px;font:700 12.5px Poppins,ui-sans-serif;box-shadow:0 6px 20px rgba(0,0,0,.4)";document.body.appendChild(d);setTimeout(()=>{try{d.remove()}catch(_){}},2200);}catch(_){}};
     try{const r=window.__SYNC_NOW?await window.__SYNC_NOW():"nosb";
       say(r==="ok"?"Synchronisation cloud effectu\xE9e \u2713":r==="offline"?"Hors ligne \u2014 sync impossible":r==="nologin"?"Connectez-vous pour synchroniser":"Synchronisation indisponible");
-    }finally{el.classList.remove("spin")}}},
+    }finally{el.classList.remove("spin");try{window.__SYNC_PAINT&&window.__SYNC_PAINT()}catch(_){}}}},
   React.createElement("svg",{className:"ico-cloud",width:15,height:15,viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:2.2,strokeLinecap:"round",strokeLinejoin:"round"},
     React.createElement("path",{d:"M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"})),
   React.createElement("svg",{className:"ico-arrow",width:14,height:14,viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:2.4,strokeLinecap:"round",strokeLinejoin:"round"},
