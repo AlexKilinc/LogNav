@@ -1774,17 +1774,32 @@ return '<div style="display:flex;align-items:center;gap:10px;padding:10px 4px;bo
         +sect('Préférences')
         +'<label style="display:block;font:600 11px ui-sans-serif;color:#64748b;margin:0 0 3px">Aérodrome de centrage préférentiel de la carte <span style="font-weight:400;color:#94a3b8">— code OACI, 4 lettres (défaut LFPN)</span></label>'
         +'<input id="pf-homead" value="'+esc(cur.homeAd||'')+'" maxlength="4" placeholder="LFPN" autocapitalize="characters" spellcheck="false" style="width:104px;box-sizing:border-box;border:1px solid #c8ccd2;border-radius:8px;padding:9px 10px;font:14px ui-sans-serif;letter-spacing:1.5px;text-transform:uppercase;color:#1a1a1a;outline:none">'
-        +'<label style="display:flex;align-items:center;gap:8px;font:600 12px ui-sans-serif;color:#16213e;cursor:pointer;white-space:nowrap;margin-top:12px">'
-        +'<input type="checkbox" id="pf-sia250off" style="width:16px;height:16px;flex:none;accent-color:#e94560">'
-        +'Carte OACI 1/250 000 disponible hors-ligne</label>'
-        +'<div id="pf-sia250msg" style="font:500 11px ui-sans-serif;color:#64748b;margin:3px 0 0 24px"></div>'
-        +'<div style="margin-top:14px;font:600 12px ui-sans-serif;color:#16213e">Carte IGN OACI 1/500 000 — France entière en local</div>'
-        +'<div id="pf-oacifr-msg" style="font:500 11px ui-sans-serif;color:#64748b;margin:3px 0 7px"></div>'
-        +'<div style="display:flex;gap:6px;flex-wrap:wrap">'
-        +'<button type="button" id="pf-oacifr-dl" style="background:#2c5282;color:#fff;border:0;border-radius:8px;padding:8px 13px;font:700 12px ui-sans-serif;cursor:pointer">Télécharger tout</button>'
-        +'<button type="button" id="pf-oacifr-stop" style="display:none;background:#fff;color:#b3261e;border:1px solid #e3b9b4;border-radius:8px;padding:8px 13px;font:700 12px ui-sans-serif;cursor:pointer">Interrompre</button>'
-        +'<button type="button" id="pf-oacifr-del" style="background:#fff;color:#64748b;border:1px solid #c8ccd2;border-radius:8px;padding:8px 13px;font:700 12px ui-sans-serif;cursor:pointer">Supprimer</button>'
-        +'</div>'
+        +sect('Cartes hors-ligne','téléchargées sur cet appareil, utilisables sans réseau')
+        +(function(){
+          /* présentation commune aux deux cartes : cartouche, titre, ligne d'état, boutons */
+          var CARD='border:1px solid #e2e6ea;border-radius:10px;padding:10px 12px;margin-top:8px;background:#fafbfc';
+          var TIT='font:700 12px ui-sans-serif;color:#16213e';
+          var MSGS='font:500 11px ui-sans-serif;color:#64748b;margin:3px 0 7px;min-height:14px';
+          var BROW='display:flex;gap:6px;flex-wrap:wrap';
+          var BDL='background:#2c5282;color:#fff;border:0;border-radius:8px;padding:8px 13px;font:700 12px ui-sans-serif;cursor:pointer';
+          var BSTOP='display:none;background:#fff;color:#b3261e;border:1px solid #e3b9b4;border-radius:8px;padding:8px 13px;font:700 12px ui-sans-serif;cursor:pointer';
+          var BDEL='background:#fff;color:#64748b;border:1px solid #c8ccd2;border-radius:8px;padding:8px 13px;font:700 12px ui-sans-serif;cursor:pointer';
+          return '<div style="'+CARD+'">'
+          +'<div style="'+TIT+'">Carte OACI 1/250 000 — Région parisienne (SIA)</div>'
+          +'<div id="pf-sia250msg" style="'+MSGS+'"></div>'
+          +'<div style="'+BROW+'">'
+          +'<button type="button" id="pf-sia250-dl" style="'+BDL+'">Télécharger</button>'
+          +'<button type="button" id="pf-sia250-del" style="'+BDEL+'">Supprimer</button>'
+          +'</div></div>'
+          +'<div style="'+CARD+'">'
+          +'<div style="'+TIT+'">Carte OACI 1/500 000 — France entière (IGN)</div>'
+          +'<div id="pf-oacifr-msg" style="'+MSGS+'"></div>'
+          +'<div style="'+BROW+'">'
+          +'<button type="button" id="pf-oacifr-dl" style="'+BDL+'">Télécharger</button>'
+          +'<button type="button" id="pf-oacifr-stop" style="'+BSTOP+'">Interrompre</button>'
+          +'<button type="button" id="pf-oacifr-del" style="'+BDEL+'">Supprimer</button>'
+          +'</div></div>';
+        })()
         +sect('Mes avions','immat. · modèle · conso (L/h) · réservoirs (1 · 2 D/G · 3 D/C/G)')
         +'<div id="pf-fleet"></div>'
         +sect('Fonction')
@@ -1794,30 +1809,39 @@ return '<div style="display:flex;align-items:center;gap:10px;padding:10px 4px;bo
         +'<button id="akProfSave" style="margin-top:6px;width:100%;background:#e94560;color:#fff;border:0;border-radius:9px;padding:11px;font:700 14px ui-sans-serif;cursor:pointer">Enregistrer</button>'
         +'</div></div>';
       ov.querySelector('#akProfClose').onclick=function(){ ov.remove(); };
-      /* ---- Carte 1/250 000 hors-ligne ---- */
+      /* ---- Carte 1/250 000 hors-ligne : présentation commune avec la 1/500 000 ---- */
       (function(){
-        var cb=ov.querySelector('#pf-sia250off'), msg=ov.querySelector('#pf-sia250msg');
-        if(!cb||!window.__SIA250OFF) return;
+        var msg=ov.querySelector('#pf-sia250msg');
+        var bDl=ov.querySelector('#pf-sia250-dl'), bDe=ov.querySelector('#pf-sia250-del');
+        if(!msg||!bDl||!bDe) return;
+        if(!window.__SIA250OFF){ msg.textContent='Indisponible.'; bDl.disabled=true; bDe.disabled=true; return; }
+        var MK='lognav_sia250_meta';
         var mo=function(t,c){ msg.textContent=t; msg.style.color=c||'#64748b'; };
         var fmtMo=function(mo_){ return mo_?mo_.toFixed(1).replace('.',','):null; };
-        if(window.__SIA250OFF.enabled()){ cb.checked=true;
-          var sz=fmtMo(window.__SIA250OFF.sizeMo());
-          mo('Copie hors-ligne présente sur cet appareil'+(sz?' ('+sz+' Mo)':'')+'.');
-        }else{ mo('Téléchargement d\u2019environ 20 Mo.'); }
-        cb.onchange=function(){
-          if(cb.checked){
-            cb.disabled=true; mo('Téléchargement… 0 %');
-            window.__SIA250OFF.download(function(p){ mo('Téléchargement… '+Math.round(p*100)+' %'); })
-              .then(function(buf){ cb.disabled=false;
-                mo('Copie hors-ligne présente sur cet appareil ('+(buf.byteLength/1048576).toFixed(1).replace('.',',')+' Mo).', '#1a7f4b');
-                try{ window.__SIA250_SET_LOCAL&&window.__SIA250_SET_LOCAL(buf); }catch(e){}
-              })
-              .catch(function(e){ cb.disabled=false; cb.checked=false;
-                mo('Échec du téléchargement ('+((e&&e.message)||e)+') — réseau requis.', '#b3261e'); });
-          }else{
-            window.__SIA250OFF.remove().then(function(){ mo('Copie hors-ligne supprimée — téléchargement d\u2019environ 20 Mo si vous la réactivez.');
-              try{ window.__SIA250_SET_REMOTE&&window.__SIA250_SET_REMOTE(); }catch(e){} });
-          }
+        function idle(){
+          if(window.__SIA250OFF.enabled()){
+            var sz=fmtMo(window.__SIA250OFF.sizeMo()), dt='';
+            try{ var m=JSON.parse(localStorage.getItem(MK)||'null'); if(m&&m.date) dt=', téléchargée le '+new Date(m.date).toLocaleDateString('fr-FR'); }catch(e){}
+            mo('Complète : copie présente sur cet appareil'+(sz?' ('+sz+' Mo'+dt+')':'')+' — s\u2019affiche sans réseau.','#1a7f4b');
+          } else mo('Environ 20 Mo estimés : Wi-Fi recommandé. Zooms détaillés de la Région parisienne.');
+        }
+        idle();
+        bDl.onclick=function(){
+          bDl.disabled=true; bDl.style.opacity='.5'; mo('Téléchargement… 0 %');
+          window.__SIA250OFF.download(function(p){ mo('Téléchargement… '+Math.round(p*100)+' %'); })
+            .then(function(buf){ bDl.disabled=false; bDl.style.opacity='1';
+              try{ localStorage.setItem(MK,JSON.stringify({date:new Date().toISOString()})); }catch(e){}
+              try{ window.__SIA250_SET_LOCAL&&window.__SIA250_SET_LOCAL(buf); }catch(e){}
+              idle();
+            })
+            .catch(function(e){ bDl.disabled=false; bDl.style.opacity='1';
+              mo('Échec du téléchargement ('+((e&&e.message)||e)+') — réseau requis.', '#b3261e'); });
+        };
+        bDe.onclick=function(){
+          if(!confirm('Supprimer la copie hors-ligne de la carte OACI 1/250 000 ?')) return;
+          window.__SIA250OFF.remove().then(function(){
+            try{ localStorage.removeItem(MK); }catch(e){}
+            try{ window.__SIA250_SET_REMOTE&&window.__SIA250_SET_REMOTE(); }catch(e){} idle(); });
         };
       })();
       /* ---- Carte IGN OACI 1/500 000 France entière (cache de tuiles de la carte) ---- */
@@ -1834,7 +1858,7 @@ return '<div style="display:flex;align-items:center;gap:10px;padding:10px 4px;bo
             var mt=api.meta(), dt='';
             if(mt&&mt.date){ try{ dt=' le '+new Date(mt.date).toLocaleDateString('fr-FR'); }catch(e){} }
             if(n>=total) mo('Complète : '+n+' tuiles · '+szT+', téléchargée'+dt+' — la carte OACI s\u2019affiche partout sans réseau (zooms 6 à 11). À refaire après chaque édition annuelle IGN.','#1a7f4b');
-            else mo(n+' / '+total+' tuiles en local ('+szT+') — « Télécharger tout » reprend là où vous en étiez (les tuiles déjà présentes sont sautées).');
+            else mo(n+' / '+total+' tuiles en local ('+szT+') — « Télécharger » reprend là où vous en étiez (les tuiles déjà présentes sont sautées).');
           });
         }); }
         function busy(p){ mo('Téléchargement… '+p.done+' / '+p.total+' tuiles · '+p.mo.toFixed(0)+' Mo'+(p.fail?' · '+p.fail+' échec(s)':'')); }
@@ -1848,8 +1872,8 @@ return '<div style="display:flex;align-items:center;gap:10px;padding:10px 4px;bo
           setBtns(true);
           api.start().then(function(r){
             setBtns(api.running());
-            if(r&&r.state==='stopped') mo('Interrompu à '+r.done+' / '+r.total+' tuiles — « Télécharger tout » pour reprendre.');
-            else if(r&&r.fail>0) mo('Terminé avec '+r.fail+' tuile(s) manquante(s) — relancez « Télécharger tout » pour compléter.','#b45309');
+            if(r&&r.state==='stopped') mo('Interrompu à '+r.done+' / '+r.total+' tuiles — « Télécharger » pour reprendre.');
+            else if(r&&r.fail>0) mo('Terminé avec '+r.fail+' tuile(s) manquante(s) — relancez « Télécharger » pour compléter.','#b45309');
             else idle();
           });
         };
@@ -2328,7 +2352,7 @@ window.__TRACE_MARKUP="\n\n<header>\n  <div class=\"hdr-row1\">\n    <span class
    accessible depuis le bouton ⓘ du bandeau du log, avant toute ouverture de la carte */
 (function(){
   var host=document.createElement('div');
-  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Carte OACI :</b> donnée IGN non libre — nécessite votre propre clé Géoplateforme filtrée sur votre domaine. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.292</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
+  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Carte OACI :</b> donnée IGN non libre — nécessite votre propre clé Géoplateforme filtrée sur votre domaine. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.293</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
   (document.body||document.documentElement).appendChild(host.firstElementChild);
   window.__OPEN_INFO=function(){ document.getElementById('infoModal').hidden=false; };
   /* iPadOS : les pastilles de fen\xEAtrage (coin haut-gauche) recouvrent le burger
