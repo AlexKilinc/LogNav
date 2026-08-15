@@ -1848,7 +1848,12 @@ return '<div style="display:flex;align-items:center;gap:10px;padding:10px 4px;bo
         var fmtMo=function(mo_){ return mo_?mo_.toFixed(1).replace('.',','):null; };
         function idle(){
           if(window.__SIA250OFF.enabled()){
-            var sz=fmtMo(window.__SIA250OFF.sizeMo()), dt='';
+            var szv=window.__SIA250OFF.sizeMo();
+            if(szv<0.1){
+              mo('Copie présente mais INVALIDE ('+(fmtMo(szv)||'0,0')+' Mo) : le fichier .pmtiles n\u2019était probablement pas publié sur le site au moment du téléchargement. Supprimez-la, publiez le fichier, puis retéléchargez.','#b45309');
+              return;
+            }
+            var sz=fmtMo(szv), dt='';
             try{ var m=JSON.parse(localStorage.getItem(MK)||'null'); if(m&&m.date) dt=', téléchargée le '+new Date(m.date).toLocaleDateString('fr-FR'); }catch(e){}
             mo('Complète : copie présente sur cet appareil'+(sz?' ('+sz+' Mo'+dt+')':'')+' — s\u2019affiche sans réseau.','#1a7f4b');
           } else mo('Environ 20 Mo estimés : Wi-Fi recommandé. Zooms détaillés de la Région parisienne.');
@@ -1880,7 +1885,7 @@ return '<div style="display:flex;align-items:center;gap:10px;padding:10px 4px;bo
         if(!api){ msg.textContent='Indisponible (carte non initialisée).'; bDl.disabled=true; bDe.disabled=true; return; }
         var mo=function(t,c){ msg.textContent=t; msg.style.color=c||'#64748b'; };
         function idle(){ var total=api.total(); api.cached().then(function(n){
-          if(n<=0){ mo('~'+total+' tuiles · environ '+Math.round(total*45/1024)+' Mo estimés : Wi-Fi et batterie recommandés, écran allumé. Interruption et reprise possibles à tout moment.'); return; }
+          if(n<=0){ mo('~'+total+' tuiles · environ '+Math.round(total*12/1024)+' Mo estimés : Wi-Fi et batterie recommandés, écran allumé. Interruption et reprise possibles à tout moment.'); return; }
           api.sizeMo().then(function(sz){
             var szT=(sz>=1)?(Math.round(sz)+' Mo'):'moins de 1 Mo';
             var mt=api.meta(), dt='';
@@ -2381,7 +2386,7 @@ window.__TRACE_MARKUP="\n\n<header>\n  <div class=\"hdr-row1\">\n    <span class
    accessible depuis le bouton ⓘ du bandeau du log, avant toute ouverture de la carte */
 (function(){
   var host=document.createElement('div');
-  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Carte OACI :</b> donnée IGN non libre — nécessite votre propre clé Géoplateforme filtrée sur votre domaine. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.296</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
+  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Carte OACI :</b> donnée IGN non libre — nécessite votre propre clé Géoplateforme filtrée sur votre domaine. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.298</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
   (document.body||document.documentElement).appendChild(host.firstElementChild);
   window.__OPEN_INFO=function(){ document.getElementById('infoModal').hidden=false; };
   /* iPadOS : les pastilles de fen\xEAtrage (coin haut-gauche) recouvrent le burger
@@ -6470,7 +6475,14 @@ class ErrB extends React.Component{constructor(p){super(p);this.state={e:null};}
           chunks.push(s.value); got+=s.value.byteLength; if(onProg&&total) onProg(got/total); return pump(); }); }
         return pump().then(function(){ var buf=new Uint8Array(got), o=0;
           chunks.forEach(function(c){ buf.set(c,o); o+=c.byteLength; }); return buf.buffer; });
-      }).then(function(buf){ return put(buf).then(function(){ try{ localStorage.setItem(FLAG,'1'); localStorage.setItem(FLAG+'_size',String(buf.byteLength)); }catch(e){} return buf; }); });
+      }).then(function(buf){
+        var ok=false; try{ var h=new Uint8Array(buf.slice(0,7));
+          ok=(h[0]===80&&h[1]===77&&h[2]===84&&h[3]===105&&h[4]===108&&h[5]===101&&h[6]===115); /* « PMTiles » */
+        }catch(e){}
+        if(!ok||buf.byteLength<100000)
+          throw new Error('fichier re\u00e7u invalide ('+Math.round(buf.byteLength/1024)+' Ko) \u2014 v\u00e9rifiez que '+window.__SIA250_FILE+' est bien publi\u00e9 \u00e0 la racine du site (pas via Git LFS)');
+        return put(buf).then(function(){ try{ localStorage.setItem(FLAG,'1'); localStorage.setItem(FLAG+'_size',String(buf.byteLength)); }catch(e){} return buf; });
+      });
     },
     remove:function(){ try{ localStorage.removeItem(FLAG); localStorage.removeItem(FLAG+'_size'); }catch(e){} return del(); },
     sizeMo:function(){ try{ var v=+localStorage.getItem(FLAG+'_size')||0; return v?(v/1048576):0; }catch(e){ return 0; } }
