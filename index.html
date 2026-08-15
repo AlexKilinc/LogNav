@@ -1778,6 +1778,13 @@ return '<div style="display:flex;align-items:center;gap:10px;padding:10px 4px;bo
         +'<input type="checkbox" id="pf-sia250off" style="width:16px;height:16px;flex:none;accent-color:#e94560">'
         +'Carte OACI 1/250 000 disponible hors-ligne</label>'
         +'<div id="pf-sia250msg" style="font:500 11px ui-sans-serif;color:#64748b;margin:3px 0 0 24px"></div>'
+        +'<div style="margin-top:14px;font:600 12px ui-sans-serif;color:#16213e">Carte IGN OACI 1/500 000 — France entière en local</div>'
+        +'<div id="pf-oacifr-msg" style="font:500 11px ui-sans-serif;color:#64748b;margin:3px 0 7px"></div>'
+        +'<div style="display:flex;gap:6px;flex-wrap:wrap">'
+        +'<button type="button" id="pf-oacifr-dl" style="background:#2c5282;color:#fff;border:0;border-radius:8px;padding:8px 13px;font:700 12px ui-sans-serif;cursor:pointer">Télécharger tout</button>'
+        +'<button type="button" id="pf-oacifr-stop" style="display:none;background:#fff;color:#b3261e;border:1px solid #e3b9b4;border-radius:8px;padding:8px 13px;font:700 12px ui-sans-serif;cursor:pointer">Interrompre</button>'
+        +'<button type="button" id="pf-oacifr-del" style="background:#fff;color:#64748b;border:1px solid #c8ccd2;border-radius:8px;padding:8px 13px;font:700 12px ui-sans-serif;cursor:pointer">Supprimer</button>'
+        +'</div>'
         +sect('Mes avions','immat. · modèle · conso (L/h) · réservoirs (1 · 2 D/G · 3 D/C/G)')
         +'<div id="pf-fleet"></div>'
         +sect('Fonction')
@@ -1811,6 +1818,46 @@ return '<div style="display:flex;align-items:center;gap:10px;padding:10px 4px;bo
             window.__SIA250OFF.remove().then(function(){ mo('Copie hors-ligne supprimée — téléchargement d\u2019environ 20 Mo si vous la réactivez.');
               try{ window.__SIA250_SET_REMOTE&&window.__SIA250_SET_REMOTE(); }catch(e){} });
           }
+        };
+      })();
+      /* ---- Carte IGN OACI 1/500 000 France entière (cache de tuiles de la carte) ---- */
+      (function(){
+        var api=window.__OACI_FR, msg=ov.querySelector('#pf-oacifr-msg');
+        var bDl=ov.querySelector('#pf-oacifr-dl'), bSt=ov.querySelector('#pf-oacifr-stop'), bDe=ov.querySelector('#pf-oacifr-del');
+        if(!msg||!bDl||!bSt||!bDe) return;
+        if(!api){ msg.textContent='Indisponible (carte non initialisée).'; bDl.disabled=true; bDe.disabled=true; return; }
+        var mo=function(t,c){ msg.textContent=t; msg.style.color=c||'#64748b'; };
+        function idle(){ var total=api.total(); api.cached().then(function(n){
+          if(n<=0){ mo('~'+total+' tuiles · environ '+Math.round(total*45/1024)+' Mo estimés : Wi-Fi et batterie recommandés, écran allumé. Interruption et reprise possibles à tout moment.'); return; }
+          api.sizeMo().then(function(sz){
+            var szT=(sz>=1)?(Math.round(sz)+' Mo'):'moins de 1 Mo';
+            var mt=api.meta(), dt='';
+            if(mt&&mt.date){ try{ dt=' le '+new Date(mt.date).toLocaleDateString('fr-FR'); }catch(e){} }
+            if(n>=total) mo('Complète : '+n+' tuiles · '+szT+', téléchargée'+dt+' — la carte OACI s\u2019affiche partout sans réseau (zooms 6 à 11). À refaire après chaque édition annuelle IGN.','#1a7f4b');
+            else mo(n+' / '+total+' tuiles en local ('+szT+') — « Télécharger tout » reprend là où vous en étiez (les tuiles déjà présentes sont sautées).');
+          });
+        }); }
+        function busy(p){ mo('Téléchargement… '+p.done+' / '+p.total+' tuiles · '+p.mo.toFixed(0)+' Mo'+(p.fail?' · '+p.fail+' échec(s)':'')); }
+        api.onprog=busy;
+        function setBtns(r){ bDl.disabled=r; bDl.style.opacity=r?'.5':'1'; bSt.style.display=r?'':'none'; bDe.disabled=r; bDe.style.opacity=r?'.5':'1'; }
+        setBtns(api.running()); if(api.running()) mo('Téléchargement en cours…'); else idle();
+        var iv=setInterval(function(){ if(!document.body.contains(ov)){ clearInterval(iv); api.onprog=null; return; }
+          setBtns(api.running()); },1200);
+        bDl.onclick=function(){
+          if(api.running()) return;
+          setBtns(true);
+          api.start().then(function(r){
+            setBtns(api.running());
+            if(r&&r.state==='stopped') mo('Interrompu à '+r.done+' / '+r.total+' tuiles — « Télécharger tout » pour reprendre.');
+            else if(r&&r.fail>0) mo('Terminé avec '+r.fail+' tuile(s) manquante(s) — relancez « Télécharger tout » pour compléter.','#b45309');
+            else idle();
+          });
+        };
+        bSt.onclick=function(){ api.stop(); mo('Interruption…'); };
+        bDe.onclick=function(){
+          if(api.running()) return;
+          if(!confirm('Supprimer les tuiles IGN OACI 1/500 000 stockées sur cet appareil ?')) return;
+          api.remove().then(function(){ idle(); });
         };
       })();
       /* ---- Gestion de la flotte perso (ajout / modif / suppression / réorganisation) ---- */
@@ -2281,7 +2328,7 @@ window.__TRACE_MARKUP="\n\n<header>\n  <div class=\"hdr-row1\">\n    <span class
    accessible depuis le bouton ⓘ du bandeau du log, avant toute ouverture de la carte */
 (function(){
   var host=document.createElement('div');
-  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Carte OACI :</b> donnée IGN non libre — nécessite votre propre clé Géoplateforme filtrée sur votre domaine. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.289</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
+  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Carte OACI :</b> donnée IGN non libre — nécessite votre propre clé Géoplateforme filtrée sur votre domaine. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.291</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
   (document.body||document.documentElement).appendChild(host.firstElementChild);
   window.__OPEN_INFO=function(){ document.getElementById('infoModal').hidden=false; };
   /* iPadOS : les pastilles de fen\xEAtrage (coin haut-gauche) recouvrent le burger
@@ -2289,6 +2336,75 @@ window.__TRACE_MARKUP="\n\n<header>\n  <div class=\"hdr-row1\">\n    <span class
   if(/iPad/.test(navigator.userAgent)||(navigator.maxTouchPoints>1&&/Macintosh/.test(navigator.userAgent))) document.documentElement.classList.add('ipados');
   document.getElementById('infoClose').addEventListener('click',function(){ document.getElementById('infoModal').hidden=true; });
   document.getElementById('infoModal').addEventListener('click',function(e){ if(e.target.id==='infoModal') e.currentTarget.hidden=true; });
+})();
+/* ===== Carte IGN OACI 1/500 000 : la France entière en local (bouton « Mon profil »).
+   Module autonome, disponible sans ouvrir la page Map. Il écrit dans le MÊME cache
+   IndexedDB que « Carte hors-ligne » (lognav_tiles_v1, clés oaci500/z/x/y) : la
+   couche Leaflet de la carte lit donc ces tuiles telles quelles, y compris hors réseau.
+   Reprise possible à tout moment : les tuiles déjà présentes sont sautées. ===== */
+window.__OACI_FR=(function(){
+  var DBN='lognav_tiles_v1', ST='t', _db=null;
+  var TPL='https://data.geopf.fr/private/wmts?apikey=ign_scan_ws&LAYER=GEOGRAPHICALGRIDSYSTEMS.MAPS.SCAN-OACI&STYLE=normal&TILEMATRIXSET=PM&SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&FORMAT=image/jpeg&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}';
+  var BBOX={s:41.2,n:51.3,w:-5.6,e:10.0}, Z0=6, Z1=11, PFX='oaci500/', MK='lognav_oacifr_meta';
+  var running=false, stopFlag=false, M;
+  function dbo(){ return new Promise(function(res,rej){ if(_db) return res(_db); try{ var rq=indexedDB.open(DBN,1);
+    rq.onupgradeneeded=function(){ var db=rq.result; if(!db.objectStoreNames.contains(ST)) db.createObjectStore(ST); };
+    rq.onsuccess=function(){ _db=rq.result; res(_db); }; rq.onerror=function(){ rej(rq.error); }; }catch(e){ rej(e); } }); }
+  function dget(k){ return dbo().then(function(db){ return new Promise(function(res){ try{ var r=db.transaction(ST,'readonly').objectStore(ST).get(k); r.onsuccess=function(){ res(r.result||null); }; r.onerror=function(){ res(null); }; }catch(e){ res(null); } }); }); }
+  function dput(k,v){ return dbo().then(function(db){ return new Promise(function(res){ try{ var tx=db.transaction(ST,'readwrite'); tx.objectStore(ST).put(v,k); tx.oncomplete=function(){ res(true); }; tx.onerror=function(){ res(false); }; }catch(e){ res(false); } }); }); }
+  function t2(lat,lon,z){ var n=Math.pow(2,z), x=Math.floor((lon+180)/360*n),
+    la=lat*Math.PI/180, y=Math.floor((1-Math.log(Math.tan(la)+1/Math.cos(la))/Math.PI)/2*n);
+    return {x:x,y:y}; }
+  function tilesAll(){ var l=[],z,x,y; for(z=Z0;z<=Z1;z++){ var a=t2(BBOX.n,BBOX.w,z), b=t2(BBOX.s,BBOX.e,z);
+    for(x=a.x;x<=b.x;x++) for(y=a.y;y<=b.y;y++) l.push({z:z,x:x,y:y}); } return l; }
+  function range(){ return IDBKeyRange.bound(PFX, PFX+'\uffff'); }
+  function countCached(){ return dbo().then(function(db){ return new Promise(function(res){
+    try{ var r=db.transaction(ST,'readonly').objectStore(ST).count(range());
+      r.onsuccess=function(){ res(r.result||0); }; r.onerror=function(){ res(0); }; }catch(e){ res(0); } }); }); }
+  function removeAll(){ return dbo().then(function(db){ return new Promise(function(res){
+    try{ var tx=db.transaction(ST,'readwrite'); tx.objectStore(ST).delete(range());
+      tx.oncomplete=function(){ res(true); }; tx.onerror=function(){ res(false); }; }catch(e){ res(false); } }); }); }
+  /* taille réellement occupée par les tuiles oaci500 (somme des blobs) */
+  function sizeBytes(){ return dbo().then(function(db){ return new Promise(function(res){
+    try{ var s=0, r=db.transaction(ST,'readonly').objectStore(ST).openCursor(range());
+      r.onsuccess=function(){ var c=r.result; if(!c){ res(s); return; } var v=c.value; s+=(v&&v.size)||0; c['continue'](); };
+      r.onerror=function(){ res(s); }; }catch(e){ res(0); } }); }); }
+  function start(){
+    if(running) return Promise.resolve({state:'busy'});
+    running=true; stopFlag=false;
+    /* stockage persistant : réduit le risque que le système efface le cache */
+    try{ if(navigator.storage&&navigator.storage.persist) navigator.storage.persist().catch(function(){}); }catch(e){}
+    var list=tilesAll(), total=list.length;
+    var done=0, ok=0, skip=0, fail=0, bytes=0, i=0, CONC=4, active=0;
+    return new Promise(function(res){
+      function fin(st){ if(!running) return; running=false;
+        /* couverture complète atteinte : date de téléchargement mémorisée */
+        if(st==='done'){ try{ localStorage.setItem(MK,JSON.stringify({date:new Date().toISOString(),tiles:total})); }catch(e){} }
+        res({state:st,done:done,total:total,ok:ok,skip:skip,fail:fail,mo:bytes/1048576}); }
+      function prog(){ var f=M.onprog; if(f) try{ f({done:done,total:total,ok:ok,skip:skip,fail:fail,mo:bytes/1048576}); }catch(e){} }
+      function next(){
+        if(stopFlag){ if(active===0) fin('stopped'); return; }
+        if(i>=total){ if(active===0) fin('done'); return; }
+        var c=list[i++]; active++;
+        var key=PFX+c.z+'/'+c.x+'/'+c.y;
+        dget(key).then(function(bl){
+          if(bl){ skip++; return; }
+          var url=TPL.replace('{z}',c.z).replace('{y}',c.y).replace('{x}',c.x);
+          return fetch(url,{mode:'cors'}).then(function(r){ return (r&&r.ok)?r.blob():null; })
+            .then(function(b2){ if(b2&&b2.size){ bytes+=b2.size; return dput(key,b2).then(function(){ ok++; }); } fail++; });
+        }).catch(function(){ fail++; }).then(function(){ done++; active--; if(done%10===0||done===total) prog(); next(); });
+      }
+      prog(); for(var k=0;k<CONC;k++) next();
+    });
+  }
+  M={ total:function(){ return tilesAll().length; }, cached:countCached, start:start,
+      stop:function(){ stopFlag=true; }, running:function(){ return running; },
+      remove:function(){ return removeAll().then(function(r){ try{ localStorage.removeItem(MK); }catch(e){} return r; }); },
+      sizeMo:function(){ return sizeBytes().then(function(b){ return b/1048576; }); },
+      meta:function(){ try{ return JSON.parse(localStorage.getItem(MK)||'null'); }catch(e){ return null; } },
+      onprog:null,
+      _cfg:function(o){ if(o&&o.Z1!=null) Z1=o.Z1; if(o&&o.BBOX) BBOX=o.BBOX; } };
+  return M;
 })();
 window.__initTrace=function(){
 
