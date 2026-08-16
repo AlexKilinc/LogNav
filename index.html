@@ -2433,7 +2433,7 @@ window.__TRACE_MARKUP="\n\n<header>\n  <div class=\"hdr-row1\">\n    <span class
    accessible depuis le bouton ⓘ du bandeau du log, avant toute ouverture de la carte */
 (function(){
   var host=document.createElement('div');
-  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Carte OACI :</b> donnée IGN non libre — nécessite votre propre clé Géoplateforme filtrée sur votre domaine. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.307</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
+  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Carte OACI :</b> donnée IGN non libre — nécessite votre propre clé Géoplateforme filtrée sur votre domaine. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.309</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
   (document.body||document.documentElement).appendChild(host.firstElementChild);
   window.__OPEN_INFO=function(){ document.getElementById('infoModal').hidden=false; };
   /* iPadOS : les pastilles de fen\xEAtrage (coin haut-gauche) recouvrent le burger
@@ -6970,6 +6970,8 @@ class ErrB extends React.Component{constructor(p){super(p);this.state={e:null};}
   border-radius:7px;padding:3px 7px;background:#1d3a6b;color:#9fc0e8}
 .wx-role.dep{background:#e94560;color:#fff}.wx-role.arr{background:#16a34a;color:#fff}
 .wx-code{font:800 14px "JetBrains Mono",monospace;color:#fff}
+.wx-age{font:700 10px ui-monospace,monospace;color:#7fd1ff;background:rgba(127,209,255,.12);border:1px solid rgba(127,209,255,.32);border-radius:20px;padding:1px 7px;margin-left:6px;white-space:nowrap;flex:none}
+.wx-age.stale{color:#ffcf8a;background:rgba(255,176,60,.14);border-color:rgba(255,176,60,.42)}
 .wx-name{flex:1 1 auto;min-width:0;font:600 10.5px "Poppins",sans-serif;color:#8fa9cc;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .wx-raw{font:600 12px/1.5 "JetBrains Mono",monospace;color:#dce8fa;white-space:pre-wrap;word-break:break-word}
@@ -6985,6 +6987,7 @@ class ErrB extends React.Component{constructor(p){super(p);this.state={e:null};}
 .wx-addrow input{flex:1 1 auto;min-width:0;background:#0d2247;border:1px solid #2a4372;border-radius:9px;padding:8px 10px;
   font:700 13px "Poppins",sans-serif;color:#fff;outline:none;text-align:left}
 .wx-addrow input:focus{border-color:#3A7BFF}
+.wx-addrow button.ready{background:#1E9FE0;border-color:#1E9FE0;color:#fff}
 .wx-addrow button{flex:none;background:rgba(30,159,224,.16);border:1px solid #1E9FE0;color:#7fd1ff;border-radius:9px;
   padding:8px 13px;font:700 12px "Poppins",sans-serif;cursor:pointer}
 .wx-addrow{position:relative}
@@ -7170,15 +7173,23 @@ window.__pickGpx=function(cb){
     /* recherche par code OACI ou par nom de terrain (base SIA embarqu\u00e9e) */
     var findAero=function(q){
       q=normTxt(q).trim(); if(q.length<2) return [];
-      var byCode=[], byName=[];
+      var mots=q.split(/[\s\-]+/).filter(function(x){return x.length>=2});
+      var byCode=[], byStart=[], byName=[];
       try{ if(typeof FR_AERO_MAP!=='undefined'){
         for(var k in FR_AERO_MAP){
           if(!/^[A-Z]{4}$/.test(k)) continue;
-          var n=(FR_AERO_MAP[k]&&FR_AERO_MAP[k].n)||'';
-          if(k.indexOf(q)===0) byCode.push({c:k,n:n});
-          else if(q.length>=3&&normTxt(n).indexOf(q)>=0) byName.push({c:k,n:n});
+          var A=FR_AERO_MAP[k]||{}, n=A.n||'', nn=normTxt(n);
+          /* on cherche aussi dans le nom radio et les fréquences : « toussus »
+             trouve ainsi LFPN, dont le nom officiel est PARIS SACLAY VERSAILLES */
+          var hay=nn+' '+normTxt(A.r||'')+' '+normTxt(A.f||'');
+          if(k.indexOf(q)===0){ byCode.push({c:k,n:n}); continue; }
+          /* recherche par mot : tous les mots saisis doivent figurer
+             (« mel villa » trouve MELUN VILLAROCHE) */
+          if(mots.length&&mots.every(function(w){ return hay.indexOf(w)>=0; })){
+            if(nn.indexOf(mots[0])===0) byStart.push({c:k,n:n}); else byName.push({c:k,n:n});
+          }
         } } }catch(e){}
-      return byCode.concat(byName).slice(0,8);
+      return byCode.concat(byStart).concat(byName).slice(0,12);
     };
     var showSug=function(){
       var L=findAero(favIn.value);
@@ -7186,15 +7197,28 @@ window.__pickGpx=function(cb){
       sug.innerHTML=L.map(function(a){return '<button type="button" data-c="'+a.c+'"><b>'+a.c+'</b>'+a.n+'</button>'}).join('');
       sug.hidden=false;
       sug.querySelectorAll('button').forEach(function(b){
-        b.onclick=function(){ addFav(b.getAttribute('data-c')) }; });
+        /* clic sur un r\u00e9sultat : le terrain passe dans la zone de saisie,
+           l'ajout aux favoris reste un second geste volontaire */
+        b.onclick=function(){ var cc=b.getAttribute('data-c');
+          favIn.value=cc; sug.hidden=true; sug.innerHTML='';
+          var add=ov.querySelector('#wxFavAdd');
+          if(add){ add.classList.add('ready'); try{ add.focus(); }catch(e){} }
+        }; });
     };
-    favIn.addEventListener('input',showSug);
+    favIn.addEventListener('input',function(){ var a=ov.querySelector('#wxFavAdd');
+      if(a) a.classList.toggle('ready',/^[A-Z]{4}$/.test(String(favIn.value||'').trim().toUpperCase()));
+      showSug(); });
     favIn.addEventListener('keydown',function(e){ if(e.key==='Enter') ov.querySelector('#wxFavAdd').click(); });
+    var codeConnu=function(v){ try{ if(typeof FR_AERO_MAP!=='undefined'&&FR_AERO_MAP[v]) return true; }catch(e){}
+      try{ if(typeof AERO_POS!=='undefined'&&AERO_POS[v]) return true; }catch(e){} return false; };
     ov.querySelector('#wxFavAdd').onclick=function(){
       var v=String(favIn.value||'').trim().toUpperCase();
-      if(/^[A-Z]{4}$/.test(v)){ addFav(v); return; }
       var L=findAero(v);
+      /* 4 lettres : code OACI accept\u00e9 s'il est connu, ou s'il ne ressemble \u00e0 aucun
+         nom de terrain (cas des a\u00e9rodromes \u00e9trangers, absents de la base fran\u00e7aise) */
+      if(/^[A-Z]{4}$/.test(v)&&(codeConnu(v)||!L.length)){ addFav(v); return; }
       if(L.length===1){ addFav(L[0].c); return; }
+      if(L.length>1){ showSug(); alert('Plusieurs terrains correspondent \u2014 choisissez-en un dans la liste.'); return; }
       alert('Entrez un code OACI (ex. LFPO) ou choisissez un terrain dans la liste.');
     };
     ov.querySelectorAll('.wx-del').forEach(function(b){
@@ -7274,6 +7298,15 @@ window.__pickGpx=function(cb){
         var mu=function(){ end(); document.removeEventListener('mousemove',mm); document.removeEventListener('mouseup',mu); };
         document.addEventListener('mousemove',mm); document.addEventListener('mouseup',mu); });
     });
+    /* âge d'un METAR d'après son groupe jour/heure (DDHHMMZ) */
+    function obsAge(raw){
+      var m=String(raw||'').match(/\b(\d{2})(\d{2})(\d{2})Z\b/); if(!m) return null;
+      var now=new Date(), d=+m[1], h=+m[2], mn=+m[3];
+      var t=Date.UTC(now.getUTCFullYear(),now.getUTCMonth(),d,h,mn);
+      if(t-now.getTime()>6*3600000) t=Date.UTC(now.getUTCFullYear(),now.getUTCMonth()-1,d,h,mn);
+      var age=Math.round((now.getTime()-t)/60000);
+      return {age:age, z:String(m[2])+':'+String(m[3])+'Z'};
+    }
     function render(c,status){
       if(!document.getElementById('wxOv'))return;
       lastC=c; lastStatus=status;
@@ -7284,6 +7317,16 @@ window.__pickGpx=function(cb){
         if(mEl){ if(raw){mEl.textContent=(mode==='dec')?decodeWx(raw,false):raw;
             mEl.classList.toggle('dec',mode==='dec');mEl.classList.remove('wx-none');}
           else {mEl.textContent='Pas de METAR publi\u00e9 pour ce terrain.';mEl.classList.add('wx-none');mEl.classList.remove('dec');} }
+        /* fra\u00eecheur : heure d'observation et \u00e2ge, en orange au-del\u00e0 de 45 min */
+        try{
+          var row=mEl&&mEl.parentElement, nm=row&&row.querySelector('.wx-name');
+          if(nm){ var old=nm.parentElement.querySelector('.wx-age'); if(old) old.remove();
+            var oa=raw?obsAge(raw):null;
+            if(oa){ var sp=document.createElement('span'); sp.className='wx-age'+(oa.age>45?' stale':'');
+              sp.textContent=oa.z+' \u00b7 il y a '+(oa.age<1?'moins d\u2019une minute':(oa.age<60?oa.age+' min':Math.floor(oa.age/60)+' h '+(oa.age%60)+' min'));
+              sp.title='Heure d\u2019observation du METAR'+(oa.age>45?' \u2014 message ancien, actualisez':'');
+              nm.parentElement.insertBefore(sp,nm.nextSibling); } }
+        }catch(e){}
         if(tEl){ if(taf){tEl.hidden=false;tEl.textContent=(mode==='dec')?decodeWx(taf,true):taf;
             tEl.classList.toggle('dec',mode==='dec');} else tEl.hidden=true; }
         var b=ov.querySelector('.wx-apply[data-c="'+cd.code+'"]');
@@ -7307,7 +7350,8 @@ window.__pickGpx=function(cb){
       /* garde-fou : 7 s maximum par requête, sinon bascule vers la source suivante */
       var fT=function(u){ var ac=('AbortController' in window)?new AbortController():null;
         var t=ac?setTimeout(function(){try{ac.abort()}catch(e){}},7000):null;
-        return fetch(u,ac?{signal:ac.signal}:{}).then(
+        var o={cache:'no-store'}; if(ac) o.signal=ac.signal;
+        return fetch(u,o).then(
           function(r){ if(t)clearTimeout(t); return r; },
           function(e){ if(t)clearTimeout(t); if(!lastErr)lastErr='d\u00e9lai d\u00e9pass\u00e9'; throw e; });
       };
@@ -7324,10 +7368,13 @@ window.__pickGpx=function(cb){
         k=k||0; var way=NOAA_WAYS[k];
         if(!way) return Promise.resolve(false);
         var basePath='https://aviationweather.gov/api/data/';
+        /* jeton unique : sans lui, les relais CORS renvoyaient leur copie en cache
+           et le METAR pouvait avoir une heure de retard */
+        var nonce='&_='+Date.now();
         var grab=function(u){ return fT(way.u(u)).then(function(r){ if(!r.ok){ lastErr='HTTP '+r.status; throw 0; } return r.json(); })
           .catch(function(){ if(!lastErr) lastErr='r\u00e9seau'; return null; }); };
-        return Promise.all([grab(basePath+'metar?ids='+ids.join(',')+'&format=json'),
-                            grab(basePath+'taf?ids='+ids.join(',')+'&format=json')])
+        return Promise.all([grab(basePath+'metar?ids='+ids.join(',')+'&format=json'+nonce),
+                            grab(basePath+'taf?ids='+ids.join(',')+'&format=json'+nonce)])
         .then(function(res){
           var ms=res[0], ts=res[1], ok=false;
           if(Array.isArray(ms)){ ok=true; ms.forEach(function(m){var id=m.icaoId||m.station_id;var raw=m.rawOb||m.raw_text;if(id&&raw)c.metar[id]=raw;}); }
@@ -7340,7 +7387,7 @@ window.__pickGpx=function(cb){
       var tryMetno=function(){
         var ok=false;
         var grabTxt=function(kind,code){
-          return fT('https://api.met.no/weatherapi/tafmetar/1.0/'+kind+'.txt?icao='+code)
+          return fT('https://api.met.no/weatherapi/tafmetar/1.0/'+kind+'.txt?icao='+code+'&_='+Date.now())
             .then(function(r){ if(!r.ok){ lastErr='HTTP '+r.status; throw 0; } ok=true; return r.text(); })
             .then(function(tx){ var lines=String(tx||'').split('\n').map(function(l){return l.trim()})
                 .filter(function(l){return l.length>8});
