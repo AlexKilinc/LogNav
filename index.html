@@ -2433,7 +2433,7 @@ window.__TRACE_MARKUP="\n\n<header>\n  <div class=\"hdr-row1\">\n    <span class
    accessible depuis le bouton ⓘ du bandeau du log, avant toute ouverture de la carte */
 (function(){
   var host=document.createElement('div');
-  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Carte OACI :</b> donnée IGN non libre — nécessite votre propre clé Géoplateforme filtrée sur votre domaine. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.315</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
+  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Carte OACI :</b> donnée IGN non libre — nécessite votre propre clé Géoplateforme filtrée sur votre domaine. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.316</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
   (document.body||document.documentElement).appendChild(host.firstElementChild);
   window.__OPEN_INFO=function(){ document.getElementById('infoModal').hidden=false; };
   /* iPadOS : les pastilles de fen\xEAtrage (coin haut-gauche) recouvrent le burger
@@ -6960,9 +6960,11 @@ class ErrB extends React.Component{constructor(p){super(p);this.state={e:null};}
   font-family:"Poppins",system-ui,sans-serif;padding-top:env(safe-area-inset-top,0px)}
 .wx-hd{flex:none;display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid #1d3a6b;background:#0E2348}
 .wx-hd h3{margin:0;font:800 15px "Poppins",sans-serif;color:#fff;flex:1 1 auto}
-.wx-hd button#wxRefresh.busy{opacity:.75;pointer-events:none}
-.wx-hd button#wxRefresh.busy>span{display:inline-block;animation:wxspin .9s linear infinite}
-@keyframes wxspin{to{transform:rotate(360deg)}}
+.wx-hd button#wxRefresh{display:inline-flex;align-items:center;justify-content:center;line-height:0}
+.wx-hd button#wxRefresh svg{display:block;width:16px;height:16px;transform-origin:50% 50%}
+.wx-hd button#wxRefresh.busy{opacity:.7;pointer-events:none}
+.wx-hd button#wxRefresh.busy svg{animation:wxspin .85s linear infinite}
+@keyframes wxspin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
 .wx-hd button{background:rgba(255,255,255,.08);border:1px solid #2a4372;border-radius:9px;color:#dce8fa;
   font:700 12px "Poppins",sans-serif;padding:7px 11px;cursor:pointer}
 .wx-src{flex:none;font:600 10.5px "Poppins",sans-serif;color:#8fa9cc;padding:7px 14px;border-bottom:1px solid #16305c}
@@ -7010,7 +7012,7 @@ class ErrB extends React.Component{constructor(p){super(p);this.state={e:null};}
 .wx-sect #wxProxBtn{flex:none;background:rgba(30,159,224,.16);border:1px solid #1E9FE0;color:#7fd1ff;border-radius:8px;padding:5px 10px;font:700 11px "Poppins",sans-serif;cursor:pointer}
 .wx-raw.dec{font:600 12px/1.55 "Poppins",sans-serif;color:#dce8fa}
 .wx-raw.taf.dec{font-size:11.5px;color:#9fc0e8}
-#wxRefresh{font-size:15px;padding:7px 10px}
+#wxRefresh{padding:6px 9px}
 #wxMode{min-width:74px}
 </style>
 <script>
@@ -7146,7 +7148,11 @@ window.__pickGpx=function(cb){
     var flightRows=base.map(rowHtml).join('');
     var favRows=codes.filter(function(c){return c.role==='fav'}).map(rowHtml).join('');
     ov.innerHTML='<div class="wx-hd"><h3>M\u00e9t\u00e9o \u2014 METAR / TAF</h3>'
-      +'<button id="wxMode"></button><button id="wxRefresh" title="Actualiser maintenant"><span>\u27f3</span></button><button id="wxClose">Fermer</button></div>'
+      +'<button id="wxMode"></button><button id="wxRefresh" title="Actualiser maintenant" aria-label="Actualiser">'
+      +'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+      +'<path d="M4.75 8.62A8 8 0 0 1 19.25 8.62"/><path d="M16.31 6.91L19.25 8.62L19.86 5.27"/>'
+      +'<path d="M19.25 15.38A8 8 0 0 1 4.75 15.38"/><path d="M7.69 17.09L4.75 15.38L4.14 18.73"/>'
+      +'</svg></button><button id="wxClose">Fermer</button></div>'
       +'<div class="wx-src" id="wxSrc">Source : NOAA \u00b7 chargement\u2026</div>'
       +'<div class="wx-list">'
       +'<div class="wx-addrow"><input id="wxFavIn" placeholder="Code OACI ou nom de terrain" autocapitalize="characters" autocomplete="off">'
@@ -7350,13 +7356,24 @@ window.__pickGpx=function(cb){
         }
       });
     }
+    var cycleEnCours=false;
     function load(force){
       var ids=codes.map(function(c){return c.code});
       if(!ids.length){ render(cget(),' · aucun aérodrome'); return; }
+      if(cycleEnCours) return;            /* un seul cycle à la fois */
       var c=cget(); c.metar=c.metar||{}; c.taf=c.taf||{};
+      /* plafond de temps : au-delà, on s'arrête avec ce qu'on a plutôt
+         que de faire tourner la flèche pendant des minutes */
+      var PLAFOND=22000, echeance=Date.now()+PLAFOND, tropTard=false;
+      function resteMs(){ return echeance-Date.now(); }
       /* état visible pendant l'interrogation des serveurs */
+      cycleEnCours=true;
       var bt=ov.querySelector('#wxRefresh'); if(bt) bt.classList.add('busy');
-      var finBusy=function(){ try{ if(bt) bt.classList.remove('busy'); }catch(e){} };
+      var fini=false;
+      var finBusy=function(){ fini=true; cycleEnCours=false;
+        try{ if(bt) bt.classList.remove('busy'); }catch(e){} };
+      /* garde-fou : l'animation s'arrête même si une voie ne rend jamais la main */
+      setTimeout(function(){ if(!fini) finBusy(); },PLAFOND+2000);
       if(force) render(c,' · actualisation en cours…');
       /* photographie des messages avant l'appel : permet de dire ensuite si le
          serveur a publié du nouveau ou si le METAR est simplement inchangé */
@@ -7365,9 +7382,11 @@ window.__pickGpx=function(cb){
       var journal=[];          /* diagnostic : une ligne par tentative */
       window.__WX_DIAG=journal;
 
-      /* 8 s maxi par requête, sinon on passe à la voie suivante */
-      function fT(u,hd){ var ac=('AbortController' in window)?new AbortController():null;
-        var t=ac?setTimeout(function(){try{ac.abort()}catch(e){}},12000):null;
+      /* 8 s maxi par requête — et jamais au-delà du plafond du cycle */
+      function fT(u,hd){ var d=Math.min(8000,resteMs());
+        if(d<=300){ tropTard=true; return Promise.reject(new Error('délai maximal atteint')); }
+        var ac=('AbortController' in window)?new AbortController():null;
+        var t=ac?setTimeout(function(){try{ac.abort()}catch(e){}},d):null;
         var o={cache:'no-store'}; if(ac) o.signal=ac.signal; if(hd) o.headers=hd;
         return fetch(u,o).then(function(r){ if(t)clearTimeout(t); return r; },
                                function(e){ if(t)clearTimeout(t); throw e; });
@@ -7486,6 +7505,9 @@ window.__pickGpx=function(cb){
       var srcOk=null;
       function suite(i){
         if(i>=VOIES.length||!manquants().length) return Promise.resolve();
+        if(resteMs()<=300){ tropTard=true;
+          journal.push('Arrêt après '+Math.round(PLAFOND/1000)+' s — délai maximal atteint');
+          return Promise.resolve(); }
         return VOIES[i].run().then(function(n){
           if(n>0&&!srcOk) srcOk=VOIES[i].lab;
           return suite(i+1);
@@ -7499,6 +7521,7 @@ window.__pickGpx=function(cb){
           var neuf=ids.filter(function(i){ return got[i] && (c.metar[i]||'')!==avant[i]; }).length;
           var suffixe=' · mise à jour '+hm(c.t);
           if(reste) suffixe+=' · '+reste+' terrain(s) sans donnée fraîche';
+          else if(tropTard&&force) suffixe+=' · recherche interrompue (délai)';
           else if(force&&!neuf) suffixe+=' · aucun nouveau message publié';
           render(c,suffixe);
         } else {
