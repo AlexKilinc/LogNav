@@ -2433,7 +2433,7 @@ window.__TRACE_MARKUP="\n\n<header>\n  <div class=\"hdr-row1\">\n    <span class
    accessible depuis le bouton ⓘ du bandeau du log, avant toute ouverture de la carte */
 (function(){
   var host=document.createElement('div');
-  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Carte OACI :</b> donnée IGN non libre — nécessite votre propre clé Géoplateforme filtrée sur votre domaine. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.316</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
+  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Carte OACI :</b> donnée IGN non libre — nécessite votre propre clé Géoplateforme filtrée sur votre domaine. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.317</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
   (document.body||document.documentElement).appendChild(host.firstElementChild);
   window.__OPEN_INFO=function(){ document.getElementById('infoModal').hidden=false; };
   /* iPadOS : les pastilles de fen\xEAtrage (coin haut-gauche) recouvrent le burger
@@ -7164,6 +7164,25 @@ window.__pickGpx=function(cb){
       +(codes.filter(function(c){return c.role==='prox'}).map(rowHtml).join('')||'<div class="wx-empty" style="margin:0 2px">Appuyez sur \u00ab Autour de moi \u00bb pour lister les terrains les plus proches.</div>')
       +'</div>';
     document.body.appendChild(ov);
+    /* ---- terrains qui ne publient pas de METAR --------------------------
+       Beaucoup d'aérodromes français ne diffusent qu'à leurs heures
+       d'ouverture : un silence à 21 h ne prouve rien. On ne conclut donc
+       qu'après trois silences constatés à trois heures UTC différentes,
+       dont au moins une en pleine journée (08-16 UTC), et le moindre METAR
+       reçu efface aussitôt la mémoire du terrain.
+       Ces terrains restent demandés au relais Supabase — ils voyagent dans
+       la même requête que les autres, donc sans coût. La mémoire sert
+       seulement à ne pas prolonger la recherche pour eux, à ne pas les
+       compter comme un échec, et à l'annoncer clairement à l'écran. */
+    var MUETS=(function(){ try{ return JSON.parse(localStorage.getItem('lognav_wx_muets')||'{}')||{}; }catch(e){ return {}; } })();
+    function muetsSave(){ try{ localStorage.setItem('lognav_wx_muets',JSON.stringify(MUETS)); }catch(e){} }
+    function estMuet(code){ var r=MUETS[code];
+      return !!(r&&r.h&&r.h.length>=3&&r.h.some(function(h){ return h>=8&&h<=16; })); }
+    function muetDepuis(code){ var r=MUETS[code]; return (r&&r.t)||0; }
+    function noteSilence(code){ var r=MUETS[code]||{h:[],t:0}, hh=new Date().getUTCHours();
+      if(r.h.indexOf(hh)<0) r.h.push(hh);
+      MUETS[code]=r; if(estMuet(code)&&!r.t) r.t=Date.now(); }
+    function noteParle(code){ if(MUETS[code]) delete MUETS[code]; }
     var mode=localStorage.getItem('lognav_wx_mode')||'raw';
     var lastC=cget(), lastStatus=' \u00b7 chargement\u2026';
     var modeBtn=ov.querySelector('#wxMode');
@@ -7333,7 +7352,10 @@ window.__pickGpx=function(cb){
         var raw=(c.metar||{})[cd.code], taf=(c.taf||{})[cd.code];
         if(mEl){ if(raw){mEl.textContent=(mode==='dec')?decodeWx(raw,false):raw;
             mEl.classList.toggle('dec',mode==='dec');mEl.classList.remove('wx-none');}
-          else {mEl.textContent='Pas de METAR publi\u00e9 pour ce terrain.';mEl.classList.add('wx-none');mEl.classList.remove('dec');} }
+          else { var mu=estMuet(cd.code), dep=muetDepuis(cd.code);
+            mEl.textContent=mu?'Ce terrain ne publie pas de METAR.':'Pas de METAR publi\u00e9 pour ce terrain.';
+            mEl.title=mu?('Silence constat\u00e9 \u00e0 plusieurs heures diff\u00e9rentes'+(dep?' depuis le '+new Date(dep).toLocaleDateString('fr-FR'):'')+' \u2014 le terrain reste interrog\u00e9 \u00e0 chaque consultation'):'';
+            mEl.classList.add('wx-none');mEl.classList.remove('dec');} }
         /* fra\u00eecheur : heure d'observation et \u00e2ge, en orange au-del\u00e0 de 45 min */
         try{
           var row=mEl&&mEl.parentElement, nm=row&&row.querySelector('.wx-name');
@@ -7364,7 +7386,8 @@ window.__pickGpx=function(cb){
       var c=cget(); c.metar=c.metar||{}; c.taf=c.taf||{};
       /* plafond de temps : au-delà, on s'arrête avec ce qu'on a plutôt
          que de faire tourner la flèche pendant des minutes */
-      var PLAFOND=22000, echeance=Date.now()+PLAFOND, tropTard=false;
+      var PLAFOND=33000, echeance=Date.now()+PLAFOND, tropTard=false;
+      var sbRepond=false;      /* le relais a répondu, même sans message */
       function resteMs(){ return echeance-Date.now(); }
       /* état visible pendant l'interrogation des serveurs */
       cycleEnCours=true;
@@ -7382,8 +7405,8 @@ window.__pickGpx=function(cb){
       var journal=[];          /* diagnostic : une ligne par tentative */
       window.__WX_DIAG=journal;
 
-      /* 8 s maxi par requête — et jamais au-delà du plafond du cycle */
-      function fT(u,hd){ var d=Math.min(8000,resteMs());
+      /* délai propre à chaque voie — et jamais au-delà du plafond du cycle */
+      function fT(u,hd,ms){ var d=Math.min(ms||12000,resteMs());
         if(d<=300){ tropTard=true; return Promise.reject(new Error('délai maximal atteint')); }
         var ac=('AbortController' in window)?new AbortController():null;
         var t=ac?setTimeout(function(){try{ac.abort()}catch(e){}},d):null;
@@ -7391,18 +7414,11 @@ window.__pickGpx=function(cb){
         return fetch(u,o).then(function(r){ if(t)clearTimeout(t); return r; },
                                function(e){ if(t)clearTimeout(t); throw e; });
       }
-      function txt(u,hd){ return fT(u,hd).then(function(r){ if(!r.ok) throw new Error('HTTP '+r.status); return r.text(); }); }
-      function json(u){ return fT(u).then(function(r){ if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); }); }
+      function txt(u,hd,ms){ return fT(u,hd,ms).then(function(r){ if(!r.ok) throw new Error('HTTP '+r.status); return r.text(); }); }
       function manquants(){ return ids.filter(function(i){ return !got[i]; }); }
-
-      /* relais CORS : jeton anti-cache côté relais uniquement (l'API NOAA
-         refuse les paramètres inconnus et répondrait HTTP 400) */
-      var RELAIS=[
-        {n:'relais 1', f:function(u){ return 'https://r.jina.ai/'+u+(u.indexOf('?')<0?'?':'&')+'_='+Date.now(); }},
-        {n:'relais 2', f:function(u){ return 'https://api.allorigins.win/raw?url='+encodeURIComponent(u)+'&_='+Date.now(); }},
-        {n:'relais 3', f:function(u){ return 'https://api.codetabs.com/v1/proxy?quest='+encodeURIComponent(u)+'&_='+Date.now(); }},
-        {n:'relais 4', f:function(u){ return 'https://corsproxy.io/?url='+encodeURIComponent(u)+'&_='+Date.now(); }}
-      ];
+      /* terrains qu'il reste utile de chercher : on ne s'acharne pas sur ceux
+         dont on sait qu'ils ne publient pas de METAR */
+      function manquantsUtiles(){ return manquants().filter(function(i){ return !estMuet(i); }); }
 
       /* --- format brut du serveur de données NOAA (texte, une ligne par station) --- */
       function absorbeRaw(tm,tt){
@@ -7417,45 +7433,13 @@ window.__pickGpx=function(cb){
         Object.keys(buf).forEach(function(id){ c.taf[id]=buf[id].replace(/=+$/,'').trim(); });
         return n;
       }
-      /* --- format JSON de l'API NOAA --- */
-      function absorbeJson(jm,jt){
-        var n=0;
-        if(Array.isArray(jm)) jm.forEach(function(m){ var id=m.icaoId||m.station_id, raw=m.rawOb||m.raw_text;
-          if(id&&raw&&ids.indexOf(id)>=0){ c.metar[id]=String(raw).replace(/=+$/,'').trim(); got[id]=1; n++; } });
-        if(Array.isArray(jt)) jt.forEach(function(t){ var id=t.icaoId||t.station_id, raw=t.rawTAF||t.raw_text;
-          if(id&&raw&&ids.indexOf(id)>=0) c.taf[id]=String(raw).replace(/=+$/,'').trim(); });
-        return n;
-      }
-
       /* Une VOIE réussit seulement si elle rapporte au moins un METAR :
-         une réponse vide ou tronquée ne doit plus être prise pour un succès. */
-      function voieRaw(lab,wrap){
-        return function(){
-          var q=manquants(); if(!q.length) return Promise.resolve(0);
-          var B='https://aviationweather.gov/cgi-bin/data/';
-          var um=B+'metar.php?ids='+q.join(',')+'&format=raw', ut=B+'taf.php?ids='+q.join(',')+'&format=raw';
-          return Promise.all([txt(wrap?wrap(um):um).catch(function(e){ throw e; }),
-                              txt(wrap?wrap(ut):ut).catch(function(){ return ''; })])
-            .then(function(r){ var n=absorbeRaw(r[0],r[1]); journal.push(lab+' : '+(n?n+' METAR':'aucune donnée')); return n; },
-                  function(e){ journal.push(lab+' : '+((e&&e.message)||'échec')); return 0; });
-        };
-      }
-      function voieJson(lab,wrap){
-        return function(){
-          var q=manquants(); if(!q.length) return Promise.resolve(0);
-          var B='https://aviationweather.gov/api/data/';
-          var um=B+'metar?ids='+q.join(',')+'&format=json', ut=B+'taf?ids='+q.join(',')+'&format=json';
-          return Promise.all([json(wrap?wrap(um):um).catch(function(e){ throw e; }),
-                              json(wrap?wrap(ut):ut).catch(function(){ return null; })])
-            .then(function(r){ var n=absorbeJson(r[0],r[1]); journal.push(lab+' : '+(n?n+' METAR':'aucune donnée')); return n; },
-                  function(e){ journal.push(lab+' : '+((e&&e.message)||'échec')); return 0; });
-        };
-      }
+         une réponse vide ou tronquée ne doit pas être prise pour un succès. */
       function voieMetno(){
-        var q=manquants(); if(!q.length) return Promise.resolve(0);
+        var q=manquantsUtiles(); if(!q.length) return Promise.resolve(0);
         var n=0;
         var un=function(kind,code){
-          return txt('https://api.met.no/weatherapi/tafmetar/1.0/'+kind+'.txt?icao='+code)
+          return txt('https://api.met.no/weatherapi/tafmetar/1.0/'+kind+'.txt?icao='+code,null,7000)
             .then(function(tx){
               var lines=String(tx||'').split('\n').map(function(l){return l.trim()})
                 .filter(function(l){ return l.length>8 && /\b\d{6}Z\b/.test(l); });
@@ -7476,35 +7460,42 @@ window.__pickGpx=function(cb){
          fiable depuis Safari : pas de restriction CORS, pas de service tiers.
          Absente ou non déployée, elle échoue proprement et les autres voies
          prennent le relais. Marche à suivre : supabase_fonction_meteo.md */
-      function voieSB(){
+      function voieSB(essai,ms){
+        return function(){
         var q=manquants(); if(!q.length) return Promise.resolve(0);
+        var lab='Relais Supabase'+(essai>1?' (2e tentative)':'');
         var base='', key='';
         try{ base=String(window.__SB_URL||'').replace(/\/+$/,''); key=String(window.__SB_KEY||''); }catch(e){}
-        if(!base){ journal.push('Relais Supabase : non configuré'); return Promise.resolve(0); }
+        if(!base){ journal.push(lab+' : non configuré'); return Promise.resolve(0); }
         var hd=key?{apikey:key,Authorization:'Bearer '+key}:null;
         var U=function(kind){ return base+'/functions/v1/wx?kind='+kind+'&ids='+q.join(',')+'&_='+Date.now(); };
-        return Promise.all([txt(U('metar'),hd), txt(U('taf'),hd).catch(function(){ return ''; })])
-          .then(function(r){ var n=absorbeRaw(r[0],r[1]);
-            journal.push('Relais Supabase : '+(n?n+' METAR':'aucune donnée')); return n; },
-                function(e){ journal.push('Relais Supabase : '+((e&&e.message)||'échec')); return 0; });
+        var lance=function(){
+          return Promise.all([txt(U('metar'),hd,ms), txt(U('taf'),hd,ms).catch(function(){ return ''; })])
+            .then(function(r){ sbRepond=true; var n=absorbeRaw(r[0],r[1]);
+              journal.push(lab+' : '+(n?n+' METAR':'aucune donnée')); return n; },
+                  function(e){ journal.push(lab+' : '+((e&&e.message)||'échec')); return 0; });
+        };
+        /* courte pause avant la seconde tentative : le temps que la fonction,
+           endormie faute d'usage récent, achève son démarrage */
+        return essai>1 ? new Promise(function(ok){ setTimeout(ok,800); }).then(lance) : lance();
+        };
       }
-      /* Ordre : relais Supabase, NOAA en direct (les deux points d'entrée),
-         puis NOAA via relais publics, puis MET Norway. Chaque voie ne demande
-         que les terrains encore manquants. */
+      /* Un seul chemin s'est montré fiable depuis Safari : le relais hébergé
+         sur le projet Supabase. Il est donc tenté deux fois — la première
+         requête réveille souvent une fonction endormie — avant MET Norway,
+         conservé en dernier recours pour ne pas laisser l'écran vide si le
+         relais est indisponible. Les appels directs à la NOAA (interdits par
+         Safari) et les relais publics gratuits (404, 400, délais dépassés)
+         ont été retirés : ils n'ont jamais rapporté un seul message. */
       var VOIES=[
-        {lab:'NOAA', run:voieSB},
-        {lab:'NOAA', run:voieRaw('NOAA direct (raw)',null)},
-        {lab:'NOAA', run:voieJson('NOAA direct (api)',null)}
+        {lab:'NOAA', run:voieSB(1,15000)},
+        {lab:'NOAA', run:voieSB(2,9000)},
+        {lab:'MET Norway', run:voieMetno}
       ];
-      RELAIS.forEach(function(rl){
-        VOIES.push({lab:'NOAA', run:voieRaw('NOAA raw via '+rl.n,rl.f)});
-        VOIES.push({lab:'NOAA', run:voieJson('NOAA api via '+rl.n,rl.f)});
-      });
-      VOIES.push({lab:'MET Norway', run:voieMetno});
 
       var srcOk=null;
       function suite(i){
-        if(i>=VOIES.length||!manquants().length) return Promise.resolve();
+        if(i>=VOIES.length||!manquantsUtiles().length) return Promise.resolve();
         if(resteMs()<=300){ tropTard=true;
           journal.push('Arrêt après '+Math.round(PLAFOND/1000)+' s — délai maximal atteint');
           return Promise.resolve(); }
@@ -7516,8 +7507,10 @@ window.__pickGpx=function(cb){
       suite(0).then(function(){
         window.__WX_GOT=got;
         finBusy();
+        /* le relais a parlé : son silence sur un terrain fait foi */
+        if(sbRepond){ ids.forEach(function(i){ if(got[i]) noteParle(i); else noteSilence(i); }); muetsSave(); }
         if(srcOk){ c.t=Date.now(); c.src=srcOk; cset(c);
-          var reste=manquants().length;
+          var reste=manquantsUtiles().length;
           var neuf=ids.filter(function(i){ return got[i] && (c.metar[i]||'')!==avant[i]; }).length;
           var suffixe=' · mise à jour '+hm(c.t);
           if(reste) suffixe+=' · '+reste+' terrain(s) sans donnée fraîche';
