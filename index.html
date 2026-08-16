@@ -2433,7 +2433,7 @@ window.__TRACE_MARKUP="\n\n<header>\n  <div class=\"hdr-row1\">\n    <span class
    accessible depuis le bouton ⓘ du bandeau du log, avant toute ouverture de la carte */
 (function(){
   var host=document.createElement('div');
-  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Carte OACI :</b> donnée IGN non libre — nécessite votre propre clé Géoplateforme filtrée sur votre domaine. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.310</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
+  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Carte OACI :</b> donnée IGN non libre — nécessite votre propre clé Géoplateforme filtrée sur votre domaine. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.311</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
   (document.body||document.documentElement).appendChild(host.firstElementChild);
   window.__OPEN_INFO=function(){ document.getElementById('infoModal').hidden=false; };
   /* iPadOS : les pastilles de fen\xEAtrage (coin haut-gauche) recouvrent le burger
@@ -6970,7 +6970,8 @@ class ErrB extends React.Component{constructor(p){super(p);this.state={e:null};}
   border-radius:7px;padding:3px 7px;background:#1d3a6b;color:#9fc0e8}
 .wx-role.dep{background:#e94560;color:#fff}.wx-role.arr{background:#16a34a;color:#fff}
 .wx-code{font:800 14px "JetBrains Mono",monospace;color:#fff}
-.wx-age{font:700 10px ui-monospace,monospace;color:#7fd1ff;background:rgba(127,209,255,.12);border:1px solid rgba(127,209,255,.32);border-radius:20px;padding:1px 7px;margin-left:6px;white-space:nowrap;flex:none}
+.wx-age{font:700 9.5px ui-monospace,monospace;color:#7fd1ff;background:rgba(127,209,255,.12);border:1px solid rgba(127,209,255,.32);border-radius:20px;padding:1px 6px;margin-left:auto;white-space:nowrap;flex:0 0 auto}
+.wx-name{max-width:none}
 .wx-age.stale{color:#ffcf8a;background:rgba(255,176,60,.14);border-color:rgba(255,176,60,.42)}
 .wx-name{flex:1 1 auto;min-width:0;font:600 10.5px "Poppins",sans-serif;color:#8fa9cc;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -7323,7 +7324,7 @@ window.__pickGpx=function(cb){
           if(nm){ var old=nm.parentElement.querySelector('.wx-age'); if(old) old.remove();
             var oa=raw?obsAge(raw):null;
             if(oa){ var sp=document.createElement('span'); sp.className='wx-age'+(oa.age>45?' stale':'');
-              sp.textContent=oa.z+' \u00b7 il y a '+(oa.age<1?'moins d\u2019une minute':(oa.age<60?oa.age+' min':Math.floor(oa.age/60)+' h '+(oa.age%60)+' min'));
+              sp.textContent=oa.z+' \u00b7 '+(oa.age<1?'\u00e0 l\u2019instant':(oa.age<60?oa.age+' min':Math.floor(oa.age/60)+' h'+String(oa.age%60).padStart(2,'0')));
               sp.title='Heure d\u2019observation du METAR'+(oa.age>45?' \u2014 message ancien, actualisez':'');
               nm.parentElement.insertBefore(sp,nm.nextSibling); } }
         }catch(e){}
@@ -7368,6 +7369,35 @@ window.__pickGpx=function(cb){
         { u:function(u,n){return 'https://api.codetabs.com/v1/proxy?quest='+encodeURIComponent(u)+'&_='+n}, lab:'NOAA \u2014 aviationweather.gov \u00b7 relais 3' }
       ];
       var noaaLab='';
+      /* Voie DIRECTE : l'ancien serveur de données d'aviationweather.gov
+         (cgi-bin/data/*.php) renvoie l'en-tête Access-Control-Allow-Origin,
+         contrairement à /api/data/* : Safari l'accepte donc sans relais, et la
+         donnée n'est jamais mise en cache par un tiers. Format brut : une ligne
+         par station. */
+      var tryNoaaRaw=function(){
+        var B='https://aviationweather.gov/cgi-bin/data/';
+        var grabTxt=function(u){ return fT(u).then(function(r){ if(!r.ok){ lastErr='HTTP '+r.status; throw 0; } return r.text(); })
+          .catch(function(){ if(!lastErr) lastErr='r\u00e9seau'; return null; }); };
+        var lignes=function(tx){ return String(tx||'').split(/\r?\n/).map(function(l){ return l.trim(); })
+          .filter(function(l){ return l.length>12 && /\b\d{6}Z\b/.test(l); }); };
+        return Promise.all([grabTxt(B+'metar.php?ids='+ids.join(',')+'&format=raw'),
+                            grabTxt(B+'taf.php?ids='+ids.join(',')+'&format=raw')])
+        .then(function(res){
+          var ok=false;
+          lignes(res[0]).forEach(function(l){
+            var id=(l.match(/\b([A-Z]{4})\b/)||[])[1];
+            if(id&&ids.indexOf(id)>=0){ c.metar[id]=l.replace(/=+$/,'').trim(); ok=true; }
+          });
+          /* le TAF peut occuper plusieurs lignes : on regroupe par station */
+          var tl=String(res[1]||'').split(/\r?\n/), cur=null, buf={};
+          tl.forEach(function(l){ l=l.trim(); if(!l) { cur=null; return; }
+            var id=(l.match(/^(?:TAF\s+(?:AMD\s+|COR\s+)?)?([A-Z]{4})\s+\d{6}Z/)||[])[1];
+            if(id&&ids.indexOf(id)>=0){ cur=id; buf[cur]=l; }
+            else if(cur){ buf[cur]+=' '+l; } });
+          Object.keys(buf).forEach(function(id){ c.taf[id]=buf[id].replace(/=+$/,'').trim(); ok=true; });
+          return ok;
+        });
+      };
       var tryNoaa=function(k){
         k=k||0; var way=NOAA_WAYS[k];
         if(!way) return Promise.resolve(false);
@@ -7392,17 +7422,26 @@ window.__pickGpx=function(cb){
           return fT('https://api.met.no/weatherapi/tafmetar/1.0/'+kind+'.txt?icao='+code)
             .then(function(r){ if(!r.ok){ lastErr='HTTP '+r.status; throw 0; } ok=true; return r.text(); })
             .then(function(tx){ var lines=String(tx||'').split('\n').map(function(l){return l.trim()})
-                .filter(function(l){return l.length>8});
-              if(lines.length) c[kind==='metar'?'metar':'taf'][code]=lines[lines.length-1]; })
+                .filter(function(l){return l.length>8 && /\b\d{6}Z\b/.test(l)});
+              if(!lines.length) return;
+              /* le fichier contient plusieurs observations : on garde la plus r\u00e9cente
+                 (l'ordre des lignes n'est pas garanti) */
+              var best=null,bt=-1;
+              lines.forEach(function(l){ var g=(l.match(/\b(\d{2})(\d{2})(\d{2})Z\b/)||null);
+                var v=g?(+g[1]*10000+ +g[2]*100+ +g[3]):-1; if(v>=bt){ bt=v; best=l; } });
+              c[kind==='metar'?'metar':'taf'][code]=String(best).replace(/=+$/,'').trim(); })
             .catch(function(){});
         };
         var jobs=[];
         ids.forEach(function(code){ jobs.push(grabTxt('metar',code)); jobs.push(grabTxt('taf',code)); });
         return Promise.all(jobs).then(function(){ return ok; });
       };
-      tryNoaa(0).then(function(ok){
-        if(ok){ done(noaaLab); return; }
-        tryMetno().then(function(ok2){ if(ok2) done('MET Norway \u2014 api.met.no'); else fail(); });
+      tryNoaaRaw().then(function(okRaw){
+        if(okRaw){ done('NOAA \u2014 aviationweather.gov'); return; }
+        tryNoaa(0).then(function(ok){
+          if(ok){ done(noaaLab); return; }
+          tryMetno().then(function(ok2){ if(ok2) done('MET Norway \u2014 api.met.no'); else fail(); });
+        });
       });
     }
     var c0=cget(); if(c0.t) render(c0,' \u00b7 donn\u00e9es du '+hm(c0.t)+' \u2014 actualisation\u2026');
