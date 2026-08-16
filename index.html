@@ -2433,7 +2433,7 @@ window.__TRACE_MARKUP="\n\n<header>\n  <div class=\"hdr-row1\">\n    <span class
    accessible depuis le bouton ⓘ du bandeau du log, avant toute ouverture de la carte */
 (function(){
   var host=document.createElement('div');
-  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Carte OACI :</b> donnée IGN non libre — nécessite votre propre clé Géoplateforme filtrée sur votre domaine. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.317</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
+  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Carte OACI :</b> donnée IGN non libre — nécessite votre propre clé Géoplateforme filtrée sur votre domaine. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.318</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
   (document.body||document.documentElement).appendChild(host.firstElementChild);
   window.__OPEN_INFO=function(){ document.getElementById('infoModal').hidden=false; };
   /* iPadOS : les pastilles de fen\xEAtrage (coin haut-gauche) recouvrent le burger
@@ -7120,7 +7120,127 @@ window.__pickGpx=function(cb){
     push();
     return out.join('\n');
   }
+  /* ---- terrains qui ne publient pas de METAR --------------------------
+     Beaucoup d'aérodromes français ne diffusent qu'à leurs heures
+     d'ouverture : un silence à 21 h ne prouve rien. On ne conclut donc
+     qu'après trois silences constatés à trois heures UTC différentes,
+     dont au moins une en pleine journée (08-16 UTC), et le moindre METAR
+     reçu efface aussitôt la mémoire du terrain.
+     Ces terrains restent demandés au relais Supabase — ils voyagent dans
+     la même requête que les autres, donc sans coût. La mémoire sert
+     seulement à ne pas prolonger la recherche pour eux, à ne pas les
+     compter comme un échec, et à l'annoncer clairement à l'écran. */
+  var MUETS=(function(){ try{ return JSON.parse(localStorage.getItem('lognav_wx_muets')||'{}')||{}; }catch(e){ return {}; } })();
+  function muetsSave(){ try{ localStorage.setItem('lognav_wx_muets',JSON.stringify(MUETS)); }catch(e){} }
+  function estMuet(code){ var r=MUETS[code];
+    return !!(r&&r.h&&r.h.length>=3&&r.h.some(function(h){ return h>=8&&h<=16; })); }
+  function muetDepuis(code){ var r=MUETS[code]; return (r&&r.t)||0; }
+  function noteSilence(code){ var r=MUETS[code]||{h:[],t:0}, hh=new Date().getUTCHours();
+    if(r.h.indexOf(hh)<0) r.h.push(hh);
+    MUETS[code]=r; if(estMuet(code)&&!r.t) r.t=Date.now(); }
+  function noteParle(code){ if(MUETS[code]) delete MUETS[code]; }
+  /* relecture depuis le stockage : deux onglets ou un rechargement ne doivent
+     pas écraser ce que l'autre a appris */
+  function muetsRecharge(){ try{ MUETS=JSON.parse(localStorage.getItem('lognav_wx_muets')||'{}')||{}; }catch(e){} }
+
+  /* --- format brut du serveur de données NOAA (texte, une ligne par station) ---
+     Utilisé par le panneau et par la mise à jour automatique. */
+  function wxAbsorbe(ids,c,tm,tt,got){
+    var n=0;
+    String(tm||'').split(/\r?\n/).forEach(function(l){ l=l.trim(); if(l.length<12||!/\b\d{6}Z\b/.test(l)) return;
+      var id=(l.match(/\b([A-Z]{4})\b/)||[])[1];
+      if(id&&ids.indexOf(id)>=0){ c.metar[id]=l.replace(/=+$/,'').trim(); got[id]=1; n++; } });
+    var cur=null, buf={};
+    String(tt||'').split(/\r?\n/).forEach(function(l){ l=l.trim(); if(!l){ cur=null; return; }
+      var id=(l.match(/^(?:TAF\s+(?:AMD\s+|COR\s+)?)?([A-Z]{4})\s+\d{6}Z/)||[])[1];
+      if(id&&ids.indexOf(id)>=0){ cur=id; buf[cur]=l; } else if(cur){ buf[cur]+=' '+l; } });
+    Object.keys(buf).forEach(function(id){ c.taf[id]=buf[id].replace(/=+$/,'').trim(); });
+    return n;
+  }
+
   var wxProx=[]; /* aerodromes a proximite (session, non persistes) */
+  /* ===================================================================
+     Mise à jour automatique
+     Les METAR sont émis à l'heure ronde et à la demi-heure ; l'application
+     va donc les chercher une minute après (7h01, 7h31, 8h01…), plus une
+     fois au lancement. Si rien de neuf n'est publié à ce moment-là — la
+     diffusion prend parfois quelques minutes — un seul rattrapage a lieu
+     cinq minutes plus tard.
+     Le contrôle se fait toutes les 30 s et au retour au premier plan, et
+     non par une minuterie longue : sur iPhone, les minuteries d'une
+     application en arrière-plan sont gelées. Un créneau manqué pendant la
+     veille est ainsi rattrapé dès le réveil.
+     =================================================================== */
+  var WX_CRENEAU='';        /* dernier créneau déjà traité */
+  var WX_RATTRAPAGE=0;      /* échéance d'un éventuel rattrapage */
+  var WX_ENCOURS=false;
+
+  function wxCreneau(d){
+    var m=d.getMinutes(); if(m<1) return '';
+    return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate()+'-'+d.getHours()+'-'+(m>=31?31:1);
+  }
+  /* terrains suivis en arrière-plan : les favoris et ceux déjà consultés */
+  function wxCodesFond(){
+    var c=cget(), vus=Object.keys(c.metar||{});
+    var out=[], seen={};
+    favs().concat(vus).forEach(function(k){ k=String(k||'').toUpperCase();
+      if(/^[A-Z]{4}$/.test(k)&&!seen[k]){ seen[k]=1; out.push(k); } });
+    return out.slice(0,20);
+  }
+  /* interrogation silencieuse du relais : aucune trace à l'écran, on ne fait
+     qu'entretenir le cache pour que le panneau s'ouvre déjà à jour */
+  function wxFond(){
+    var ids=wxCodesFond(); if(!ids.length) return Promise.resolve(0);
+    var base='', key='';
+    try{ base=String(window.__SB_URL||'').replace(/\/+$/,''); key=String(window.__SB_KEY||''); }catch(e){}
+    if(!base) return Promise.resolve(0);
+    var hd=key?{apikey:key,Authorization:'Bearer '+key}:null;
+    var U=function(kind){ return base+'/functions/v1/wx?kind='+kind+'&ids='+ids.join(',')+'&_='+Date.now(); };
+    var un=function(u){ var ac=('AbortController' in window)?new AbortController():null;
+      var t=ac?setTimeout(function(){try{ac.abort()}catch(e){}},15000):null;
+      var o={cache:'no-store'}; if(ac) o.signal=ac.signal; if(hd) o.headers=hd;
+      return fetch(u,o).then(function(r){ if(t)clearTimeout(t); if(!r.ok) throw new Error('HTTP '+r.status); return r.text(); },
+                             function(e){ if(t)clearTimeout(t); throw e; }); };
+    var c=cget(); c.metar=c.metar||{}; c.taf=c.taf||{};
+    var avant={}; ids.forEach(function(i){ avant[i]=c.metar[i]||''; });
+    var got={};
+    return Promise.all([un(U('metar')), un(U('taf')).catch(function(){ return ''; })])
+      .then(function(r){
+        var n=wxAbsorbe(ids,c,r[0],r[1],got);
+        muetsRecharge();
+        ids.forEach(function(i){ if(got[i]) noteParle(i); else noteSilence(i); });
+        muetsSave();
+        if(n>0){ c.t=Date.now(); c.src='NOAA'; cset(c); }
+        return ids.filter(function(i){ return got[i]&&(c.metar[i]||'')!==avant[i]; }).length;
+      },function(){ return 0; });
+  }
+  /* un cycle automatique : le panneau ouvert reprend la main, sinon silence */
+  function wxAuto(){
+    if(WX_ENCOURS) return;
+    if(navigator&&navigator.onLine===false) return;
+    WX_ENCOURS=true;
+    var fin=function(neuf){ WX_ENCOURS=false;
+      /* rien de nouveau : la diffusion a peut-être quelques minutes de retard */
+      WX_RATTRAPAGE=neuf?0:(Date.now()+5*60000); };
+    if(document.getElementById('wxOv')&&window.__WX_RELOAD){
+      try{ window.__WX_RELOAD(); }catch(e){}
+      setTimeout(function(){ fin(1); },4000);   /* le panneau gère son propre bilan */
+      return;
+    }
+    wxFond().then(fin,function(){ fin(1); });
+  }
+  function wxHorloge(){
+    var d=new Date(), cr=wxCreneau(d);
+    if(cr&&cr!==WX_CRENEAU){ WX_CRENEAU=cr; WX_RATTRAPAGE=0; wxAuto(); return; }
+    if(WX_RATTRAPAGE&&Date.now()>=WX_RATTRAPAGE){ WX_RATTRAPAGE=0; wxAuto(); }
+  }
+  /* au lancement : on se met à jour sans attendre le prochain créneau */
+  setTimeout(function(){ WX_CRENEAU=wxCreneau(new Date()); wxAuto(); },4000);
+  setInterval(wxHorloge,30000);
+  document.addEventListener('visibilitychange',function(){ if(!document.hidden) wxHorloge(); });
+  window.addEventListener('online',function(){ wxHorloge(); });
+  window.__WX_HORLOGE=wxHorloge;   /* utilisé par les tests */
+
   window.__WX_OPEN=function(pl){
     /* départ puis arrivée d'abord, survols ensuite, favoris toujours en dessous */
     var base=((pl&&pl.codes)||[]).slice().sort(function(a,b){
@@ -7164,25 +7284,6 @@ window.__pickGpx=function(cb){
       +(codes.filter(function(c){return c.role==='prox'}).map(rowHtml).join('')||'<div class="wx-empty" style="margin:0 2px">Appuyez sur \u00ab Autour de moi \u00bb pour lister les terrains les plus proches.</div>')
       +'</div>';
     document.body.appendChild(ov);
-    /* ---- terrains qui ne publient pas de METAR --------------------------
-       Beaucoup d'aérodromes français ne diffusent qu'à leurs heures
-       d'ouverture : un silence à 21 h ne prouve rien. On ne conclut donc
-       qu'après trois silences constatés à trois heures UTC différentes,
-       dont au moins une en pleine journée (08-16 UTC), et le moindre METAR
-       reçu efface aussitôt la mémoire du terrain.
-       Ces terrains restent demandés au relais Supabase — ils voyagent dans
-       la même requête que les autres, donc sans coût. La mémoire sert
-       seulement à ne pas prolonger la recherche pour eux, à ne pas les
-       compter comme un échec, et à l'annoncer clairement à l'écran. */
-    var MUETS=(function(){ try{ return JSON.parse(localStorage.getItem('lognav_wx_muets')||'{}')||{}; }catch(e){ return {}; } })();
-    function muetsSave(){ try{ localStorage.setItem('lognav_wx_muets',JSON.stringify(MUETS)); }catch(e){} }
-    function estMuet(code){ var r=MUETS[code];
-      return !!(r&&r.h&&r.h.length>=3&&r.h.some(function(h){ return h>=8&&h<=16; })); }
-    function muetDepuis(code){ var r=MUETS[code]; return (r&&r.t)||0; }
-    function noteSilence(code){ var r=MUETS[code]||{h:[],t:0}, hh=new Date().getUTCHours();
-      if(r.h.indexOf(hh)<0) r.h.push(hh);
-      MUETS[code]=r; if(estMuet(code)&&!r.t) r.t=Date.now(); }
-    function noteParle(code){ if(MUETS[code]) delete MUETS[code]; }
     var mode=localStorage.getItem('lognav_wx_mode')||'raw';
     var lastC=cget(), lastStatus=' \u00b7 chargement\u2026';
     var modeBtn=ov.querySelector('#wxMode');
@@ -7201,6 +7302,9 @@ window.__pickGpx=function(cb){
           +(j.length?j.join('\n'):'aucune tentative enregistr\u00e9e')); };
     })();
     ov.querySelector('#wxRefresh').onclick=function(){load(true)};
+    /* l'horloge des mises à jour automatiques pilote le panneau tant qu'il est
+       affiché : même cycle que le bouton, donc mêmes messages à l'écran */
+    window.__WX_RELOAD=function(){ try{ load(true); }catch(e){} };
     var addFav=function(v){ v=String(v||'').trim().toUpperCase();
       if(!/^[A-Z]{4}$/.test(v)) return;
       var f=favs(); if(f.indexOf(v)<0){ f.push(v); setFavs(f); }
@@ -7420,19 +7524,7 @@ window.__pickGpx=function(cb){
          dont on sait qu'ils ne publient pas de METAR */
       function manquantsUtiles(){ return manquants().filter(function(i){ return !estMuet(i); }); }
 
-      /* --- format brut du serveur de données NOAA (texte, une ligne par station) --- */
-      function absorbeRaw(tm,tt){
-        var n=0;
-        String(tm||'').split(/\r?\n/).forEach(function(l){ l=l.trim(); if(l.length<12||!/\b\d{6}Z\b/.test(l)) return;
-          var id=(l.match(/\b([A-Z]{4})\b/)||[])[1];
-          if(id&&ids.indexOf(id)>=0){ c.metar[id]=l.replace(/=+$/,'').trim(); got[id]=1; n++; } });
-        var cur=null, buf={};
-        String(tt||'').split(/\r?\n/).forEach(function(l){ l=l.trim(); if(!l){ cur=null; return; }
-          var id=(l.match(/^(?:TAF\s+(?:AMD\s+|COR\s+)?)?([A-Z]{4})\s+\d{6}Z/)||[])[1];
-          if(id&&ids.indexOf(id)>=0){ cur=id; buf[cur]=l; } else if(cur){ buf[cur]+=' '+l; } });
-        Object.keys(buf).forEach(function(id){ c.taf[id]=buf[id].replace(/=+$/,'').trim(); });
-        return n;
-      }
+      function absorbeRaw(tm,tt){ return wxAbsorbe(ids,c,tm,tt,got); }
       /* Une VOIE réussit seulement si elle rapporte au moins un METAR :
          une réponse vide ou tronquée ne doit pas être prise pour un succès. */
       function voieMetno(){
@@ -7508,7 +7600,8 @@ window.__pickGpx=function(cb){
         window.__WX_GOT=got;
         finBusy();
         /* le relais a parlé : son silence sur un terrain fait foi */
-        if(sbRepond){ ids.forEach(function(i){ if(got[i]) noteParle(i); else noteSilence(i); }); muetsSave(); }
+        if(sbRepond){ muetsRecharge();
+          ids.forEach(function(i){ if(got[i]) noteParle(i); else noteSilence(i); }); muetsSave(); }
         if(srcOk){ c.t=Date.now(); c.src=srcOk; cset(c);
           var reste=manquantsUtiles().length;
           var neuf=ids.filter(function(i){ return got[i] && (c.metar[i]||'')!==avant[i]; }).length;
