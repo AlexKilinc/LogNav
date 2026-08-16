@@ -2433,7 +2433,7 @@ window.__TRACE_MARKUP="\n\n<header>\n  <div class=\"hdr-row1\">\n    <span class
    accessible depuis le bouton ⓘ du bandeau du log, avant toute ouverture de la carte */
 (function(){
   var host=document.createElement('div');
-  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Carte OACI :</b> donnée IGN non libre — nécessite votre propre clé Géoplateforme filtrée sur votre domaine. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.312</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
+  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Carte OACI :</b> donnée IGN non libre — nécessite votre propre clé Géoplateforme filtrée sur votre domaine. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.313</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
   (document.body||document.documentElement).appendChild(host.firstElementChild);
   window.__OPEN_INFO=function(){ document.getElementById('infoModal').hidden=false; };
   /* iPadOS : les pastilles de fen\xEAtrage (coin haut-gauche) recouvrent le burger
@@ -7171,7 +7171,8 @@ window.__pickGpx=function(cb){
       s.onclick=function(){ var j=(window.__WX_DIAG||[]);
         alert('Acc\u00e8s aux serveurs m\u00e9t\u00e9o \u2014 d\u00e9tail des tentatives :\n\n'
           +(j.length?j.join('\n'):'aucune tentative enregistr\u00e9e')
-          +'\n\nSi toutes les voies NOAA \u00e9chouent, l\u2019acc\u00e8s est probablement bloqu\u00e9 par le r\u00e9seau utilis\u00e9 (op\u00e9rateur, Wi-Fi public, VPN).'); };
+          +'\n\nSi toutes les voies NOAA \u00e9chouent : Safari interdit l\u2019appel direct \u00e0 aviationweather.gov et les relais publics gratuits sont peu fiables.'
+          +'\nSolution durable : cr\u00e9er la fonction \u00ab wx \u00bb sur votre projet Supabase (voir le document supabase_fonction_meteo.md) \u2014 l\u2019application l\u2019utilisera en priorit\u00e9.'); };
     })();
     ov.querySelector('#wxRefresh').onclick=function(){load()};
     var addFav=function(v){ v=String(v||'').trim().toUpperCase();
@@ -7357,22 +7358,23 @@ window.__pickGpx=function(cb){
       window.__WX_DIAG=journal;
 
       /* 8 s maxi par requête, sinon on passe à la voie suivante */
-      function fT(u){ var ac=('AbortController' in window)?new AbortController():null;
-        var t=ac?setTimeout(function(){try{ac.abort()}catch(e){}},8000):null;
-        var o={cache:'no-store'}; if(ac) o.signal=ac.signal;
+      function fT(u,hd){ var ac=('AbortController' in window)?new AbortController():null;
+        var t=ac?setTimeout(function(){try{ac.abort()}catch(e){}},12000):null;
+        var o={cache:'no-store'}; if(ac) o.signal=ac.signal; if(hd) o.headers=hd;
         return fetch(u,o).then(function(r){ if(t)clearTimeout(t); return r; },
                                function(e){ if(t)clearTimeout(t); throw e; });
       }
-      function txt(u){ return fT(u).then(function(r){ if(!r.ok) throw new Error('HTTP '+r.status); return r.text(); }); }
+      function txt(u,hd){ return fT(u,hd).then(function(r){ if(!r.ok) throw new Error('HTTP '+r.status); return r.text(); }); }
       function json(u){ return fT(u).then(function(r){ if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); }); }
       function manquants(){ return ids.filter(function(i){ return !got[i]; }); }
 
       /* relais CORS : jeton anti-cache côté relais uniquement (l'API NOAA
          refuse les paramètres inconnus et répondrait HTTP 400) */
       var RELAIS=[
-        {n:'relais 1', f:function(u){ return 'https://corsproxy.io/?url='+encodeURIComponent(u)+'&_='+Date.now(); }},
+        {n:'relais 1', f:function(u){ return 'https://r.jina.ai/'+u+(u.indexOf('?')<0?'?':'&')+'_='+Date.now(); }},
         {n:'relais 2', f:function(u){ return 'https://api.allorigins.win/raw?url='+encodeURIComponent(u)+'&_='+Date.now(); }},
-        {n:'relais 3', f:function(u){ return 'https://api.codetabs.com/v1/proxy?quest='+encodeURIComponent(u)+'&_='+Date.now(); }}
+        {n:'relais 3', f:function(u){ return 'https://api.codetabs.com/v1/proxy?quest='+encodeURIComponent(u)+'&_='+Date.now(); }},
+        {n:'relais 4', f:function(u){ return 'https://corsproxy.io/?url='+encodeURIComponent(u)+'&_='+Date.now(); }}
       ];
 
       /* --- format brut du serveur de données NOAA (texte, une ligne par station) --- */
@@ -7442,9 +7444,28 @@ window.__pickGpx=function(cb){
         return Promise.all(jobs).then(function(){ journal.push('MET Norway : '+(n?n+' METAR':'aucune donnée')); return n; });
       }
 
-      /* Ordre : NOAA en direct (les deux points d'entrée), puis NOAA via relais,
-         puis MET Norway. Chaque voie ne demande que les terrains encore manquants. */
+      /* Voie PRIORITAIRE : relais météo hébergé sur le projet Supabase de
+         l'utilisateur (fonction « wx »). C'est le seul chemin totalement
+         fiable depuis Safari : pas de restriction CORS, pas de service tiers.
+         Absente ou non déployée, elle échoue proprement et les autres voies
+         prennent le relais. Marche à suivre : supabase_fonction_meteo.md */
+      function voieSB(){
+        var q=manquants(); if(!q.length) return Promise.resolve(0);
+        var base='', key='';
+        try{ base=String(window.__SB_URL||'').replace(/\/+$/,''); key=String(window.__SB_KEY||''); }catch(e){}
+        if(!base){ journal.push('Relais Supabase : non configuré'); return Promise.resolve(0); }
+        var hd=key?{apikey:key,Authorization:'Bearer '+key}:null;
+        var U=function(kind){ return base+'/functions/v1/wx?kind='+kind+'&ids='+q.join(',')+'&_='+Date.now(); };
+        return Promise.all([txt(U('metar'),hd), txt(U('taf'),hd).catch(function(){ return ''; })])
+          .then(function(r){ var n=absorbeRaw(r[0],r[1]);
+            journal.push('Relais Supabase : '+(n?n+' METAR':'aucune donnée')); return n; },
+                function(e){ journal.push('Relais Supabase : '+((e&&e.message)||'échec')); return 0; });
+      }
+      /* Ordre : relais Supabase, NOAA en direct (les deux points d'entrée),
+         puis NOAA via relais publics, puis MET Norway. Chaque voie ne demande
+         que les terrains encore manquants. */
       var VOIES=[
+        {lab:'NOAA — via votre relais Supabase', run:voieSB},
         {lab:'NOAA — aviationweather.gov', run:voieRaw('NOAA direct (raw)',null)},
         {lab:'NOAA — aviationweather.gov', run:voieJson('NOAA direct (api)',null)}
       ];
