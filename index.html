@@ -2433,7 +2433,7 @@ window.__TRACE_MARKUP="\n\n<header>\n  <div class=\"hdr-row1\">\n    <span class
    accessible depuis le bouton ⓘ du bandeau du log, avant toute ouverture de la carte */
 (function(){
   var host=document.createElement('div');
-  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Carte OACI :</b> donnée IGN non libre — nécessite votre propre clé Géoplateforme filtrée sur votre domaine. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.309</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
+  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Carte OACI :</b> donnée IGN non libre — nécessite votre propre clé Géoplateforme filtrée sur votre domaine. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.310</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
   (document.body||document.documentElement).appendChild(host.firstElementChild);
   window.__OPEN_INFO=function(){ document.getElementById('infoModal').hidden=false; };
   /* iPadOS : les pastilles de fen\xEAtrage (coin haut-gauche) recouvrent le burger
@@ -7358,23 +7358,25 @@ window.__pickGpx=function(cb){
       /* source principale : NOAA Aviation Weather Center (flux OPMET mondial, domaine public).
          Essai en direct puis via deux relais CORS : sur iPhone/Safari, aviationweather.gov
          refuse les appels navigateur (CORS) — le relais est l'\u00e9l\u00e9ment indispensable. */
+      /* Le jeton anti-cache (_=) est ajout\u00e9 APR\u00c8S l'URL NOAA, en param\u00e8tre du relais :
+         l'API aviationweather.gov refuse les param\u00e8tres inconnus (HTTP 400), alors que
+         le relais, lui, voit une adresse diff\u00e9rente \u00e0 chaque fois et ne ressert pas son cache. */
       var NOAA_WAYS=[
-        { u:function(u){return u}, lab:'NOAA \u2014 aviationweather.gov' },
-        { u:function(u){return 'https://corsproxy.io/?url='+encodeURIComponent(u)}, lab:'NOAA \u2014 aviationweather.gov \u00b7 relais 1' },
-        { u:function(u){return 'https://api.allorigins.win/raw?url='+encodeURIComponent(u)}, lab:'NOAA \u2014 aviationweather.gov \u00b7 relais 2' }
+        { u:function(u,n){return u}, lab:'NOAA \u2014 aviationweather.gov' },
+        { u:function(u,n){return 'https://corsproxy.io/?url='+encodeURIComponent(u)+'&_='+n}, lab:'NOAA \u2014 aviationweather.gov \u00b7 relais 1' },
+        { u:function(u,n){return 'https://api.allorigins.win/raw?url='+encodeURIComponent(u)+'&_='+n}, lab:'NOAA \u2014 aviationweather.gov \u00b7 relais 2' },
+        { u:function(u,n){return 'https://api.codetabs.com/v1/proxy?quest='+encodeURIComponent(u)+'&_='+n}, lab:'NOAA \u2014 aviationweather.gov \u00b7 relais 3' }
       ];
       var noaaLab='';
       var tryNoaa=function(k){
         k=k||0; var way=NOAA_WAYS[k];
         if(!way) return Promise.resolve(false);
         var basePath='https://aviationweather.gov/api/data/';
-        /* jeton unique : sans lui, les relais CORS renvoyaient leur copie en cache
-           et le METAR pouvait avoir une heure de retard */
-        var nonce='&_='+Date.now();
-        var grab=function(u){ return fT(way.u(u)).then(function(r){ if(!r.ok){ lastErr='HTTP '+r.status; throw 0; } return r.json(); })
+        var nonce=Date.now()+'-'+k;
+        var grab=function(u){ return fT(way.u(u,nonce)).then(function(r){ if(!r.ok){ lastErr='HTTP '+r.status; throw 0; } return r.json(); })
           .catch(function(){ if(!lastErr) lastErr='r\u00e9seau'; return null; }); };
-        return Promise.all([grab(basePath+'metar?ids='+ids.join(',')+'&format=json'+nonce),
-                            grab(basePath+'taf?ids='+ids.join(',')+'&format=json'+nonce)])
+        return Promise.all([grab(basePath+'metar?ids='+ids.join(',')+'&format=json'),
+                            grab(basePath+'taf?ids='+ids.join(',')+'&format=json')])
         .then(function(res){
           var ms=res[0], ts=res[1], ok=false;
           if(Array.isArray(ms)){ ok=true; ms.forEach(function(m){var id=m.icaoId||m.station_id;var raw=m.rawOb||m.raw_text;if(id&&raw)c.metar[id]=raw;}); }
@@ -7387,7 +7389,7 @@ window.__pickGpx=function(cb){
       var tryMetno=function(){
         var ok=false;
         var grabTxt=function(kind,code){
-          return fT('https://api.met.no/weatherapi/tafmetar/1.0/'+kind+'.txt?icao='+code+'&_='+Date.now())
+          return fT('https://api.met.no/weatherapi/tafmetar/1.0/'+kind+'.txt?icao='+code)
             .then(function(r){ if(!r.ok){ lastErr='HTTP '+r.status; throw 0; } ok=true; return r.text(); })
             .then(function(tx){ var lines=String(tx||'').split('\n').map(function(l){return l.trim()})
                 .filter(function(l){return l.length>8});
