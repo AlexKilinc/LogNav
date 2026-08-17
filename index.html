@@ -2540,7 +2540,7 @@ window.__TRACE_MARKUP="\n\n<header>\n  <div class=\"hdr-row1\">\n    <span class
    accessible depuis le bouton ⓘ du bandeau du log, avant toute ouverture de la carte */
 (function(){
   var host=document.createElement('div');
-  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Carte OACI :</b> donnée IGN non libre — nécessite votre propre clé Géoplateforme filtrée sur votre domaine. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.328</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
+  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Carte OACI :</b> donnée IGN non libre — nécessite votre propre clé Géoplateforme filtrée sur votre domaine. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.329</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
   (document.body||document.documentElement).appendChild(host.firstElementChild);
   window.__OPEN_INFO=function(){ document.getElementById('infoModal').hidden=false; };
   /* iPadOS : les pastilles de fen\xEAtrage (coin haut-gauche) recouvrent le burger
@@ -5734,6 +5734,11 @@ const wrap=document.createElement("div");sheets.forEach((s,i)=>{const c=s.cloneN
           #root .approot>.sheet.mswipe.mactive{transform:translateX(0);}
           /* panneau MAP : bandeau map en haut, carte pleine hauteur en dessous */
           #root .approot>.sheet.mswipe{bottom:-90px!important;padding-bottom:142px!important;}
+          /* page Image : le cadre est posé en absolu dans la feuille ; celle-ci
+             doit donc s'arrêter au-dessus de la barre d'onglets, sans quoi
+             l'image passe dessous. */
+          #root .approot>.sheet.mswipe.mimg{bottom:calc(63px + env(safe-area-inset-bottom,0px))!important;
+            padding-bottom:12px!important;}
           #root .approot>.sheet.mswipe.mmap{padding:calc(env(safe-area-inset-top) + 1.5px) 0 0 0!important;background:#0A1A33!important;display:flex!important;flex-direction:column!important;overflow:hidden!important;}
           #root .approot>.sheet.mswipe.mcards{background:#0A1A33!important;padding:calc(env(safe-area-inset-top) + 8px) 8px 106px!important;display:flex!important;flex-direction:column!important;border:0!important;border-radius:0!important;box-shadow:none!important;}
           #root .mswipe.mcards .nc-wrap{flex:1 1 auto;min-height:0;}
@@ -7088,6 +7093,10 @@ class ErrB extends React.Component{constructor(p){super(p);this.state={e:null};}
         var t=ev.target && ev.target.closest ? ev.target.closest('.mtab') : null;
         if(!t) return;
         var act=t.getAttribute('data-act');
+        var ouv=document.getElementById('wxOv');
+        /* la météo se referme par son propre onglet comme par n'importe quel
+           autre : on n'a jamais à chercher le bouton « Fermer » du panneau */
+        if(ouv){ try{ ouv.remove(); }catch(e){} lastDotsHtml=''; renderDots(panels); if(act==='meteo') return; }
         if(act==='meteo'){ var w=document.querySelector('.wx-badge'); if(w) w.click(); return; }
         var i=parseInt(t.getAttribute('data-i'),10);
         if(!isNaN(i)) go(i);
@@ -7102,10 +7111,10 @@ class ErrB extends React.Component{constructor(p){super(p);this.state={e:null};}
       var cle=ORDRE[k], idx=-1;
       for(var i=0;i<ps.length;i++) if(ps[i].key===cle){ idx=i; break; }
       if(idx<0) continue;
-      html+='<button type="button" class="mtab'+(idx===cur?' on':'')+'" data-i="'+idx+'" title="'+NOM[cle]+'">'
+      html+='<button type="button" class="mtab'+((idx===cur&&!document.getElementById('wxOv'))?' on':'')+'" data-i="'+idx+'" title="'+NOM[cle]+'">'
         +svg(ICO[cle])+'<i>'+NOM[cle]+'</i></button>';
     }
-    html+='<button type="button" class="mtab" data-act="meteo" title="M\u00e9t\u00e9o \u2014 METAR / TAF">'
+    html+='<button type="button" class="mtab'+(document.getElementById('wxOv')?' on':'')+'" data-act="meteo" title="M\u00e9t\u00e9o \u2014 METAR / TAF">'
       +svg(ICO.meteo)+'<i>M\u00e9t\u00e9o</i></button>';
     if(html!==lastDotsHtml){
       /* on garde la référence : une fois détaché, le sélecteur de taille ne serait
