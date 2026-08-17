@@ -559,7 +559,10 @@ body.rec-full #trace-host .controls,body.rec-full #trace-host .maphint,body.rec-
   #trace-host .hdr-row1 #restart svg{width:20px!important;height:20px!important;margin:0!important;stroke:#cfe0f5!important;vertical-align:middle!important;display:block!important}
   /* L2 = conteneur hdrL2 SANS retour à la ligne (une 3e ligne est impossible) :
      Map liée · Aller/Retour · reculer · MAJ Log · avancer · info */
-  #trace-host .hdr-row1 #hdrL2{display:flex!important;flex:1 1 100%!important;width:100%!important;min-width:0!important;flex-wrap:nowrap!important;align-items:center!important;gap:4px!important}
+  #trace-host .hdr-row1 #hdrL2{display:flex!important;flex:1 1 100%!important;width:100%!important;min-width:0!important;flex-wrap:nowrap!important;align-items:center!important;gap:4px!important;
+    border-top:1px solid #1d3a6b!important;padding-top:8px!important;margin-top:4px!important}
+  /* le menu du burger porte déjà son cadre : pas de filet en plus */
+  #trace-host header>.controls{border-top:0!important;padding-top:8px!important}
   #trace-host .hdr-row1 #hdrL2 .btn{height:38px!important;border-radius:10px!important;box-sizing:border-box!important}
   #trace-host .hdr-row1 #mapUndo,#trace-host .hdr-row1 #mapRedo{margin-left:0!important;width:38px!important;min-width:38px!important;padding:0!important;flex:none!important;display:inline-flex!important;align-items:center!important;justify-content:center!important}
   #trace-host .hdr-row1 #mapUndo svg,#trace-host .hdr-row1 #mapRedo svg{width:16px!important;height:16px!important}
@@ -688,7 +691,9 @@ body.rec-full #trace-host .controls,body.rec-full #trace-host .maphint,body.rec-
 #trace-host .leaflet-container{height:100%!important}
 
 /* === bandeau carte : 2 lignes, style homogène LogNav === */
-#trace-host header{display:flex!important;flex-direction:column!important;gap:7px!important;padding:8px 12px!important}
+#trace-host header{display:flex!important;flex-direction:column!important;gap:8px!important;padding:8px 12px!important}
+/* filet de séparation entre les deux lignes, comme sur le bandeau des cartes */
+#trace-host header>.controls{border-top:1px solid #1d3a6b!important;padding-top:8px!important}
 #trace-host .hdr-row1{display:flex;align-items:center;gap:9px;width:100%}
 #trace-host .airac-badge{font-size:11px!important;padding:2px 9px!important;border-radius:20px!important;background:#e94560!important;color:#fff!important;font-weight:700!important;border:none!important;display:inline-flex;align-items:center;gap:5px;white-space:nowrap}
 #trace-host .controls.one-line{display:flex!important;flex-wrap:nowrap!important;align-items:center!important;gap:7px!important;width:100%;overflow-x:auto}
@@ -1263,7 +1268,8 @@ html:has(.ovl) #uiScaleBox,html:has(body.rec-full) #uiScaleBox{display:none!impo
   .mtoolbar>.tb-badge{order:3}
   .mtoolbar>*:nth-child(8){order:4}
   .mtoolbar .tb-info{order:5}
-  .mtoolbar .tb-brkA{order:6;display:block;flex-basis:100%;height:0;margin:0}
+  .mtoolbar .tb-brkA{order:6;display:block;flex-basis:100%;height:0;margin:2px 0 0;
+    border-top:1px solid #1d3a6b}
   /* Ligne 2 : annuler · rétablir · parcours des aérodromes, calés à gauche —
      GPX · Print/PDF · SAVE à droite */
   .mtoolbar>*:nth-child(3){order:11}
@@ -1304,7 +1310,9 @@ html:has(.ovl) #uiScaleBox,html:has(body.rec-full) #uiScaleBox{display:none!impo
   .mtoolbar button svg{width:14px!important;height:14px!important}
   /* 3 lignes exactement : L1 statut · L2 badges+Map/Profil/Image · L3 GPX/Print/SAVE */
   .mtoolbar .tb-spacer{display:none!important}
-  .mtoolbar .tb-brkA,.mtoolbar .tb-brkB{display:block;flex-basis:100%;height:0;margin:0}
+  .mtoolbar .tb-brkB{display:block;flex-basis:100%;height:0;margin:0}
+  .mtoolbar .tb-brkA{display:block;flex-basis:100%;height:0;margin:2px 0 0;
+    border-top:1px solid #1d3a6b}
   .mtoolbar .tb-gpx>div{left:0!important;right:auto!important}
   .mtoolbar .tb-badge{font-size:9px!important;padding:2px 5px!important}
   .mtoolbar .tb-mpi{font-size:9.5px!important;padding:4px 5px!important;gap:2px!important}
@@ -2554,7 +2562,7 @@ window.__TRACE_MARKUP="\n\n<header>\n  <div class=\"hdr-row1\">\n    <span class
    accessible depuis le bouton ⓘ du bandeau du log, avant toute ouverture de la carte */
 (function(){
   var host=document.createElement('div');
-  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Carte OACI :</b> donnée IGN non libre — nécessite votre propre clé Géoplateforme filtrée sur votre domaine. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.346</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
+  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Carte OACI :</b> donnée IGN non libre — nécessite votre propre clé Géoplateforme filtrée sur votre domaine. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.347</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
   (document.body||document.documentElement).appendChild(host.firstElementChild);
   window.__OPEN_INFO=function(){ document.getElementById('infoModal').hidden=false; };
   /* iPadOS : les pastilles de fen\xEAtrage (coin haut-gauche) recouvrent le burger
