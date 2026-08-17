@@ -340,7 +340,7 @@ try{ window.sb=(window.supabase&&window.supabase.createClient)?window.supabase.c
 #trace-host .vf-drag .grip{font-size:13px;color:#7fa0b8;letter-spacing:-1px}
 #trace-host .vf-panel .vf-line{display:flex;align-items:center;gap:11px;flex-wrap:nowrap;white-space:nowrap}
 /* téléphone : tous les réglages sur une seule ligne, la barre de progression sur la suivante */
-@media screen and (max-width:820px), screen and (max-height:520px) and (pointer:coarse){
+@media screen and (max-width:820px){
   #trace-host .vf-panel{padding:6px 8px 7px;gap:4px}
   #trace-host .vf-panel .vf-line{flex-wrap:nowrap;white-space:nowrap;gap:4px}
   #trace-host .vf-drag{font-size:9px;gap:5px}
@@ -487,7 +487,7 @@ try{ window.sb=(window.supabase&&window.supabase.createClient)?window.supabase.c
 .rec-hud .rec-hud-stop{margin-left:4px;background:#e11d48;color:#fff;border:none;border-radius:15px;padding:5px 12px;font:700 12px "Poppins",sans-serif;cursor:pointer;display:inline-flex;align-items:center;gap:4px;-webkit-tap-highlight-color:transparent}
 .rec-hud .rec-hud-stop:active{background:#be123c}
 /* page Cards (mobile) : le bandeau REC se cale à gauche, à la place du titre « Log de Nav : Card » */
-@media screen and (max-width:820px), screen and (max-height:520px) and (pointer:coarse){
+@media screen and (max-width:820px){
   .rec-hud{font-size:11.5px;padding:6px 7px 6px 10px;gap:5px;box-sizing:border-box}
   .rec-hud .rec-hud-txt{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .rec-hud .dot{flex:none;width:9px;height:9px}
@@ -514,7 +514,7 @@ try{ window.sb=(window.supabase&&window.supabase.createClient)?window.supabase.c
 /* plein écran d'enregistrement (smartphone) : carte plein cadre, bandeaux masqués */
 body.rec-full #trace-host{position:fixed!important;inset:0!important;width:100vw!important;height:100vh!important;height:100dvh!important;z-index:4000!important;margin:0!important;border-radius:0!important;max-width:none!important;box-sizing:border-box!important;padding-top:env(safe-area-inset-top,0px)!important}
 body.rec-full #trace-host .controls,body.rec-full #trace-host .maphint,body.rec-full #trace-host .legend,body.rec-full #uiScaleBox{display:none!important}
-@media (max-width:820px),(max-height:520px) and (pointer:coarse){
+@media (max-width:820px){
   #trace-host .hdr-row1{flex-wrap:wrap;gap:4px!important}
   #trace-host .map-sq{display:inline-flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;width:38px;height:38px;flex:0 0 auto;border:1px solid var(--line);border-radius:10px;background:rgba(10,26,51,.6);color:#cfe0f5;cursor:pointer;padding:0}
   #trace-host .map-burger.on{background:#1d3a6b;color:#fff;border-color:#3a5fa0}
@@ -768,7 +768,7 @@ body.rec-full #trace-host .controls,body.rec-full #trace-host .maphint,body.rec-
 .btn-lbl-short{display:none}
 /* Smartphone : les 3 boutons du pied de modal sur UNE seule ligne
    (Supprimer · ★ Favori · Valider) — libellé favori raccourci pour tenir */
-@media screen and (max-width:820px), screen and (max-height:520px) and (pointer:coarse){
+@media screen and (max-width:820px){
   .btn-lbl-full{display:none}
   .btn-lbl-short{display:inline}
   .modal-foot{gap:6px;flex-wrap:nowrap;padding:12px 12px 14px}
@@ -780,7 +780,7 @@ body.rec-full #trace-host .controls,body.rec-full #trace-host .maphint,body.rec-
 .aero-sugg{max-height:260px}
 /* pastille de taille d'UI : masquée quand un modal de saisie est ouvert (n'empiète plus sur « Valider ») */
 html:has(.ovl) #uiScaleBox,html:has(body.rec-full) #uiScaleBox{display:none!important}
-@media (max-width:820px),(max-height:520px) and (pointer:coarse){
+@media (max-width:820px){
   .ovl{padding:8px 6px!important}
   .modal-card{max-height:calc(100dvh - env(safe-area-inset-top,0px) - 34px)}
   .aero-sugg{max-height:200px!important}
@@ -824,7 +824,7 @@ html:has(.ovl) #uiScaleBox,html:has(body.rec-full) #uiScaleBox{display:none!impo
    page vit dans une feuille : le bandeau vient donc affleurer le haut de cette
    feuille, sur toute sa largeur, avec le même arrondi inférieur de 14 px et la
    même ombre portée que le bandeau du log de nav. */
-@media screen and (min-width:821px) and (min-height:521px), screen and (min-width:821px) and (pointer:fine){
+@media screen and (min-width:821px){
   /* Cartes de vol : bleu du thème, arrondi haut repris de la feuille */
   .sheet .nc-bar{
     margin:-10px -10px 10px;
@@ -879,9 +879,9 @@ html:has(.ovl) #uiScaleBox,html:has(body.rec-full) #uiScaleBox{display:none!impo
 .nc-t.hi i{color:#9fe0ff}
 .nc-t.hi b{justify-self:start;color:#7fd1ff;background:rgba(127,209,255,.15);border:1px solid rgba(127,209,255,.42);border-radius:7px;padding:1px 6px;margin:0 -7px;text-shadow:0 0 14px rgba(127,209,255,.45)}
 .nc-card{flex:1 1 auto;display:flex;flex-direction:column;min-height:0;background:#102A52;border:1px solid #1d3a6b;border-radius:14px;overflow:hidden}
-@media screen and (min-width:821px) and (min-height:521px), screen and (min-width:821px) and (pointer:fine){.nc-card{max-width:780px;width:100%;margin:0 auto}.nc-info{min-height:150px}}
+@media screen and (min-width:821px){.nc-card{max-width:780px;width:100%;margin:0 auto}.nc-info{min-height:150px}}
 /* ordinateur : toutes les branches côte à côte, 3 colonnes puis 4 sur grand écran */
-@media screen and (min-width:821px) and (min-height:521px), screen and (min-width:821px) and (pointer:fine){
+@media screen and (min-width:821px){
   .nc-cards{display:grid;gap:14px;align-items:stretch;width:100%;grid-template-columns:repeat(3,minmax(0,1fr))}
   .nc-cards .nc-card{max-width:none;width:auto;margin:0;flex:none;height:auto}
   .nc-cards .nc-end{font-size:20px;padding:8px 10px;letter-spacing:.3px}
@@ -1095,7 +1095,7 @@ html:has(.ovl) #uiScaleBox,html:has(body.rec-full) #uiScaleBox{display:none!impo
 .nc-wb.own s{color:#7fd1ff;border-color:#3A7BFF;background:rgba(58,123,255,.14)}
 .nc-wnote{font:600 10.5px "Poppins",sans-serif;color:#8fa9cc;line-height:1.4;padding:2px 2px 0}
 /* préparation du vol sur téléphone : tout doit tenir sans défilement */
-@media screen and (max-width:820px), screen and (max-height:520px) and (pointer:coarse){
+@media screen and (max-width:820px){
   /* préparation du vol : tout doit tenir sur un écran de téléphone */
   .nc-set{padding:10px;gap:8px}
   .nc-set h4{font-size:15px}
@@ -1116,7 +1116,7 @@ html:has(.ovl) #uiScaleBox,html:has(body.rec-full) #uiScaleBox{display:none!impo
 .nc-reuse:active{background:#17325C}
 .nc-fab{position:fixed;right:14px;bottom:104px;z-index:118;width:54px;height:54px;border-radius:50%;border:2px solid #fff;background:#e94560;color:#fff;display:inline-flex;align-items:center;justify-content:center;padding:0;cursor:pointer;box-shadow:0 6px 22px rgba(0,0,0,.5);animation:ncFab 1s steps(2,start) infinite}
 @keyframes ncFab{50%{background:#16305c;border-color:#e94560}}
-@media screen and (min-width:821px) and (min-height:521px), screen and (min-width:821px) and (pointer:fine){.nc-fab{right:22px;bottom:22px}}
+@media screen and (min-width:821px){.nc-fab{right:22px;bottom:22px}}
 .nc-ov{position:fixed;inset:0;z-index:120;background:rgba(6,14,30,.72);display:flex;align-items:flex-start;justify-content:center;padding:calc(env(safe-area-inset-top) + 18px) 12px calc(env(safe-area-inset-bottom, 0px) + 24px);overflow:auto;-webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px)}
 .nc-pop-s{max-width:340px}
 .nc-timew{display:flex;align-items:center;gap:8px}
@@ -1182,7 +1182,7 @@ html:has(.ovl) #uiScaleBox,html:has(body.rec-full) #uiScaleBox{display:none!impo
 #pf-fleet .pf-av-conso{flex:0 0 62px;text-align:center}
 #pf-fleet .pf-av-res{flex:0 0 106px;padding:7px 4px 7px 7px}
 #pf-fleet .pf-av-empty{color:#94a3b8}
-@media screen and (max-width:820px), screen and (max-height:520px) and (pointer:coarse){
+@media screen and (max-width:820px){
   #pf-fleet .pf-av{gap:4px!important}
   #pf-fleet .pf-avi{padding:7px 4px;font-size:12.5px;border-radius:6px}
   #pf-fleet .pf-av-immat{flex:0 0 62px;padding-left:5px;padding-right:1px;letter-spacing:-.2px}
@@ -1195,7 +1195,7 @@ html:has(.ovl) #uiScaleBox,html:has(body.rec-full) #uiScaleBox{display:none!impo
 /* Le groupe avion + vent ne paraît que sur téléphone, où il remplace dans le
    bandeau les boutons de pages passés dans la barre du bas. */
 .mtoolbar .tb-meta{display:none}
-@media screen and (max-width:820px), screen and (max-height:520px) and (pointer:coarse){
+@media screen and (max-width:820px){
   /* les pages se choisissent désormais par la barre d'onglets du bas */
   .mtoolbar .tb-mpi.tb-mpi,.mtoolbar .tb-cards.tb-cards{display:none!important}
   /* l'espaceur accueille le groupe avion + vent : le bandeau garde ses positions */
@@ -1247,7 +1247,7 @@ html:has(.ovl) #uiScaleBox,html:has(body.rec-full) #uiScaleBox{display:none!impo
 .mlog-type button.on{background:#16213e;color:#fff;border-color:#16213e}
 /* Ordi : bandeau log de nav sur 2 lignes — logo+nom seul en 1re ligne, le reste en 2e */
 .mtoolbar .tb-info{width:26px;height:26px;border-radius:50%;border:1px solid rgba(255,255,255,.32);background:rgba(255,255,255,.08);color:#DCEAF5;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;padding:0;line-height:0;flex:none}
-@media screen and (min-width:821px) and (min-height:521px), screen and (min-width:821px) and (pointer:fine){
+@media screen and (min-width:821px){
   .mtoolbar{flex-wrap:wrap!important;position:relative!important;gap:8px 5px!important}
   /* Ligne 1 : logo+nom · réglages · flèches · parcours — à droite : Aller/Retour · METAR TAF · AIRAC · info */
   .mtoolbar>*:nth-child(1){order:1}
@@ -1288,7 +1288,7 @@ html:has(.ovl) #uiScaleBox,html:has(body.rec-full) #uiScaleBox{display:none!impo
   /* Ligne 2 : Aller/Retour + fond de carte à gauche, le reste collé à droite */
   #trace-host header .controls.one-line #dispBtn{margin-left:auto!important}
 }
-@media screen and (max-width:820px), screen and (max-height:520px) and (pointer:coarse){
+@media screen and (max-width:820px){
   .approot .sheet-log{display:none!important}            /* on masque UNIQUEMENT la feuille du log (remplacée par le listing) */
   .mlog{display:block!important}
   .mtoolbar{flex-wrap:wrap!important;justify-content:center!important;gap:5px 5px!important}
@@ -2546,7 +2546,7 @@ window.__TRACE_MARKUP="\n\n<header>\n  <div class=\"hdr-row1\">\n    <span class
    accessible depuis le bouton ⓘ du bandeau du log, avant toute ouverture de la carte */
 (function(){
   var host=document.createElement('div');
-  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Carte OACI :</b> donnée IGN non libre — nécessite votre propre clé Géoplateforme filtrée sur votre domaine. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.341</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
+  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Carte OACI :</b> donnée IGN non libre — nécessite votre propre clé Géoplateforme filtrée sur votre domaine. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.342</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
   (document.body||document.documentElement).appendChild(host.firstElementChild);
   window.__OPEN_INFO=function(){ document.getElementById('infoModal').hidden=false; };
   /* iPadOS : les pastilles de fen\xEAtrage (coin haut-gauche) recouvrent le burger
@@ -2877,7 +2877,7 @@ function showToast(msg){
   /* en mobile le conteneur de la carte dépasse le bas de l'écran : le message
      serait coupé — on le recale au-dessus du badge d'enregistrement */
   try{
-    var mob=window.matchMedia&&window.matchMedia('(max-width:820px),(max-height:520px) and (pointer:coarse)').matches;
+    var mob=window.matchMedia&&window.matchMedia('(max-width:820px)').matches;
     if(mob){
       var hr=document.getElementById('trace-host').getBoundingClientRect();
       var sb=parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--sab'))||0;
@@ -4000,7 +4000,7 @@ map.on('zoomend', renderVfrMax);
   /* mobile : le panneau se cale sous le bandeau de la carte et occupe la largeur
      disponible ; ordinateur : il reprend sa position centrée d'origine */
   function vfPlace(){
-    const mob=window.matchMedia('(max-width:820px),(max-height:520px) and (pointer:coarse)').matches;
+    const mob=window.matchMedia('(max-width:820px)').matches;
     /* le zoom de la carte est en haut à droite : on le descend sous le panneau
        tant qu'il occupe toute la largeur */
     const zc=document.querySelector('#trace-host .leaflet-control-zoom');
@@ -4912,7 +4912,7 @@ function openRelinkChoice(){
     /* le bouton vit en ligne 1 du bandeau (desktop comme mobile) :
        seul le format change (rond desktop, carré mobile) */
     if(!cen) return;
-    var mob=window.matchMedia('(max-width:820px),(max-height:520px) and (pointer:coarse)').matches;
+    var mob=window.matchMedia('(max-width:820px)').matches;
     cen.classList.toggle('map-sq',mob); cen.classList.toggle('map-center',mob);
   }
   placeCenter();
@@ -4930,7 +4930,7 @@ function openRelinkChoice(){
   var airAnchor=airac?airac.nextSibling:null, airParent=airac?airac.parentNode:null;
   function placeBase(){
     if(!baseField||!airac||!ctl) return;
-    if(window.matchMedia('(max-width:820px),(max-height:520px) and (pointer:coarse)').matches){
+    if(window.matchMedia('(max-width:820px)').matches){
       if(baseField.parentNode===ctl){
         baseField.classList.add('fld-base');
         hdr.insertBefore(baseField, document.getElementById('restart'));
@@ -4991,7 +4991,7 @@ function openRelinkChoice(){
       fl.classList.add('show'); setTimeout(function(){ fl.classList.remove('show'); },3500); }
     setTimeout(function(){
       try{
-        var io=new IntersectionObserver(function(es){ es.forEach(function(en){ if(en.isIntersecting&&window.matchMedia('(max-width:820px),(max-height:520px) and (pointer:coarse)').matches){ flash(); io.disconnect(); } }); },{threshold:0.4});
+        var io=new IntersectionObserver(function(es){ es.forEach(function(en){ if(en.isIntersecting&&window.matchMedia('(max-width:820px)').matches){ flash(); io.disconnect(); } }); },{threshold:0.4});
         io.observe(mapEl);
       }catch(e){}
     },900);
@@ -5147,7 +5147,7 @@ function openRelinkChoice(){
       try{ document.body.classList.remove('rec-live'); document.documentElement.classList.remove('rec-live'); }catch(e){}
     }
   }
-  function isMobileView(){ try{ return !!(window.matchMedia && window.matchMedia('(max-width:820px),(max-height:520px) and (pointer:coarse)').matches); }catch(e){ return false; } }
+  function isMobileView(){ try{ return !!(window.matchMedia && window.matchMedia('(max-width:820px)').matches); }catch(e){ return false; } }
   function enterRecFull(){ if(!isMobileView()) return; document.body.classList.add('rec-full'); try{ setTimeout(function(){ map.invalidateSize(); },220); }catch(e){} }
   function exitRecFull(){ if(!document.body.classList.contains('rec-full')) return; document.body.classList.remove('rec-full'); try{ setTimeout(function(){ map.invalidateSize(); },220); }catch(e){} }
   var recCd=null;
@@ -5694,10 +5694,10 @@ const wrap=document.createElement("div");sheets.forEach((s,i)=>{const c=s.cloneN
         .card{background:#fff;border-radius:14px;width:100%;max-width:520px;padding:18px;border:1px solid #c4c9d4;border-top:4px solid #3182ce;box-shadow:0 24px 60px rgba(16,21,40,.5), 0 4px 14px rgba(0,0,0,.25);}
         .fld input,.fld textarea,.fld select{width:100%;box-sizing:border-box;border:1px solid #c8ccd2;border-radius:7px;padding:9px 10px;font:14px/1.4 ui-sans-serif,system-ui;color:${INK};outline:none;background:#fff;}
         /* iPhone : police des champs ≥16px sur mobile → empêche le zoom auto de Safari à la saisie (et donc le "pas de dézoom" après validation). */
-        @media screen and (max-width:820px), screen and (max-height:520px) and (pointer:coarse){.fld input,.fld textarea,.fld select{font-size:16px!important;}}
+        @media screen and (max-width:820px){.fld input,.fld textarea,.fld select{font-size:16px!important;}}
         /* modales de saisie sur téléphone : quelques pixels de moins par champ pour
            que la fiche d'un point tienne dans la hauteur de l'écran */
-        @media screen and (max-width:820px), screen and (max-height:520px) and (pointer:coarse){
+        @media screen and (max-width:820px){
           .fld input,.fld select{padding:6px 9px!important;border-radius:8px!important;}
           .fld textarea{padding:6px 9px!important;}
           .fld label{font-size:11px!important;margin:0 0 2px 1px!important;line-height:1.25!important;}
@@ -5710,7 +5710,7 @@ const wrap=document.createElement("div");sheets.forEach((s,i)=>{const c=s.cloneN
            Écran 1 : bandeau log de nav EN HAUT (sous la Dynamic Island), puis log aller/retour.
            Map / Profil / Image : panneaux plein écran accessibles par swipe horizontal,
            chacun avec son bandeau en haut. Points indicateurs en bas. */
-        @media screen and (max-width:820px), screen and (max-height:520px) and (pointer:coarse){
+        @media screen and (max-width:820px){
           /* Zone Dynamic Island : bande NOIRE fixe terminée par une ligne rouge/rose,
              identique et au même niveau sur tous les écrans (log, map, profil, image, modales). */
           body::before{content:"";position:fixed;top:0;left:0;right:0;z-index:98;height:calc(env(safe-area-inset-top) + 2.5px);box-sizing:border-box;background:#0E2348;border-bottom:2.5px solid #e94560;pointer-events:none;}
@@ -5782,17 +5782,35 @@ const wrap=document.createElement("div");sheets.forEach((s,i)=>{const c=s.cloneN
           /* iPhone : sous la zone que Safari réserve en bas, seul le fond du document est peint ;
              on lui donne la couleur de la page active pour que la "bande" se fonde dedans. */
           html.mswipe-lock.mp-light,html.mswipe-lock.mp-light body{background:#eef0f3;}
-          /* ===== Barre d'onglets du bas =====
-             Elle remplace les pastilles de pagination : fixée au bas de l'écran,
-             pleine largeur, elle reprend le bleu du thème et les angles arrondis
-             des bandeaux. Le retrait bas suit la zone réservée par l'iPhone, et
-             un retrait latéral tient compte des angles arrondis de la dalle.
-             Les sept éléments tiennent sur la largeur d'un iPhone ; si l'écran
-             est plus étroit, la barre défile horizontalement. */
+          /* la barre d'onglets est habillée plus bas, dans un bloc qui vaut
+             aussi pour le téléphone couché */
+          /* le réglage de taille d'interface ne concerne que l'ordinateur */
+          #uiScaleBox{display:none!important}
+          #mdots{display:none!important;}
+          #uiScaleBox{transition:opacity .45s ease;}
+          #uiScaleBox.mhid{opacity:0;pointer-events:none;}
+          #trace-host .maphint{font-size:11px;padding:6px 11px;top:8px;line-height:1.25;max-width:88vw;white-space:normal;text-align:center;}
+          /* La barre d'onglets occupe le bas de l'écran ; la feuille de la carte,
+             elle, descend 90 px plus bas. Le bouton Vent, le badge AIRAC qu'il
+             emporte et les messages se calent donc 148 px au-dessus du bas de la
+             feuille, soit 12 px au-dessus de la barre. */
+          #root .mswipe.mmap #trace-host #wndWrap{top:auto!important;
+            bottom:calc(148px + env(safe-area-inset-bottom,0px))!important;}
+          #root .mswipe.mmap #trace-host .toast{
+            bottom:calc(148px + env(safe-area-inset-bottom,0px))!important;}
+        }
+        @media screen and (min-width:821px) and (min-height:521px), screen and (min-width:821px) and (pointer:fine){#mdots,#mtabs{display:none!important;}}
+        /* ===== Barre d'onglets du bas =====
+           Fixée au bas de l'écran, pleine largeur, elle reprend le bleu du thème
+           et les angles arrondis des bandeaux. Elle paraît sur le téléphone
+           debout — où elle change d'écran — comme sur le téléphone couché, où
+           la présentation redevient celle de l'ordinateur et où elle sert alors
+           de raccourci : un appui fait défiler jusqu'à la section voulue. */
+        @media screen and (max-width:820px), screen and (min-width:821px) and (max-height:520px) and (pointer:coarse){
           #mtabs{position:fixed;left:0;right:0;bottom:0;z-index:94;box-sizing:border-box;
             display:flex;align-items:stretch;gap:2px;
             height:calc(46px + env(safe-area-inset-bottom,0px));
-            padding:3px 8px calc(3px + env(safe-area-inset-bottom,0px));
+            padding:3px calc(8px + env(safe-area-inset-right,0px)) calc(3px + env(safe-area-inset-bottom,0px)) calc(8px + env(safe-area-inset-left,0px));
             background:linear-gradient(#0E2348,#0A1A33);
             border-top:1px solid #1d3a6b;border-radius:16px 16px 0 0;
             box-shadow:0 -3px 14px rgba(0,0,0,.42);
@@ -5806,12 +5824,6 @@ const wrap=document.createElement("div");sheets.forEach((s,i)=>{const c=s.cloneN
           #mtabs .mtab i{font-style:normal;white-space:nowrap}
           #mtabs .mtab.on{background:rgba(30,159,224,.18);color:#7fd1ff}
           #mtabs .mtab:active{background:rgba(255,255,255,.10)}
-          /* le sélecteur de taille prend place comme dernier onglet */
-          /* le réglage de taille d'interface ne concerne que l'ordinateur */
-          #uiScaleBox{display:none!important}
-          #mdots{display:none!important;}
-          #uiScaleBox{transition:opacity .45s ease;}
-          #uiScaleBox.mhid{opacity:0;pointer-events:none;}
           /* vol en cours sur les cartes : rien ne doit masquer le tableau de bord */
           html.mp-flying #mtabs{display:none!important;}
           /* page météo : la barre reste accessible au-dessus du panneau, qui lui
@@ -5820,42 +5832,12 @@ const wrap=document.createElement("div");sheets.forEach((s,i)=>{const c=s.cloneN
           html:has(#wxOv) .wx-list{padding-bottom:calc(70px + env(safe-area-inset-bottom,0px))!important;}
           /* fenêtres de saisie et menu latéral : la barre s'efface */
           html:has(.ovl) #mtabs,html:has(.drawer.open) #mtabs{display:none!important;}
-          /* Téléphone couché : l'encoche et les coins arrondis mordent sur les
-             deux côtés de l'écran. Ces marges valent zéro debout, les règles
-             ci-dessous ne changent donc rien en portrait. */
-          .approot{padding-left:calc(8px + env(safe-area-inset-left,0px))!important;
-            padding-right:calc(8px + env(safe-area-inset-right,0px))!important;}
-          #mtabs{padding-left:calc(8px + env(safe-area-inset-left,0px));
-            padding-right:calc(8px + env(safe-area-inset-right,0px));}
-          #root .approot>.sheet.mswipe{padding-left:calc(10px + env(safe-area-inset-left,0px))!important;
-            padding-right:calc(10px + env(safe-area-inset-right,0px))!important;}
-          #root .approot>.sheet.mswipe.mcards{padding-left:calc(8px + env(safe-area-inset-left,0px))!important;
-            padding-right:calc(8px + env(safe-area-inset-right,0px))!important;}
-          /* la carte, elle, occupe toute la largeur — on n'en perd pas un pouce ;
-             seuls son bandeau et ses commandes se replient en deçà de l'encoche */
-          #root .approot>.sheet.mswipe.mmap{padding-left:0!important;padding-right:0!important;}
-          #root .mswipe.mmap #trace-host header{padding-left:calc(12px + env(safe-area-inset-left,0px))!important;
-            padding-right:calc(12px + env(safe-area-inset-right,0px))!important;}
-          #root .mswipe.mmap .leaflet-left{margin-left:env(safe-area-inset-left,0px);}
-          #root .mswipe.mmap .leaflet-right{margin-right:env(safe-area-inset-right,0px);}
-          #root .mswipe.mmap #trace-host #wndWrap{margin-left:env(safe-area-inset-left,0px);}
-          #wxOv .wx-tabs,#wxOv .wx-list{padding-left:calc(12px + env(safe-area-inset-left,0px))!important;
-            padding-right:calc(12px + env(safe-area-inset-right,0px))!important;}
-          #wxOv .wx-src{padding-left:calc(14px + env(safe-area-inset-left,0px))!important;
-            padding-right:calc(14px + env(safe-area-inset-right,0px))!important;}
-          #wxOv .wx-soon{padding-left:calc(24px + env(safe-area-inset-left,0px))!important;
-            padding-right:calc(24px + env(safe-area-inset-right,0px))!important;}
-          #trace-host .maphint{font-size:11px;padding:6px 11px;top:8px;line-height:1.25;max-width:88vw;white-space:normal;text-align:center;}
-          /* La barre d'onglets occupe le bas de l'écran ; la feuille de la carte,
-             elle, descend 90 px plus bas. Le bouton Vent, le badge AIRAC qu'il
-             emporte et les messages se calent donc 148 px au-dessus du bas de la
-             feuille, soit 12 px au-dessus de la barre. */
-          #root .mswipe.mmap #trace-host #wndWrap{top:auto!important;
-            bottom:calc(148px + env(safe-area-inset-bottom,0px))!important;}
-          #root .mswipe.mmap #trace-host .toast{
-            bottom:calc(148px + env(safe-area-inset-bottom,0px))!important;}
         }
-        @media screen and (min-width:821px) and (min-height:521px), screen and (min-width:821px) and (pointer:fine){#mdots,#mtabs{display:none!important;}}
+        /* Téléphone couché : la barre flotte au-dessus d'un document qui défile,
+           on lui réserve donc sa hauteur au pied de la page. */
+        @media screen and (min-width:821px) and (max-height:520px) and (pointer:coarse){
+          .approot{padding-bottom:calc(58px + env(safe-area-inset-bottom,0px))!important;}
+        }
         .fld textarea{resize:vertical;overflow:hidden;min-height:2.4em;}
         .rich:empty:before{content:attr(data-ph);color:#aab0b8;}
         .rich:focus{border-color:${ACCENT}!important;box-shadow:0 0 0 3px rgba(49,130,206,.15);}
@@ -5970,8 +5952,8 @@ function NavCards({nav,setNav,tsvOf,tavOf,capOf}){
   const showFull=k=>{ clearTimeout(revT.current); setRev(k);
     revT.current=setTimeout(()=>setRev(""),3500); };
   /* sur ordinateur on affiche toutes les branches côte à côte plutôt qu'une seule */
-  const [wide,setWide]=React.useState(()=>{try{return window.matchMedia("(min-width:821px) and (min-height:521px),(min-width:821px) and (pointer:fine)").matches;}catch(e){return false;}});
-  React.useEffect(()=>{ let mq; try{ mq=window.matchMedia("(min-width:821px) and (min-height:521px),(min-width:821px) and (pointer:fine)"); }catch(e){ return; }
+  const [wide,setWide]=React.useState(()=>{try{return window.matchMedia("(min-width:821px)").matches;}catch(e){return false;}});
+  React.useEffect(()=>{ let mq; try{ mq=window.matchMedia("(min-width:821px)"); }catch(e){ return; }
     const f=e=>setWide(e.matches); setWide(mq.matches);
     if(mq.addEventListener) mq.addEventListener("change",f); else mq.addListener(f);
     return ()=>{ if(mq.removeEventListener) mq.removeEventListener("change",f); else mq.removeListener(f); }; },[]);
@@ -6943,8 +6925,12 @@ class ErrB extends React.Component{constructor(p){super(p);this.state={e:null};}
    Map / Profil / Image deviennent des écrans plein viewport qu'on atteint par swipe
    horizontal ; des points en bas indiquent les écrans disponibles (tapables). */
 (function(){
-  var mq=window.matchMedia('(max-width:820px),(max-height:520px) and (pointer:coarse)');
-  var cur=0, panels=[{key:'log',el:null}], dots=null, lastDotsHtml='', hideT=null, lastShown=0;
+  var mq=window.matchMedia('(max-width:820px)');
+  /* Téléphone couché : la fenêtre devient large, la présentation redevient donc
+     celle de l'ordinateur — feuilles empilées que l'on fait défiler. La barre du
+     bas, elle, demeure : elle ne change plus d'écran mais amène à la section. */
+  var mqPays=window.matchMedia('(min-width:821px) and (max-height:520px) and (pointer:coarse)');
+  var cur=0, panels=[{key:'log',el:null}], dots=null, lastDotsHtml='', hideT=null, lastShown=0, etaitBureau=false;
   /* la barre d'onglets est permanente : contrairement aux pastilles qu'elle
      remplace, elle ne s'efface plus au bout de quelques secondes */
   function pokeDots(){
@@ -7030,6 +7016,9 @@ class ErrB extends React.Component{constructor(p){super(p);this.state={e:null};}
       if(scale && scale.__mband){ try{ document.body.appendChild(scale); }catch(e){} scale.style.position='';scale.style.top='';scale.style.right='';scale.style.bottom='';scale.style.left='';scale.style.transition='';scale.__mband=false; }
       if(scale) scale.classList.remove('mhid');
       ensureAnchor(false);
+      /* couché, la barre se cale simplement au bas de la fenêtre : on efface le
+         calage vertical calculé pour le téléphone debout */
+      if(mqPays.matches){ dots.style.top='auto'; dots.style.bottom='0'; dots.style.left='0'; dots.style.right='0'; }
       return;
     }
     ensureAnchor(true);
@@ -7055,7 +7044,8 @@ class ErrB extends React.Component{constructor(p){super(p);this.state={e:null};}
   var scRaf=0;
   window.addEventListener('scroll',function(){
     if(scRaf) return;
-    scRaf=requestAnimationFrame(function(){ scRaf=0; placeDots(); });
+    scRaf=requestAnimationFrame(function(){ scRaf=0; placeDots();
+      if(!mq.matches&&mqPays.matches) majActif(); });
   },{passive:true});
   var startX=0, startY=0, startT=0, tracking=false;
   function findPanels(){
@@ -7097,17 +7087,25 @@ class ErrB extends React.Component{constructor(p){super(p);this.state={e:null};}
     var sheets=ar.querySelectorAll(':scope>.sheet');
     for(var i=0;i<sheets.length;i++) sheets[i].classList.remove('mswipe','mactive','mleft','mmap','mimg','mcards');
     if(!mobile){
-      if(dots) dots.style.display='none';
       document.documentElement.classList.remove('mswipe-lock');
       document.documentElement.classList.remove('mp-cards');
+      document.documentElement.classList.remove('mp-flying');
       try{ document.body.classList.remove('mp-light'); document.documentElement.classList.remove('mp-light'); }catch(e){}
-      /* passage en paysage/ordinateur : on garde la page courante en mémoire pour
-         la retrouver au retour en portrait, et on l'amène à l'écran */
       panels=ps;
-      if(cur>0&&ps[cur]&&ps[cur].el){ var tgt=ps[cur].el;
-        try{ setTimeout(function(){ tgt.scrollIntoView({block:'start',behavior:'auto'}); },60); }catch(e){} }
+      /* couché, la barre reste et suit la section que l'on regarde */
+      if(mqPays.matches) renderDots(ps);
+      else if(dots) dots.style.display='none';
+      /* passage en paysage/ordinateur : on garde la page courante en mémoire pour
+         la retrouver au retour en portrait, et on l'amène à l'écran — UNE FOIS,
+         sinon ce recentrage combattrait le défilement à chaque passage */
+      if(!etaitBureau){
+        etaitBureau=true;
+        if(cur>0&&ps[cur]&&ps[cur].el){ var tgt=ps[cur].el;
+          try{ setTimeout(function(){ tgt.scrollIntoView({block:'start',behavior:'auto'}); },80); }catch(e){} }
+      }
       return;
     }
+    etaitBureau=false;
     if(cur>ps.length-1) cur=ps.length-1;
     if(cur<0) cur=0;
     for(var j=0;j<ps.length;j++){
@@ -7164,6 +7162,36 @@ class ErrB extends React.Component{constructor(p){super(p);this.state={e:null};}
       var w=document.querySelector('.wx-badge'); if(w) w.click(); return; }
     fermeMeteo();
     var i=idxPanneau(k); if(i>=0) go(i); }
+  /* Debout, l'écran actif est celui que l'on affiche ; couché, c'est la section
+     que l'on a sous les yeux dans le document qui défile. */
+  function sectionEnVue(){
+    var seuil=window.innerHeight*0.35, cle='log', haut=-Infinity;
+    for(var i=0;i<panels.length;i++){
+      var el=panels[i].el; if(!el) continue;
+      var t=el.getBoundingClientRect().top;
+      if(t<=seuil && t>haut){ haut=t; cle=panels[i].key; }
+    }
+    return cle;
+  }
+  function cleActive(){
+    if(document.getElementById('wxOv')) return 'meteo';
+    if(mq.matches) return (panels[cur]&&panels[cur].key)||'log';
+    return sectionEnVue();
+  }
+  function majActif(){
+    if(!dots) return;
+    var k=cleActive(), bs=dots.querySelectorAll('.mtab');
+    for(var i=0;i<bs.length;i++) bs[i].classList.toggle('on', bs[i].getAttribute('data-k')===k);
+  }
+  /* couché : on ne change pas d'écran, on amène la section sous les yeux */
+  function versSection(i){
+    var p=panels[i];
+    try{
+      if(!p||!p.el) window.scrollTo({top:0,behavior:'smooth'});
+      else p.el.scrollIntoView({block:'start',behavior:'smooth'});
+    }catch(e){ try{ if(p&&p.el) p.el.scrollIntoView(); else window.scrollTo(0,0); }catch(e2){} }
+    setTimeout(majActif,700);
+  }
   function svg(d){ return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" '
     +'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="'+d+'"/></svg>'; }
   function renderDots(ps){
@@ -7178,26 +7206,29 @@ class ErrB extends React.Component{constructor(p){super(p);this.state={e:null};}
         var etaitOuvert=fermeMeteo();
         if(act==='meteo'){ if(!etaitOuvert) versNav(navDispo().indexOf('meteo')); return; }
         var i=parseInt(t.getAttribute('data-i'),10);
-        if(!isNaN(i)) go(i);
+        if(isNaN(i)) return;
+        if(mq.matches) go(i); else versSection(i);
       });
       document.body.appendChild(dots);
     }
-    dots.style.display=mq.matches?'flex':'none';
-    if(!mq.matches) return;
+    var visible=mq.matches||mqPays.matches;
+    dots.style.display=visible?'flex':'none';
+    if(!visible) return;
     /* on suit l'ordre voulu, en ignorant les écrans absents */
     var html='';
     for(var k=0;k<ORDRE.length;k++){
       var cle=ORDRE[k], idx=-1;
       for(var i=0;i<ps.length;i++) if(ps[i].key===cle){ idx=i; break; }
       if(idx<0) continue;
-      html+='<button type="button" class="mtab'+((idx===cur&&!document.getElementById('wxOv'))?' on':'')+'" data-i="'+idx+'" title="'+NOM[cle]+'">'
+      html+='<button type="button" class="mtab" data-i="'+idx+'" data-k="'+cle+'" title="'+NOM[cle]+'">'
         +svg(ICO[cle])+'<i>'+NOM[cle]+'</i></button>';
     }
-    html+='<button type="button" class="mtab'+(document.getElementById('wxOv')?' on':'')+'" data-act="meteo" title="M\u00e9t\u00e9o \u2014 METAR / TAF">'
+    html+='<button type="button" class="mtab" data-act="meteo" data-k="meteo" title="M\u00e9t\u00e9o \u2014 METAR / TAF">'
       +svg(ICO.meteo)+'<i>M\u00e9t\u00e9o</i></button>';
     if(html!==lastDotsHtml){
       dots.innerHTML=html; lastDotsHtml=html;
     }
+    majActif();
     requestAnimationFrame(placeDots);
   }
   function go(i){
