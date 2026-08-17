@@ -1061,6 +1061,11 @@ html:has(.ovl) #uiScaleBox,html:has(body.rec-full) #uiScaleBox{display:none!impo
 .nc-timew button{flex:0 0 54px;height:52px;border-radius:12px;border:1px solid #2a4372;background:#102A52;color:#fff;font:800 24px/1 ui-sans-serif;cursor:pointer}
 .nc-pop{width:100%;max-width:460px;background:#102A52;border:1px solid #24406f;border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:12px;box-shadow:0 22px 60px rgba(0,0,0,.55)}
 .nc-pop-h{display:flex;align-items:center;gap:8px;font:800 15px "Poppins",sans-serif;color:#fff}
+.nc-popc{max-width:380px}
+.nc-popb{font:600 13px/1.55 "Poppins",sans-serif;color:#cfe0f5}
+.nc-popf{display:flex;gap:8px}
+.nc-popf .nc-cancel{flex:1 1 auto}
+.nc-stopb{flex:1 1 auto;background:#e94560;color:#fff;border:0;border-radius:11px;padding:12px;font:800 14px "Poppins",sans-serif;cursor:pointer}
 .nc-x{margin-left:auto;width:34px;height:34px;flex:none;display:inline-flex;align-items:center;justify-content:center;border-radius:10px;background:rgba(255,255,255,.07);border:0;color:#cfe0f5;font:700 23px/1 ui-sans-serif;cursor:pointer;padding:0}
 .nc-x:active{background:rgba(255,255,255,.16)}
 .nc-recal{display:flex;flex-direction:column;gap:3px;background:linear-gradient(180deg,#17325C,#102A52);color:#fff;border:2px solid #e94560;border-radius:12px;padding:15px;font:800 19px "Poppins",sans-serif;cursor:pointer;text-align:center;box-shadow:0 2px 12px rgba(233,69,96,.18)}
@@ -2454,7 +2459,7 @@ window.__TRACE_MARKUP="\n\n<header>\n  <div class=\"hdr-row1\">\n    <span class
    accessible depuis le bouton ⓘ du bandeau du log, avant toute ouverture de la carte */
 (function(){
   var host=document.createElement('div');
-  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Carte OACI :</b> donnée IGN non libre — nécessite votre propre clé Géoplateforme filtrée sur votre domaine. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.321</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
+  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Carte OACI :</b> donnée IGN non libre — nécessite votre propre clé Géoplateforme filtrée sur votre domaine. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.322</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
   (document.body||document.documentElement).appendChild(host.firstElementChild);
   window.__OPEN_INFO=function(){ document.getElementById('infoModal').hidden=false; };
   /* iPadOS : les pastilles de fen\xEAtrage (coin haut-gauche) recouvrent le burger
@@ -5658,7 +5663,15 @@ const wrap=document.createElement("div");sheets.forEach((s,i)=>{const c=s.cloneN
           #root .mswipe.mcards .nc-play{font-size:0;width:38px;height:38px;padding:0;border-radius:50%;justify-content:center;gap:0;}
           #root .mswipe.mcards .nc-nav button{width:30px;height:30px;font-size:16px;}
           #root .mswipe.mcards .nc-nav span{min-width:40px;font-size:12px;}
-          #root .mswipe.mcards .nc-bar{gap:6px;padding:8px 9px;}
+          #root .mswipe.mcards .nc-bar{
+            gap:6px;
+            margin:calc(-1 * (env(safe-area-inset-top,0px) + 8px)) -8px 10px;
+            padding:calc(env(safe-area-inset-top,0px) + 9px) 11px 9px;
+            min-height:calc(env(safe-area-inset-top,0px) + 96px);
+            box-sizing:border-box;align-content:center;
+            border:0;border-radius:0 0 14px 14px;
+            box-shadow:0 3px 14px rgba(0,0,0,.42);
+          }
           #root .mswipe.mcards .nc-times{gap:2px 10px;}
           #root .mswipe.mcards .nc-t{grid-template-columns:60px 1fr;gap:3px;}
           #root .mswipe.mcards .nc-t i{font-size:10px;letter-spacing:.01em;}
@@ -6007,9 +6020,11 @@ function NavCards({nav,setNav,tsvOf,tavOf,capOf}){
     setNav(patch);
     /* on reste sur la carte : une flèche clignotante invite à balayer vers le haut */
   };
-  const stop=()=>{ if(!window.confirm("Terminer le vol et effacer l’heure de départ ?")) return;
-    clrRef.current=false;
+  const stopNow=()=>{ clrRef.current=false; setPop(false);
     setNav({flight:{...F,t0:null}}); setMode("idle"); setK(0); };
+  /* le bouton rouge reste sous le pouce pendant tout le vol : on ne termine
+     jamais d'un seul appui */
+  const stop=()=>setPop("stop");
   /* l'ATIS est propre à un vol : on le vide en entrant en préparation d'un vol neuf
      (une seule fois, pour ne rien perdre si l'on annule puis rouvre la carte) */
   const openSetup=()=>{ if(F.tEnd){ alert("Vol déjà effectué — navigation en consultation. Utilisez « Réutiliser cette nav » pour préparer un nouveau vol."); return; }
@@ -6277,9 +6292,8 @@ function NavCards({nav,setNav,tsvOf,tavOf,capOf}){
       h("button",{onClick:()=>{setK(Math.max(0,kk-1));setPane(0);},disabled:kk<=0,title:"Branche précédente"},"‹"),
       h("span",null,(kk+1)+" / "+nb),
       h("button",{onClick:()=>{setK(Math.min(nb-1,kk+1));setPane(0);},disabled:kk>=nb-1,title:"Branche suivante"},"›")):null,
-    flying?h("button",{className:"nc-play",onClick:()=>{ if(t0) stop(); else openSetup(); },
-      title:t0?"Terminer le vol":"Préparer et lancer le vol"},
-      h(Ic,{name:t0?"x":"play",size:13}),t0?" Fin":" Play"):null,
+    flying?h("button",{className:"nc-play",onClick:stop,title:"Terminer le vol"},
+      h(Ic,{name:"x",size:13})," Fin"):null,
     h("div",{className:"nc-b2"},
     h("button",{className:"nc-pl"+(blink?" blink":""),style:{"--p":(t0&&!F.tEnd?Math.min(100,Math.round((Date.now()-(diAt||t0))/1800000*100)):0)+"%"},onClick:()=>{setPop(true);setRecalOK(false);setFuelAt(0);setUseTank(curTank);setNewTank(oppTank(curTank));},
       title:"Contrôle en vol : recalage du directionnel et gestion des réservoirs"},h(Ic,{name:"fuelcomp",size:24,sw:1.7})),
@@ -6514,6 +6528,16 @@ function NavCards({nav,setNav,tsvOf,tavOf,capOf}){
           h("button",{onClick:()=>adjBump(1),title:"Une minute de plus"},"+")),
         h("button",{className:"nc-go",onClick:()=>adjApply()},"Valider l’heure"),
         h("button",{className:"nc-cancel",onClick:adjClear},"Effacer l’heure")))):null,
+    pop==="stop"?portal(h("div",{className:"nc-ov",onClick:e=>{if(e.target===e.currentTarget)setPop(false);}},
+      h("div",{className:"nc-pop nc-popc"},
+        h("div",{className:"nc-pop-h"},h(Ic,{name:"x",size:18,sw:1.7}),"Terminer le vol",
+          h("button",{className:"nc-x",onClick:()=>setPop(false)},"\u00d7")),
+        h("div",{className:"nc-popb"},
+          t0?"Le chronomètre sera arrêté et l’heure de départ effacée.":"Le vol en cartes va être quitté.",
+          " La préparation du vol, elle, est conservée."),
+        h("div",{className:"nc-popf"},
+          h("button",{className:"nc-cancel",onClick:()=>setPop(false)},"Poursuivre le vol"),
+          h("button",{className:"nc-stopb",onClick:stopNow},"Terminer"))))):null,
     pop===true?portal(h("div",{className:"nc-ov",onClick:e=>{if(e.target===e.currentTarget)setPop(false);}},
       h("div",{className:"nc-pop"},
         h("div",{className:"nc-pop-h"},h(Ic,{name:"fuelcomp",size:18,sw:1.7}),"Contrôle en vol",
