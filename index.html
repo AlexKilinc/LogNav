@@ -1197,15 +1197,16 @@ html:has(.ovl) #uiScaleBox,html:has(body.rec-full) #uiScaleBox{display:none!impo
   .mtoolbar .tb-mpi.tb-mpi,.mtoolbar .tb-cards.tb-cards{display:none!important}
   /* l'espaceur accueille le groupe avion + vent : le bandeau garde ses positions */
   .mtoolbar .tb-spacer.tb-spacer{order:8!important;display:flex!important;align-items:center;
-    flex:1 1 auto!important;min-width:0;margin-left:0!important}
-  .mtoolbar .tb-meta{display:inline-flex!important;align-items:center;gap:4px;width:100%;min-width:0}
+    flex:0 1 auto!important;min-width:0;margin-left:0!important}
+  .mtoolbar .tb-meta{display:inline-flex!important;align-items:center;gap:4px;min-width:0}
   .mtoolbar .tb-meta select,.mtoolbar .tb-meta input{box-sizing:border-box;min-width:0;height:32px;
     border:1px solid #2a4372;border-radius:9px;background:rgba(255,255,255,.08);color:#fff;
     font:700 12px "Poppins",sans-serif;padding:0 6px;text-align:center;-webkit-appearance:none;appearance:none}
   .mtoolbar .tb-meta select option{color:#16213e;background:#fff}
-  .mtoolbar .tbm-immat{flex:1 1 84px}
-  .mtoolbar .tbm-vdir{flex:0 0 58px}
-  .mtoolbar .tbm-vw{flex:0 0 46px}
+  /* une immatriculation tient toujours en six signes : largeur fixe, pas de poussée */
+  .mtoolbar .tbm-immat{flex:0 0 86px;width:86px}
+  .mtoolbar .tbm-vdir{flex:0 0 54px;width:54px}
+  .mtoolbar .tbm-vw{flex:0 0 44px;width:44px}
   /* le nom du vol respire, l'initiale du commandant reste à côté */
   .mlog-meta .mm-immat,.mlog-meta .mm-vdir,.mlog-meta .mm-vw{display:none!important}
   .mlog-meta{flex-wrap:wrap}
@@ -2539,7 +2540,7 @@ window.__TRACE_MARKUP="\n\n<header>\n  <div class=\"hdr-row1\">\n    <span class
    accessible depuis le bouton ⓘ du bandeau du log, avant toute ouverture de la carte */
 (function(){
   var host=document.createElement('div');
-  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Carte OACI :</b> donnée IGN non libre — nécessite votre propre clé Géoplateforme filtrée sur votre domaine. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.327</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
+  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Carte OACI :</b> donnée IGN non libre — nécessite votre propre clé Géoplateforme filtrée sur votre domaine. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.328</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
   (document.body||document.documentElement).appendChild(host.firstElementChild);
   window.__OPEN_INFO=function(){ document.getElementById('infoModal').hidden=false; };
   /* iPadOS : les pastilles de fen\xEAtrage (coin haut-gauche) recouvrent le burger
@@ -5803,6 +5804,12 @@ const wrap=document.createElement("div");sheets.forEach((s,i)=>{const c=s.cloneN
           #uiScaleBox.mhid{opacity:0;pointer-events:none;}
           /* vol en cours sur les cartes : rien ne doit masquer le tableau de bord */
           html.mp-flying #mtabs{display:none!important;}
+          /* page météo : la barre reste accessible au-dessus du panneau, qui lui
+             réserve sa hauteur en bas de liste */
+          html:has(#wxOv) #mtabs{z-index:5200!important;}
+          html:has(#wxOv) .wx-list{padding-bottom:calc(96px + env(safe-area-inset-bottom,0px))!important;}
+          /* fenêtres de saisie et menu latéral : la barre s'efface */
+          html:has(.ovl) #mtabs,html:has(.drawer.open) #mtabs{display:none!important;}
           #trace-host .maphint{font-size:11px;padding:6px 11px;top:8px;line-height:1.25;max-width:88vw;white-space:normal;text-align:center;}
         }
         @media screen and (min-width:821px){#mdots,#mtabs{display:none!important;}}
@@ -6963,7 +6970,15 @@ class ErrB extends React.Component{constructor(p){super(p);this.state={e:null};}
       ensureAnchor(false);
       return;
     }
-    ensureAnchor(false);
+    ensureAnchor(true);
+    /* Sur les pages à balayage, le document est verrouillé : iOS conserve alors sa
+       barre d'outils et raccourcit la fenêtre, si bien qu'un simple « bottom:0 »
+       laisse la barre flotter au-dessus du bas de l'écran. On la cale donc sur le
+       bas réel — hauteur de fenêtre plus la bande réservée. */
+    measureEnvB();
+    var z=bandNow(), hb=dots.offsetHeight||0;
+    dots.style.bottom='auto'; dots.style.left='0'; dots.style.right='0';
+    dots.style.top=Math.round(z.vh+z.b-hb)+'px';
     /* le sélecteur de taille devient le dernier onglet de la barre */
     if(scale && scale.parentElement!==dots){
       try{ dots.appendChild(scale); }catch(e){}
@@ -7093,9 +7108,12 @@ class ErrB extends React.Component{constructor(p){super(p);this.state={e:null};}
     html+='<button type="button" class="mtab" data-act="meteo" title="M\u00e9t\u00e9o \u2014 METAR / TAF">'
       +svg(ICO.meteo)+'<i>M\u00e9t\u00e9o</i></button>';
     if(html!==lastDotsHtml){
+      /* on garde la référence : une fois détaché, le sélecteur de taille ne serait
+         plus retrouvable par son identifiant */
       var sc=document.getElementById('uiScaleBox');
       if(sc&&sc.parentElement===dots) dots.removeChild(sc);
       dots.innerHTML=html; lastDotsHtml=html;
+      if(sc) dots.appendChild(sc);
     }
     requestAnimationFrame(placeDots);
   }
