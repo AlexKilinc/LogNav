@@ -793,6 +793,40 @@ html:has(.ovl) #uiScaleBox,html:has(body.rec-full) #uiScaleBox{display:none!impo
 .mlog-sync .ms-go{border-left:1px solid #d8e3f3}
 .mlog-sync .ms-go:disabled{color:#a3b0c2;cursor:not-allowed}
 .pf-brk{display:none}
+/* ===== Ordinateur : mêmes bandeaux que sur mobile, transposés à la feuille =====
+   Sur téléphone, le bandeau touche le bord de l'écran ; sur ordinateur, chaque
+   page vit dans une feuille : le bandeau vient donc affleurer le haut de cette
+   feuille, sur toute sa largeur, avec le même arrondi inférieur de 14 px et la
+   même ombre portée que le bandeau du log de nav. */
+@media screen and (min-width:821px){
+  /* Cartes de vol : bleu du thème, arrondi haut repris de la feuille */
+  .sheet .nc-bar{
+    margin:-10px -10px 10px;
+    padding:9px 11px;
+    min-height:96px;
+    box-sizing:border-box;align-content:center;
+    border:0;border-bottom:1px solid #1d3a6b;
+    border-radius:14px 14px 14px 14px;
+    box-shadow:0 3px 14px rgba(26,26,46,.4);
+  }
+  /* Profil vertical : tons clairs, la feuille étant blanche.
+     La hauteur n'est pas forcée à 96 px comme ailleurs : cette feuille est une
+     page A4 imprimable, chaque pixel gagné en haut profite aux graphiques. */
+  .sheet .pf-bar{
+    margin:-14px -16px 10px;
+    padding:12px 16px;
+    box-sizing:border-box;
+    background:linear-gradient(#fff,#f5f8fd);
+    border-bottom:1px solid #e2e9f3;
+    border-radius:0 0 14px 14px;
+    box-shadow:0 3px 14px rgba(26,26,46,.10);
+  }
+}
+/* à l'impression, la feuille reprend son aspect d'origine */
+@media print{
+  .sheet .pf-bar{margin:0!important;padding:0!important;background:none!important;
+    border:0!important;border-radius:0!important;box-shadow:none!important}
+}
 /* Profil vertical : ce qui sort du bandeau — sélecteur de tag puis astuce,
    posés juste avant les graphiques. */
 .pf-sous{display:flex;flex-direction:column;gap:3px;margin:0 0 6px}
@@ -2459,7 +2493,7 @@ window.__TRACE_MARKUP="\n\n<header>\n  <div class=\"hdr-row1\">\n    <span class
    accessible depuis le bouton ⓘ du bandeau du log, avant toute ouverture de la carte */
 (function(){
   var host=document.createElement('div');
-  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Carte OACI :</b> donnée IGN non libre — nécessite votre propre clé Géoplateforme filtrée sur votre domaine. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.322</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
+  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Carte OACI :</b> donnée IGN non libre — nécessite votre propre clé Géoplateforme filtrée sur votre domaine. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.323</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
   (document.body||document.documentElement).appendChild(host.firstElementChild);
   window.__OPEN_INFO=function(){ document.getElementById('infoModal').hidden=false; };
   /* iPadOS : les pastilles de fen\xEAtrage (coin haut-gauche) recouvrent le burger
@@ -5669,7 +5703,8 @@ const wrap=document.createElement("div");sheets.forEach((s,i)=>{const c=s.cloneN
             padding:calc(env(safe-area-inset-top,0px) + 9px) 11px 9px;
             min-height:calc(env(safe-area-inset-top,0px) + 96px);
             box-sizing:border-box;align-content:center;
-            border:0;border-radius:0 0 14px 14px;
+            border:0;border-bottom:1px solid #1d3a6b;
+            border-radius:0 0 14px 14px;
             box-shadow:0 3px 14px rgba(0,0,0,.42);
           }
           #root .mswipe.mcards .nc-times{gap:2px 10px;}
