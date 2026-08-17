@@ -459,6 +459,14 @@ try{ window.sb=(window.supabase&&window.supabase.createClient)?window.supabase.c
 .vac-dot{position:absolute;width:16px;height:16px;margin:-8px 0 0 -8px;border-radius:50%;border:2px solid #fff;box-shadow:0 0 0 2px #e94560;background:#e94560;color:#fff;font:700 10px sans-serif;display:flex;align-items:center;justify-content:center;pointer-events:none;z-index:2}
 .vac-btn{background:#e94560;color:#fff;border:0;border-radius:8px;padding:9px 14px;font:700 13px "Poppins",sans-serif;cursor:pointer}
 .vac-btn.sec{background:#fff;color:#2c5282;border:1px solid #cddcf3}
+/* Confirmation avant d'effacer la route tracée sur la carte */
+.rst-card{max-width:390px;padding:18px 18px 15px}
+.rst-card h3{margin:0 0 9px;font:800 16px "Poppins",sans-serif;color:#16213e}
+.rst-card p{margin:0 0 8px;font:600 13px/1.55 "Poppins",sans-serif;color:#3a4a63}
+.rst-card .rst-note{font-size:12px;line-height:1.5;color:#6b7c96;margin-bottom:0}
+.rst-f{display:flex;gap:8px;justify-content:flex-end;margin-top:15px}
+/* le bouton prudent reçoit le focus à l'ouverture : son liseré reprend le bleu du thème */
+.rst-card .vac-btn:focus-visible{outline:2px solid #1E9FE0;outline-offset:2px}
 /* Dialogue « Relier la carte et le log » — thème sombre identique aux bandeaux */
 .rl-card{background:linear-gradient(180deg,#0E2348,#0A1A33);border:1px solid #173159;border-radius:14px;padding:16px 16px 13px;max-width:334px;width:100%;color:#EAF1FB;box-shadow:0 18px 50px rgba(0,0,0,.5);font-family:"Poppins",system-ui,-apple-system,sans-serif}
 .rl-head{display:flex;align-items:center;gap:8px;font-weight:800;font-size:14.5px;letter-spacing:.2px;margin-bottom:5px}
@@ -695,10 +703,10 @@ body.rec-full #trace-host .controls,body.rec-full #trace-host .maphint,body.rec-
 #trace-host header{background:linear-gradient(180deg,#0E2348,#0A1A33)!important;border-radius:11px!important;margin:9px 10px 9px!important;color:#EAF1FB!important;border:none!important;box-shadow:0 2px 10px rgba(0,0,0,.28)!important}
 #trace-host .controls.one-line #restart{margin-left:auto!important}
 
-/* bandeau pleine largeur posé sur la carte, arrondi par le bas : la carte
-   remonte derrière lui et reste visible dans les échancrures des angles */
+/* bandeau pleine largeur posé sur la carte, arrondi sur les quatre angles :
+   la carte remonte derrière lui et reste visible dans les échancrures du bas */
 #trace-host header{margin:0!important;width:100%!important;
-  border-radius:0 0 12px 12px!important;position:relative!important;z-index:500!important;
+  border-radius:12px!important;position:relative!important;z-index:500!important;
   box-shadow:0 3px 14px rgba(0,0,0,.34)!important}
 #trace-host main{margin:-12px 0 0 0!important;position:relative!important;z-index:0!important;
   border-radius:0 0 11px 11px!important;overflow:hidden!important;
@@ -1249,24 +1257,24 @@ html:has(.ovl) #uiScaleBox,html:has(body.rec-full) #uiScaleBox{display:none!impo
 .mtoolbar .tb-info{width:26px;height:26px;border-radius:50%;border:1px solid rgba(255,255,255,.32);background:rgba(255,255,255,.08);color:#DCEAF5;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;padding:0;line-height:0;flex:none}
 @media screen and (min-width:821px){
   .mtoolbar{flex-wrap:wrap!important;position:relative!important;gap:8px 5px!important}
-  /* Ligne 1 : logo+nom · réglages · flèches · parcours — à droite : Aller/Retour · METAR TAF · AIRAC · info */
+  /* Ligne 1 : logo+nom seul à gauche — à droite : Aller/Retour · METAR TAF · AIRAC · info */
   .mtoolbar>*:nth-child(1){order:1}
-  .mtoolbar>*:nth-child(2){order:2}
-  .mtoolbar>*:nth-child(3){order:3}
-  .mtoolbar>*:nth-child(4){order:4}
-  .mtoolbar>*:nth-child(5){order:5}
-  .mtoolbar .tb-spacer{order:6;display:block;flex:1 1 auto}
-  .mtoolbar>.tb-badge{order:7}
-  .mtoolbar>*:nth-child(8){order:8}
-  .mtoolbar .tb-info{order:9}
-  .mtoolbar .tb-brkA{order:10;display:block;flex-basis:100%;height:0;margin:0}
-  /* Ligne 2 : Map · Profil · Image · Cards à gauche — GPX · Print/PDF · SAVE à droite */
-  .mtoolbar .tb-mpi{order:11}
-  .mtoolbar .tb-cards{order:12}
-  .mtoolbar .tb-brkB{order:14;display:block;flex:1 1 auto;flex-basis:auto;height:0;margin:0}
-  .mtoolbar .tb-gpx{order:15}
-  .mtoolbar>input{order:16}
-  .mtoolbar .tb-pr{order:17}
+  .mtoolbar .tb-spacer{order:2;display:block;flex:1 1 auto}
+  .mtoolbar>.tb-badge{order:3}
+  .mtoolbar>*:nth-child(8){order:4}
+  .mtoolbar .tb-info{order:5}
+  .mtoolbar .tb-brkA{order:6;display:block;flex-basis:100%;height:0;margin:0}
+  /* Ligne 2 : annuler · rétablir · parcours des aérodromes, calés à gauche —
+     GPX · Print/PDF · SAVE à droite */
+  .mtoolbar>*:nth-child(3){order:11}
+  .mtoolbar>*:nth-child(4){order:12}
+  .mtoolbar>*:nth-child(5){order:13}
+  .mtoolbar .tb-mpi{order:14}
+  .mtoolbar .tb-cards{order:15}
+  .mtoolbar .tb-brkB{order:16;display:block;flex:1 1 auto;flex-basis:auto;height:0;margin:0}
+  .mtoolbar .tb-gpx{order:17}
+  .mtoolbar>input{order:18}
+  .mtoolbar .tb-pr{order:19}
   .mtoolbar .tb-more{display:none!important}   /* bouton « exports » : mobile uniquement */
   /* Badges Aller/Retour & AIRAC du bandeau log de nav : même GABARIT que ceux du bandeau carte
      (hauteur 26px, centrage vertical) — on ne touche qu'à la taille, couleurs/comportement inchangés */
@@ -2546,7 +2554,7 @@ window.__TRACE_MARKUP="\n\n<header>\n  <div class=\"hdr-row1\">\n    <span class
    accessible depuis le bouton ⓘ du bandeau du log, avant toute ouverture de la carte */
 (function(){
   var host=document.createElement('div');
-  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Carte OACI :</b> donnée IGN non libre — nécessite votre propre clé Géoplateforme filtrée sur votre domaine. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.344</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
+  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Carte OACI :</b> donnée IGN non libre — nécessite votre propre clé Géoplateforme filtrée sur votre domaine. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.346</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
   (document.body||document.documentElement).appendChild(host.firstElementChild);
   window.__OPEN_INFO=function(){ document.getElementById('infoModal').hidden=false; };
   /* iPadOS : les pastilles de fen\xEAtrage (coin haut-gauche) recouvrent le burger
@@ -3527,7 +3535,32 @@ function removeWaypoint(i){
   routes[active].splice(i,1); selectedIdx=-1; map.closePopup(); recompute();
 }
 document.getElementById('restart').addEventListener('click', ()=>{
-  routes.aller=[]; routes.retour=[]; active='aller'; selectedIdx=-1; setActiveSeg(); recompute();
+  const efface=()=>{ routes.aller=[]; routes.retour=[]; active='aller'; selectedIdx=-1; setActiveSeg(); recompute(); };
+  /* rien de tracé : il n'y a rien à perdre, on remet à zéro sans demander */
+  if(!routes.aller.length && !routes.retour.length){ efface(); return; }
+  const ov=document.createElement('div');
+  ov.className='vac-ov'; ov.id='rstOv';
+  ov.innerHTML='<div class="vac-card rst-card" role="dialog" aria-modal="true">'
+    +'<h3>Recommencer la route ?</h3>'
+    +'<p>Tous les points trac\u00e9s sur la carte, aller comme retour, seront effac\u00e9s.</p>'
+    +'<p class="rst-note">La fl\u00e8che \u00ab Annuler \u00bb de la carte permet de revenir en arri\u00e8re, '
+    +'et le log de navigation n\u2019est pas touch\u00e9 tant que \u00ab MAJ Log \u00bb n\u2019a pas \u00e9t\u00e9 press\u00e9.</p>'
+    +'<div class="rst-f">'
+    +'<button type="button" class="vac-btn sec" data-a="non">Conserver</button>'
+    +'<button type="button" class="vac-btn" data-a="oui">Recommencer</button>'
+    +'</div></div>';
+  const esc=e=>{ if(e.key==='Escape') ferme(); };
+  const ferme=()=>{ document.removeEventListener('keydown',esc); try{ ov.remove(); }catch(e){} };
+  ov.addEventListener('click', e=>{
+    if(e.target===ov){ ferme(); return; }                 /* clic hors de la carte : on renonce */
+    const b=e.target.closest && e.target.closest('button[data-a]');
+    if(!b) return;
+    if(b.getAttribute('data-a')==='oui') efface();
+    ferme();
+  });
+  document.addEventListener('keydown',esc);
+  document.body.appendChild(ov);
+  const g=ov.querySelector('button[data-a="non"]'); if(g) try{ g.focus(); }catch(e){}
 });
 function syncAside(){
   const col=document.querySelector('main').classList.contains('aside-collapsed');
@@ -5773,7 +5806,7 @@ const wrap=document.createElement("div");sheets.forEach((s,i)=>{const c=s.cloneN
           #root .mswipe.mcards .nc-t i{font-size:10px;letter-spacing:.01em;}
           #root .mswipe.mcards .nc-t b{font-size:15px;letter-spacing:.1px;}
           #root .mswipe.mmap #trace-host{flex:1 1 auto!important;display:flex!important;flex-direction:column!important;min-height:0!important;height:auto!important;}
-          #root .mswipe.mmap #trace-host header{flex:0 0 auto;border-radius:0 0 12px 12px!important;margin:0!important;position:relative!important;z-index:3!important;box-shadow:0 3px 14px rgba(0,0,0,.42)!important;}
+          #root .mswipe.mmap #trace-host header{flex:0 0 auto;border-radius:12px!important;margin:0!important;position:relative!important;z-index:3!important;box-shadow:0 3px 14px rgba(0,0,0,.42)!important;}
           #root .mswipe.mmap #trace-host main{flex:1 1 auto!important;height:auto!important;min-height:0!important;margin:-12px 0 0 0!important;border-radius:0!important;border:none!important;position:relative!important;z-index:0!important;}
           /* la carte remonte de 12 px sous les angles arrondis : on redescend d'autant les contrôles et la vignette */
           #root .mswipe.mmap #trace-host .leaflet-top{margin-top:12px!important;}
@@ -5845,7 +5878,8 @@ const wrap=document.createElement("div");sheets.forEach((s,i)=>{const c=s.cloneN
            rétrécit pas le document. En tête, les réglages, qui ouvrent le même
            panneau que l'engrenage du bandeau ; en dessous, les six écrans. */
         @media screen and (min-width:821px) and (min-height:521px), screen and (min-width:821px) and (pointer:fine){
-          :root{--dt-l:max(10px, calc(12px + max(0px, (100vw - 1204px)/2) - 78px));}
+          :root{--dt-l:max(10px, calc(12px + max(0px, (100vw - 1204px)/2) - 78px));
+            --doc-l:calc(12px + min(74px, max(0px, 74px - (100vw - 1204px)/2)));}
           #dtabs{position:fixed;left:var(--dt-l);
             top:50%;transform:translateY(-50%);z-index:94;box-sizing:border-box;
             display:flex;flex-direction:column;align-items:stretch;gap:3px;width:64px;padding:6px;
@@ -5867,13 +5901,23 @@ const wrap=document.createElement("div");sheets.forEach((s,i)=>{const c=s.cloneN
              (au-delà de 1344 px, le menu tient dans le vide) ; en deçà, on
              écarte juste ce qu'il faut pour que le document ne passe pas
              dessous. */
-          .approot{padding-left:calc(12px + min(74px, max(0px, 74px - (100vw - 1204px)/2)))!important;}
+          .approot{padding-left:var(--doc-l)!important;}
           /* fenêtres de saisie et menu de réglages : le menu latéral s'efface */
           html:has(.ovl) #dtabs,html:has(.drawer.open) #dtabs{display:none!important;}
           /* page météo : le menu reste accessible au-dessus du panneau, qui lui
              réserve sa largeur à gauche */
           html:has(#wxOv) #dtabs{z-index:5200!important;}
-          #wxOv{padding-left:calc(var(--dt-l) + 78px)!important;}
+          /* Le panneau météo ne couvre plus tout l'écran : un voile, et au centre
+             un cadre. Le dégagement à gauche est celui du document, si bien que
+             la page météo se pose exactement sur la feuille du log. */
+          #wxOv{background:rgba(6,14,30,.66)!important;align-items:center;justify-content:center;
+            padding:16px 12px 16px var(--doc-l)!important;}
+          #wxOv .wx-box{flex:0 1 auto;background:#0A1A33;border:1px solid #1d3a6b;border-radius:14px;
+            overflow:hidden;box-shadow:0 22px 60px rgba(0,0,0,.55)}
+          /* le badge METAR / TAF du bandeau : une fenêtre étroite */
+          #wxOv.wx-pop .wx-box{width:min(460px,100%);max-height:min(78vh,640px)}
+          /* l'onglet Météo : la page, au gabarit du log de navigation */
+          #wxOv.wx-page .wx-box{width:min(1180px,100%);aspect-ratio:297 / 210;max-height:calc(100vh - 32px)}
         }
         .fld textarea{resize:vertical;overflow:hidden;min-height:2.4em;}
         .rich:empty:before{content:attr(data-ph);color:#aab0b8;}
@@ -7206,6 +7250,7 @@ class ErrB extends React.Component{constructor(p){super(p);this.state={e:null};}
     if(j<0||j>=l.length) return;
     var k=l[j];
     if(k==='meteo'){ if(document.getElementById('wxOv')) return;
+      try{ window.__WX_MODE='page'; }catch(e){}
       var w=document.querySelector('.wx-badge'); if(w) w.click(); return; }
     fermeMeteo();
     var i=idxPanneau(k); if(i>=0) go(i); }
@@ -7257,7 +7302,8 @@ class ErrB extends React.Component{constructor(p){super(p);this.state={e:null};}
         var act=t.getAttribute('data-act');
         if(act==='config'){ var g=document.querySelector('.mtoolbar .tb-cfg'); if(g) g.click(); return; }
         var etaitOuvert=fermeMeteo();
-        if(act==='meteo'){ if(!etaitOuvert){ var w=document.querySelector('.wx-badge'); if(w) w.click(); } return; }
+        if(act==='meteo'){ if(!etaitOuvert){ try{ window.__WX_MODE='page'; }catch(e){}
+          var w=document.querySelector('.wx-badge'); if(w) w.click(); } return; }
         var i=parseInt(t.getAttribute('data-i'),10);
         if(!isNaN(i)) versSection(i);
       });
@@ -7445,6 +7491,9 @@ class ErrB extends React.Component{constructor(p){super(p);this.state={e:null};}
 /* ===== Page météo METAR / TAF ===== */
 .wx-ov{position:fixed;inset:0;z-index:5000;background:#0A1A33;color:#EAF1FB;display:flex;flex-direction:column;
   font-family:"Poppins",system-ui,sans-serif;padding-top:env(safe-area-inset-top,0px)}
+/* Le cadre du panneau : sur téléphone il remplit l'écran, l'habillage ne
+   change donc rien ; sur ordinateur c'est lui qui porte la taille. */
+.wx-box{display:flex;flex-direction:column;flex:1 1 auto;min-height:0;width:100%;min-width:0}
 .wx-hd{flex:none;display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid #1d3a6b;background:#0E2348}
 .wx-hd h3{margin:0;font:800 15px "Poppins",sans-serif;color:#fff;flex:1 1 auto}
 .wx-addrow button#wxRefresh{display:inline-flex;align-items:center;justify-content:center;line-height:0}
@@ -7747,6 +7796,11 @@ window.__pickGpx=function(cb){
   window.__WX_HORLOGE=wxHorloge;   /* utilisé par les tests */
 
   window.__WX_OPEN=function(pl){
+    /* Deux gabarits : le badge du bandeau ouvre une fenêtre étroite, l'onglet
+       Météo une page à la taille du log de navigation. Sur téléphone les deux
+       occupent l'écran entier, comme avant. */
+    var mode=((pl&&pl.mode)||window.__WX_MODE)==='page'?'page':'pop';
+    try{ window.__WX_MODE=null; }catch(e){}
     /* départ puis arrivée d'abord, survols ensuite, favoris toujours en dessous */
     var base=((pl&&pl.codes)||[]).slice().sort(function(a,b){
       var R={dep:0,arr:1,mid:2};var ra=R[a.role],rb=R[b.role];return (ra==null?9:ra)-(rb==null?9:rb);});
@@ -7756,7 +7810,10 @@ window.__pickGpx=function(cb){
     codes=codes.concat(wxProx.filter(function(p){return !codes.some(function(c){return c.code===p.code})})
       .map(function(p){return {code:p.code,role:'prox',nm:p.nm}}));
     var old=document.getElementById('wxOv'); if(old) old.remove();
-    var ov=document.createElement('div'); ov.className='wx-ov no-print'; ov.id='wxOv';
+    var ov=document.createElement('div'); ov.className='wx-ov no-print wx-'+mode; ov.id='wxOv';
+    /* clic sur le voile, autour du cadre : on referme comme par la croix */
+    ov.addEventListener('click',function(e){ if(e.target!==ov) return;
+      var c=document.getElementById('wxClose'); if(c) c.click(); });
     function rowHtml(c){
       var R={dep:'D\u00e9part',arr:'Arriv\u00e9e',mid:'Survol',fav:'Favori',prox:'Proche'};
       return '<div class="wx-row'+(c.role==='fav'?' favrow':'')+'" data-code="'+c.code+'">'
@@ -7772,7 +7829,8 @@ window.__pickGpx=function(cb){
     }
     var flightRows=base.map(rowHtml).join('');
     var favRows=codes.filter(function(c){return c.role==='fav'}).map(rowHtml).join('');
-    ov.innerHTML='<div class="wx-tabs">'
+    ov.innerHTML='<div class="wx-box">'
+      +'<div class="wx-tabs">'
       +'<button class="wx-tab on" data-t="metar" type="button">METAR / TAF</button>'
       +'<button class="wx-tab" data-t="cartes" type="button">WINTEM / TEMSI</button>'
       +'<button id="wxClose" class="wx-x" type="button" title="Fermer" aria-label="Fermer">\u00d7</button>'
@@ -7800,7 +7858,7 @@ window.__pickGpx=function(cb){
       +'<path d="M3 20h18"/><path d="M6.5 20 12 5l5.5 15"/><path d="M8.6 14h6.8"/></svg>'
       +'<b>Cartes WINTEM et TEMSI</b>'
       +'<span>En construction \u2014 les cartes de M\u00e9t\u00e9o-France viendront s\u2019ajouter ici.</span>'
-      +'</div>';
+      +'</div></div>';
     document.body.appendChild(ov);
     var mode=localStorage.getItem('lognav_wx_mode')||'raw';
     var lastC=cget(), lastStatus=' \u00b7 chargement\u2026';
