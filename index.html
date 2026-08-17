@@ -675,9 +675,15 @@ body.rec-full #trace-host .controls,body.rec-full #trace-host .maphint,body.rec-
 #trace-host header{background:linear-gradient(180deg,#0E2348,#0A1A33)!important;border-radius:11px!important;margin:9px 10px 9px!important;color:#EAF1FB!important;border:none!important;box-shadow:0 2px 10px rgba(0,0,0,.28)!important}
 #trace-host .controls.one-line #restart{margin-left:auto!important}
 
-/* bandeau pleine largeur au-dessus de la carte + carte en carte arrondie */
-#trace-host header{margin:0 0 10px 0!important;width:100%!important}
-#trace-host main{border-radius:11px!important;overflow:hidden!important;box-shadow:0 4px 18px rgba(0,0,0,.12)!important;border:1px solid #333!important}
+/* bandeau pleine largeur posé sur la carte, arrondi par le bas : la carte
+   remonte derrière lui et reste visible dans les échancrures des angles */
+#trace-host header{margin:0!important;width:100%!important;
+  border-radius:0 0 12px 12px!important;position:relative!important;z-index:500!important;
+  box-shadow:0 3px 14px rgba(0,0,0,.34)!important}
+#trace-host main{margin:-12px 0 0 0!important;position:relative!important;z-index:0!important;
+  border-radius:0 0 11px 11px!important;overflow:hidden!important;
+  box-shadow:0 4px 18px rgba(0,0,0,.12)!important;
+  border:1px solid #333!important;border-top:0!important}
 #trace-host #linkBadge{color:#fff!important}
 
 /* favoris perso : étoile + nom */
@@ -2493,7 +2499,7 @@ window.__TRACE_MARKUP="\n\n<header>\n  <div class=\"hdr-row1\">\n    <span class
    accessible depuis le bouton ⓘ du bandeau du log, avant toute ouverture de la carte */
 (function(){
   var host=document.createElement('div');
-  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Carte OACI :</b> donnée IGN non libre — nécessite votre propre clé Géoplateforme filtrée sur votre domaine. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.323</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
+  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Carte OACI :</b> donnée IGN non libre — nécessite votre propre clé Géoplateforme filtrée sur votre domaine. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.324</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
   (document.body||document.documentElement).appendChild(host.firstElementChild);
   window.__OPEN_INFO=function(){ document.getElementById('infoModal').hidden=false; };
   /* iPadOS : les pastilles de fen\xEAtrage (coin haut-gauche) recouvrent le burger
