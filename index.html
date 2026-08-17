@@ -2546,7 +2546,7 @@ window.__TRACE_MARKUP="\n\n<header>\n  <div class=\"hdr-row1\">\n    <span class
    accessible depuis le bouton ⓘ du bandeau du log, avant toute ouverture de la carte */
 (function(){
   var host=document.createElement('div');
-  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Carte OACI :</b> donnée IGN non libre — nécessite votre propre clé Géoplateforme filtrée sur votre domaine. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.335</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
+  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Carte OACI :</b> donnée IGN non libre — nécessite votre propre clé Géoplateforme filtrée sur votre domaine. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.337</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
   (document.body||document.documentElement).appendChild(host.firstElementChild);
   window.__OPEN_INFO=function(){ document.getElementById('infoModal').hidden=false; };
   /* iPadOS : les pastilles de fen\xEAtrage (coin haut-gauche) recouvrent le burger
@@ -5801,21 +5801,14 @@ const wrap=document.createElement("div");sheets.forEach((s,i)=>{const c=s.cloneN
           #mtabs .mtab{flex:1 1 0;min-width:46px;display:flex;flex-direction:column;align-items:center;
             justify-content:center;gap:1px;padding:2px;border:0;border-radius:10px;
             background:transparent;color:#8fa9cc;cursor:pointer;
-            font:700 8.5px "Poppins",sans-serif;letter-spacing:.01em;-webkit-tap-highlight-color:transparent}
-          #mtabs .mtab svg{width:19px;height:19px;flex:none;display:block}
+            font:700 9.5px "Poppins",sans-serif;letter-spacing:.01em;-webkit-tap-highlight-color:transparent}
+          #mtabs .mtab svg{width:22px;height:22px;flex:none;display:block}
           #mtabs .mtab i{font-style:normal;white-space:nowrap}
           #mtabs .mtab.on{background:rgba(30,159,224,.18);color:#7fd1ff}
           #mtabs .mtab:active{background:rgba(255,255,255,.10)}
           /* le sélecteur de taille prend place comme dernier onglet */
-          #mtabs #uiScaleBox{position:static!important;flex:1 1 0;min-width:46px;
-            flex-direction:column;justify-content:center;gap:1px;
-            background:transparent!important;border:0!important;box-shadow:none!important;
-            padding:2px!important;border-radius:10px!important;color:#8fa9cc}
-          /* la loupe portait un trait blanc figé dans son dessin : elle suit
-             maintenant la couleur des autres onglets, active comme au repos */
-          #mtabs #uiScaleBox svg{width:19px;height:19px;opacity:1;stroke:currentColor!important}
-          #mtabs #uiScaleSel{font:700 8.5px "Poppins",sans-serif;color:#8fa9cc;text-align:center;
-            padding:0;max-width:100%;-webkit-appearance:none;appearance:none;text-align-last:center}
+          /* le réglage de taille d'interface ne concerne que l'ordinateur */
+          #uiScaleBox{display:none!important}
           #mdots{display:none!important;}
           #uiScaleBox{transition:opacity .45s ease;}
           #uiScaleBox.mhid{opacity:0;pointer-events:none;}
@@ -7004,11 +6997,11 @@ class ErrB extends React.Component{constructor(p){super(p);this.state={e:null};}
     var z=bandNow(), hb=dots.offsetHeight||0;
     dots.style.bottom='auto'; dots.style.left='0'; dots.style.right='0';
     dots.style.top=Math.round(z.vh+z.b-hb)+'px';
-    /* le sélecteur de taille devient le dernier onglet de la barre */
-    if(scale && scale.parentElement!==dots){
-      try{ dots.appendChild(scale); }catch(e){}
-      scale.style.position='static'; scale.style.top=''; scale.style.right=''; scale.style.bottom='';
-      scale.style.left=''; scale.style.transition=''; scale.__mband=true;
+    /* le réglage de taille d'interface reste à l'ordinateur : sur téléphone il
+       quitte la barre, qui ne garde que les écrans */
+    if(scale && scale.parentElement===dots){ try{ document.body.appendChild(scale); }catch(e){}
+      scale.style.position=''; scale.style.top=''; scale.style.right=''; scale.style.bottom='';
+      scale.style.left=''; scale.style.transition=''; scale.__mband=false;
     }
   }
   if(window.visualViewport){
@@ -7104,6 +7097,29 @@ class ErrB extends React.Component{constructor(p){super(p);this.state={e:null};}
   };
   var ORDRE=['log','map','profil','cards','image'];
   var NOM={log:'Log',map:'Map',profil:'Profil',cards:'Card',image:'Image'};
+  /* L'ordre des feuilles dans le document n'est pas celui de la barre : le
+     balayage doit suivre ce que l'on voit, et non l'ordre du document. La météo
+     occupe la dernière place, comme dans la barre. */
+  var NAV=ORDRE.concat(['meteo']);
+  function idxPanneau(cle){ for(var i=0;i<panels.length;i++) if(panels[i].key===cle) return i; return -1; }
+  function navDispo(){ var out=[];
+    for(var i=0;i<NAV.length;i++){ var k=NAV[i]; if(k==='meteo'||idxPanneau(k)>=0) out.push(k); }
+    return out; }
+  function fermeMeteo(){ var o=document.getElementById('wxOv');
+    if(!o) return false;
+    try{ o.remove(); }catch(e){}
+    lastDotsHtml=''; renderDots(panels); return true; }
+  function posNav(){ var l=navDispo();
+    if(document.getElementById('wxOv')) return l.indexOf('meteo');
+    var k=(panels[cur]&&panels[cur].key)||'log', j=l.indexOf(k);
+    return j<0?0:j; }
+  function versNav(j){ var l=navDispo();
+    if(j<0||j>=l.length) return;
+    var k=l[j];
+    if(k==='meteo'){ if(document.getElementById('wxOv')) return;
+      var w=document.querySelector('.wx-badge'); if(w) w.click(); return; }
+    fermeMeteo();
+    var i=idxPanneau(k); if(i>=0) go(i); }
   function svg(d){ return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" '
     +'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="'+d+'"/></svg>'; }
   function renderDots(ps){
@@ -7113,11 +7129,10 @@ class ErrB extends React.Component{constructor(p){super(p);this.state={e:null};}
         var t=ev.target && ev.target.closest ? ev.target.closest('.mtab') : null;
         if(!t) return;
         var act=t.getAttribute('data-act');
-        var ouv=document.getElementById('wxOv');
         /* la météo se referme par son propre onglet comme par n'importe quel
            autre : on n'a jamais à chercher le bouton « Fermer » du panneau */
-        if(ouv){ try{ ouv.remove(); }catch(e){} lastDotsHtml=''; renderDots(panels); if(act==='meteo') return; }
-        if(act==='meteo'){ var w=document.querySelector('.wx-badge'); if(w) w.click(); return; }
+        var etaitOuvert=fermeMeteo();
+        if(act==='meteo'){ if(!etaitOuvert) versNav(navDispo().indexOf('meteo')); return; }
         var i=parseInt(t.getAttribute('data-i'),10);
         if(!isNaN(i)) go(i);
       });
@@ -7137,12 +7152,7 @@ class ErrB extends React.Component{constructor(p){super(p);this.state={e:null};}
     html+='<button type="button" class="mtab'+(document.getElementById('wxOv')?' on':'')+'" data-act="meteo" title="M\u00e9t\u00e9o \u2014 METAR / TAF">'
       +svg(ICO.meteo)+'<i>M\u00e9t\u00e9o</i></button>';
     if(html!==lastDotsHtml){
-      /* on garde la référence : une fois détaché, le sélecteur de taille ne serait
-         plus retrouvable par son identifiant */
-      var sc=document.getElementById('uiScaleBox');
-      if(sc&&sc.parentElement===dots) dots.removeChild(sc);
       dots.innerHTML=html; lastDotsHtml=html;
-      if(sc) dots.appendChild(sc);
     }
     requestAnimationFrame(placeDots);
   }
@@ -7182,10 +7192,7 @@ class ErrB extends React.Component{constructor(p){super(p);this.state={e:null};}
     var dx=e.changedTouches[0].clientX-startX, dy=e.changedTouches[0].clientY-startY;
     if(Date.now()-startT>1200) return;
     if(Math.abs(dx)<42 || Math.abs(dx)<Math.abs(dy)*1.15) return;
-    /* balayage sur la météo : on referme le panneau, puis on change de page */
-    var ouv=document.getElementById('wxOv');
-    if(ouv){ try{ ouv.remove(); }catch(_){} lastDotsHtml=''; renderDots(panels); }
-    go(dx<0 ? cur+1 : cur-1);
+    versNav(posNav() + (dx<0 ? 1 : -1));
   },{passive:true});
   try{ new MutationObserver(function(){ apply(); }).observe(document.body,{childList:true,subtree:true}); }catch(e){}
   setInterval(apply,900);
