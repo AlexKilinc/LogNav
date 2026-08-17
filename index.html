@@ -659,8 +659,12 @@ body.rec-full #trace-host .controls,body.rec-full #trace-host .maphint,body.rec-
     display:grid;place-items:center;font-size:12px;box-shadow:0 1px 4px rgba(15,39,76,.3);
   }
 #trace-host .asp-label{transform:translate(-50%,-50%);white-space:nowrap;font:700 10px "Poppins",sans-serif;text-shadow:0 0 3px #fff,0 0 3px #fff,0 0 2px #fff,0 0 2px #fff}
-#trace-host .aspstack{position:absolute;right:58px;top:12px;z-index:600;background:#fff;border:1px solid var(--line);
-    border-radius:12px;box-shadow:var(--shadow);width:344px;max-height:calc(100% - 96px);
+/* Panneau des espaces aériens : posé en fixe pour pouvoir sortir du cadre de
+   la carte — sur les côtés, au-dessus ou en dessous. Il est déplacé auprès de
+   #trace-host afin d'échapper au rognage de la carte et au plan du bandeau,
+   tout en gardant les couleurs du thème (variables portées par #trace-host). */
+#trace-host .aspstack{position:fixed;right:auto;top:12px;z-index:1200;background:#fff;border:1px solid var(--line);
+    border-radius:12px;box-shadow:var(--shadow);width:344px;max-height:calc(100vh - 120px);
     display:flex;flex-direction:column;font-family:"Poppins",sans-serif}
 #trace-host .aspstack[hidden]{display:none}
 #trace-host .aspstack-h{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;
@@ -2567,7 +2571,7 @@ window.__TRACE_MARKUP="\n\n<header>\n  <div class=\"hdr-row1\">\n    <span class
    accessible depuis le bouton ⓘ du bandeau du log, avant toute ouverture de la carte */
 (function(){
   var host=document.createElement('div');
-  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Carte OACI :</b> donnée IGN non libre — nécessite votre propre clé Géoplateforme filtrée sur votre domaine. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.348</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
+  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Carte OACI :</b> donnée IGN non libre — nécessite votre propre clé Géoplateforme filtrée sur votre domaine. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.349</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
   (document.body||document.documentElement).appendChild(host.firstElementChild);
   window.__OPEN_INFO=function(){ document.getElementById('infoModal').hidden=false; };
   /* iPadOS : les pastilles de fen\xEAtrage (coin haut-gauche) recouvrent le burger
@@ -3098,62 +3102,75 @@ map.on('contextmenu', e=>{ if(e.originalEvent) e.originalEvent.preventDefault();
   L.DomEvent.disableClickPropagation(stack); L.DomEvent.disableScrollPropagation(stack);
 })();
 /* --- Panneau des espaces aériens : on peut le prendre et le déplacer ---
-   Il se pose par défaut en haut à droite, où il recouvre parfois l'espace
-   qu'il décrit. On le saisit par son entête ; il reste dans les limites de la
-   carte, et la place choisie est retenue pour les ouvertures suivantes. */
+   Il se pose par défaut en haut à droite de la carte, où il recouvre parfois
+   l'espace qu'il décrit. On le saisit par son entête et on le porte où l'on
+   veut dans la fenêtre — y compris hors de la carte, sur les côtés, au-dessus
+   ou en dessous. La place choisie tient tant qu'on reste sur la carte : au
+   changement de page, le panneau reprend sa place. */
 (function(){
   var st=document.getElementById('aspStack'); if(!st) return;
   var h=st.querySelector('.aspstack-h'); if(!h) return;
-  var KEY='lognav_aspstack_pos', pris=null;
+  var th=document.getElementById('trace-host');
+  /* hors de la carte et hors du plan du bandeau, mais toujours sous #trace-host :
+     les couleurs du thème y sont définies */
+  if(th && st.parentElement!==th){ try{ th.appendChild(st); }catch(e){} }
+  var pris=null, choisi=null;
   h.title='Glissez pour d\u00e9placer le panneau';
-  function cadre(){ return st.offsetParent || st.parentElement; }
   function borne(x,y){
-    var p=cadre(); if(!p) return {x:x,y:y};
-    var maxX=Math.max(4, p.clientWidth - st.offsetWidth - 4);
-    var maxY=Math.max(4, p.clientHeight - st.offsetHeight - 4);
-    return { x:Math.max(4,Math.min(x,maxX)), y:Math.max(4,Math.min(y,maxY)) };
+    var w=st.offsetWidth, ht=st.offsetHeight, m=6;
+    var maxX=window.innerWidth-w-m, maxY=window.innerHeight-ht-m;
+    return { x: maxX<m ? Math.max(maxX,Math.min(x,m)) : Math.max(m,Math.min(x,maxX)),
+             y: maxY<m ? Math.max(maxY,Math.min(y,m)) : Math.max(m,Math.min(y,maxY)) };
   }
-  function pose(x,y,garder){
+  function pose(x,y,retenir){
     var b=borne(x,y);
     st.style.left=b.x+'px'; st.style.top=b.y+'px'; st.style.right='auto';
-    if(garder!==false){ try{ localStorage.setItem(KEY,JSON.stringify({x:b.x,y:b.y})); }catch(e){} }
+    if(retenir!==false) choisi={x:b.x,y:b.y};
   }
-  function retenue(){
-    try{ var v=JSON.parse(localStorage.getItem(KEY)||'null');
-      if(v&&isFinite(v.x)&&isFinite(v.y)) pose(v.x,v.y,false);
-    }catch(e){}
+  /* la place d'origine : en haut à droite de la carte */
+  function place(){
+    var m=th&&(th.querySelector('main')||th);
+    var r=m?m.getBoundingClientRect():{right:window.innerWidth,top:0};
+    pose(r.right-st.offsetWidth-58, r.top+12, false);
   }
+  function rappel(){ if(choisi) pose(choisi.x,choisi.y,false); else place(); }
+  /* Appelé au changement de page : le panneau oublie où on l'avait mis. Sur
+     ordinateur la page glisse en douceur jusqu'à la section, et la carte n'est
+     donc pas encore à sa place au moment du clic : on repose le panneau une
+     fois le défilement arrivé. */
+  window.__ASP_HOME=function(){
+    choisi=null;
+    if(st.hidden) return;
+    place();
+    [350,900].forEach(function(d){ setTimeout(function(){ if(!choisi&&!st.hidden) place(); }, d); });
+  };
   h.addEventListener('pointerdown',function(e){
     if(e.button&&e.button!==0) return;
     if(e.target.closest&&e.target.closest('button')) return;   /* la croix reste la croix */
-    var p=cadre(); if(!p) return;
-    var r=st.getBoundingClientRect(), pr=p.getBoundingClientRect();
-    pris={ dx:e.clientX-r.left, dy:e.clientY-r.top, px:pr.left, py:pr.top };
-    /* on quitte l'ancrage « à droite » pour un ancrage « à gauche » mesuré */
-    st.style.left=(r.left-pr.left)+'px'; st.style.top=(r.top-pr.top)+'px'; st.style.right='auto';
+    var r=st.getBoundingClientRect();
+    pris={ dx:e.clientX-r.left, dy:e.clientY-r.top };
+    st.style.left=r.left+'px'; st.style.top=r.top+'px'; st.style.right='auto';
     h.classList.add('pris');
     try{ h.setPointerCapture(e.pointerId); }catch(_){}
     e.preventDefault(); e.stopPropagation();
   });
   h.addEventListener('pointermove',function(e){
     if(!pris) return;
-    pose(e.clientX-pris.px-pris.dx, e.clientY-pris.py-pris.dy);
+    pose(e.clientX-pris.dx, e.clientY-pris.dy);
     e.preventDefault();
   });
   function lache(e){ if(!pris) return; pris=null; h.classList.remove('pris');
     try{ h.releasePointerCapture(e.pointerId); }catch(_){} }
   h.addEventListener('pointerup',lache);
   h.addEventListener('pointercancel',lache);
-  /* à chaque ouverture on reprend la place choisie ; au redimensionnement on
-     se recale dans la carte plutôt que de sortir du cadre */
-  try{ new MutationObserver(function(){ if(!st.hidden) retenue(); })
+  /* à chaque ouverture, la place retenue — ou celle d'origine ; au
+     redimensionnement on se recale dans la fenêtre */
+  try{ new MutationObserver(function(){ if(!st.hidden) rappel(); })
         .observe(st,{attributes:true,attributeFilter:['hidden']}); }catch(e){}
   window.addEventListener('resize',function(){
-    if(st.hidden) return; var p=cadre(); if(!p) return;
-    var r=st.getBoundingClientRect(), pr=p.getBoundingClientRect();
-    pose(r.left-pr.left, r.top-pr.top, false);
+    if(st.hidden) return; var r=st.getBoundingClientRect(); pose(r.left,r.top,!!choisi);
   });
-  if(!st.hidden) retenue();
+  if(!st.hidden) rappel();
 })();
 
 /* ---- Aérodromes (SIA officiel, LF métropole) ---- */
@@ -7350,6 +7367,7 @@ class ErrB extends React.Component{constructor(p){super(p);this.state={e:null};}
   }
   /* couché : on ne change pas d'écran, on amène la section sous les yeux */
   function versSection(i){
+    aspMaison();
     var p=panels[i];
     try{
       if(!p||!p.el) window.scrollTo({top:0,behavior:'smooth'});
@@ -7371,6 +7389,7 @@ class ErrB extends React.Component{constructor(p){super(p);this.state={e:null};}
         var t=ev.target && ev.target.closest ? ev.target.closest('.dtab') : null;
         if(!t) return;
         var act=t.getAttribute('data-act');
+        aspMaison();
         if(act==='config'){ var g=document.querySelector('.mtoolbar .tb-cfg'); if(g) g.click(); return; }
         var etaitOuvert=fermeMeteo();
         if(act==='meteo'){ if(!etaitOuvert){ try{ window.__WX_MODE='page'; }catch(e){}
@@ -7403,6 +7422,7 @@ class ErrB extends React.Component{constructor(p){super(p);this.state={e:null};}
         var t=ev.target && ev.target.closest ? ev.target.closest('.mtab') : null;
         if(!t) return;
         var act=t.getAttribute('data-act');
+        aspMaison();
         /* la météo se referme par son propre onglet comme par n'importe quel
            autre : on n'a jamais à chercher le bouton « Fermer » du panneau */
         var etaitOuvert=fermeMeteo();
@@ -7433,8 +7453,12 @@ class ErrB extends React.Component{constructor(p){super(p);this.state={e:null};}
     majActif();
     requestAnimationFrame(placeDots);
   }
+  /* le panneau des espaces aériens appartient à la carte : dès qu'on change
+     d'écran, il reprend sa place d'origine */
+  function aspMaison(){ try{ if(window.__ASP_HOME) window.__ASP_HOME(); }catch(e){} }
   function go(i){
     if(isNaN(i)||i<0||i>panels.length-1||i===cur) return;
+    aspMaison();
     cur=i;
     if(cur>0){ try{ window.scrollTo(0,0); }catch(e){} }
     apply(); pokeDots();
