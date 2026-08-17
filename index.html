@@ -861,7 +861,7 @@ html:has(.ovl) #uiScaleBox,html:has(body.rec-full) #uiScaleBox{display:none!impo
    posés juste avant les graphiques. */
 .pf-sous{display:flex;flex-direction:column;gap:3px;margin:0 0 6px}
 /* ===== Log de Nav : Card — cartes de branche (lecture en vol) ===== */
-#navcards{background:#0A1A33;color:#EAF1FB;border:1px solid #16305c;border-radius:14px;padding:10px;box-sizing:border-box;max-width:1180px;margin:0 auto;box-shadow:0 4px 18px rgba(0,0,0,.18)}
+#navcards{background:linear-gradient(180deg,#0E2348,#0A1A33);color:#EAF1FB;border:1px solid #16305c;border-radius:14px;padding:10px;box-sizing:border-box;max-width:1180px;margin:0 auto;box-shadow:0 4px 18px rgba(0,0,0,.18)}
 .nc-wrap{display:flex;flex-direction:column;gap:10px;min-height:560px}
 .nc-bar{background:linear-gradient(180deg,#0E2348,#0A1A33);border:1px solid #1d3a6b;border-radius:12px;padding:9px 12px;display:flex;flex-wrap:wrap;align-items:center;gap:8px;box-shadow:0 3px 14px rgba(0,0,0,.35)}
 .nc-title{font:800 13.5px "Poppins",sans-serif;color:#fff;white-space:nowrap;display:inline-block;min-width:0;max-width:44vw;overflow:hidden;text-overflow:ellipsis}
@@ -2546,7 +2546,7 @@ window.__TRACE_MARKUP="\n\n<header>\n  <div class=\"hdr-row1\">\n    <span class
    accessible depuis le bouton ⓘ du bandeau du log, avant toute ouverture de la carte */
 (function(){
   var host=document.createElement('div');
-  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Carte OACI :</b> donnée IGN non libre — nécessite votre propre clé Géoplateforme filtrée sur votre domaine. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.343</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
+  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Carte OACI :</b> donnée IGN non libre — nécessite votre propre clé Géoplateforme filtrée sur votre domaine. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.344</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
   (document.body||document.documentElement).appendChild(host.firstElementChild);
   window.__OPEN_INFO=function(){ document.getElementById('infoModal').hidden=false; };
   /* iPadOS : les pastilles de fen\xEAtrage (coin haut-gauche) recouvrent le burger
@@ -5749,7 +5749,7 @@ const wrap=document.createElement("div");sheets.forEach((s,i)=>{const c=s.cloneN
           #root .approot>.sheet.mswipe.mimg{bottom:calc(46px + env(safe-area-inset-bottom,0px))!important;
             padding-bottom:12px!important;}
           #root .approot>.sheet.mswipe.mmap{padding:calc(env(safe-area-inset-top) + 1.5px) 0 0 0!important;background:#0A1A33!important;display:flex!important;flex-direction:column!important;overflow:hidden!important;}
-          #root .approot>.sheet.mswipe.mcards{background:#0A1A33!important;padding:calc(env(safe-area-inset-top) + 8px) 8px 106px!important;display:flex!important;flex-direction:column!important;border:0!important;border-radius:0!important;box-shadow:none!important;}
+          #root .approot>.sheet.mswipe.mcards{background:linear-gradient(180deg,#0E2348,#0A1A33)!important;padding:calc(env(safe-area-inset-top) + 8px) 8px 106px!important;display:flex!important;flex-direction:column!important;border:0!important;border-radius:0!important;box-shadow:none!important;}
           #root .mswipe.mcards .nc-wrap{flex:1 1 auto;min-height:0;}
           #root .mswipe.mcards .nc-v b{font-size:38px;}
           #root .mswipe.mcards .nc-end{font-size:23px;}
@@ -5845,7 +5845,9 @@ const wrap=document.createElement("div");sheets.forEach((s,i)=>{const c=s.cloneN
            rétrécit pas le document. En tête, les réglages, qui ouvrent le même
            panneau que l'engrenage du bandeau ; en dessous, les six écrans. */
         @media screen and (min-width:821px) and (min-height:521px), screen and (min-width:821px) and (pointer:fine){
-          #dtabs{position:fixed;left:10px;top:50%;transform:translateY(-50%);z-index:94;box-sizing:border-box;
+          :root{--dt-l:max(10px, calc(12px + max(0px, (100vw - 1204px)/2) - 78px));}
+          #dtabs{position:fixed;left:var(--dt-l);
+            top:50%;transform:translateY(-50%);z-index:94;box-sizing:border-box;
             display:flex;flex-direction:column;align-items:stretch;gap:3px;width:64px;padding:6px;
             background:linear-gradient(#0E2348,#0A1A33);
             border:1px solid #1d3a6b;border-radius:18px;
@@ -5871,7 +5873,7 @@ const wrap=document.createElement("div");sheets.forEach((s,i)=>{const c=s.cloneN
           /* page météo : le menu reste accessible au-dessus du panneau, qui lui
              réserve sa largeur à gauche */
           html:has(#wxOv) #dtabs{z-index:5200!important;}
-          #wxOv{padding-left:84px!important;}
+          #wxOv{padding-left:calc(var(--dt-l) + 78px)!important;}
         }
         .fld textarea{resize:vertical;overflow:hidden;min-height:2.4em;}
         .rich:empty:before{content:attr(data-ph);color:#aab0b8;}
