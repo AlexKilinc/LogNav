@@ -2433,7 +2433,7 @@ window.__TRACE_MARKUP="\n\n<header>\n  <div class=\"hdr-row1\">\n    <span class
    accessible depuis le bouton ⓘ du bandeau du log, avant toute ouverture de la carte */
 (function(){
   var host=document.createElement('div');
-  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Carte OACI :</b> donnée IGN non libre — nécessite votre propre clé Géoplateforme filtrée sur votre domaine. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.319</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
+  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Carte OACI :</b> donnée IGN non libre — nécessite votre propre clé Géoplateforme filtrée sur votre domaine. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.320</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
   (document.body||document.documentElement).appendChild(host.firstElementChild);
   window.__OPEN_INFO=function(){ document.getElementById('infoModal').hidden=false; };
   /* iPadOS : les pastilles de fen\xEAtrage (coin haut-gauche) recouvrent le burger
@@ -6085,25 +6085,53 @@ function NavCards({nav,setNav,tsvOf,tavOf,capOf}){
        premier. Le chiffre qui va être remplacé est sélectionné, ce qui rend la
        position visible. Double appui ou appui long : retour à 7000.
        La position est portée par le champ lui-même (_xpPos) : elle survit aux
-       rendus de React sans imposer d'état supplémentaire au composant. */
+       rendus de React sans imposer d'état supplémentaire au composant.
+       La frappe est captée sur « beforeinput » et non sur onChange : React
+       n'appelle onChange que si la valeur a changé, si bien que retaper le
+       chiffre déjà présent (le 0 de 7000, le plus souvent) ne déclenchait
+       rien et laissait le curseur en place. En interceptant la frappe avant
+       que le navigateur ne modifie le champ, chaque touche est traitée, y
+       compris lorsqu'elle réécrit le même chiffre. */
     const xpVal=(A.xpdr==null||A.xpdr==="")?"7000":(String(A.xpdr).replace(/\D/g,"")+"0000").slice(0,4);
     const xpPose=(el,p)=>{ el._xpPos=p;
       setTimeout(()=>{ try{ el.setSelectionRange(p,p+1); }catch(err){} },0); };
     const xpPos=el=>(typeof el._xpPos==="number")?el._xpPos:0;
     const xpRaz=el=>{ put({xpdr:"7000"}); if(el) xpPose(el,0);
       try{ if(navigator.vibrate) navigator.vibrate(10); }catch(err){} };
+    /* la valeur de référence se lit sur le champ : le gestionnaire natif,
+       posé une seule fois, ne dépend ainsi d'aucune fermeture périmée */
+    const xpLu=el=>(String(el.value).replace(/\D/g,"")+"0000").slice(0,4);
+    const xpEcrit=(el,d)=>{ const p=xpPos(el), cur=xpLu(el);
+      const neuf=cur.slice(0,p)+d+cur.slice(p+1);
+      el.value=neuf; try{ el._xpPut&&el._xpPut({xpdr:neuf}); }catch(err){}
+      xpPose(el,(p+1)%4); };
+    const xpRef=el=>{ if(!el) return;
+      el._xpPut=put;                       /* rafraîchi à chaque rendu */
+      if(el._xpOn) return; el._xpOn=1;
+      el.addEventListener("beforeinput",function(ev){
+        const t=ev.inputType||"";
+        if(t.indexOf("delete")===0){ ev.preventDefault(); xpPose(el,(xpPos(el)+3)%4); return; }
+        if(t==="insertFromPaste"){ ev.preventDefault();
+          const n=String((ev.dataTransfer&&ev.dataTransfer.getData("text"))||ev.data||"").replace(/\D/g,"").slice(0,4);
+          if(n.length===4){ el.value=n; try{ el._xpPut&&el._xpPut({xpdr:n}); }catch(err){} xpPose(el,0); }
+          return; }
+        if(t!=="insertText"&&t!=="insertCompositionText") return;
+        ev.preventDefault();
+        const d=String(ev.data||"").replace(/\D/g,"").slice(-1);
+        if(d) xpEcrit(el,d);
+      });
+    };
     const xpdrInp=h("input",{className:"nc-xpdr",inputMode:"numeric",maxLength:5,value:xpVal,
       title:"Transpondeur — chaque chiffre frappé remplace le suivant, sans rien effacer ; double appui ou appui long : retour au code VFR 7000",
+      ref:xpRef,
       onFocus:e=>xpPose(e.target,0),
       onKeyDown:e=>{ if(e.key==="Backspace"||e.key==="Delete"){ e.preventDefault();
         const el=e.target; xpPose(el,(xpPos(el)+3)%4); } },
+      /* filet de sécurité : seuls les moteurs sans « beforeinput » passent ici,
+         la frappe ayant sinon déjà été traitée et annulée */
       onChange:e=>{
         const el=e.target, p=xpPos(el), brut=String(el.value).replace(/\D/g,"");
-        /* effacement (touche « suppr » des claviers virtuels) : on recule d'un
-           cran sans jamais vider le champ */
         if(brut.length<4){ el.value=xpVal; xpPose(el,(p+3)%4); return; }
-        /* le chiffre frappé se lit sous le curseur ; il s'écrit à la position
-           suivie, même si le navigateur a perdu la sélection */
         const car=(el.selectionStart==null)?brut.length:el.selectionStart;
         const d=brut.charAt(Math.max(0,Math.min(car-1,brut.length-1)))||xpVal.charAt(p);
         const neuf=xpVal.slice(0,p)+d+xpVal.slice(p+1);
