@@ -560,12 +560,15 @@ body.rec-full #trace-host .controls,body.rec-full #trace-host .maphint,body.rec-
   #trace-host .hdr-row1 #linkBadge{height:38px!important;border-radius:10px!important;box-sizing:border-box!important;display:inline-flex!important;align-items:center!important;font-size:9.5px!important;padding:0 8px!important;flex:none!important}
   #trace-host .hdr-row1 #airacBadge{display:none!important}
   html.ipados #trace-host .hdr-row1{padding-top:40px!important}
-  #trace-host #airacFlash{bottom:calc(134px + env(safe-area-inset-bottom, 0px))!important}
+  /* la carte remonte de 12 px derrière le bandeau : le badge se pose plus bas
+     pour rester entièrement visible, et garde son fondu */
+  #trace-host #airacFlash{top:24px!important;bottom:auto!important;
+    transition:opacity .45s ease!important}
   #trace-host .hdr-row1 .fld-seg{margin:0!important;flex:1 1 auto!important;min-width:0!important;overflow:hidden!important}
   #trace-host .hdr-row1 .fld-seg .seg{display:flex!important;width:100%!important;height:38px!important;border-radius:10px!important;align-items:stretch!important;box-sizing:border-box!important}
   #trace-host .hdr-row1 .fld-seg .seg-b{font-size:10px!important;padding:6px 7px!important;flex:1 1 auto!important;height:auto!important}
 }
-#trace-host #airacFlash{position:absolute;left:12px;bottom:14px;z-index:900;background:#e94560;color:#fff;font:700 11px "Poppins",sans-serif;padding:5px 11px;border-radius:20px;letter-spacing:.03em;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .45s ease}
+#trace-host #airacFlash{position:absolute;left:50%;transform:translateX(-50%);top:10px;bottom:auto;z-index:900;background:#e94560;color:#fff;font:700 11px "Poppins",sans-serif;padding:5px 11px;border-radius:20px;letter-spacing:.03em;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .45s ease}
 #trace-host #airacFlash.show{opacity:1}
 #trace-host .vfrmax-lbl{transform:translate(-50%,-50%);white-space:nowrap;font:700 11px "Poppins",sans-serif;color:#fff;background:#C0392B;padding:2px 8px;border-radius:10px;box-shadow:0 1px 3px rgba(0,0,0,.35)}
 #trace-host .vfrmax-pub{background:#B26A00}
@@ -1196,17 +1199,20 @@ html:has(.ovl) #uiScaleBox,html:has(body.rec-full) #uiScaleBox{display:none!impo
   /* les pages se choisissent désormais par la barre d'onglets du bas */
   .mtoolbar .tb-mpi.tb-mpi,.mtoolbar .tb-cards.tb-cards{display:none!important}
   /* l'espaceur accueille le groupe avion + vent : le bandeau garde ses positions */
+  /* l'espaceur s'étire : la seconde ligne occupe la même largeur que la
+     première, l'écart se creusant entre les flèches et le groupe avion + vent */
   .mtoolbar .tb-spacer.tb-spacer{order:8!important;display:flex!important;align-items:center;
-    flex:0 1 auto!important;min-width:0;margin-left:0!important}
-  .mtoolbar .tb-meta{display:inline-flex!important;align-items:center;gap:4px;min-width:0}
+    flex:1 1 0!important;min-width:0;margin-left:0!important}
+  .mtoolbar .tb-meta{display:inline-flex!important;align-items:center;gap:4px;min-width:0;flex:0 1 auto;margin-left:auto}
   .mtoolbar .tb-meta select,.mtoolbar .tb-meta input{box-sizing:border-box;min-width:0;height:32px;
     border:1px solid #2a4372;border-radius:9px;background:rgba(255,255,255,.08);color:#fff;
     font:700 12px "Poppins",sans-serif;padding:0 6px;text-align:center;-webkit-appearance:none;appearance:none}
   .mtoolbar .tb-meta select option{color:#16213e;background:#fff}
-  /* une immatriculation tient toujours en six signes : largeur fixe, pas de poussée */
-  .mtoolbar .tbm-immat{flex:0 0 86px;width:86px}
-  .mtoolbar .tbm-vdir{flex:0 0 54px;width:54px}
-  .mtoolbar .tbm-vw{flex:0 0 44px;width:44px}
+  /* une immatriculation tient en six signes : ces largeurs sont la cible, avec
+     un plancher pour que les écrans plus étroits ne coupent pas la ligne */
+  .mtoolbar .tbm-immat{flex:0 1 86px;width:86px;min-width:62px}
+  .mtoolbar .tbm-vdir{flex:0 1 54px;width:54px;min-width:40px}
+  .mtoolbar .tbm-vw{flex:0 1 44px;width:44px;min-width:34px}
   /* le nom du vol respire, l'initiale du commandant reste à côté */
   .mlog-meta .mm-immat,.mlog-meta .mm-vdir,.mlog-meta .mm-vw{display:none!important}
   .mlog-meta{flex-wrap:wrap}
@@ -2540,7 +2546,7 @@ window.__TRACE_MARKUP="\n\n<header>\n  <div class=\"hdr-row1\">\n    <span class
    accessible depuis le bouton ⓘ du bandeau du log, avant toute ouverture de la carte */
 (function(){
   var host=document.createElement('div');
-  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Carte OACI :</b> donnée IGN non libre — nécessite votre propre clé Géoplateforme filtrée sur votre domaine. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.331</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
+  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Carte OACI :</b> donnée IGN non libre — nécessite votre propre clé Géoplateforme filtrée sur votre domaine. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.335</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
   (document.body||document.documentElement).appendChild(host.firstElementChild);
   window.__OPEN_INFO=function(){ document.getElementById('infoModal').hidden=false; };
   /* iPadOS : les pastilles de fen\xEAtrage (coin haut-gauche) recouvrent le burger
@@ -5457,7 +5463,6 @@ function openRelinkChoice(){
    +'box-shadow:0 3px 10px rgba(0,0,0,.25);-webkit-tap-highlight-color:transparent}'
    +'#wndBtn.on{background:#1E9FE0;border-color:#1E9FE0}'
    +'#wndPanel[hidden]{display:none!important}'
-   +'#wndWrap #airacFlash{position:static!important;left:auto!important;bottom:auto!important;margin:0!important}'
    +'#wndPanel{display:flex;flex-direction:column;gap:4px;background:rgba(15,39,76,.94);border:1px solid rgba(255,255,255,.24);'
    +'border-radius:12px;padding:7px;box-shadow:0 8px 22px rgba(0,0,0,.35)}'
    +'#wndPanel .ti{font:700 8.5px Poppins,sans-serif;color:#8fb2ce;text-transform:uppercase;letter-spacing:.07em;padding:0 3px 2px}'
@@ -5478,7 +5483,11 @@ function openRelinkChoice(){
   btn.title='Vent prévu en altitude le long du trajet (source Open-Météo)';
   btn.innerHTML='<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><path d="M3 8h11a3 3 0 1 0-3-3M3 13h15a3 3 0 1 1-3 3M3 18h8"/></svg><span id="wndLab">Vent</span>';
   wrap.appendChild(panel); wrap.appendChild(btn); th.appendChild(wrap);
-  try{ var fl0=document.getElementById('airacFlash'); if(fl0) wrap.insertBefore(fl0,wrap.firstChild); }catch(e){}
+  /* le badge AIRAC se pose en haut et au centre de la carte, et non plus dans
+     le groupe du bouton Vent ; sa disparition après quelques secondes est
+     inchangée, elle tient à la classe « show » posée ailleurs */
+  try{ var fl0=document.getElementById('airacFlash'), mn0=th.querySelector('main');
+    if(fl0&&mn0) mn0.appendChild(fl0); }catch(e){}
   function place(){
     try{ var r=th.getBoundingClientRect();
       wrap.style.bottom='calc('+Math.max(10,Math.round(r.bottom-window.innerHeight+12))+'px + env(safe-area-inset-bottom, 0px))';
@@ -5737,7 +5746,7 @@ const wrap=document.createElement("div");sheets.forEach((s,i)=>{const c=s.cloneN
           /* page Image : le cadre est posé en absolu dans la feuille ; celle-ci
              doit donc s'arrêter au-dessus de la barre d'onglets, sans quoi
              l'image passe dessous. */
-          #root .approot>.sheet.mswipe.mimg{bottom:calc(63px + env(safe-area-inset-bottom,0px))!important;
+          #root .approot>.sheet.mswipe.mimg{bottom:calc(54px + env(safe-area-inset-bottom,0px))!important;
             padding-bottom:12px!important;}
           #root .approot>.sheet.mswipe.mmap{padding:calc(env(safe-area-inset-top) + 1.5px) 0 0 0!important;background:#0A1A33!important;display:flex!important;flex-direction:column!important;overflow:hidden!important;}
           #root .approot>.sheet.mswipe.mcards{background:#0A1A33!important;padding:calc(env(safe-area-inset-top) + 8px) 8px 106px!important;display:flex!important;flex-direction:column!important;border:0!important;border-radius:0!important;box-shadow:none!important;}
@@ -5782,29 +5791,30 @@ const wrap=document.createElement("div");sheets.forEach((s,i)=>{const c=s.cloneN
              est plus étroit, la barre défile horizontalement. */
           #mtabs{position:fixed;left:0;right:0;bottom:0;z-index:94;box-sizing:border-box;
             display:flex;align-items:stretch;gap:2px;
-            padding:6px 8px calc(6px + env(safe-area-inset-bottom,0px));
+            height:calc(46px + env(safe-area-inset-bottom,0px));
+            padding:3px 8px calc(3px + env(safe-area-inset-bottom,0px));
             background:linear-gradient(#0E2348,#0A1A33);
             border-top:1px solid #1d3a6b;border-radius:16px 16px 0 0;
             box-shadow:0 -3px 14px rgba(0,0,0,.42);
             overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
           #mtabs::-webkit-scrollbar{display:none}
           #mtabs .mtab{flex:1 1 0;min-width:46px;display:flex;flex-direction:column;align-items:center;
-            justify-content:center;gap:2px;padding:5px 2px 4px;border:0;border-radius:11px;
+            justify-content:center;gap:1px;padding:2px;border:0;border-radius:10px;
             background:transparent;color:#8fa9cc;cursor:pointer;
-            font:700 9px "Poppins",sans-serif;letter-spacing:.01em;-webkit-tap-highlight-color:transparent}
-          #mtabs .mtab svg{width:21px;height:21px;flex:none;display:block}
+            font:700 8.5px "Poppins",sans-serif;letter-spacing:.01em;-webkit-tap-highlight-color:transparent}
+          #mtabs .mtab svg{width:19px;height:19px;flex:none;display:block}
           #mtabs .mtab i{font-style:normal;white-space:nowrap}
           #mtabs .mtab.on{background:rgba(30,159,224,.18);color:#7fd1ff}
           #mtabs .mtab:active{background:rgba(255,255,255,.10)}
           /* le sélecteur de taille prend place comme dernier onglet */
           #mtabs #uiScaleBox{position:static!important;flex:1 1 0;min-width:46px;
-            flex-direction:column;justify-content:center;gap:2px;
+            flex-direction:column;justify-content:center;gap:1px;
             background:transparent!important;border:0!important;box-shadow:none!important;
-            padding:5px 2px 4px!important;border-radius:11px!important;color:#8fa9cc}
+            padding:2px!important;border-radius:10px!important;color:#8fa9cc}
           /* la loupe portait un trait blanc figé dans son dessin : elle suit
              maintenant la couleur des autres onglets, active comme au repos */
-          #mtabs #uiScaleBox svg{width:21px;height:21px;opacity:1;stroke:currentColor!important}
-          #mtabs #uiScaleSel{font:700 9px "Poppins",sans-serif;color:#8fa9cc;text-align:center;
+          #mtabs #uiScaleBox svg{width:19px;height:19px;opacity:1;stroke:currentColor!important}
+          #mtabs #uiScaleSel{font:700 8.5px "Poppins",sans-serif;color:#8fa9cc;text-align:center;
             padding:0;max-width:100%;-webkit-appearance:none;appearance:none;text-align-last:center}
           #mdots{display:none!important;}
           #uiScaleBox{transition:opacity .45s ease;}
@@ -5814,10 +5824,18 @@ const wrap=document.createElement("div");sheets.forEach((s,i)=>{const c=s.cloneN
           /* page météo : la barre reste accessible au-dessus du panneau, qui lui
              réserve sa hauteur en bas de liste */
           html:has(#wxOv) #mtabs{z-index:5200!important;}
-          html:has(#wxOv) .wx-list{padding-bottom:calc(96px + env(safe-area-inset-bottom,0px))!important;}
+          html:has(#wxOv) .wx-list{padding-bottom:calc(70px + env(safe-area-inset-bottom,0px))!important;}
           /* fenêtres de saisie et menu latéral : la barre s'efface */
           html:has(.ovl) #mtabs,html:has(.drawer.open) #mtabs{display:none!important;}
           #trace-host .maphint{font-size:11px;padding:6px 11px;top:8px;line-height:1.25;max-width:88vw;white-space:normal;text-align:center;}
+          /* La barre d'onglets occupe le bas de l'écran ; la feuille de la carte,
+             elle, descend 90 px plus bas. Le bouton Vent, le badge AIRAC qu'il
+             emporte et les messages se calent donc 148 px au-dessus du bas de la
+             feuille, soit 12 px au-dessus de la barre. */
+          #root .mswipe.mmap #trace-host #wndWrap{top:auto!important;
+            bottom:calc(148px + env(safe-area-inset-bottom,0px))!important;}
+          #root .mswipe.mmap #trace-host .toast{
+            bottom:calc(148px + env(safe-area-inset-bottom,0px))!important;}
         }
         @media screen and (min-width:821px){#mdots,#mtabs{display:none!important;}}
         .fld textarea{resize:vertical;overflow:hidden;min-height:2.4em;}
@@ -7154,7 +7172,7 @@ class ErrB extends React.Component{constructor(p){super(p);this.state={e:null};}
     pokeDots();
     if(e.touches.length!==1) return;
     var t=e.target;
-    if(t.closest && t.closest('.leaflet-container,input,textarea,[contenteditable="true"],.ovl,#mdots,.nc-swipe')) return;
+    if(t.closest && t.closest('.leaflet-container,input,textarea,[contenteditable="true"],.ovl,#mtabs,.nc-swipe,.wx-sug')) return;
     if(inHScroll(t)) return;
     tracking=true; startX=e.touches[0].clientX; startY=e.touches[0].clientY; startT=Date.now();
   },{passive:true});
@@ -7164,6 +7182,9 @@ class ErrB extends React.Component{constructor(p){super(p);this.state={e:null};}
     var dx=e.changedTouches[0].clientX-startX, dy=e.changedTouches[0].clientY-startY;
     if(Date.now()-startT>1200) return;
     if(Math.abs(dx)<42 || Math.abs(dx)<Math.abs(dy)*1.15) return;
+    /* balayage sur la météo : on referme le panneau, puis on change de page */
+    var ouv=document.getElementById('wxOv');
+    if(ouv){ try{ ouv.remove(); }catch(_){} lastDotsHtml=''; renderDots(panels); }
     go(dx<0 ? cur+1 : cur-1);
   },{passive:true});
   try{ new MutationObserver(function(){ apply(); }).observe(document.body,{childList:true,subtree:true}); }catch(e){}
@@ -7243,9 +7264,12 @@ class ErrB extends React.Component{constructor(p){super(p);this.state={e:null};}
 .wx-addrow button#wxRefresh.busy{opacity:.7;pointer-events:none}
 .wx-addrow button#wxRefresh.busy svg{animation:wxspin .85s linear infinite}
 /* Onglets du panneau météo, séparés de l'affichage par le filet rouge du thème */
-.wx-tabs{flex:none;display:flex;gap:6px;padding:8px 12px 9px;background:#0E2348;border-bottom:2px solid #e94560}
-.wx-tabs .wx-tab{flex:1 1 0;min-width:0;background:rgba(255,255,255,.06);border:1px solid #2a4372;border-radius:10px;
+.wx-tabs{flex:none;display:flex;align-items:stretch;gap:6px;padding:8px 12px 9px;background:#0E2348;border-bottom:2px solid #e94560}
+.wx-tabs .wx-tab{flex:1 1 0;width:0;min-width:0;background:rgba(255,255,255,.06);border:1px solid #2a4372;border-radius:10px;
   color:#8fa9cc;font:800 11.5px "Poppins",sans-serif;letter-spacing:.02em;padding:8px 6px;cursor:pointer;white-space:nowrap}
+/* fermeture : une croix à droite des onglets, le bandeau titre ayant disparu */
+.wx-tabs .wx-x{flex:0 0 auto;width:38px;background:rgba(255,255,255,.06);border:1px solid #2a4372;border-radius:10px;
+  color:#cfe0f5;font:700 21px/1 ui-sans-serif;padding:0;cursor:pointer}
 .wx-tabs .wx-tab.on{background:rgba(30,159,224,.18);border-color:#1E9FE0;color:#7fd1ff}
 /* Page des cartes, encore en chantier */
 .wx-soon{flex:1 1 auto;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;
@@ -7560,11 +7584,10 @@ window.__pickGpx=function(cb){
     }
     var flightRows=base.map(rowHtml).join('');
     var favRows=codes.filter(function(c){return c.role==='fav'}).map(rowHtml).join('');
-    ov.innerHTML='<div class="wx-hd"><h3>M\u00e9t\u00e9o</h3>'
-      +'<button id="wxClose">Fermer</button></div>'
-      +'<div class="wx-tabs">'
+    ov.innerHTML='<div class="wx-tabs">'
       +'<button class="wx-tab on" data-t="metar" type="button">METAR / TAF</button>'
       +'<button class="wx-tab" data-t="cartes" type="button">WINTEM / TEMSI</button>'
+      +'<button id="wxClose" class="wx-x" type="button" title="Fermer" aria-label="Fermer">\u00d7</button>'
       +'</div>'
       +'<div class="wx-src" id="wxSrc">Source : NOAA \u00b7 chargement\u2026</div>'
       +'<div class="wx-list">'
