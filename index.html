@@ -2546,7 +2546,7 @@ window.__TRACE_MARKUP="\n\n<header>\n  <div class=\"hdr-row1\">\n    <span class
    accessible depuis le bouton ⓘ du bandeau du log, avant toute ouverture de la carte */
 (function(){
   var host=document.createElement('div');
-  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Carte OACI :</b> donnée IGN non libre — nécessite votre propre clé Géoplateforme filtrée sur votre domaine. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.342</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
+  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Carte OACI :</b> donnée IGN non libre — nécessite votre propre clé Géoplateforme filtrée sur votre domaine. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.343</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
   (document.body||document.documentElement).appendChild(host.firstElementChild);
   window.__OPEN_INFO=function(){ document.getElementById('infoModal').hidden=false; };
   /* iPadOS : les pastilles de fen\xEAtrage (coin haut-gauche) recouvrent le burger
@@ -5838,6 +5838,41 @@ const wrap=document.createElement("div");sheets.forEach((s,i)=>{const c=s.cloneN
         @media screen and (min-width:821px) and (max-height:520px) and (pointer:coarse){
           .approot{padding-bottom:calc(58px + env(safe-area-inset-bottom,0px))!important;}
         }
+        /* ===== Menu latéral gauche (ordinateur) =====
+           Même esthétique que la barre du téléphone — bleu du thème, angles
+           arrondis, pictogramme au trait et libellé — mais dressée sur le côté.
+           Elle se pose dans la marge vide du navigateur : elle flotte, elle ne
+           rétrécit pas le document. En tête, les réglages, qui ouvrent le même
+           panneau que l'engrenage du bandeau ; en dessous, les six écrans. */
+        @media screen and (min-width:821px) and (min-height:521px), screen and (min-width:821px) and (pointer:fine){
+          #dtabs{position:fixed;left:10px;top:50%;transform:translateY(-50%);z-index:94;box-sizing:border-box;
+            display:flex;flex-direction:column;align-items:stretch;gap:3px;width:64px;padding:6px;
+            background:linear-gradient(#0E2348,#0A1A33);
+            border:1px solid #1d3a6b;border-radius:18px;
+            box-shadow:0 6px 22px rgba(0,0,0,.34);}
+          #dtabs .dtab{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
+            padding:7px 2px;border:0;border-radius:12px;background:transparent;color:#8fa9cc;cursor:pointer;
+            font:700 9.5px "Poppins",sans-serif;letter-spacing:.01em;transition:background .15s ease,color .15s ease}
+          #dtabs .dtab svg{width:22px;height:22px;flex:none;display:block}
+          #dtabs .dtab i{font-style:normal;white-space:nowrap}
+          #dtabs .dtab:hover{background:rgba(255,255,255,.09);color:#cfe0f5}
+          #dtabs .dtab.on{background:rgba(30,159,224,.18);color:#7fd1ff}
+          #dtabs .dsep{flex:none;height:1px;margin:3px 7px;background:#1d3a6b}
+          /* le bandeau du log se simplifie comme sur téléphone : les écrans et
+             les réglages vivent désormais dans le menu latéral */
+          .mtoolbar .tb-mpi.tb-mpi,.mtoolbar .tb-cfg.tb-cfg{display:none!important}
+          /* Dégagement à gauche : nul tant que la marge du navigateur suffit
+             (au-delà de 1344 px, le menu tient dans le vide) ; en deçà, on
+             écarte juste ce qu'il faut pour que le document ne passe pas
+             dessous. */
+          .approot{padding-left:calc(12px + min(74px, max(0px, 74px - (100vw - 1204px)/2)))!important;}
+          /* fenêtres de saisie et menu de réglages : le menu latéral s'efface */
+          html:has(.ovl) #dtabs,html:has(.drawer.open) #dtabs{display:none!important;}
+          /* page météo : le menu reste accessible au-dessus du panneau, qui lui
+             réserve sa largeur à gauche */
+          html:has(#wxOv) #dtabs{z-index:5200!important;}
+          #wxOv{padding-left:84px!important;}
+        }
         .fld textarea{resize:vertical;overflow:hidden;min-height:2.4em;}
         .rich:empty:before{content:attr(data-ph);color:#aab0b8;}
         .rich:focus{border-color:${ACCENT}!important;box-shadow:0 0 0 3px rgba(49,130,206,.15);}
@@ -5856,7 +5891,7 @@ const wrap=document.createElement("div");sheets.forEach((s,i)=>{const c=s.cloneN
         .infodot:hover .infobubble,.infodot:focus .infobubble{opacity:1!important;visibility:visible!important;}
         .desync{background:#d97706!important;border-color:#d97706!important;animation:pulseSync 1.2s infinite;font-weight:700;}
         [contenteditable].pnote:empty:before{content:attr(data-ph);color:#9aa0a8;pointer-events:none;}
-      `),React.createElement(MobileLog,{nav:nav,openLeg:openLeg,addPoint:addPoint,changeType:changeType,onSingle:s=>setNav({single:s}),onName:v=>setNavQuiet({name:v}),onMeta:pm=>setNavQuiet({meta:{...nav.meta,...pm}}),regen:regenInverse,desync:inverseDesync,syncArmed:syncArmed,setSyncArmed:setSyncArmed,tsvOf:tsvOf,tavOf:tavOf,capOf:capOf}),React.createElement("div",{className:"no-print mtoolbar"+(mMore?" mob-exp":""),style:{maxWidth:1180,margin:"0 auto 14px",display:"flex",flexWrap:"nowrap",gap:5,alignItems:"center",justifyContent:"center",background:BARGRAD,borderRadius:12,padding:"9px 11px",boxShadow:"0 3px 14px rgba(26,26,46,.4)"}},React.createElement("div",{style:{display:"flex",alignItems:"center",gap:9,marginRight:4}},React.createElement("svg",{viewBox:"0 0 1024 1024",width:"30",height:"30",style:{display:"block",borderRadius:9,flex:"0 0 auto"}},React.createElement("rect",{x:"8",y:"8",width:"1008",height:"1008",rx:"200",fill:"#16213e"}),React.createElement("g",{fill:"none",stroke:"#e94560",strokeWidth:"92",strokeLinecap:"round",strokeLinejoin:"round"},React.createElement("path",{d:"M360 320 H300 a120 120 0 0 0 -120 120 a120 120 0 0 0 120 120 H720 a120 120 0 0 1 120 120 a120 120 0 0 1 -120 120 H360"}),React.createElement("circle",{cx:"745",cy:"245",r:"95"}),React.createElement("circle",{cx:"270",cy:"770",r:"95"}))),React.createElement("span",{style:{font:"800 17px/1 'Eurostile','Bahnschrift','DIN Alternate','Arial Narrow',ui-sans-serif",letterSpacing:"1.2px",color:"#fff",textTransform:"none"}},React.createElement("span",null,"LogNav"),React.createElement("span",{style:{color:RED}},"AK"))),React.createElement("button",{onClick:()=>setDrawer(true),title:"Param\xE8tres"+((typeof window!=="undefined"&&window.__AKILA_IS_OWNER&&window.__AKILA_IS_OWNER()&&window.AkilaAuth&&window.AkilaAuth.pendingCount())?" \u2014 "+window.AkilaAuth.pendingCount()+" inscription(s) \xE0 valider":""),"aria-label":"Param\xE8tres",style:{...btn("#fff"),color:DARK,padding:"8px 10px",position:"relative"}},React.createElement(Ic,{name:"settings"}),(typeof window!=="undefined"&&window.__AKILA_IS_OWNER&&window.__AKILA_IS_OWNER()&&window.AkilaAuth&&window.AkilaAuth.pendingCount())?React.createElement("span",{style:{position:"absolute",top:-4,right:-4,minWidth:16,height:16,padding:"0 4px",borderRadius:9,background:"#e94560",color:"#fff",font:"700 10px ui-sans-serif",display:"flex",alignItems:"center",justifyContent:"center",boxShadow:"0 0 0 2px #16213e"}},window.AkilaAuth.pendingCount()):null),React.createElement("button",{onClick:undo,disabled:!hist.past.length,title:"Annuler la derni\xE8re modification",style:{...ghostW,opacity:hist.past.length?1:.35,cursor:hist.past.length?"pointer":"not-allowed"}},React.createElement(Ic,{name:"undo"})),React.createElement("button",{onClick:redo,disabled:!hist.future.length,title:"R\xE9tablir",style:{...ghostW,opacity:hist.future.length?1:.35,cursor:hist.future.length?"pointer":"not-allowed"}},React.createElement(Ic,{name:"redo"})),React.createElement("div",{style:{fontWeight:700,fontSize:13,color:"#fff",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",maxWidth:330}},routeLabel(nav)),React.createElement("div",{className:"tb-brk tb-brkA"}),(nav.type==="ar"?React.createElement("span",{className:"tb-badge",title:"Log Aller et retour — se modifie dans les param\xE8tres (menu lat\xE9ral)",style:{fontSize:11,padding:"2px 9px",borderRadius:20,background:"rgba(255,255,255,.18)",color:"#fff",fontWeight:600,textTransform:"uppercase",cursor:"default"}},"Aller / Retour"):React.createElement("span",{className:"tb-badge",onClick:()=>setNav({single:nav.single==="retour"?"aller":"retour"}),title:"Cliquer pour basculer ce log en Vol Aller ou Vol Retour",style:{fontSize:11,padding:"2px 9px",borderRadius:20,background:nav.single==="retour"?"rgba(27,163,75,.92)":"rgba(30,159,224,.92)",color:"#fff",fontWeight:700,textTransform:"uppercase",cursor:"pointer",userSelect:"none"}},nav.single==="retour"?"Vol Retour":"Vol Aller")),React.createElement("span",{style:{display:"inline-flex",alignItems:"center",gap:6}},React.createElement("span",{className:"tb-badge wx-badge",title:"METAR / TAF des a\xE9rodromes de la navigation",onClick:()=>{try{const arrL=nav.aller||[];const cs=[];const seen=new Set();const add=(pos,role)=>{const c=String(pos||"").trim().toUpperCase();if(c.length===4&&AERO_POS[c]&&!seen.has(c)){seen.add(c);cs.push({code:c,role:role})}};arrL.forEach((l,i)=>add(l.position,i===0?"dep":(i===arrL.length-1?"arr":"mid")));if(nav.type==="ar")(nav.retour||[]).forEach(l=>add(l.position,"mid"));window.__WX_OPEN&&window.__WX_OPEN({codes:cs,date:nav.meta.date})}catch(e){}},style:{fontSize:11,padding:"2px 9px",borderRadius:20,background:"#1E9FE0",color:"#fff",fontWeight:700,whiteSpace:"nowrap",cursor:"pointer",fontFamily:'"Poppins",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif'}},"METAR TAF"),React.createElement("span",{className:"tb-badge",title:"Base de donn\xE9es a\xE9rodromes & fr\xE9quences utilis\xE9e",style:{fontSize:11,padding:"2px 9px",borderRadius:20,background:RED,color:"#fff",fontWeight:700,whiteSpace:"nowrap",fontFamily:'"Poppins",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif'}},AIRAC_INFO)),React.createElement("div",{className:"tb-spacer",style:{flex:1}},React.createElement("span",{className:"tb-meta no-print"},
+      `),React.createElement(MobileLog,{nav:nav,openLeg:openLeg,addPoint:addPoint,changeType:changeType,onSingle:s=>setNav({single:s}),onName:v=>setNavQuiet({name:v}),onMeta:pm=>setNavQuiet({meta:{...nav.meta,...pm}}),regen:regenInverse,desync:inverseDesync,syncArmed:syncArmed,setSyncArmed:setSyncArmed,tsvOf:tsvOf,tavOf:tavOf,capOf:capOf}),React.createElement("div",{className:"no-print mtoolbar"+(mMore?" mob-exp":""),style:{maxWidth:1180,margin:"0 auto 14px",display:"flex",flexWrap:"nowrap",gap:5,alignItems:"center",justifyContent:"center",background:BARGRAD,borderRadius:12,padding:"9px 11px",boxShadow:"0 3px 14px rgba(26,26,46,.4)"}},React.createElement("div",{style:{display:"flex",alignItems:"center",gap:9,marginRight:4}},React.createElement("svg",{viewBox:"0 0 1024 1024",width:"30",height:"30",style:{display:"block",borderRadius:9,flex:"0 0 auto"}},React.createElement("rect",{x:"8",y:"8",width:"1008",height:"1008",rx:"200",fill:"#16213e"}),React.createElement("g",{fill:"none",stroke:"#e94560",strokeWidth:"92",strokeLinecap:"round",strokeLinejoin:"round"},React.createElement("path",{d:"M360 320 H300 a120 120 0 0 0 -120 120 a120 120 0 0 0 120 120 H720 a120 120 0 0 1 120 120 a120 120 0 0 1 -120 120 H360"}),React.createElement("circle",{cx:"745",cy:"245",r:"95"}),React.createElement("circle",{cx:"270",cy:"770",r:"95"}))),React.createElement("span",{style:{font:"800 17px/1 'Eurostile','Bahnschrift','DIN Alternate','Arial Narrow',ui-sans-serif",letterSpacing:"1.2px",color:"#fff",textTransform:"none"}},React.createElement("span",null,"LogNav"),React.createElement("span",{style:{color:RED}},"AK"))),React.createElement("button",{className:"tb-cfg",onClick:()=>setDrawer(true),title:"Param\xE8tres"+((typeof window!=="undefined"&&window.__AKILA_IS_OWNER&&window.__AKILA_IS_OWNER()&&window.AkilaAuth&&window.AkilaAuth.pendingCount())?" \u2014 "+window.AkilaAuth.pendingCount()+" inscription(s) \xE0 valider":""),"aria-label":"Param\xE8tres",style:{...btn("#fff"),color:DARK,padding:"8px 10px",position:"relative"}},React.createElement(Ic,{name:"settings"}),(typeof window!=="undefined"&&window.__AKILA_IS_OWNER&&window.__AKILA_IS_OWNER()&&window.AkilaAuth&&window.AkilaAuth.pendingCount())?React.createElement("span",{style:{position:"absolute",top:-4,right:-4,minWidth:16,height:16,padding:"0 4px",borderRadius:9,background:"#e94560",color:"#fff",font:"700 10px ui-sans-serif",display:"flex",alignItems:"center",justifyContent:"center",boxShadow:"0 0 0 2px #16213e"}},window.AkilaAuth.pendingCount()):null),React.createElement("button",{onClick:undo,disabled:!hist.past.length,title:"Annuler la derni\xE8re modification",style:{...ghostW,opacity:hist.past.length?1:.35,cursor:hist.past.length?"pointer":"not-allowed"}},React.createElement(Ic,{name:"undo"})),React.createElement("button",{onClick:redo,disabled:!hist.future.length,title:"R\xE9tablir",style:{...ghostW,opacity:hist.future.length?1:.35,cursor:hist.future.length?"pointer":"not-allowed"}},React.createElement(Ic,{name:"redo"})),React.createElement("div",{style:{fontWeight:700,fontSize:13,color:"#fff",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",maxWidth:330}},routeLabel(nav)),React.createElement("div",{className:"tb-brk tb-brkA"}),(nav.type==="ar"?React.createElement("span",{className:"tb-badge",title:"Log Aller et retour — se modifie dans les param\xE8tres (menu lat\xE9ral)",style:{fontSize:11,padding:"2px 9px",borderRadius:20,background:"rgba(255,255,255,.18)",color:"#fff",fontWeight:600,textTransform:"uppercase",cursor:"default"}},"Aller / Retour"):React.createElement("span",{className:"tb-badge",onClick:()=>setNav({single:nav.single==="retour"?"aller":"retour"}),title:"Cliquer pour basculer ce log en Vol Aller ou Vol Retour",style:{fontSize:11,padding:"2px 9px",borderRadius:20,background:nav.single==="retour"?"rgba(27,163,75,.92)":"rgba(30,159,224,.92)",color:"#fff",fontWeight:700,textTransform:"uppercase",cursor:"pointer",userSelect:"none"}},nav.single==="retour"?"Vol Retour":"Vol Aller")),React.createElement("span",{style:{display:"inline-flex",alignItems:"center",gap:6}},React.createElement("span",{className:"tb-badge wx-badge",title:"METAR / TAF des a\xE9rodromes de la navigation",onClick:()=>{try{const arrL=nav.aller||[];const cs=[];const seen=new Set();const add=(pos,role)=>{const c=String(pos||"").trim().toUpperCase();if(c.length===4&&AERO_POS[c]&&!seen.has(c)){seen.add(c);cs.push({code:c,role:role})}};arrL.forEach((l,i)=>add(l.position,i===0?"dep":(i===arrL.length-1?"arr":"mid")));if(nav.type==="ar")(nav.retour||[]).forEach(l=>add(l.position,"mid"));window.__WX_OPEN&&window.__WX_OPEN({codes:cs,date:nav.meta.date})}catch(e){}},style:{fontSize:11,padding:"2px 9px",borderRadius:20,background:"#1E9FE0",color:"#fff",fontWeight:700,whiteSpace:"nowrap",cursor:"pointer",fontFamily:'"Poppins",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif'}},"METAR TAF"),React.createElement("span",{className:"tb-badge",title:"Base de donn\xE9es a\xE9rodromes & fr\xE9quences utilis\xE9e",style:{fontSize:11,padding:"2px 9px",borderRadius:20,background:RED,color:"#fff",fontWeight:700,whiteSpace:"nowrap",fontFamily:'"Poppins",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif'}},AIRAC_INFO)),React.createElement("div",{className:"tb-spacer",style:{flex:1}},React.createElement("span",{className:"tb-meta no-print"},
       (__fleet().length?React.createElement("select",{className:"tbm-immat",value:nav.meta.immat||"",title:"Avion de la navigation",onChange:e=>{const a=__fleet().find(x=>x.immat===e.target.value);setNavQuiet({meta:{...nav.meta,immat:e.target.value,...(a?{modele:a.modele,conso:a.conso||"",vitesse:a.vp||""}:{})}})}},
         React.createElement("option",{value:""},"Immat"),
         __fleet().map(a=>React.createElement("option",{key:a.immat,value:a.immat},a.immat)))
@@ -6930,7 +6965,11 @@ class ErrB extends React.Component{constructor(p){super(p);this.state={e:null};}
      celle de l'ordinateur — feuilles empilées que l'on fait défiler. La barre du
      bas, elle, demeure : elle ne change plus d'écran mais amène à la section. */
   var mqPays=window.matchMedia('(min-width:821px) and (max-height:520px) and (pointer:coarse)');
+  /* Ordinateur proprement dit : ni téléphone debout, ni téléphone couché. Il
+     reçoit le même jeu d'onglets, mais dressé dans la marge gauche. */
+  var mqOrdi=window.matchMedia('(min-width:821px) and (min-height:521px),(min-width:821px) and (pointer:fine)');
   var cur=0, panels=[{key:'log',el:null}], dots=null, lastDotsHtml='', hideT=null, lastShown=0, etaitBureau=false;
+  var side=null, lastSideHtml='';
   /* la barre d'onglets est permanente : contrairement aux pastilles qu'elle
      remplace, elle ne s'efface plus au bout de quelques secondes */
   function pokeDots(){
@@ -7045,7 +7084,7 @@ class ErrB extends React.Component{constructor(p){super(p);this.state={e:null};}
   window.addEventListener('scroll',function(){
     if(scRaf) return;
     scRaf=requestAnimationFrame(function(){ scRaf=0; placeDots();
-      if(!mq.matches&&mqPays.matches) majActif(); });
+      if(!mq.matches) majActif(); });
   },{passive:true});
   var startX=0, startY=0, startT=0, tracking=false;
   function findPanels(){
@@ -7092,9 +7131,12 @@ class ErrB extends React.Component{constructor(p){super(p);this.state={e:null};}
       document.documentElement.classList.remove('mp-flying');
       try{ document.body.classList.remove('mp-light'); document.documentElement.classList.remove('mp-light'); }catch(e){}
       panels=ps;
-      /* couché, la barre reste et suit la section que l'on regarde */
+      /* couché, la barre du bas reste ; debout devant l'ordinateur, c'est le
+         menu latéral gauche qui prend le relais — l'une ou l'autre, jamais les
+         deux, et toutes deux suivent la section que l'on regarde */
       if(mqPays.matches) renderDots(ps);
       else if(dots) dots.style.display='none';
+      renderSide(ps);
       /* passage en paysage/ordinateur : on garde la page courante en mémoire pour
          la retrouver au retour en portrait, et on l'amène à l'écran — UNE FOIS,
          sinon ce recentrage combattrait le défilement à chaque passage */
@@ -7106,6 +7148,7 @@ class ErrB extends React.Component{constructor(p){super(p);this.state={e:null};}
       return;
     }
     etaitBureau=false;
+    if(side) side.style.display='none';
     if(cur>ps.length-1) cur=ps.length-1;
     if(cur<0) cur=0;
     for(var j=0;j<ps.length;j++){
@@ -7135,6 +7178,8 @@ class ErrB extends React.Component{constructor(p){super(p);this.state={e:null};}
     cards:'M5 5.5h14v13H5zM10.4 10.2l4 1.8-4 1.8z',
     image:'M4 5.5h16v13H4zM7.5 14l3-3.4 2.6 3 2.4-2.6 2 3',
     meteo:'M7.5 18h8.2a3.8 3.8 0 0 0 .4-7.6A5.8 5.8 0 0 0 5 12.6 2.8 2.8 0 0 0 7.5 18z',
+    config:['M12 15.15a3.15 3.15 0 1 0 0-6.3 3.15 3.15 0 0 0 0 6.3',
+      'M18.9 14.2a1.5 1.5 0 0 0 .3 1.66l.05.05a1.85 1.85 0 1 1-2.62 2.62l-.05-.05a1.5 1.5 0 0 0-1.66-.3 1.5 1.5 0 0 0-.92 1.38v.14a1.85 1.85 0 1 1-3.7 0v-.07a1.5 1.5 0 0 0-.98-1.38 1.5 1.5 0 0 0-1.66.3l-.05.05A1.85 1.85 0 1 1 5 15.98l.05-.05a1.5 1.5 0 0 0 .3-1.66 1.5 1.5 0 0 0-1.38-.92h-.14a1.85 1.85 0 1 1 0-3.7h.07a1.5 1.5 0 0 0 1.38-.98 1.5 1.5 0 0 0-.3-1.66L4.93 7A1.85 1.85 0 1 1 7.55 4.4l.05.05a1.5 1.5 0 0 0 1.66.3h.07a1.5 1.5 0 0 0 .92-1.38v-.14a1.85 1.85 0 1 1 3.7 0v.07a1.5 1.5 0 0 0 .92 1.38 1.5 1.5 0 0 0 1.66-.3l.05-.05A1.85 1.85 0 1 1 19.2 7l-.05.05a1.5 1.5 0 0 0-.3 1.66v.07a1.5 1.5 0 0 0 1.38.92h.14a1.85 1.85 0 1 1 0 3.7h-.07a1.5 1.5 0 0 0-1.38.92z'],
     taille:'M11 4.5a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13M20 20l-4.4-4.4M8.2 11h5.6M11 8.2v5.6'
   };
   var ORDRE=['log','map','profil','cards','image'];
@@ -7150,7 +7195,7 @@ class ErrB extends React.Component{constructor(p){super(p);this.state={e:null};}
   function fermeMeteo(){ var o=document.getElementById('wxOv');
     if(!o) return false;
     try{ o.remove(); }catch(e){}
-    lastDotsHtml=''; renderDots(panels); return true; }
+    lastDotsHtml=''; renderDots(panels); majActif(); return true; }
   function posNav(){ var l=navDispo();
     if(document.getElementById('wxOv')) return l.indexOf('meteo');
     var k=(panels[cur]&&panels[cur].key)||'log', j=l.indexOf(k);
@@ -7179,9 +7224,11 @@ class ErrB extends React.Component{constructor(p){super(p);this.state={e:null};}
     return sectionEnVue();
   }
   function majActif(){
-    if(!dots) return;
-    var k=cleActive(), bs=dots.querySelectorAll('.mtab');
-    for(var i=0;i<bs.length;i++) bs[i].classList.toggle('on', bs[i].getAttribute('data-k')===k);
+    var k=cleActive();
+    [dots,side].forEach(function(b){ if(!b) return;
+      var bs=b.querySelectorAll('.mtab,.dtab');
+      for(var i=0;i<bs.length;i++) bs[i].classList.toggle('on', bs[i].getAttribute('data-k')===k);
+    });
   }
   /* couché : on ne change pas d'écran, on amène la section sous les yeux */
   function versSection(i){
@@ -7192,8 +7239,44 @@ class ErrB extends React.Component{constructor(p){super(p);this.state={e:null};}
     }catch(e){ try{ if(p&&p.el) p.el.scrollIntoView(); else window.scrollTo(0,0); }catch(e2){} }
     setTimeout(majActif,700);
   }
-  function svg(d){ return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" '
-    +'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="'+d+'"/></svg>'; }
+  function svg(d){ var ds=(typeof d==='string')?[d]:d, p='';
+    for(var i=0;i<ds.length;i++) p+='<path d="'+ds[i]+'"/>';
+    return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" '
+      +'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+p+'</svg>'; }
+  /* Menu latéral de l'ordinateur : mêmes écrans que la barre du téléphone,
+     précédés des réglages. Un appui amène la section sous les yeux ; les
+     réglages, eux, déroulent le panneau latéral comme l'engrenage du bandeau. */
+  function renderSide(ps){
+    if(!side){
+      side=document.createElement('div'); side.id='dtabs'; side.className='no-print';
+      side.addEventListener('click',function(ev){
+        var t=ev.target && ev.target.closest ? ev.target.closest('.dtab') : null;
+        if(!t) return;
+        var act=t.getAttribute('data-act');
+        if(act==='config'){ var g=document.querySelector('.mtoolbar .tb-cfg'); if(g) g.click(); return; }
+        var etaitOuvert=fermeMeteo();
+        if(act==='meteo'){ if(!etaitOuvert){ var w=document.querySelector('.wx-badge'); if(w) w.click(); } return; }
+        var i=parseInt(t.getAttribute('data-i'),10);
+        if(!isNaN(i)) versSection(i);
+      });
+      document.body.appendChild(side);
+    }
+    side.style.display=mqOrdi.matches?'flex':'none';
+    if(!mqOrdi.matches) return;
+    var html='<button type="button" class="dtab" data-act="config" data-k="config" title="R\u00e9glages">'
+      +svg(ICO.config)+'<i>R\u00e9glages</i></button><div class="dsep"></div>';
+    for(var k=0;k<ORDRE.length;k++){
+      var cle=ORDRE[k], idx=-1;
+      for(var i=0;i<ps.length;i++) if(ps[i].key===cle){ idx=i; break; }
+      if(idx<0) continue;
+      html+='<button type="button" class="dtab" data-i="'+idx+'" data-k="'+cle+'" title="'+NOM[cle]+'">'
+        +svg(ICO[cle])+'<i>'+NOM[cle]+'</i></button>';
+    }
+    html+='<button type="button" class="dtab" data-act="meteo" data-k="meteo" title="M\u00e9t\u00e9o \u2014 METAR / TAF">'
+      +svg(ICO.meteo)+'<i>M\u00e9t\u00e9o</i></button>';
+    if(html!==lastSideHtml){ side.innerHTML=html; lastSideHtml=html; }
+    majActif();
+  }
   function renderDots(ps){
     if(!dots){
       dots=document.createElement('div'); dots.id='mtabs'; dots.className='no-print';
