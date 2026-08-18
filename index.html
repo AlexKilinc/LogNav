@@ -323,7 +323,7 @@ try{ window.sb=(window.supabase&&window.supabase.createClient)?window.supabase.c
 #trace-host .vf-zname{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--navy);font-weight:500}
 #trace-host .vf-freq{font:600 11px "JetBrains Mono",monospace;color:#1E7FC0;white-space:nowrap}
 #trace-host .vf-rwy{font-size:12px;color:#33475b;padding:2px 0;line-height:1.4}
-#trace-host .plane-ic{width:34px;height:34px}
+#trace-host .plane-ic{width:42px;height:42px;line-height:0;filter:drop-shadow(0 1px 3px rgba(0,0,0,.4))}
 #trace-host header .btn.act{background:var(--brand);border-color:var(--brand);color:#fff}
 #trace-host header #vfCorridor.act{background:#E8730C;border-color:#E8730C;color:#fff}
 #trace-host header #degBtn.act{background:#E8730C;border-color:#E8730C;color:#fff}
@@ -2571,7 +2571,7 @@ window.__TRACE_MARKUP="\n\n<header>\n  <div class=\"hdr-row1\">\n    <span class
    accessible depuis le bouton ⓘ du bandeau du log, avant toute ouverture de la carte */
 (function(){
   var host=document.createElement('div');
-  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Carte OACI :</b> donnée IGN non libre — nécessite votre propre clé Géoplateforme filtrée sur votre domaine. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.349</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
+  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Carte OACI :</b> donnée IGN non libre — nécessite votre propre clé Géoplateforme filtrée sur votre domaine. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.350</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
   (document.body||document.documentElement).appendChild(host.firstElementChild);
   window.__OPEN_INFO=function(){ document.getElementById('infoModal').hidden=false; };
   /* iPadOS : les pastilles de fen\xEAtrage (coin haut-gauche) recouvrent le burger
@@ -3899,6 +3899,31 @@ document.addEventListener('keydown',e=>{
 
 document.getElementById('asideToggle').addEventListener('click', toggleAside);
 /* ===== Onglets + Mode Vol virtuel ===== */
+/* ===== Avion de la trace (enregistrement et lecture) =====
+   Monoplan à aile basse vu de dessus, rouge, verrière et cône d'hélice
+   sombres, nez vers le haut pour un cap de 0°. Dessiné au trait : il reste
+   net à toute taille et sur tout fond, grâce au liseré blanc qui l'entoure.
+   Une seule mesure, __AVION_SVG(px), sert aux deux emplois. */
+window.__AVION_SVG=(function(){
+  var AILE='M50 47 L9 53.5 Q3.5 54 3.5 58 Q3.5 62 9 62.5 L50 65 L91 62.5 Q96.5 62 96.5 58 Q96.5 54 91 53.5 Z';
+  var STAB='M50 78 L31 81.5 Q28 81.9 28 84 Q28 86.1 31 86.5 L50 88 L69 86.5 Q72 86.1 72 84 Q72 81.9 69 81.5 Z';
+  var FUS ='M50 11 Q44.2 19 43.4 33 L43 62 Q43 79 45.6 91 Q47.2 94.5 50 94.5 Q52.8 94.5 54.4 91 Q57 79 57 62 L56.6 33 Q55.8 19 50 11 Z';
+  /* la silhouette est peinte deux fois : d'abord en blanc, un peu plus large,
+     pour le liseré ; puis en rouge, sans contour, pour éviter les traits
+     blancs là où les pièces se recouvrent */
+  function corps(a){ return '<path '+a+' d="'+FUS+'"/><path '+a+' d="'+AILE+'"/><path '+a+' d="'+STAB+'"/>'; }
+  return function(px){
+    var s=px||42;
+    return '<svg viewBox="0 0 100 100" width="'+s+'" height="'+s+'" aria-hidden="true" style="display:block">'
+      +corps('fill="#fff" stroke="#fff" stroke-width="3.4" stroke-linejoin="round"')
+      +corps('fill="#E01F26"')
+      +'<path fill="#2A2F38" d="M50 79 L48.6 92.5 L51.4 92.5 Z"/>'
+      +'<path fill="#2A2F38" d="M50 29 Q45.9 31.8 45.6 41 L45.6 53.4 Q45.6 56.6 50 56.6 Q54.4 56.6 54.4 53.4 L54.4 41 Q54.1 31.8 50 29 Z"/>'
+      +'<circle cx="50" cy="13.5" r="3.6" fill="#2A2F38"/>'
+      +'</svg>';
+  };
+})();
+window.__AVION_PX=42;   /* taille commune, en pixels */
 (function(){
   const vfBtn=document.getElementById('vfBtn');
   let mode='auto', playing=false, T=0, total=0, legs=[], timer=null, planeOn=false;
@@ -3906,11 +3931,12 @@ document.getElementById('asideToggle').addEventListener('click', toggleAside);
   const lerp=(a,b,t)=>a+(b-a)*Math.max(0,Math.min(1,t));
   const plane=L.marker([0,0],{interactive:false,keyboard:false,zIndexOffset:1000});
   const vfHlGroup=L.layerGroup().addTo(map);
-  const PLANE_IMG='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFwAAAA8CAYAAADrG90CAAASm0lEQVR42u1ca3BdV3X+1tr7nPu+elhPO34kll+yEzuJkyZNJzKQwPAmKUpSoDBtk0KhDDUUBiZQSbxb0hICdJqhYUJ5jsRMKTBAk0CsQuMEEiAQK2MsE1ux3m/pSvfec87eqz/OuVfXxjGBuEiaaM/YV+Nj7bP3t9b69rfX3usqrJLW0dHBh3p7sfWtB1vePzX9xOte9Sp/82te/ZO3NTRwT1+fYK09uyYi1N3drdra2nRbW5sGoM7809bWpj/V0hIDgB+86Pq3SuNGefiFL/4h0il0R8+f4Xc1AN3R0aG7u7vVGtq/Y3vdxz5W862WXd/uX9ds7mvZOfrJrg9cDaJVNQdaTs8mIvnqhz60sTYef/G/HDq0fmpkJKMcp0opVWWMscxMSqm8iBxPJBInP3js5MGWgnfZlFibEcsziVjxK3t3f+A7s7MzCc/bxlo3WmtdY4xordlaO14MgtzN1147vXf9+l+7Bw9+4wVEwXICrpfv1Z0EQJxk8uKY1u821l7guG6KmEFEUEqBiABrkVeMLcMj2LGYxyKzZEHss5Iti/lYzZG+fwqam6CVgpGQyh3HgYiAAAgRNPNo3HH+dxT4HoBcydjPKw8/sw0++mjyyz/4QXN/f3+VMaZhfHxc1dXVrTcLC/58U9Ov3/Kjw3955amRP88RC4koSyTxwMfAhsaZb7z51tt+9f3vB6mqqg1TU1MjtbW1xVQqtUhEp954ww3T+w8cmMQyAbzyFk08CxZmxhNbd9w327hZBpu2BIPNW+Tp5i0y1LjRHt+2K/jJvfde+Vvf09HBK2G+erkHQICUOL2zs5P6+vrK+NfU1PDRo0flZa99bYO64zN7AwHAYVSGf7GtLnjqxOHD17QBP72kpUWNXHppmaNbW1uls7NTiAjU1WXX3PtZeuV/3fT6q45vuMiOhB5uB5u3yGDzZhls2hzMNW6U3le+5vPQGgLwSp/Tih5gT1cXAUBiaOjiGmuIYY2GEEFAECgSKGuRnpja1e37ClG0rOSmV7ybM8MuzO2bEotFApJiwUYgRCgy0bS1yM3OXqiAdQSMLacCWWmA0zkWTnSe5Xk7IGIMPbxj964NljBpLT1FghkmxKzFlgDUTApSLDZMfvaz2zuAiUMHDnAH8Bt83QkInXPtXsGAC0A9ANcDdGBpsHKugTMgcm5L/MbjLgCbgXivZ1oeg8Una1M0kEkj0AwWi5rFAt0yOWduDgI1Mji4owv4UVdv71kXx67fMp9n4SwEAIcAGgekHbD0exjq2ehw6gBoN0ARwJbO4kFQHHUnJd2x9AkCrHVw7LuM/mPAsX6EnwAGBuTifRemWshNxebnrTuWI+TzSExOYsvWrc7e2vqr5g4/8oVPNNW4JlslKWOJIjHpEWHa9+1bBob46r17ex6oztw++MMfLibXJbCYSGIqmUAxnRYTixFnM8G3+odnkUgItm0DWlpQ/ty5oxi6A1XAW/qZAGPP6i4C0CFAjQNyBJCu3+J05wKcugFuDz3TnNYDEzbd8mc1f3v0aOsFM7nLavOFvVnYZN6NNVhQXImIMhZaDFQgIFgogLyYWy8iDgvEsRZkDBQBLCw+I20Up0hEtBVoayFWxFfKWRQkbl+XxuK6asSDAJZUedgkAmFGLp/H+4fGsFUrj31biBOxD5GAAMsMS0Rs4asgmBGGWGL4TLDEgAK0F4yzFc8SyIggUAq+dmCZYIgoZoJJ7QXzs64qzqaTR05V1/3kP/9o25GHP33vFAJzGpgWUJ0AdYqYs60ldJbQYgJM2brW0q3XXrvlisnJi+sWi1fXB+bylLUXVwk11RHDAUACGFvh9JXeEYrsaNtNkfCWSB4RbKjBYSX0WqHwmSeAJxbfUZA7NzdTIyv4AOgMH2ERTDLhJU8Py98VfWJSSAlgQSAIiAASggBgIghFfYgAEqodpgrBVhp6hceXpwFBkQiTEMwzxuYd59i0dn48Go899OSmusfv+vb9J6HYgw1x7gZUu4itBL40epJKoO++O/nFOz99Y9NC/qWpwN+TAlrqwcm0DcHwIfAAEaIwwMNwI4k6CRnbQohCEKPnKAMm4XNwNA2J5kQRAQkCEVhrcU8mTt9srke1BQydOWwBiWBBKeyamMb7JmckyRpJAIZ4qcfoZ0hpJJHZBAAsSESEuIxsCLaUTAYhiUxE4PC5ciHkROPNEWGUrFfQzlM5pX42XFfb+x8ffU/P96+/cTJ6jULE+ae5y+Z3vKO663v3vWnnYvFvLjKyI2UFBgKfCD5grVgLEFkCh2khAojD0AagBFggg2Er2EwaGoBwONSyMSiaSvQ7IdXLGWEn8EUQGIO7qlN4sKkOVUZgaIlKqYJuPdZonJlBx9gUGkjDQejJS6hSBFXFmyK7l8AtAa4BzFvBoHi4iJxwDlF/Er1XQBCRkJ1EhEGkiJRrwzjJa8LxmD55rLHu37/z9r/6/Ndef+tQ9GIiAeimj388+8ovfemtO2cW3rzV2M0KjEWIsdErKMzblRflypWBRE7zXU8Es2JQzwoUjbAMEhB5C0e9WUilzSMjcOThRWPwiZoUHmmsQ8YK7DMsQj5rVM/NonNkEhtJQRFHrkQRXCh7uZxpsfLivrQT9JkwYwLUEoNPI8Az1EKZMSUiiRAahiAhVllWOBp3Rk+sb/zcL2+77c6Pv+lNkwRH4wsXbPnq64rmlry1KECMJSICMSJepYoQlgoBFyAEgcoTCMNQi4VZYquy1y4FaqUWXOJ2slKmFB8CLzD4RE06BNxYWHomwBm1c3PoHJ1CMxw45dhdoqjTuH+J5p5BSQiUAEGU3l0abgg9lRc8CSMYFe4fOQ4AyyISE6sUEb6yacMD8shDL9P/9tKXXdvwyKN/OgDl+yH5MkmJ1ksdE5XlHQQMghGLNDOSRDAiEAuAwpiwFTkDKkcFnbbklaOkQkJKhRwvwZGwFsQEss8ss4QI8cDCNQKjAKei3/L7KhWfWJBE/krlmYIqJLdEmxQCQSR0H8WMnAiKImCJIs5YlOJbolVaQgotkZoR3zMNQ0MvCm6//VX60r5fvbfg+c4J8ZBkLlvUlixGgBERAoSoDJo1EEyKYBM0FABXcRRvljQgCKMkkn4lBRR5CIXyJGRWAVPkG0QgCY3iEoEUUOsHmJ3PwSGCcl1wdEARTkrgeT5mbIDtRQ9JVtBE0JByNAhKgsSGS3Wo4kM6g4hdYhQRKf17uBwHAhKxEq52hIUgwIixaCSGERueWpWckYgZIETjCmcvYCtqFlC1uRyc+x94j85beVEhm5nYoJ1FBco6QWCUFcdolSFjoa2VGBFrEJFYaBE4RCwCPOLl0aBUCGrEzxYEIUZgLawNVxEDRmC8MEaUQmAsSn4RRaOUVSGRMBMWAgvX8+Squg00+fJXqOG+PgyNjcD3vLBfEFzXwbq6Wly2bx8ue/Tntvjoz+xkLIGkRKRIREaEyFpwqJgIYkESeisTSKJnmsO9MAugmcEkIBuCz0qDhKDDAeJyHUMRgIXAEwKUgm8tiiTWEBMpBRg7HzB8OJpdY6ZGvGIitZC/VP/swDXXj7361Uc/f+WVuRvuvz81cqrPbJs2sQ1a1/qjo1Dj49JQU7MOxSAVjI2bbOAnKJNuwtyc5ObnKVlbt75QKMT17FwQd92qwNX1amExYK1rmHWNLC4a9gNFMbeBgkAp3xfWuoatcdgPLIxoVhxna+Ayk0sMCQyyFMA4Dmh0DCcffxw791yMHa2tEQUvcTAL8PjJk8gcPcrrUilOE4eykBUsM7zAAEywSsGYwBOQB0ezFTsbCAqIuRwwFb1iMGFcBxKPCRYLI0WlPKSSSrt6YWF6ZsRks4rjbu7EzOzIRCZNpraalcHkbD4349c3afLyE/PGLHjr69hp3IiTvj890dxckO3r1ZdefOPsO+69N7Hp0KGd5/+IjUMNDqXD7X7EcfD9GADG4cP48PHhahl9Sk8dO2Y3el4s47p1anBM0uuyDcmCn5ThkUAl47UF4qrk1GTTHRNjB0+lUzrrxhBPJKCUgohFIZ9HrujZ9OIi/3Ui/d319bX3mVhCYW7+FNLpoJjNBtNT4yNUU2OluZknCoWpEWCx9pJt3Kszcw+84AUFbNvGAAJo7YNDmYvAr9CAco4s0O+Rwetub1ft3d223Hn02dnZWTbG7opTGACoHxsLEzm9vThwRofPlMyi3zMjJyLuHXsuOdGTSTRrkPjGlBgfLhNmiexLp+b4tltva9/+7nd+/bkc9T3TOcGhimeHABxoawMAjDc0lOfU3toqnWdmKLu6wtUzWjd62tv5D3aIfNqESgbt6gI6On7DoCWjjo+PM44cMdt37/36vxZyrznU3GgaA6MMwq3bnFZSNzlJXSpRVJ/65ysL113XN97ezijtmM9oR1pbBV0AOkIwqHI/8QdK0a7oWzQCKALMw1f+yXvWD5z8x7dXJ82TVRkVY4YPIDu/YO8YmuD6PbuOfK33wf1dRIW1A4jncsTW3g709GBo44afXzg0jDsncvzN3CL6tYtaP8ANxkqrG0NvJnu4y9EFAZiIVvRh8Yo+02zv7rYAMHz1FU+OMs1kNNMbA5YP5n38vSFcIIQp14FuafkpAoOe9vYVf+9tRQNOFO4H3/audw2J6/ZpIcwR2XnFmGJIIKKm424wtX/Po2WOXgP8uTULMJQyi6nkL5gIKtLeChBXDPKZ7HDhDX/RDwCdnZ1rgD9nHgcI1mIhm33cUyrK5oSbcsUMr7aq7/XJ5LQAK3qxXDWAo70dADDX1PhEjslwlFxTFgArLNZU/wLFAnpWw1xWA+AlXj5x9e7jBaWmHIkOzUQo7zgINm7+JayUDbMG+HNsXV1dAgDvPHj7mOeoAS0WArEklmfirg2uuPwYVlFbDWEoAjAcxxQc57gKc9xWW0E+mZqaufnmgUoJuQb4+doRG4N8zOm3YZ5ZNAF+MjGwHRinSEKuAX6e/byQyQwGpRN4Ing12aH9yaRvV3iKYtUB3hN9FrNVT+cJIBGG0igmk8dRWD0KZdUA3t7RIQAwnc4OLzCDBewxwctkB89nrnoN8CWpIgAwWps5BaERB2Df0fBSiZOVWn0N8POpUwAcPXDA81xl2QIFpay+aNM8VllbFYBTdDUtaG9fNMzDjgjyQGEiVXW8cnO0Bvh59HEL0Be0LgTWjmox8NNJbrjmGgcAOtc8/P+paQUvk3YMEQLBcF9r6zAAYBVkCVcd4J0AoVCkuXh8/qfWw7jWuV3AAlaRBgdW1hEblWp9dgN0JKy2AAAcCO90UReRPb5txy+vI7rxRCZDbyiVfdBNSrB0ul6qSOhcuuG2VoVcat3hLedzVyMTwvsun+lIf3jPns9MrmuWu/df8T+bZmZqIMJhucu5w7g7POhf9mhYGeHIBHztH9zrP/dQ9f7p6YZ1hUJzTb7YHPfM+iqiTUmRjSymOQVqPFEoNF+utDoc+MGFrjvuK57yNY/OM53yWA/ktX46F3dPzadSg080pMe+fMlV0/jIhwuVpSHPS8Cj64/yxe27b23Jzb8RRhpdkXrNUp0BU8YSXBLo6IwnvItCeCgoYCNrPBUE+GPtQIjAFFaEGwA+EfIA5kjgAXMFwThpPTPQWPfgkR8//IEuoiKWkWaWhcM7Qp+2t7z85Y2tjz1+5z5LqRzCKonAAAbWGkAKUioKAQlAMSJ4UbW9IcIiQQxESFgQ8TWLpRhADQBrIMtA1i0WsWF0/PK5gwd/AeCL3e3t6qaeHvO8AXx3ezuhpwcvyWRaBq3RtcJBWGRRvt5+1ithJAKygGgGUQADpkAsEezS/W8pu2/55rkCBf3FAuuJibowG9bz/FQpm2tqmmocJ3Y0t2BjSrEJLzeKhNfTBYJybQ2DoJkwGvi00dFq2hjbB98CQiJSLmhQJGAQiYAIRJqEfWNUjaPVJlr+72taFsBLW/GnguDJWscd2VrtNlpjbBLMWiy5VqAgYGuhbFhKYEWQIsJ9mRjGlaBBMb/QgAsIqxlEGJYFlhUCBnxieAIUAStakbi6cKqubqyc7FomL192i7/vIx+pXz8310T9J2065TbEZ2fdWC6ftkx1sYUFN866OZiZ1bF4fIMzM8ODu3fWXTgwcN3xpoYfb+o/0R/U1jiLfjDCrjNnA384l80aHYtPzxPNBgl3bt7nGb27Rc/V1+fee/DgiZV+FW7lGFyFZX3/LZJ6ZO/+8Qfvvue6sPBmdX073nLvNKX0TUDA6ffQ68fGCL29S//TWBwA5K677gp2pxInk8WFvAjUY/v28fxjjy1JvLa20+5tH4nubXcC6Fr7VqDfyTIEAE+JxL/+yld8+/577rmo8t/Xklfnm3soLMG9kKgwWlt/uKqlxV+NjvN/RlA++IGD3TsAAAAASUVORK5CYII=';
+  /* l'avion est maintenant dessin\u00e9 au trait : voir window.__AVION_SVG */
   function planeIcon(hdg){
-    /* avion Aquila vu de dessus (image utilisateur), nez vers le haut = cap 0\u00b0 */
-    return L.divIcon({className:'',iconSize:[46,46],iconAnchor:[23,23],
-      html:`<div class="plane-ic" style="transform:rotate(${hdg.toFixed(0)}deg);width:46px;height:46px;display:flex;align-items:center;justify-content:center"><img src="${PLANE_IMG}" style="width:46px;display:block;filter:drop-shadow(0 1px 3px rgba(0,0,0,.4))"/></div>`});
+    /* même avion qu'à l'enregistrement, nez vers le haut = cap 0\u00b0 */
+    const S=window.__AVION_PX||42;
+    return L.divIcon({className:'',iconSize:[S,S],iconAnchor:[S/2,S/2],
+      html:`<div class="plane-ic" style="transform:rotate(${hdg.toFixed(0)}deg);width:${S}px;height:${S}px">${window.__AVION_SVG(S)}</div>`});
   }
   function buildLegs(){
     const arr=active?routes[active]:[]; legs=[]; total=0;
@@ -5125,7 +5151,11 @@ function openRelinkChoice(){
   function nowMs(){ return Date.now?Date.now():0; }
   function fmtDur(ms){ var s=Math.floor(ms/1000),h=Math.floor(s/3600),m=Math.floor((s%3600)/60),ss=s%60; return (h?h+':':'')+String(m).padStart(2,'0')+':'+String(ss).padStart(2,'0'); }
   function trackNm(){ var d=0; for(var i=1;i<recPts.length;i++) d+=legCalc(recPts[i-1],recPts[i]).nm; return d; }
-  function planeIcon(deg){ return L.divIcon({className:'',iconSize:[34,34],iconAnchor:[17,17],html:'<div class="rec-plane" style="transform:rotate('+(deg||0)+'deg)"><svg viewBox="0 0 24 24" width="34" height="34" fill="#e11d48" stroke="#fff" stroke-width="1.1" stroke-linejoin="round"><path d="M12 2c-.6 0-1 .9-1 2v5.2L3 14v1.8l8-2.1V19l-2 1.3V22l3-1 3 1v-1.7L13 19v-4.3l8 2.1V14l-8-4.8V4c0-1.1-.4-2-1-2z"/></svg></div>' }); }
+  function planeIcon(deg){
+    var S=window.__AVION_PX||42;
+    return L.divIcon({className:'',iconSize:[S,S],iconAnchor:[S/2,S/2],
+      html:'<div class="rec-plane" style="transform:rotate('+(deg||0)+'deg)">'+window.__AVION_SVG(S)+'</div>' });
+  }
   function requestWake(){ try{ if('wakeLock' in navigator){ navigator.wakeLock.request('screen').then(function(w){ wakeLock=w; }).catch(function(){}); } }catch(e){} }
   function releaseWake(){ try{ if(wakeLock){ wakeLock.release(); wakeLock=null; } }catch(e){} }
   document.addEventListener('visibilitychange',function(){ if(recOn && document.visibilityState==='visible' && !wakeLock) requestWake(); });
