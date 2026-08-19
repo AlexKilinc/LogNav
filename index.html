@@ -2628,7 +2628,7 @@ window.__TRACE_MARKUP="\n\n<header>\n  <div class=\"hdr-row1\">\n    <span class
    accessible depuis le bouton ⓘ du bandeau du log, avant toute ouverture de la carte */
 (function(){
   var host=document.createElement('div');
-  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Carte OACI :</b> donnée IGN non libre — nécessite votre propre clé Géoplateforme filtrée sur votre domaine. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.360</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
+  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Carte OACI :</b> donnée IGN non libre — nécessite votre propre clé Géoplateforme filtrée sur votre domaine. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.361</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
   (document.body||document.documentElement).appendChild(host.firstElementChild);
   window.__OPEN_INFO=function(){ document.getElementById('infoModal').hidden=false; };
   /* iPadOS : les pastilles de fen\xEAtrage (coin haut-gauche) recouvrent le burger
@@ -3034,17 +3034,22 @@ function aspCenter(a){
   a._c=[la/a.g.length, lo/a.g.length]; return a._c;
 }
 const airspaceGroup = L.layerGroup().addTo(map);
+/* Plafond choisi dans le panneau Affichage : on ne retient que les espaces dont
+   le plancher est en dessous. « tous » (valeur 0) lève la limite. La carte comme
+   la pile des espaces sous le curseur s'y réfèrent — sans quoi le clic
+   continuerait d'annoncer des espaces que la carte ne montre pas. */
+function aspPlafond(){
+  const s=document.getElementById('aspFl');
+  const v=s?parseFloat(s.value):115;
+  return (!v||isNaN(v))?Infinity:v*100;
+}
 function renderAirspaces(){
   airspaceGroup.clearLayers();
   const note=document.getElementById('aspNote');
   const z=map.getZoom();
   if(z<7){ if(note) note.textContent='Zoomez (≥7) pour afficher'; return; }
   const on={ctrl:document.getElementById('catCtrl').checked,restr:document.getElementById('catRestr').checked,traffic:document.getElementById('catTraffic').checked,tra:document.getElementById('catTra').checked,siv:document.getElementById('catSiv').checked};
-  /* plafond choisi : on ne dessine que les espaces dont le plancher est en
-     dessous. « tous » (valeur 0) lève la limite. */
-  const selFl=document.getElementById('aspFl');
-  const flv=selFl?parseFloat(selFl.value):115;
-  const plafond=(!flv||isNaN(flv))?Infinity:flv*100;
+  const plafond=aspPlafond();
   const b=map.getBounds(), N=b.getNorth(), S=b.getSouth(), E=b.getEast(), W=b.getWest();
   const vis=ASP.filter(a=> a.b[0]<=N && a.b[2]>=S && a.b[1]<=E && a.b[3]>=W && on[aspCat(a)] && a.fl<plafond);
   if(vis.length>800){ if(note) note.textContent='Zoomez pour afficher ('+vis.length+')'; return; }
@@ -3092,7 +3097,12 @@ function refreshAsp(){
   else { airspaceGroup.clearLayers(); document.getElementById('legend').style.display='none'; }
 }
 ASP_CATS.forEach(id=>document.getElementById(id).addEventListener('change', refreshAsp));
-document.getElementById('aspFl').addEventListener('change', ()=>{ if(aspVisible()) renderAirspaces(); });
+document.getElementById('aspFl').addEventListener('change', ()=>{
+  if(aspVisible()) renderAirspaces();
+  /* la pile ouverte est recalculée sur place : elle ne doit pas rester en
+     désaccord avec la carte */
+  try{ if(lastAspPt && !document.getElementById('aspStack').hidden) openAspStackAt(lastAspPt); }catch(e){}
+});
 document.getElementById('showAspLbl').addEventListener('change', ()=>{ if(aspVisible()) renderAirspaces(); });
 let aspTimer;
 map.on('moveend', ()=>{ if(aspVisible()){ clearTimeout(aspTimer); aspTimer=setTimeout(renderAirspaces,150); } });
@@ -3115,7 +3125,11 @@ function badgeOf(a){ return (a.t==='R'||a.t==='D'||a.t==='TRA'||a.t==='CBA'||a.t
 function buildProfile(hits){
   const padL=42,padT=12,padB=8,barW=16,gap=6,H=190;
   const plotH=H-padT-padB, W=padL+6+hits.length*(barW+gap)+8;
-  let top=11500; hits.forEach(h=> top=Math.max(top, Math.min(h.ce,20000))); top=Math.ceil(top/2500)*2500;
+  /* l'échelle part du plafond choisi (au plus 11 500 ft) puis s'élève si un
+     espace retenu monte plus haut */
+  const pl=aspPlafond();
+  let top=Math.max(2500,Math.min(11500,pl===Infinity?11500:pl));
+  hits.forEach(h=> top=Math.max(top, Math.min(h.ce,20000))); top=Math.ceil(top/2500)*2500;
   const yOf=v=>padT+plotH*(1-Math.max(0,Math.min(v,top))/top);
   let s=`<svg width="${W}" height="${H}" xmlns="http://www.w3.org/2000/svg">`;
   [0,10000,20000].filter(g=>g<=top).forEach(g=>{ const y=yOf(g);
@@ -3134,8 +3148,11 @@ function showAspStack(hits){
     `<span class="aname">${a.n}</span><span class="alim">${fmtLimit(a.fl,a.fr)}–${fmtLimit(a.ce,a.cr)}</span></div>`).join('');
   document.getElementById('aspStack').hidden=false;
 }
+let lastAspPt=null;
 function openAspStackAt(pt){
-  const hits=ASP.filter(a=> pt.lat>=a.b[0]&&pt.lat<=a.b[2]&&pt.lng>=a.b[1]&&pt.lng<=a.b[3] && pointInPoly(pt,a.g));
+  lastAspPt=pt;
+  const plafond=aspPlafond();
+  const hits=ASP.filter(a=> pt.lat>=a.b[0]&&pt.lat<=a.b[2]&&pt.lng>=a.b[1]&&pt.lng<=a.b[3] && a.fl<plafond && pointInPoly(pt,a.g));
   const TORD={CTR:0,TMA:1,CTA:2,LTA:3,R:5,P:6,D:7,TRA:7,SIV:9};
   hits.sort((x,y)=> (x.fl-y.fl) || (x.ce-y.ce) || ((TORD[x.t]??8)-(TORD[y.t]??8)));  // surface d'abord
   if(!hits.length){ document.getElementById('aspStack').hidden=true; clearHl(); return; }
