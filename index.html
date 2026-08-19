@@ -507,6 +507,13 @@ try{ window.sb=(window.supabase&&window.supabase.createClient)?window.supabase.c
   .rec-hud .dot{flex:none;width:9px;height:9px}
   .rec-hud .rec-hud-stop{padding:4px 8px;font-size:11px;margin-left:2px;flex:none}
   html.mp-cards .rec-hud{left:10px;transform:none;max-width:calc(100vw - 150px)}
+  /* le badge REC n'appartient qu'a la carte et aux cartes de vol : sur le log,
+     le profil, l'image et la meteo il n'a rien a dire et il masquerait le
+     contenu — seul le point rouge de la barre du bas y rappelle l'enregistrement.
+     On le rend invisible sans le sortir de la mise en page, pour qu'il retrouve
+     sa place exacte des le retour sur la carte, sans saut. */
+  html:not(.mp-map):not(.mp-cards) .rec-hud,
+  html:has(#wxOv) .rec-hud{visibility:hidden!important;pointer-events:none!important}
   html.mp-cards.rec-live .nc-title{visibility:hidden}
   html.rec-live #mdots{z-index:4200}
   html.rec-live .rec-hud{z-index:4300}
@@ -520,6 +527,7 @@ try{ window.sb=(window.supabase&&window.supabase.createClient)?window.supabase.c
 }
 
 @keyframes recPulse{0%,100%{box-shadow:0 0 0 0 rgba(225,29,72,.55)}50%{box-shadow:0 0 0 7px rgba(225,29,72,0)}}
+@keyframes recRespire{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.38;transform:scale(.66)}}
 /* décompte avant enregistrement */
 .rec-cd{position:fixed;inset:0;z-index:4300;background:rgba(8,13,25,.88);display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;font-family:"Poppins",sans-serif;-webkit-tap-highlight-color:transparent}
 .rec-cd-num{font-size:110px;font-weight:800;line-height:1;color:#fff;text-shadow:0 4px 26px rgba(225,29,72,.65)}
@@ -2577,7 +2585,7 @@ window.__TRACE_MARKUP="\n\n<header>\n  <div class=\"hdr-row1\">\n    <span class
    accessible depuis le bouton ⓘ du bandeau du log, avant toute ouverture de la carte */
 (function(){
   var host=document.createElement('div');
-  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Carte OACI :</b> donnée IGN non libre — nécessite votre propre clé Géoplateforme filtrée sur votre domaine. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.352</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
+  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Carte OACI :</b> donnée IGN non libre — nécessite votre propre clé Géoplateforme filtrée sur votre domaine. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.353</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
   (document.body||document.documentElement).appendChild(host.firstElementChild);
   window.__OPEN_INFO=function(){ document.getElementById('infoModal').hidden=false; };
   /* iPadOS : les pastilles de fen\xEAtrage (coin haut-gauche) recouvrent le burger
@@ -5234,47 +5242,68 @@ function openRelinkChoice(){
     st('riCap',recLastDeg!=null?(String(Math.round((recLastDeg%360+360)%360)).padStart(3,'0')+'\u00b0'):null);
     drawProj();
   }
+  /* Pose du badge REC. Appelee aussi au changement d'ecran (window.__REC_PLACE)
+     pour qu'il soit deja a sa place quand la page apparait. */
+  function placeRecHud(){
+    if(!recHud) return;
+    /* page Cards : le bandeau se cale à gauche, à la place du titre du bandeau de vol */
+    try{
+      var slot=document.querySelector('#navcards .nc-title')||document.querySelector('#navcards .nc-bar');
+      var onCards=document.documentElement.classList.contains('mp-cards');
+      if(slot&&onCards&&slot.offsetParent!==null){
+        var rb=slot.getBoundingClientRect(), hh=recHud.offsetHeight||34;
+        var isT=slot.classList.contains('nc-title');
+        var lft=Math.max(6,Math.round(rb.left-(isT?4:-8)));
+        recHud.style.transform='none';
+        recHud.style.left=lft+'px';
+        /* le titre est une ligne fine : on garde le badge à l'intérieur du bandeau */
+        var bar=document.querySelector('#navcards .nc-bar'), br=bar?bar.getBoundingClientRect():rb;
+        var ty=isT?(rb.top+rb.height/2-hh/2):(rb.top+6);
+        ty=Math.min(Math.max(ty,br.top+5),Math.max(br.top+5,br.bottom-hh-5));
+        recHud.style.top=Math.max(4,Math.round(ty))+'px';
+        /* jamais par-dessus les flèches de branche ni le bouton du chrono */
+        var nxt=document.querySelector('#navcards .nc-nav,#navcards .nc-play');
+        var lim=nxt?Math.round(nxt.getBoundingClientRect().left-lft-10):Math.round(window.innerWidth-lft-10);
+        recHud.style.maxWidth=Math.max(96,lim)+'px';
+      } else {
+        /* toutes les autres pages (mobile) : centré en bas, par-dessus
+           l'indicateur de pages */
+        var dots=document.getElementById('mdots'), dr=dots?dots.getBoundingClientRect():null;
+        if(dr&&dr.height>0&&isMobileView()){
+          recHud.style.transform='none';
+          recHud.style.maxWidth=Math.max(180,Math.round(window.innerWidth-16))+'px';
+          var w=recHud.offsetWidth, h2=recHud.offsetHeight||34;
+          recHud.style.left=Math.max(8,Math.round((window.innerWidth-w)/2))+'px';
+          recHud.style.top=Math.max(8,Math.round(dr.top+dr.height/2-h2/2))+'px';
+        } else { recHud.style.left=''; recHud.style.top=''; recHud.style.transform=''; recHud.style.maxWidth=''; }
+      }
+    }catch(e){}
+  }
+  try{ window.__REC_PLACE=placeRecHud; }catch(e){}
   function updRecUI(){
     if(recOn){
+      var neuf=false;
       if(!recHud){ recHud=document.createElement('div'); recHud.className='rec-hud';
         recHud.innerHTML='<span class="dot"></span><span class="rec-hud-txt"></span><button class="rec-hud-stop" type="button" title="Arrêter l’enregistrement">⏹ Arrêt</button>';
         recHud.querySelector('.rec-hud-stop').addEventListener('click',function(ev){ ev.stopPropagation(); confirmStop(); });
-        document.body.appendChild(recHud); }
-      var txt=recHud.querySelector('.rec-hud-txt'); if(txt) txt.textContent='REC '+fmtDur(nowMs()-recT0)+' · '+trackNm().toFixed(1)+' NM';
-      /* page Cards : le bandeau se cale à gauche, à la place du titre du bandeau de vol */
-      try{
-        var slot=document.querySelector('#navcards .nc-title')||document.querySelector('#navcards .nc-bar');
-        var onCards=document.documentElement.classList.contains('mp-cards');
-        if(slot&&onCards&&slot.offsetParent!==null){
-          var rb=slot.getBoundingClientRect(), hh=recHud.offsetHeight||34;
-          var isT=slot.classList.contains('nc-title');
-          var lft=Math.max(6,Math.round(rb.left-(isT?4:-8)));
-          recHud.style.transform='none';
-          recHud.style.left=lft+'px';
-          /* le titre est une ligne fine : on garde le badge à l'intérieur du bandeau */
-          var bar=document.querySelector('#navcards .nc-bar'), br=bar?bar.getBoundingClientRect():rb;
-          var ty=isT?(rb.top+rb.height/2-hh/2):(rb.top+6);
-          ty=Math.min(Math.max(ty,br.top+5),Math.max(br.top+5,br.bottom-hh-5));
-          recHud.style.top=Math.max(4,Math.round(ty))+'px';
-          /* jamais par-dessus les flèches de branche ni le bouton du chrono */
-          var nxt=document.querySelector('#navcards .nc-nav,#navcards .nc-play');
-          var lim=nxt?Math.round(nxt.getBoundingClientRect().left-lft-10):Math.round(window.innerWidth-lft-10);
-          recHud.style.maxWidth=Math.max(96,lim)+'px';
-        } else {
-          /* toutes les autres pages (mobile) : centré en bas, par-dessus
-             l'indicateur de pages */
-          var dots=document.getElementById('mdots'), dr=dots?dots.getBoundingClientRect():null;
-          if(dr&&dr.height>0&&isMobileView()){
-            recHud.style.transform='none';
-            recHud.style.maxWidth=Math.max(180,Math.round(window.innerWidth-16))+'px';
-            var w=recHud.offsetWidth, h2=recHud.offsetHeight||34;
-            recHud.style.left=Math.max(8,Math.round((window.innerWidth-w)/2))+'px';
-            recHud.style.top=Math.max(8,Math.round(dr.top+dr.height/2-h2/2))+'px';
-          } else { recHud.style.left=''; recHud.style.top=''; recHud.style.transform=''; recHud.style.maxWidth=''; }
-        }
-      }catch(e){}
+        /* il reste transparent tant que sa place définitive n'est pas connue :
+           la mise en page bouge encore juste après le départ (bandeau des cartes
+           recomposé pour le vol, titre effacé) et le badge glissait sous les yeux
+           de l'utilisateur, à gauche puis vers le haut */
+        recHud.style.opacity='0';
+        document.body.appendChild(recHud); neuf=true; }
+      /* les classes d'abord : elles changent la mise en page que l'on va mesurer */
       rec.classList.add('recording');
       try{ document.body.classList.add('rec-live'); document.documentElement.classList.add('rec-live'); }catch(e){}
+      var txt=recHud.querySelector('.rec-hud-txt'); if(txt) txt.textContent='REC '+fmtDur(nowMs()-recT0)+' · '+trackNm().toFixed(1)+' NM';
+      placeRecHud();
+      if(neuf){
+        [0,90,260,480].forEach(function(d){ setTimeout(function(){
+          if(!recOn||!recHud) return;
+          placeRecHud();
+          if(d===480) recHud.style.opacity='';
+        }, d); });
+      }
     } else { if(recHud){ recHud.remove(); recHud=null; } rec.classList.remove('recording');
       try{ document.body.classList.remove('rec-live'); document.documentElement.classList.remove('rec-live'); }catch(e){}
     }
@@ -5948,7 +5977,7 @@ const wrap=document.createElement("div");sheets.forEach((s,i)=>{const c=s.cloneN
             box-shadow:0 -3px 14px rgba(0,0,0,.42);
             overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
           #mtabs::-webkit-scrollbar{display:none}
-          #mtabs .mtab{flex:1 1 0;min-width:46px;display:flex;flex-direction:column;align-items:center;
+          #mtabs .mtab{position:relative;flex:1 1 0;min-width:46px;display:flex;flex-direction:column;align-items:center;
             justify-content:center;gap:1px;padding:2px;border:0;border-radius:10px;
             background:transparent;color:#8fa9cc;cursor:pointer;
             font:700 9.5px "Poppins",sans-serif;letter-spacing:.01em;-webkit-tap-highlight-color:transparent}
@@ -5956,6 +5985,16 @@ const wrap=document.createElement("div");sheets.forEach((s,i)=>{const c=s.cloneN
           #mtabs .mtab i{font-style:normal;white-space:nowrap}
           #mtabs .mtab.on{background:rgba(30,159,224,.18);color:#7fd1ff}
           #mtabs .mtab:active{background:rgba(255,255,255,.10)}
+          /* enregistrement en cours : un point rouge qui respire vient se poser
+             dans le bleu libre sous l'onglet Map. Il est en position absolue et
+             ne decale donc ni les pictogrammes ni les libelles ; l'animation ne
+             joue que sur l'opacite et la taille, sans halo qui serait rogne par
+             le bord de la barre. */
+          html.rec-live #mtabs .mtab[data-k="map"]::after{content:"";position:absolute;
+            left:50%;bottom:calc(-2px - env(safe-area-inset-bottom,0px)/2);
+            width:6px;height:6px;margin-left:-3px;border-radius:50%;
+            background:#e11d48;box-shadow:0 0 4px rgba(225,29,72,.9);
+            animation:recRespire 1.6s ease-in-out infinite;pointer-events:none}
           /* vol en cours sur les cartes : rien ne doit masquer le tableau de bord */
           html.mp-flying #mtabs{display:none!important;}
           /* page météo : la barre reste accessible au-dessus du panneau, qui lui
@@ -7273,6 +7312,7 @@ class ErrB extends React.Component{constructor(p){super(p);this.state={e:null};}
     if(!mobile){
       document.documentElement.classList.remove('mswipe-lock');
       document.documentElement.classList.remove('mp-cards');
+      document.documentElement.classList.remove('mp-map');
       document.documentElement.classList.remove('mp-flying');
       try{ document.body.classList.remove('mp-light'); document.documentElement.classList.remove('mp-light'); }catch(e){}
       panels=ps;
@@ -7307,11 +7347,15 @@ class ErrB extends React.Component{constructor(p){super(p);this.state={e:null};}
     }
     document.documentElement.classList.toggle('mswipe-lock', cur>0);
     try{ var kk=(ps[cur]&&ps[cur].key)||'log'; var lgt=(kk==='profil'||kk==='image'); document.body.classList.toggle('mp-light', lgt); document.documentElement.classList.toggle('mp-light', lgt); document.documentElement.classList.toggle('mp-cards', kk==='cards');
+      /* le badge REC ne paraît que sur la carte et les cartes de vol */
+      document.documentElement.classList.toggle('mp-map', kk==='map');
       /* vol en cours sur les cartes : le bouton rouge « Fin » n'existe qu'alors,
          il sert donc de signal pour effacer la barre d'onglets */
       document.documentElement.classList.toggle('mp-flying', kk==='cards' && !!document.querySelector('.nc-play')); }catch(e){}
     panels=ps;
     renderDots(ps);
+    /* enregistrement en cours : le badge se recale sur la page qui s'affiche */
+    try{ if(window.__REC_PLACE) requestAnimationFrame(window.__REC_PLACE); }catch(e){}
   }
   /* Onglets du bas : un par écran, dans l'ordre de lecture voulu, puis la météo
      et le sélecteur de taille. Les pictogrammes sont tracés au trait, dans la
