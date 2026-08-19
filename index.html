@@ -867,7 +867,10 @@ html:has(.ovl) #uiScaleBox,html:has(body.rec-full) #uiScaleBox{display:none!impo
 /* ===== Interface mobile (iPhone) : log de nav en listing de points ===== */
 .mlog{display:none;max-width:640px;margin:0 auto 16px}
 .tb-brk{display:none}
-.mlog-meta{display:flex;flex-wrap:wrap;gap:6px;align-items:center;background:#fff;border:1px solid #d7dce4;border-radius:12px;padding:8px;margin-bottom:10px}
+/* Le nom du vol et le bouton du commandant portent déjà leur propre cadre : le
+   cadre blanc qui les entourait ne servait qu'à occuper de la place. Sans lui,
+   et avec un léger retrait vers le haut, la mise en page respire. */
+.mlog-meta{display:flex;flex-wrap:wrap;gap:6px;align-items:center;background:transparent;border:0;border-radius:0;padding:0;margin:-6px 0 8px}
 .mlog-meta .mm-cdb{flex:0 0 auto;display:inline-flex;align-items:center;gap:3px;border:1px solid #cbd5e1;border-radius:8px;background:#eef3fc;color:#16213e;font:700 13px/1.2 "Poppins",sans-serif;padding:9px 7px;cursor:pointer}
 .mlog-meta .mm-chev{font-size:10px;color:#64748b}
 .mlog-meta .mm-more{flex:1 1 100%;display:flex;flex-wrap:wrap;gap:6px}
@@ -2628,7 +2631,7 @@ window.__TRACE_MARKUP="\n\n<header>\n  <div class=\"hdr-row1\">\n    <span class
    accessible depuis le bouton ⓘ du bandeau du log, avant toute ouverture de la carte */
 (function(){
   var host=document.createElement('div');
-  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Carte OACI :</b> donnée IGN non libre — nécessite votre propre clé Géoplateforme filtrée sur votre domaine. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.361</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
+  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Carte OACI :</b> donnée IGN non libre — nécessite votre propre clé Géoplateforme filtrée sur votre domaine. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.362</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
   (document.body||document.documentElement).appendChild(host.firstElementChild);
   window.__OPEN_INFO=function(){ document.getElementById('infoModal').hidden=false; };
   /* iPadOS : les pastilles de fen\xEAtrage (coin haut-gauche) recouvrent le burger
