@@ -2587,7 +2587,7 @@ window.__TRACE_MARKUP="\n\n<header>\n  <div class=\"hdr-row1\">\n    <span class
    accessible depuis le bouton ⓘ du bandeau du log, avant toute ouverture de la carte */
 (function(){
   var host=document.createElement('div');
-  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Carte OACI :</b> donnée IGN non libre — nécessite votre propre clé Géoplateforme filtrée sur votre domaine. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.354</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
+  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Carte OACI :</b> donnée IGN non libre — nécessite votre propre clé Géoplateforme filtrée sur votre domaine. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.355</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
   (document.body||document.documentElement).appendChild(host.firstElementChild);
   window.__OPEN_INFO=function(){ document.getElementById('infoModal').hidden=false; };
   /* iPadOS : les pastilles de fen\xEAtrage (coin haut-gauche) recouvrent le burger
@@ -5337,7 +5337,7 @@ function openRelinkChoice(){
   }
   function confirmStop(){
     var ov=document.createElement('div'); ov.className='vac-ov'; ov.style.zIndex='4200';
-    ov.innerHTML='<div class="vac-card" style="max-width:340px"><div style="font:800 16px Poppins,sans-serif;color:#16213e;margin-bottom:8px">Arrêter l’enregistrement ?</div><div style="font:500 13px Poppins,sans-serif;color:#475569;margin-bottom:14px">La trace en cours sera figée. Vous pourrez ensuite l’enregistrer, l’exporter en GPX ou l’effacer.</div><div style="display:flex;gap:8px"><button class="vac-btn" id="recStopYes" style="background:#e11d48;border-color:#e11d48">Arrêter</button><button class="vac-btn sec" id="recStopNo">Continuer</button></div></div>';
+    ov.innerHTML='<div class="vac-card" style="max-width:340px"><div style="font:800 16px Poppins,sans-serif;color:#16213e;margin-bottom:8px">Arrêter l’enregistrement ?</div><div style="font:500 13px Poppins,sans-serif;color:#475569;margin-bottom:14px">La trace en cours sera figée. Vous pourrez ensuite l’enregistrer ou l’effacer.</div><div style="display:flex;gap:8px"><button class="vac-btn" id="recStopYes" style="background:#e11d48;border-color:#e11d48">Arrêter</button><button class="vac-btn sec" id="recStopNo">Continuer</button></div></div>';
     document.body.appendChild(ov);
     ov.addEventListener('click',function(e){ if(e.target===ov) ov.remove(); });
     ov.querySelector('#recStopNo').onclick=function(){ ov.remove(); };
@@ -5375,13 +5375,6 @@ function openRelinkChoice(){
     if(!silent) openRecSummary();
   }
   function clearRec(){ clearFlightInst(); if(recLine){ try{map.removeLayer(recLine);}catch(e){} recLine=null; } if(planeMk){ try{map.removeLayer(planeMk);}catch(e){} planeMk=null; } recPts=[]; }
-  function recGpx(){
-    if(!recPts.length){ tt2('Aucun point à exporter.'); return; }
-    var seg=recPts.map(function(p){ var t=p.t?new Date(p.t).toISOString():''; return '<trkpt lat="'+(+p.lat).toFixed(6)+'" lon="'+(+p.lng).toFixed(6)+'">'+((p.ele!=null&&!isNaN(p.ele))?'<ele>'+(+p.ele).toFixed(1)+'</ele>':'')+(t?'<time>'+t+'</time>':'')+'</trkpt>'; }).join('');
-    var gpx='<?xml version="1.0" encoding="UTF-8"?>\n<gpx version="1.1" creator="LogNavAK" xmlns="http://www.topografix.com/GPX/1/1"><trk><name>Trace enregistrée LogNavAK</name><trkseg>'+seg+'</trkseg></trk></gpx>';
-    var a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([gpx],{type:'application/gpx+xml'})); a.download='trace_vol.gpx'; document.body.appendChild(a); a.click(); a.remove(); setTimeout(function(){ try{URL.revokeObjectURL(a.href);}catch(e){} },2000);
-    tt2('Trace GPX exportée.');
-  }
   var TKEY='lognav_tracks_v1';
   function saveRec(){
     if(!recPts.length){ tt2('Aucun point à enregistrer.'); return false; }
@@ -5398,12 +5391,10 @@ function openRelinkChoice(){
   function openRecSummary(){
     var nm=trackNm().toFixed(1), dur=fmtDur(nowMs()-recT0), n=recPts.length;
     var ov=document.createElement('div'); ov.className='vac-ov';
-    ov.innerHTML='<div class="vac-card" style="max-width:420px"><div style="font:800 16px Poppins,sans-serif;color:#16213e;margin-bottom:6px">✈ Trace enregistrée</div><div style="font:500 13px Poppins,sans-serif;color:#475569;margin-bottom:14px">'+n+' point(s) · '+nm+' NM · '+dur+'</div><div style="display:flex;flex-direction:column;gap:8px"><button class="vac-btn" id="recSaveDb">Enregistrer (date &amp; heure)</button><button class="vac-btn sec" id="recExp">Exporter en GPX</button><button class="vac-btn sec" id="recKeep">Garder la trace à l’écran</button><button class="vac-btn sec" id="recClr" style="color:#b91c1c;border-color:#f0c2c2">Effacer la trace</button></div></div>';
+    ov.innerHTML='<div class="vac-card" style="max-width:420px"><div style="font:800 16px Poppins,sans-serif;color:#16213e;margin-bottom:6px">✈ Trace enregistrée</div><div style="font:500 13px Poppins,sans-serif;color:#475569;margin-bottom:14px">'+n+' point(s) · '+nm+' NM · '+dur+'</div><div style="display:flex;flex-direction:column;gap:8px"><button class="vac-btn" id="recSaveDb">Enregistrer (date &amp; heure)</button><button class="vac-btn sec" id="recClr" style="color:#b91c1c;border-color:#f0c2c2">Effacer la trace</button></div></div>';
     document.body.appendChild(ov);
     ov.addEventListener('click',function(e){ if(e.target===ov) ov.remove(); });
     ov.querySelector('#recSaveDb').onclick=function(){ if(saveRec()){ tt2('Trace enregistrée (voir Paramètres).'); ov.remove(); try{ if(window.__SYNC_PUSH_SOON) window.__SYNC_PUSH_SOON(); }catch(e){} } };
-    ov.querySelector('#recExp').onclick=function(){ recGpx(); };
-    ov.querySelector('#recKeep').onclick=function(){ ov.remove(); };
     ov.querySelector('#recClr').onclick=function(){ clearRec(); ov.remove(); };
   }
   /* retour sur la carte pendant un enregistrement : centrer sur l'avion (sauf si déjà visible) */
@@ -6299,7 +6290,8 @@ function NavCards({nav,setNav,tsvOf,tavOf,capOf}){
       dispo:r1(Math.max(0,numv((F.fuel||{}).total)-tanks.reduce((s,t)=>s+numv(u[t[0]]),0)))};
     const patch={flight:{...F,tEnd:now,used:u,log:(F.log||[]).concat([ent]).slice(-14)}}; patch[block]=arr;
     setNav(patch); clrRef.current=false;
-    /* la trace s'arrête avec le vol : le récapitulatif d'enregistrement s'ouvre */
+    /* la trace s'arrête avec le vol : elle est enregistrée d'office, sans
+       récapitulatif */
     try{ if(window.__REC_STOP) window.__REC_STOP(); }catch(e){}
     /* puis on invite à relever l'horamètre d'arrivée (facultatif) */
     setTimeout(()=>setPop("hm"),260);
@@ -6394,6 +6386,9 @@ function NavCards({nav,setNav,tsvOf,tavOf,capOf}){
     /* on reste sur la carte : une flèche clignotante invite à balayer vers le haut */
   };
   const stopNow=()=>{ clrRef.current=false; setPop(false);
+    /* le vol s'arrête : la trace est enregistrée d'office et l'enregistrement
+       coupé, sans récapitulatif — celui-ci n'appartient qu'à la carte */
+    try{ if(window.__REC_STOP) window.__REC_STOP(); }catch(e){}
     setNav({flight:{...F,t0:null}}); setMode("idle"); setK(0); };
   /* le bouton rouge reste sous le pouce pendant tout le vol : on ne termine
      jamais d'un seul appui */
