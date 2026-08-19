@@ -2619,7 +2619,7 @@ window.__TRACE_MARKUP="\n\n<header>\n  <div class=\"hdr-row1\">\n    <span class
    accessible depuis le bouton ⓘ du bandeau du log, avant toute ouverture de la carte */
 (function(){
   var host=document.createElement('div');
-  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Carte OACI :</b> donnée IGN non libre — nécessite votre propre clé Géoplateforme filtrée sur votre domaine. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.357</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
+  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Carte OACI :</b> donnée IGN non libre — nécessite votre propre clé Géoplateforme filtrée sur votre domaine. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.358</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
   (document.body||document.documentElement).appendChild(host.firstElementChild);
   window.__OPEN_INFO=function(){ document.getElementById('infoModal').hidden=false; };
   /* iPadOS : les pastilles de fen\xEAtrage (coin haut-gauche) recouvrent le burger
@@ -5588,9 +5588,14 @@ function openRelinkChoice(){
     if(trkPlayBar.parentNode!==host){ try{ host.appendChild(trkPlayBar); }catch(e){} }
     var h=host.querySelector(':scope>header')||host.querySelector('header'); if(!h) return;
     var hr=h.getBoundingClientRect(), tr=host.getBoundingClientRect();
-    trkPlayBar.style.left=Math.round(hr.left-tr.left)+'px';
+    /* téléphone : la barre s'arrête juste avant les angles arrondis du bas du
+       bandeau, sinon ses coins droits dépasseraient de la courbe */
+    var marge=0;
+    try{ if(window.matchMedia('(max-width:820px)').matches)
+      marge=parseFloat(getComputedStyle(h).borderBottomLeftRadius)||0; }catch(e){}
+    trkPlayBar.style.left=Math.round(hr.left-tr.left+marge)+'px';
     trkPlayBar.style.top=Math.round(hr.bottom-tr.top)+'px';
-    trkPlayBar.style.width=Math.round(hr.width)+'px';
+    trkPlayBar.style.width=Math.max(120,Math.round(hr.width-2*marge))+'px';
   }
   function buildTrkPlayBar(){
     if(trkPlayBar) return trkPlayBar;
@@ -6018,7 +6023,8 @@ const wrap=document.createElement("div");sheets.forEach((s,i)=>{const c=s.cloneN
           #root .mswipe.mcards .nc-t i{font-size:10px;letter-spacing:.01em;}
           #root .mswipe.mcards .nc-t b{font-size:15px;letter-spacing:.1px;}
           #root .mswipe.mmap #trace-host{flex:1 1 auto!important;display:flex!important;flex-direction:column!important;min-height:0!important;height:auto!important;}
-          #root .mswipe.mmap #trace-host header{flex:0 0 auto;border-radius:12px!important;margin:0!important;position:relative!important;z-index:3!important;box-shadow:0 3px 14px rgba(0,0,0,.42)!important;}
+          /* le bandeau touche le haut de l'ecran : angles droits en haut, arrondis en bas */
+          #root .mswipe.mmap #trace-host header{flex:0 0 auto;border-radius:0 0 12px 12px!important;margin:0!important;position:relative!important;z-index:3!important;box-shadow:0 3px 14px rgba(0,0,0,.42)!important;}
           #root .mswipe.mmap #trace-host main{flex:1 1 auto!important;height:auto!important;min-height:0!important;margin:-12px 0 0 0!important;border-radius:0!important;border:none!important;position:relative!important;z-index:0!important;}
           /* la carte remonte de 12 px sous les angles arrondis : on redescend d'autant les contrôles et la vignette */
           #root .mswipe.mmap #trace-host .leaflet-top{margin-top:12px!important;}
