@@ -2619,7 +2619,7 @@ window.__TRACE_MARKUP="\n\n<header>\n  <div class=\"hdr-row1\">\n    <span class
    accessible depuis le bouton ⓘ du bandeau du log, avant toute ouverture de la carte */
 (function(){
   var host=document.createElement('div');
-  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Carte OACI :</b> donnée IGN non libre — nécessite votre propre clé Géoplateforme filtrée sur votre domaine. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.356</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
+  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Carte OACI :</b> donnée IGN non libre — nécessite votre propre clé Géoplateforme filtrée sur votre domaine. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.357</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
   (document.body||document.documentElement).appendChild(host.firstElementChild);
   window.__OPEN_INFO=function(){ document.getElementById('infoModal').hidden=false; };
   /* iPadOS : les pastilles de fen\xEAtrage (coin haut-gauche) recouvrent le burger
@@ -5504,10 +5504,10 @@ function openRelinkChoice(){
     try{ if(ok&&window.__SYNC_PUSH_SOON) window.__SYNC_PUSH_SOON(); }catch(e){}
     tt2(ok?'Trace enregistr\u00e9e (voir Param\u00e8tres).':'Trace trop courte : rien \u00e0 enregistrer.');
     return true; };
-  var loadedTrk=null, trkClearBtn=null, trkProfEl=null, lastTrkPts=null, trkGeo=null, trkPlaneOn=false, trkPlaneMk=null, trkPlaneBtn=null, trkData=null, trkFrac=0;
+  var loadedTrk=null, trkProfEl=null, lastTrkPts=null, trkGeo=null, trkPlaneOn=false, trkPlaneMk=null, trkData=null, trkFrac=0;
   /* Synchro du profil : si le profil vertical planifié est ouvert, la trace s'affiche dessus
      (superposée, étirée proportionnellement) au lieu du panneau en bas de carte. */
-  try{ window.__TRK_SYNC_PANEL=function(){ try{ if(!lastTrkPts){ removeTrkProfile(); return; } if(trkPlaneOn){ if(!trkProfEl) showTrkProfile(lastTrkPts); setTrkPlane(true); return; } if(window.__PROFILE_ON){ removeTrkProfile(); } else { showTrkProfile(lastTrkPts); } }catch(e){} }; }catch(e){}
+  try{ window.__TRK_SYNC_PANEL=function(){ try{ if(!lastTrkPts){ removeTrkProfile(); return; } if(trkPlaneOn){ if(!trkProfEl) showTrkProfile(lastTrkPts); setTrkPlane(true,!!trkPlayTimer); return; } if(window.__PROFILE_ON){ removeTrkProfile(); } else { showTrkProfile(lastTrkPts); } }catch(e){} }; }catch(e){}
   function __havM(a,b){var R=6371000,toR=Math.PI/180;var dLat=(b.lat-a.lat)*toR,dLng=(b.lng-a.lng)*toR,la1=a.lat*toR,la2=b.lat*toR;var s=Math.sin(dLat/2)*Math.sin(dLat/2)+Math.cos(la1)*Math.cos(la2)*Math.sin(dLng/2)*Math.sin(dLng/2);return 2*R*Math.asin(Math.sqrt(s));}
   function removeTrkProfile(){ if(trkProfEl){ try{trkProfEl.remove();}catch(e){} trkProfEl=null; } }
   function showTrkProfile(pts){
@@ -5578,23 +5578,50 @@ function openRelinkChoice(){
     },100);
   }
   function trkPause(){ if(trkPlayTimer){ clearInterval(trkPlayTimer); trkPlayTimer=null; } var bp=trkPlayBar&&trkPlayBar.querySelector('#tpPlay'); if(bp)bp.innerHTML=TP_I_PLAY; }
+  /* Le bandeau de lecture se colle sous celui de la carte, sur toute sa largeur.
+     Il est rattaché à #trace-host : dans #map il resterait prisonnier du contexte
+     d'empilement de <main> et passerait derrière le bandeau. Sa croix, à droite,
+     retire la trace de l'écran — elle reste dans les traces enregistrées. */
+  function placeTrkBar(){
+    if(!trkPlayBar) return;
+    var host=document.getElementById('trace-host'); if(!host) return;
+    if(trkPlayBar.parentNode!==host){ try{ host.appendChild(trkPlayBar); }catch(e){} }
+    var h=host.querySelector(':scope>header')||host.querySelector('header'); if(!h) return;
+    var hr=h.getBoundingClientRect(), tr=host.getBoundingClientRect();
+    trkPlayBar.style.left=Math.round(hr.left-tr.left)+'px';
+    trkPlayBar.style.top=Math.round(hr.bottom-tr.top)+'px';
+    trkPlayBar.style.width=Math.round(hr.width)+'px';
+  }
   function buildTrkPlayBar(){
     if(trkPlayBar) return trkPlayBar;
-    var host=document.getElementById('map')||document.body;
     var el=document.createElement('div'); el.id='trkPlayBar'; el.className='no-print';
-    el.style.cssText='position:absolute;top:54px;left:50%;transform:translateX(-50%);z-index:706;display:flex;align-items:center;gap:7px;background:rgba(10,26,51,.92);border:1px solid #173159;border-radius:12px;padding:6px 10px;box-shadow:0 3px 12px rgba(0,0,0,.35);max-width:calc(100% - 12px);box-sizing:border-box';
+    el.style.cssText='position:absolute;left:0;top:0;z-index:706;display:flex;align-items:center;gap:7px;'
+      +'background:linear-gradient(180deg,#0E2348,#0A1A33);border:1px solid #1d3a6b;border-top:0;'
+      +'border-radius:0 0 12px 12px;padding:6px 10px;box-shadow:0 4px 14px rgba(0,0,0,.38);box-sizing:border-box';
     el.innerHTML='<button id="tpPlay" type="button" title="Lecture / pause" style="flex:none;width:30px;height:26px;border:1px solid #2a4372;border-radius:8px;background:#0d2247;color:#fff;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;padding:0">'+TP_I_PLAY+'</button>'
       +'<button id="tpMult" type="button" title="Vitesse de lecture" style="flex:none;min-width:38px;height:26px;border:1px solid #2a4372;border-radius:8px;background:#0d2247;color:#cfe0f5;font:700 11px/1 Poppins,sans-serif;cursor:pointer">\u00d7'+trkPlayMult+'</button>'
-      +'<input id="tpSlider" type="range" min="0" max="1000" value="0" style="width:130px;min-width:70px;accent-color:#e94560;cursor:pointer">'
-      +'<span id="tpInfo" style="font:700 10.5px Poppins,sans-serif;color:#EAF1FB;white-space:nowrap"></span>';
+      +'<input id="tpSlider" type="range" min="0" max="1000" value="0" style="flex:1 1 auto;width:auto;min-width:60px;accent-color:#e94560;cursor:pointer">'
+      +'<span id="tpInfo" style="flex:none;font:700 10.5px Poppins,sans-serif;color:#EAF1FB;white-space:nowrap"></span>'
+      +'<button id="tpClose" type="button" title="Retirer la trace de l\u2019\u00e9cran (elle reste enregistr\u00e9e)" style="flex:none;width:26px;height:26px;border:1px solid #2a4372;border-radius:8px;background:#0d2247;color:#dce9f5;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;padding:0">'
+      +'<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button>';
     el.querySelector('#tpPlay').addEventListener('click',function(e){ e.stopPropagation(); if(trkPlayTimer) trkPause(); else trkPlay(); });
     el.querySelector('#tpMult').addEventListener('click',function(e){ e.stopPropagation(); var i=TP_MULTS.indexOf(trkPlayMult); trkPlayMult=TP_MULTS[(i+1)%TP_MULTS.length]; this.textContent='\u00d7'+trkPlayMult; });
     el.querySelector('#tpSlider').addEventListener('input',function(){ trkFrac=(+this.value)/1000; updateTrkPlane(trkFrac); });
-    host.appendChild(el); trkPlayBar=el;
+    el.querySelector('#tpClose').addEventListener('click',function(e){ e.stopPropagation(); window.__CLEAR_TRACK(); });
+    trkPlayBar=el; placeTrkBar();
     try{ L.DomEvent.disableClickPropagation(el); L.DomEvent.disableScrollPropagation(el); }catch(e){}
+    /* le bandeau de la carte change de hauteur (rotation, menu, passage ordinateur) :
+       la barre le suit pour rester collée dessous, à sa largeur exacte */
+    try{
+      window.addEventListener('resize',placeTrkBar);
+      if(window.ResizeObserver){
+        var hh=document.querySelector('#trace-host header');
+        if(hh) new ResizeObserver(function(){ if(trkPlayBar&&trkPlayBar.style.display!=='none') placeTrkBar(); }).observe(hh);
+      }
+    }catch(e){}
     return el;
   }
-  window.__TRK_PLAY=function(){ try{ if(lastTrkPts) setTrkPlane(true); }catch(e){} };
+  window.__TRK_PLAY=function(){ try{ if(lastTrkPts) setTrkPlane(true,true); }catch(e){} };
   function updateTrkPlane(frac){
     if(!trkData) return;
     frac=Math.max(0,Math.min(1,frac)); trkFrac=frac;
@@ -5617,54 +5644,31 @@ function openRelinkChoice(){
     try{ if(trkProfEl&&trkGeo){ var cu=trkProfEl.querySelector('#trkCursor'); if(cu){ cu.setAttribute('cx',trkGeo.sx(d).toFixed(1)); cu.setAttribute('cy',trkGeo.sy(trkGeo.altAt(d)).toFixed(1)); cu.style.display=''; } } }catch(e){}
     try{ if(trkPlayBar){ var sl=trkPlayBar.querySelector('#tpSlider'); if(sl&&document.activeElement!==sl) sl.value=Math.round(frac*1000); var inf=trkPlayBar.querySelector('#tpInfo'); if(inf) inf.textContent=trkClk(tc)+' \u00b7 '+nm+' NM'; } }catch(e){}
   }
-  function setTrkPlane(on){
+  /* auto : la lecture démarre toute seule (appel depuis le bouton Vol virtuel).
+     À l'affichage d'une trace, la barre paraît d'emblée mais à l'arrêt. */
+  function setTrkPlane(on,auto){
     trkPlaneOn=!!on;
     if(trkPlaneOn){
       if(!lastTrkPts){ trkPlaneOn=false; return; }
       if(!trkProfEl){ try{ showTrkProfile(lastTrkPts); }catch(e){} }
       trkData=trkComputeData(lastTrkPts);
       if(trkProfEl){ var cu=trkProfEl.querySelector('#trkCursor'); if(cu)cu.style.display=''; }
-      buildTrkPlayBar().style.display='flex';
+      var bb=buildTrkPlayBar(); bb.style.display='flex'; placeTrkBar();
       updateTrkPlane(trkFrac);
-      trkPlay();
-      if(trkPlaneBtn){ trkPlaneBtn.style.background='#16a34a'; trkPlaneBtn.style.borderColor='#16a34a'; }
+      if(auto) trkPlay(); else trkPause();
     } else {
       trkPause();
       if(trkPlayBar) trkPlayBar.style.display='none';
       if(trkPlaneMk){ try{map.removeLayer(trkPlaneMk);}catch(e){} trkPlaneMk=null; }
       if(trkProfEl){ var cu2=trkProfEl.querySelector('#trkCursor'); if(cu2)cu2.style.display='none'; }
-      if(trkPlaneBtn){ trkPlaneBtn.style.background='rgba(10,26,51,.85)'; trkPlaneBtn.style.borderColor='#173159'; }
       if(window.__PROFILE_ON){ removeTrkProfile(); }
     }
-  }
-  function ensureTrkPlaneBtn(){
-    if(trkPlaneBtn) return trkPlaneBtn;
-    var host=document.getElementById('map')||document.body;
-    var btn=document.createElement('button'); btn.id='trkPlaneBtn'; btn.type='button';
-    btn.innerHTML='<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2 L13.4 9.6 L22 12.4 L22 14.2 L13.4 12.8 L13 19.4 L15.6 21 L15.6 22 L12 21 L8.4 22 L8.4 21 L11 19.4 L10.6 12.8 L2 14.2 L2 12.4 L10.6 9.6 Z"/></svg>';
-    btn.title="Lecture du vol : revivre la trace enregistr\xE9e (vitesses et altitudes)";
-    btn.style.cssText='position:absolute;top:12px;left:50%;transform:translateX(calc(-50% - 108px));z-index:700;display:none;align-items:center;justify-content:center;width:34px;height:34px;background:rgba(10,26,51,.85);color:#fff;border:1px solid #173159;border-radius:11px;cursor:pointer;box-shadow:0 3px 12px rgba(0,0,0,.32)';
-    btn.onclick=function(e){ e.stopPropagation(); setTrkPlane(!trkPlaneOn); };
-    host.appendChild(btn); trkPlaneBtn=btn; return btn;
-  }
-  function ensureTrkClearBtn(){
-    if(trkClearBtn) return trkClearBtn;
-    var host=document.getElementById('map')||document.body;
-    var btn=document.createElement('button');
-    btn.id='trkClearBtn'; btn.type='button';
-    btn.innerHTML='<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg><span>Effacer la trace</span>';
-    btn.title='Retirer la trace enregistrée affichée';
-    btn.style.cssText='position:absolute;top:12px;left:50%;transform:translateX(-50%);z-index:700;display:none;align-items:center;gap:6px;background:#e94560;color:#fff;border:none;border-radius:20px;padding:7px 14px;font:700 12.5px "Poppins",system-ui,-apple-system,sans-serif;cursor:pointer;box-shadow:0 3px 12px rgba(0,0,0,.32)';
-    btn.onclick=function(e){ e.stopPropagation(); window.__CLEAR_TRACK(); };
-    host.appendChild(btn); trkClearBtn=btn; return btn;
   }
   window.__CLEAR_TRACK=function(){
     try{ setTrkPlane(false); }catch(e){}
     try{ if(loadedTrk){ map.removeLayer(loadedTrk); loadedTrk=null; } }catch(e){}
     removeTrkProfile(); lastTrkPts=null; trkData=null; trkFrac=0;
     window.__TRACE_SHOWN=false;
-    if(trkClearBtn) trkClearBtn.style.display='none';
-    if(trkPlaneBtn) trkPlaneBtn.style.display='none';
     try{ if(typeof window.__SET_PROFILE_TRACK==='function') window.__SET_PROFILE_TRACK(null); }catch(e){}
     try{ if(typeof window.__REFRESH_HINT==='function') window.__REFRESH_HINT(); }catch(e){}
   };
@@ -5678,10 +5682,12 @@ function openRelinkChoice(){
     /* profil planifié ouvert → superposition sur le profil ; sinon panneau en bas de carte */
     if(window.__PROFILE_ON){ removeTrkProfile(); } else { try{ showTrkProfile(pts); }catch(e){} }
     try{ if(typeof window.__SET_PROFILE_TRACK==='function') window.__SET_PROFILE_TRACK(pts); }catch(e){}
-    ensureTrkClearBtn().style.display='inline-flex';
+    /* le menu de la carte se referme : la barre de lecture prend sa place sous le bandeau */
+    try{ th.classList.remove('map-menu-open'); burger.classList.remove('on'); }catch(e){}
     trkFrac=0; trkData=null;
-    ensureTrkPlaneBtn().style.display='inline-flex';
-    if(trkPlaneOn){ try{ setTrkPlane(true); }catch(e){} }
+    /* la barre de lecture paraît d'emblée, à l'arrêt : plus de bouton avion à chercher */
+    try{ setTrkPlane(true,false); }catch(e){}
+    [90,320].forEach(function(d){ setTimeout(function(){ try{ if(trkPlayBar&&trkPlayBar.style.display!=='none') placeTrkBar(); }catch(e){} },d); });
     try{ if(typeof window.__REFRESH_HINT==='function') window.__REFRESH_HINT(); }catch(e){}
   };
   try{ if(window.__PENDING_TRACK){ window.__LOAD_TRACK(window.__PENDING_TRACK); window.__PENDING_TRACK=null; } }catch(e){}
