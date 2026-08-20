@@ -1,5 +1,5 @@
 {
   "_lisezmoi": "Carnet d'adresses des cartes. Chaque carte peut vivre dans le depot (nom seul, a cote de index.html) ou chez un hebergeur public acceptant la lecture par plages et les requetes d'une autre origine (Cloudflare R2). Nouvelle edition : deposer le fichier date, remplacer l'adresse ci-dessous, rien d'autre. Ne jamais reutiliser le nom d'une edition precedente : les PMTiles se lisent par plages, et un cache melangerait les octets des deux. Une liste de plusieurs adresses est acceptee pour oaci1000 : une carte decoupee en morceaux redevient une seule carte dans l'application.",
-  "oaci250": "SIA_Paris_250k_2026-1_FULL.pmtiles",
+  "oaci250": "https://pub-3255550d78614e53914f48f1897a111a.r2.dev/SIA_Paris_250k_2026-1_FULL.pmtiles",
   "oaci1000": ["https://pub-3255550d78614e53914f48f1897a111a.r2.dev/SIA_France_1000k_2026-01.pmtiles"]
 }
