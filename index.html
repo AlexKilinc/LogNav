@@ -627,6 +627,21 @@ body.rec-full #trace-host .controls,body.rec-full #trace-host .maphint,body.rec-
   #trace-host .hdr-row1 .fld-seg .seg{display:flex!important;width:100%!important;height:38px!important;border-radius:10px!important;align-items:stretch!important;box-sizing:border-box!important}
   #trace-host .hdr-row1 .fld-seg .seg-b{font-size:10px!important;padding:6px 7px!important;flex:1 1 auto!important;height:auto!important}
 }
+/* ===== Taille d'interface et carte =====
+   Le reglage de taille applique un zoom a toute l'application. La carte, elle,
+   n'est pas de l'interface : c'est une image. L'agrandir revient a etirer des
+   pixels — les fonds OACI 1/500 000 et 1/250 000 y perdaient leur nettete (une
+   tuile de 256 px etalee sur 384 puis 512 pixels ecran a 150 et 200 %) et la
+   carte montrait d'autant moins de terrain. Le canevas revient donc a l'echelle
+   1 : une tuile est peinte sur autant de pixels ecran qu'elle en compte, et la
+   surface de carte visible redevient entiere. Les panneaux poses par-dessus,
+   eux, sont bien de l'interface : ils reprennent le facteur choisi. */
+#trace-host #map{zoom:var(--map-z,1)}
+#trace-host #map .maphint,#trace-host #map .legend,#trace-host #map .toast,
+#trace-host #map .disppanel,#trace-host #map .poipanel,#trace-host #map .vf-cards,
+#trace-host #map #recInst,#trace-host #map #wndWrap,#trace-host #map #airacFlash,
+#trace-host #map #trkProfile,#trace-host #map #degLegend,
+#trace-host #map .leaflet-control-container{zoom:var(--ui-z,1)}
 #trace-host #airacFlash{position:absolute;left:50%;transform:translateX(-50%);top:10px;bottom:auto;z-index:900;background:#e94560;color:#fff;font:700 11px "Poppins",sans-serif;padding:5px 11px;border-radius:20px;letter-spacing:.03em;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .45s ease}
 #trace-host #airacFlash.show{opacity:1}
 #trace-host .vfrmax-lbl{transform:translate(-50%,-50%);white-space:nowrap;font:700 11px "Poppins",sans-serif;color:#fff;background:#C0392B;padding:2px 8px;border-radius:10px;box-shadow:0 1px 3px rgba(0,0,0,.35)}
@@ -2645,7 +2660,7 @@ window.__TRACE_MARKUP="\n\n<header>\n  <div class=\"hdr-row1\">\n    <span class
    accessible depuis le bouton ⓘ du bandeau du log, avant toute ouverture de la carte */
 (function(){
   var host=document.createElement('div');
-  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Carte OACI :</b> donnée IGN non libre — nécessite votre propre clé Géoplateforme filtrée sur votre domaine. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.366</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
+  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Carte OACI :</b> donnée IGN non libre — nécessite votre propre clé Géoplateforme filtrée sur votre domaine. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.367</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
   (document.body||document.documentElement).appendChild(host.firstElementChild);
   window.__OPEN_INFO=function(){ document.getElementById('infoModal').hidden=false; };
   /* iPadOS : les pastilles de fen\xEAtrage (coin haut-gauche) recouvrent le burger
@@ -7291,8 +7306,17 @@ class ErrB extends React.Component{constructor(p){super(p);this.state={e:null};}
   }
   function majVw(){
     try{
+      var z=facteur();
       var w=window.innerWidth||document.documentElement.clientWidth||1280;
-      document.documentElement.style.setProperty('--vw-app', Math.round(w/facteur())+'px');
+      var r=document.documentElement.style;
+      r.setProperty('--vw-app', Math.round(w/z)+'px');
+      /* --ui-z : le facteur choisi. --map-z : son inverse, pour rendre la carte
+         a l'echelle 1 (voir la regle #trace-host #map). */
+      r.setProperty('--ui-z', String(z));
+      r.setProperty('--map-z', String(Math.round(1e6/z)/1e6));
+      /* la carte a change de taille utile : Leaflet doit le savoir */
+      [0,120,360].forEach(function(d){ setTimeout(function(){
+        try{ if(window.__traceMap) window.__traceMap.invalidateSize({animate:false}); }catch(e){} }, d); });
     }catch(e){}
   }
   window.__MAJ_VW=majVw;
