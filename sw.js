@@ -14,6 +14,7 @@ const CACHE = 'lognav-app-v2';
 const PRECACHE = [
   './',
   './index.html',
+  './cartes.json',
   './ELEV_FR.js?v=2026-07-22',
   './POI_FR.js?v=2026-07-21',
   'https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js',
@@ -88,6 +89,28 @@ self.addEventListener('fetch', e => {
         throw new Error('réponse invalide (portail captif ?)');
       } catch (_) {
         return cached || Response.error();
+      }
+    })());
+    return;
+  }
+
+  /* cartes.json : dit où trouver les cartes trop lourdes pour le dépôt. Il
+     change à chaque nouvelle édition, donc réseau d'abord — le cache d'abord
+     figerait l'adresse et l'application resterait sur l'ancienne carte. */
+  if (/\/cartes\.json(\?|$)/.test(url)) {
+    e.respondWith((async () => {
+      const c = await caches.open(CACHE);
+      try {
+        const ctl = new AbortController();
+        const tm = setTimeout(() => ctl.abort(), 4000);
+        const r = await fetch(req, { cache: 'no-store', signal: ctl.signal });
+        clearTimeout(tm);
+        let sameOrigin = false;
+        try { sameOrigin = new URL(r.url).origin === self.location.origin; } catch (_) {}
+        if (r && r.ok && sameOrigin) { c.put(req, r.clone()); return r; }
+        throw new Error('réponse invalide (portail captif ?)');
+      } catch (_) {
+        return (await c.match(req, { ignoreSearch: true })) || Response.error();
       }
     })());
     return;
