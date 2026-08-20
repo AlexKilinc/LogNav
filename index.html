@@ -2741,10 +2741,18 @@ window.__TRACE_MARKUP="\n\n<header>\n  <div class=\"hdr-row1\">\n    <span class
    accessible depuis le bouton ⓘ du bandeau du log, avant toute ouverture de la carte */
 (function(){
   var host=document.createElement('div');
-  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Cartes OACI — origine et mise à jour</b></p>\n    <p style=\"margin-top:-6px\"><b>1/250 000 Région parisienne</b> — SIA, édition 1 2026 (16/04/2026), Licence Ouverte. Fichier livré avec l’application ; renouvelé à chaque édition semestrielle du SIA.</p>\n    <p style=\"margin-top:-6px\"><b>1/500 000 France</b> — IGN Géoplateforme (SCAN-OACI). Donnée <b>non libre</b> : votre propre clé, filtrée sur votre domaine, est nécessaire. Tenue à jour par l’IGN, sans intervention de votre part.</p>\n    <p style=\"margin-top:-6px\"><b>1/1 000 000 France</b> — SIA, Licence Ouverte, fichier <span id=\"infoCarte1000\">—</span>. Trop lourd pour le dépôt, il est hébergé à part et lu par plages : seules les tuiles affichées sont téléchargées. Mise à jour : nouveau fichier daté, adresse changée dans cartes.json.</p>\n    <p>Les trois se copient sur l’appareil pour voler sans réseau depuis <b>Profil → Cartes hors-ligne</b>. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.377</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
+  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Cartes OACI — origine et mise à jour</b></p>\n    <p style=\"margin-top:-6px\"><b>1/250 000 Région parisienne</b> — SIA, Licence Ouverte, fichier <span id=\"infoCarte250\">—</span>. Renouvelé à chaque édition semestrielle du SIA.</p>\n    <p style=\"margin-top:-6px\"><b>1/500 000 France</b> — IGN Géoplateforme (SCAN-OACI). Donnée <b>non libre</b> : votre propre clé, filtrée sur votre domaine, est nécessaire. Tenue à jour par l’IGN, sans intervention de votre part.</p>\n    <p style=\"margin-top:-6px\"><b>1/1 000 000 France</b> — SIA, Licence Ouverte, fichier <span id=\"infoCarte1000\">—</span>. Trop lourd pour le dépôt, il est hébergé à part et lu par plages : seules les tuiles affichées sont téléchargées. Mise à jour : nouveau fichier daté, adresse changée dans cartes.json.</p>\n    <p>Les trois se copient sur l’appareil pour voler sans réseau depuis <b>Profil → Cartes hors-ligne</b>. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.378</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
   (document.body||document.documentElement).appendChild(host.firstElementChild);
   /* le nom du fichier de la 1/1 000 000 dit son edition : on le lit la ou il
      est vraiment (cartes.json), jamais en dur, sinon il mentirait un jour */
+  function nomCarte250(){
+    var el=document.getElementById('infoCarte250'); if(!el) return;
+    var pose=function(u){ try{ el.textContent=decodeURIComponent(String(u).split('?')[0].split('/').pop())||'\u2014'; }catch(e){} };
+    try{
+      if(window.__SIA250OFF&&window.__SIA250OFF.fichier) window.__SIA250OFF.fichier().then(pose,function(){});
+      else if(window.__SIA250_FILE) pose(window.__SIA250_FILE);
+    }catch(e){}
+  }
   function nomCarte1000(){
     var el=document.getElementById('infoCarte1000'); if(!el) return;
     try{
@@ -2758,7 +2766,7 @@ window.__TRACE_MARKUP="\n\n<header>\n  <div class=\"hdr-row1\">\n    <span class
       },function(){});
     }catch(e){}
   }
-  window.__OPEN_INFO=function(){ document.getElementById('infoModal').hidden=false; nomCarte1000(); };
+  window.__OPEN_INFO=function(){ document.getElementById('infoModal').hidden=false; nomCarte250(); nomCarte1000(); };
   /* iPadOS : les pastilles de fen\xEAtrage (coin haut-gauche) recouvrent le burger
      en mode fen\xEAtr\xE9 \u2192 classe pour d\xE9caler le bandeau carte vers le bas */
   if(/iPad/.test(navigator.userAgent)||(navigator.maxTouchPoints>1&&/Macintosh/.test(navigator.userAgent))) document.documentElement.classList.add('ipados');
@@ -3030,10 +3038,21 @@ try{
       try{ swapSia250(makeSia250({getKey:function(){return 'sia250-local';},
         getBytes:function(offset,length){ return Promise.resolve({data: buf.slice(offset, offset+length)}); }},true)); }catch(e){}
     };
-    window.__SIA250_SET_REMOTE=function(){ try{ swapSia250(makeSia250(SIA250_URL,false)); }catch(e){} };
-    if(window.__SIA250OFF&&window.__SIA250OFF.enabled()){
+    window.__SIA250_SET_REMOTE=function(){ try{ swapSia250(makeSia250(window.__SIA250_FILE||SIA250_URL,false)); }catch(e){} };
+    var copie250=!!(window.__SIA250OFF&&window.__SIA250OFF.enabled());
+    if(copie250){
       window.__SIA250OFF.get().then(function(b){ if(b) window.__SIA250_SET_LOCAL(b); }).catch(function(){});
     }
+    /* Si cartes.json donne une adresse pour la 1/250 000, elle l'emporte sur le
+       fichier livre avec l'application : c'est ainsi qu'une carte sort du depot
+       sans qu'une ligne de code change. La copie hors-ligne, elle, garde la
+       main — on se contente alors de retenir l'adresse pour la prochaine fois. */
+    if(window.__CARTES) window.__CARTES().then(function(j){
+      var u=window.__CARTE_ADR(j,'oaci250');
+      if(!u||u===window.__SIA250_FILE) return;
+      window.__SIA250_FILE=u;
+      if(!copie250){ try{ swapSia250(makeSia250(u,false)); }catch(e){} }
+    },function(){});
   }
 }catch(e){ console.warn('PMTiles 250k indisponible', e); }
 /* ---- OACI 1/1 000 000 France : PMTiles lu a distance ----
@@ -3126,8 +3145,7 @@ try{
     if(typeof force1000==='string') force1000=[force1000];
     if(Array.isArray(force1000)&&force1000.length){ sia1000Pose(force1000); }
     else{
-      fetch(SIA1000_MANIFESTE,{cache:'no-cache'})
-        .then(function(r){ return r.ok?r.json():Promise.reject(); })
+      (window.__CARTES?window.__CARTES():Promise.reject())
         .then(function(j){
           var pa=j&&(j.oaci1000||j.parties||j.parts);
           if(typeof pa==='string') pa=[pa];
@@ -7497,6 +7515,24 @@ class ErrB extends React.Component{constructor(p){super(p);this.state={e:null};}
    Le nom du fichier porte l'ÉDITION — à changer ici à chaque mise à jour
    semestrielle du SIA (cf. procédure PDF) ; la couche carte le lit via
    window.__SIA250_FILE. */
+/* Le carnet d'adresses des cartes : lu une seule fois, partage par la couche
+   de la carte et par les copies hors-ligne. Absent ou illisible, on repond un
+   objet vide et chacun retombe sur son adresse d'origine. */
+window.__CARTES=(function(){
+  var p=null;
+  return function(){
+    if(!p) p=fetch('cartes.json',{cache:'no-cache'})
+      .then(function(r){ return r.ok?r.json():{}; },function(){ return {}; })
+      .then(function(j){ return j&&typeof j==='object'?j:{}; },function(){ return {}; });
+    return p;
+  };
+})();
+/* une adresse peut etre ecrite seule ou dans une liste ; on rend la premiere */
+window.__CARTE_ADR=function(j,cle){
+  var v=j&&j[cle];
+  if(Array.isArray(v)) v=v[0];
+  return (typeof v==='string'&&v)?v:null;
+};
 (function(){
   /* Application hors-ligne : au premier chargement en ligne, le service worker
      (sw.js, à la racine du dépôt) met l'app et ses bibliothèques en cache ;
@@ -7517,8 +7553,17 @@ class ErrB extends React.Component{constructor(p){super(p);this.state={e:null};}
   window.__SIA250OFF={
     enabled:function(){ try{ return localStorage.getItem(FLAG)==='1'; }catch(e){ return false; } },
     get:get,
+    /* l'adresse peut avoir demenage (cartes.json) : on la relit avant de
+       telecharger, sinon on rapatrierait l'edition livree avec l'application */
+    fichier:function(){
+      return (window.__CARTES?window.__CARTES():Promise.resolve({})).then(function(j){
+        var u=window.__CARTE_ADR&&window.__CARTE_ADR(j,'oaci250');
+        if(u){ window.__SIA250_FILE=u; }
+        return window.__SIA250_FILE;
+      },function(){ return window.__SIA250_FILE; });
+    },
     download:function(onProg){
-      return fetch(window.__SIA250_FILE).then(function(r){
+      return this.fichier().then(function(f){ return fetch(f); }).then(function(r){
         if(!r.ok) throw new Error('HTTP '+r.status);
         var total=+r.headers.get('content-length')||0;
         if(!r.body||!r.body.getReader) return r.arrayBuffer();
@@ -7532,7 +7577,7 @@ class ErrB extends React.Component{constructor(p){super(p);this.state={e:null};}
           ok=(h[0]===80&&h[1]===77&&h[2]===84&&h[3]===105&&h[4]===108&&h[5]===101&&h[6]===115); /* « PMTiles » */
         }catch(e){}
         if(!ok||buf.byteLength<100000)
-          throw new Error('fichier re\u00e7u invalide ('+Math.round(buf.byteLength/1024)+' Ko) \u2014 v\u00e9rifiez que '+window.__SIA250_FILE+' est bien publi\u00e9 \u00e0 la racine du site (pas via Git LFS)');
+          throw new Error('fichier re\u00e7u invalide ('+Math.round(buf.byteLength/1024)+' Ko) \u2014 v\u00e9rifiez que '+window.__SIA250_FILE+' est bien accessible \u00e0 cette adresse (jamais via Git LFS)');
         return put(buf).then(function(){ try{ localStorage.setItem(FLAG,'1'); localStorage.setItem(FLAG+'_size',String(buf.byteLength)); }catch(e){} return buf; });
       });
     },
