@@ -2645,7 +2645,7 @@ window.__TRACE_MARKUP="\n\n<header>\n  <div class=\"hdr-row1\">\n    <span class
    accessible depuis le bouton ⓘ du bandeau du log, avant toute ouverture de la carte */
 (function(){
   var host=document.createElement('div');
-  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Carte OACI :</b> donnée IGN non libre — nécessite votre propre clé Géoplateforme filtrée sur votre domaine. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.363</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
+  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Carte OACI :</b> donnée IGN non libre — nécessite votre propre clé Géoplateforme filtrée sur votre domaine. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.364</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
   (document.body||document.documentElement).appendChild(host.firstElementChild);
   window.__OPEN_INFO=function(){ document.getElementById('infoModal').hidden=false; };
   /* iPadOS : les pastilles de fen\xEAtrage (coin haut-gauche) recouvrent le burger
@@ -6161,8 +6161,18 @@ const wrap=document.createElement("div");sheets.forEach((s,i)=>{const c=s.cloneN
            rétrécit pas le document. En tête, les réglages, qui ouvrent le même
            panneau que l'engrenage du bandeau ; en dessous, les six écrans. */
         @media screen and (min-width:821px) and (min-height:521px), screen and (min-width:821px) and (pointer:fine){
-          :root{--dt-l:max(10px, calc(12px + max(0px, (100vw - 1204px)/2) - 78px));
-            --doc-l:calc(12px + min(74px, max(0px, 74px - (100vw - 1204px)/2)));}
+          /* --vw-app : largeur de la fenetre dans l'unite du document. Le reglage
+             de taille d'interface applique un zoom sur <body> ; 100vw, lui, ne
+             connait pas ce zoom et vaudrait toujours la largeur en pixels ecran.
+             Le menu lateral se serait alors pose au milieu du log des 125 %.
+             La valeur est tenue a jour par le module de taille d'interface. */
+          :root{--dt-l:max(10px, calc(12px + max(0px, (var(--vw-app, 100vw) - 1204px)/2) - 78px));
+            /* Degagement a gauche : la feuille est centree dans le document, donc
+               la moitie du rembourrage lui profite seulement — l'ancienne formule
+               en rendait trop peu et le menu mordait sur le log entre 1204 et
+               1360 px de large. Il faut 88 px avant la feuille (menu 10 + 64,
+               plus 14 de marge), d'ou 152px - (largeur - 1204px), plafonne a 76. */
+            --doc-l:calc(12px + min(76px, max(0px, 152px - (var(--vw-app, 100vw) - 1204px))));}
           #dtabs{position:fixed;left:var(--dt-l);
             top:50%;transform:translateY(-50%);z-index:94;box-sizing:border-box;
             display:flex;flex-direction:column;align-items:stretch;gap:3px;width:64px;padding:6px;
@@ -7253,10 +7263,29 @@ class ErrB extends React.Component{constructor(p){super(p);this.state={e:null};}
     return w>=3400?1.75:w>=2500?1.5:w>=1900?1.25:1;
   }
   function current(){ return localStorage.getItem(KEY)||'auto'; }
+  /* Facteur reellement applique : on le mesure sur le corps du document
+     (largeur peinte / largeur de mise en page), ce qui reste juste quel que
+     soit le navigateur. La propriete calculee sert de secours. */
+  function facteur(){
+    var z=0;
+    try{ var r=document.body.getBoundingClientRect().width, o=document.body.offsetWidth;
+      if(o>0&&r>0) z=r/o; }catch(e){}
+    if(!z||isNaN(z)){ try{ z=parseFloat(getComputedStyle(document.body).zoom); }catch(e){} }
+    if(!z||isNaN(z)||z<0.2||z>5) z=1;
+    return z;
+  }
+  function majVw(){
+    try{
+      var w=window.innerWidth||document.documentElement.clientWidth||1280;
+      document.documentElement.style.setProperty('--vw-app', Math.round(w/facteur())+'px');
+    }catch(e){}
+  }
+  window.__MAJ_VW=majVw;
   function apply(){
     var v=current();
     var z=(v==='auto')?autoScale():(parseFloat(v)||1);
     document.body.style.zoom=(z===1)?'':String(z);
+    majVw();
   }
   var st=document.createElement('style');
   st.textContent='#uiScaleBox{position:fixed;right:10px;bottom:10px;z-index:80;display:inline-flex;align-items:center;gap:5px;background:rgba(15,39,76,.88);border:1px solid rgba(255,255,255,.28);border-radius:18px;padding:4px 9px;box-shadow:0 3px 10px rgba(0,0,0,.25)}'
@@ -7275,9 +7304,9 @@ class ErrB extends React.Component{constructor(p){super(p);this.state={e:null};}
   sel.addEventListener('change',function(){ try{localStorage.setItem(KEY,sel.value);}catch(e){} apply(); });
   box.appendChild(sel);
   document.body.appendChild(box);
-  var rT; window.addEventListener('resize',function(){ if(current()==='auto'){ clearTimeout(rT); rT=setTimeout(apply,200); } });
+  var rT; window.addEventListener('resize',function(){ majVw(); if(current()==='auto'){ clearTimeout(rT); rT=setTimeout(apply,200); } });
   /* neutraliser le zoom pendant l'impression (la règle CSS @media print ne suffit pas sur tous les navigateurs) */
-  window.addEventListener('beforeprint',function(){ document.body.style.zoom=''; });
+  window.addEventListener('beforeprint',function(){ document.body.style.zoom=''; majVw(); });
   window.addEventListener('afterprint',function(){ apply(); });
   try{ matchMedia('print').addEventListener('change',function(m){ if(m.matches){ document.body.style.zoom=''; } else { apply(); } }); }catch(e){}
   apply();
