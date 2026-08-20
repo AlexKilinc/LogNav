@@ -2963,29 +2963,31 @@ try{
     }
   }
 }catch(e){ console.warn('PMTiles 250k indisponible', e); }
-/* ---- OACI 1/1 000 000 France : PMTiles servi par Supabase Storage ----
+/* ---- OACI 1/1 000 000 France : PMTiles lu a distance ----
    Le fichier est trop gros pour le depot (GitHub refuse au-dela de 100 Mo par
    fichier, et Pages ne sert pas les fichiers Git LFS : il renverrait le
-   pointeur). Il vit donc dans un seau public Supabase, lu par plages HTTP
-   comme n'importe quel PMTiles — rien n'est telecharge en entier.
+   pointeur). Il vit donc chez un hebergeur d'objets, lu par plages HTTP comme
+   n'importe quel PMTiles — rien n'est telecharge en entier.
    ATTENTION : un .mbtiles est une base SQLite, illisible par le navigateur. Il
    faut le convertir UNE FOIS :  pmtiles convert "SIA France.mbtiles"
    SIA_France_1000k.pmtiles
-   Mais Supabase refuse tout envoi de plus de 50 Mo : une carte plus lourde
-   arrive DECOUPEE, un fichier .pmtiles par zone, et le seau porte un petit
-   manifeste SIA_France_1000k.json qui les enumere :
-       { "parties": ["SIA_1000k_NO.pmtiles", "SIA_1000k_NE.pmtiles", ...] }
-   Chaque morceau devient une couche, toutes reunies en une seule entree du
-   selecteur ; chacun se cantonne a l'emprise inscrite dans son en-tete, donc
-   aucun ne reclame les tuiles d'un autre. Un nom peut aussi etre une adresse
-   complete (http…) : de quoi heberger ailleurs sans toucher au code. Sans
-   manifeste, on retombe sur le fichier unique.
+   L'ADRESSE N'EST PAS DANS LE CODE : elle est dans cartes.json, un fichier de
+   trois lignes pose a cote d'index.html — donc servi par la meme origine,
+   sans CORS, et modifiable depuis GitHub sans rien reconstruire :
+       { "oaci1000": ["https://…/SIA_France_1000k_2026-04.pmtiles"] }
+   Publier une nouvelle edition = deposer le fichier chez l'hebergeur, puis
+   changer cette ligne. Nommer chaque edition par sa date evite qu'un cache
+   melange les octets de l'ancienne et de la nouvelle : les PMTiles se lisent
+   par plages, et une plage perimee donnerait une tuile fausse.
+   La valeur peut etre une liste : une carte trop lourde pour l'hebergeur (les
+   50 Mo de l'offre gratuite de Supabase, par exemple) se decoupe en morceaux
+   qui redeviennent ici une seule entree du selecteur, chacun se cantonnant a
+   l'emprise inscrite dans son en-tete. Un nom sans http s'entend a cote
+   d'index.html, comme la 1/250 000.
    NE PAS retirer l'attribution SIA (obligatoire, Licence Ouverte). */
-const SIA1000_SEAU='https://fshhzsvpyabtylwnxroz.supabase.co/storage/v1/object/public/cartes/';
-const SIA1000_MANIFESTE=SIA1000_SEAU+'SIA_France_1000k.json';
-const SIA1000_DEFAUT='SIA_France_1000k.pmtiles';
+const SIA1000_MANIFESTE='cartes.json';
+const SIA1000_DEFAUT='https://fshhzsvpyabtylwnxroz.supabase.co/storage/v1/object/public/cartes/SIA_France_1000k.pmtiles';
 const SIA1000_BOUNDS=L.latLngBounds([41.2,-5.6],[51.3,10.0]);   /* metropole, en attendant l'en-tete */
-function sia1000Url(n){ return /^https?:\/\//i.test(n)?n:SIA1000_SEAU+n; }
 let sia1000=null;
 function makeSia1000(src){
   var pm=new pmtiles.PMTiles(src);
@@ -3032,7 +3034,7 @@ function sia1000Premier(ps){
 function sia1000Pose(noms){
   var ps=[];
   noms.forEach(function(n){
-    var l=null; try{ l=makeSia1000(sia1000Url(n)); }catch(e){ return; }
+    var l=null; try{ l=makeSia1000(n); }catch(e){ return; }
     sia1000.addLayer(l); ps.push(l.__hdr);
   });
   sia1000Premier(ps).then(sia1000.__ok, sia1000.__ko);
@@ -3051,7 +3053,8 @@ try{
       fetch(SIA1000_MANIFESTE,{cache:'no-cache'})
         .then(function(r){ return r.ok?r.json():Promise.reject(); })
         .then(function(j){
-          var pa=j&&(j.parties||j.parts);
+          var pa=j&&(j.oaci1000||j.parties||j.parts);
+          if(typeof pa==='string') pa=[pa];
           sia1000Pose(Array.isArray(pa)&&pa.length?pa:[SIA1000_DEFAUT]);
         },function(){ sia1000Pose([SIA1000_DEFAUT]); });
     }
@@ -3097,7 +3100,7 @@ function attachErr(key, layer){
      previent donc au moment ou l'utilisateur la choisit */
   if(String(key)==='oaci1000'&&layer&&layer.__hdr){
     try{ layer.__hdr.then(function(){},function(){
-      showToast('Carte 1/1 000 000 introuvable : d\u00e9posez le ou les fichiers .pmtiles dans le seau public \u00ab cartes \u00bb. Supabase refusant les envois de plus de 50 Mo, une carte plus lourde doit \u00eatre d\u00e9coup\u00e9e, les morceaux \u00e9tant list\u00e9s dans SIA_France_1000k.json.');
+      showToast('Carte 1/1 000 000 introuvable : v\u00e9rifiez l\u2019adresse inscrite dans cartes.json, et que le fichier .pmtiles y est bien lisible publiquement (acc\u00e8s public et lecture par plages autoris\u00e9e).');
     }); }catch(e){}
     return;
   }

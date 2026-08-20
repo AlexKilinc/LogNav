@@ -1,0 +1,4 @@
+{
+  "_lisezmoi": "Adresse des cartes trop lourdes pour le depot GitHub (100 Mo par fichier). Deposez le .pmtiles chez un hebergeur public qui accepte la lecture par plages (Cloudflare R2, release GitHub, Supabase...), puis collez son adresse ci-dessous : rien d'autre a modifier dans l'application. Nommez chaque edition par sa date, sinon un cache peut melanger les octets de l'ancienne et de la nouvelle. Une liste de plusieurs adresses est acceptee : une carte decoupee en morceaux redevient une seule carte dans l'application. Un nom sans http s'entend a cote de index.html.",
+  "oaci1000": ["https://fshhzsvpyabtylwnxroz.supabase.co/storage/v1/object/public/cartes/SIA_France_1000k.pmtiles"]
+}
