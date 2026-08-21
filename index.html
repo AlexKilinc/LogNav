@@ -2114,6 +2114,19 @@ return '<div style="display:flex;align-items:center;gap:10px;padding:10px 4px;bo
         +'<button id="akProfSave" style="margin-top:6px;width:100%;background:#e94560;color:#fff;border:0;border-radius:9px;padding:11px;font:700 14px ui-sans-serif;cursor:pointer">Enregistrer</button>'
         +'</div></div>';
       ov.querySelector('#akProfClose').onclick=function(){ ov.remove(); };
+      /* Une copie hors-ligne l'emporte toujours sur le reseau : c'est voulu,
+         mais alors l'appareil peut afficher une edition perimee sans que rien
+         ne le dise. On compare donc l'adresse d'ou vient la copie a celle
+         qu'annonce cartes.json, et on le dit en clair. */
+      function perime(api,mo){
+        if(!api||!api.aJour) return;
+        api.aJour().then(function(r){
+          if(!r||r.aJour) return;
+          var nom=function(u){ try{ return decodeURIComponent(String(u).split('?')[0].split('/').pop()); }catch(e){ return String(u); } };
+          mo('Copie de l\u2019\u00e9dition '+nom(r.copie[0])+' \u2014 l\u2019\u00e9dition en service est '
+             +nom(r.courant[0])+'. Supprimez cette copie, puis ret\u00e9l\u00e9chargez.','#b45309');
+        },function(){});
+      }
       /* ---- Carte 1/250 000 hors-ligne : présentation commune avec la 1/500 000 ---- */
       (function(){
         var msg=ov.querySelector('#pf-sia250msg');
@@ -2133,6 +2146,7 @@ return '<div style="display:flex;align-items:center;gap:10px;padding:10px 4px;bo
             var sz=fmtMo(szv), dt='';
             try{ var m=JSON.parse(localStorage.getItem(MK)||'null'); if(m&&m.date) dt=', téléchargée le '+new Date(m.date).toLocaleDateString('fr-FR'); }catch(e){}
             mo('Complète'+(sz?' : '+sz+' Mo'+dt:'')+' — s\u2019affiche sans réseau.','#1a7f4b');
+            perime(window.__SIA250OFF,mo);
           } else mo('Environ 20 Mo · Wi-Fi recommandé.');
         }
         idle();
@@ -2174,6 +2188,7 @@ return '<div style="display:flex;align-items:center;gap:10px;padding:10px 4px;bo
           if(API.enabled()){
             var dt=''; try{ var m=JSON.parse(localStorage.getItem(MK)||'null'); if(m&&m.date) dt=', téléchargée le '+new Date(m.date).toLocaleDateString('fr-FR'); }catch(e){}
             mo('Complète : '+fmt(API.sizeMo())+dt+' — s’affiche sans réseau.','#1a7f4b');
+            perime(API,mo);
             return;
           }
           mo('Calcul de la taille…');
@@ -2746,32 +2761,58 @@ window.__TRACE_MARKUP="\n\n<header>\n  <div class=\"hdr-row1\">\n    <span class
    accessible depuis le bouton ⓘ du bandeau du log, avant toute ouverture de la carte */
 (function(){
   var host=document.createElement('div');
-  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Cartes OACI — origine et mise à jour</b></p>\n    <p style=\"margin-top:-6px\"><b>1/250 000 Région parisienne</b> — SIA, Licence Ouverte, fichier <span id=\"infoCarte250\">—</span>. Renouvelé à chaque édition semestrielle du SIA.</p>\n    <p style=\"margin-top:-6px\"><b>1/500 000 France</b> — IGN Géoplateforme (SCAN-OACI). Donnée <b>non libre</b> : votre propre clé, filtrée sur votre domaine, est nécessaire. Tenue à jour par l’IGN, sans intervention de votre part.</p>\n    <p style=\"margin-top:-6px\"><b>1/1 000 000 France</b> — SIA, Licence Ouverte, fichier <span id=\"infoCarte1000\">—</span>. Trop lourd pour le dépôt, il est hébergé à part et lu par plages : seules les tuiles affichées sont téléchargées. Mise à jour : nouveau fichier daté, adresse changée dans cartes.json.</p>\n    <p>Les trois se copient sur l’appareil pour voler sans réseau depuis <b>Profil → Cartes hors-ligne</b>. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.379</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
+  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Cartes OACI — origine et mise à jour</b></p>\n    <p style=\"margin-top:-6px\"><b>1/250 000 Région parisienne</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte250\">—</span>.</p>\n    <p style=\"margin-top:-6px\"><b>1/500 000 France</b> — IGN Géoplateforme (SCAN-OACI). Donnée <b>non libre</b>, tenue à jour par l’IGN.</p>\n    <p style=\"margin-top:-6px\"><b>1/1 000 000 France</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte1000\">—</span>.</p>\n    <p>Les deux cartes du SIA sont hébergées à part et lues par plages : seules les tuiles affichées sont téléchargées. Les trois se copient sur l’appareil pour voler sans réseau depuis <b>Profil → Cartes hors-ligne</b>. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.380</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
   (document.body||document.documentElement).appendChild(host.firstElementChild);
   /* le nom du fichier de la 1/1 000 000 dit son edition : on le lit la ou il
      est vraiment (cartes.json), jamais en dur, sinon il mentirait un jour */
+  function nomFichier(u){
+    try{ return decodeURIComponent(String(u).split('?')[0].split('/').pop())||'\u2014'; }catch(e){ return '\u2014'; }
+  }
+  /* Le nom affiche est celui de l'edition de reference, celle qu'annonce
+     cartes.json. Si une copie hors-ligne est en service et vient d'une autre
+     edition, c'est elle que la carte montre : le taire serait mentir. */
+  function poseNom(el,liste,off){
+    if(!liste||!liste.length){ el.textContent='non renseign\u00e9 dans cartes.json'; return; }
+    var n=nomFichier(liste[0]);
+    if(liste.length>1) n+=' et '+(liste.length-1)+' autre morceau'+(liste.length>2?'x':'');
+    el.textContent=n;
+    try{
+      if(!off||!off.enabled||!off.enabled()) return;
+      var c=off.source&&off.source();
+      if(!c) return;
+      c=[].concat(c);
+      if(c.join('|')===liste.join('|')) return;
+      var sp=document.createElement('span');
+      sp.style.color='#b45309';
+      sp.textContent=' Copie hors-ligne : '+nomFichier(c[0])+', \u00e0 ret\u00e9l\u00e9charger.';
+      el.parentNode.appendChild(sp);
+    }catch(e){}
+  }
   function nomCarte250(){
     var el=document.getElementById('infoCarte250'); if(!el) return;
-    var pose=function(u){ try{ el.textContent=decodeURIComponent(String(u).split('?')[0].split('/').pop())||'\u2014'; }catch(e){} };
     try{
-      if(window.__SIA250OFF&&window.__SIA250OFF.fichier) window.__SIA250OFF.fichier().then(pose,function(){});
-      else if(window.__SIA250_FILE) pose(window.__SIA250_FILE);
+      if(!(window.__SIA250OFF&&window.__SIA250OFF.fichier)) return;
+      window.__SIA250OFF.fichier().then(function(u){ poseNom(el,[u],window.__SIA250OFF); },function(){});
     }catch(e){}
   }
   function nomCarte1000(){
     var el=document.getElementById('infoCarte1000'); if(!el) return;
     try{
       if(!(window.__SIA1000OFF&&window.__SIA1000OFF.urls)) return;
-      window.__SIA1000OFF.urls().then(function(l){
-        if(!l||!l.length){ el.textContent='non renseign\u00e9 dans cartes.json'; return; }
-        var n='\u2014';
-        try{ n=decodeURIComponent(String(l[0]).split('?')[0].split('/').pop())||'\u2014'; }catch(e){}
-        if(l.length>1) n+=' et '+(l.length-1)+' autre morceau'+(l.length>2?'x':'');
-        el.textContent=n;
-      },function(){});
+      window.__SIA1000OFF.urls().then(function(l){ poseNom(el,l,window.__SIA1000OFF); },function(){});
     }catch(e){}
   }
-  window.__OPEN_INFO=function(){ document.getElementById('infoModal').hidden=false; nomCarte250(); nomCarte1000(); };
+  window.__OPEN_INFO=function(){
+    document.getElementById('infoModal').hidden=false;
+    /* le panneau se rouvre : on efface les mentions ajoutees a la precedente
+       ouverture avant d'en poser de nouvelles */
+    ['infoCarte250','infoCarte1000'].forEach(function(id){
+      var el=document.getElementById(id); if(!el) return;
+      while(el.nextSibling) el.parentNode.removeChild(el.nextSibling);
+      el.parentNode.appendChild(document.createTextNode('.'));
+    });
+    nomCarte250(); nomCarte1000();
+  };
   /* iPadOS : les pastilles de fen\xEAtrage (coin haut-gauche) recouvrent le burger
      en mode fen\xEAtr\xE9 \u2192 classe pour d\xE9caler le bandeau carte vers le bas */
   if(/iPad/.test(navigator.userAgent)||(navigator.maxTouchPoints>1&&/Macintosh/.test(navigator.userAgent))) document.documentElement.classList.add('ipados');
@@ -3106,9 +3147,19 @@ function makeSia1000(src){
   /* le fichier dit lui-meme jusqu'ou il va : on s'y conforme au lieu de
      deviner, sinon Leaflet reclamerait des niveaux inexistants. L'en-tete est
      aussi le temoin de sa presence : PMTiles echoue des la, et Leaflet n'emet
-     alors aucun « tileerror » — c'est donc lui qui sert a prevenir. */
-  var hdr; try{ hdr=pm.getHeader(); }catch(e){ hdr=Promise.reject(e); }
-  l.__hdr=hdr;
+     alors aucun « tileerror » — c'est donc lui qui sert a prevenir.
+     Mais on ne le lit qu'au moment ou la carte sert : seize kilooctets par
+     morceau a chaque demarrage, pour une carte que l'on n'affichera peut-etre
+     pas, sont seize kilooctets de trop en 4G. */
+  var hdr=null;
+  l.__lireHdr=function(){
+    if(!hdr){ try{ hdr=pm.getHeader(); }catch(e){ hdr=Promise.reject(e); } suit(hdr); }
+    return hdr;
+  };
+  try{ Object.defineProperty(l,'__hdr',{configurable:true,get:function(){ return l.__lireHdr(); }}); }
+  catch(e){ l.__hdr=l.__lireHdr(); }
+  l.on('add',function(){ l.__lireHdr(); });
+  function suit(hdr){
   hdr.then(function(h){
     if(!h) return; var ch=false;
     if(h.maxZoom!=null&&h.maxZoom!==l.options.maxNativeZoom){ l.options.maxNativeZoom=h.maxZoom; ch=true; }
@@ -3119,6 +3170,7 @@ function makeSia1000(src){
     }
     if(ch){ try{ l.redraw(); }catch(e){} }
   },function(){});
+  }
   return l;
 }
 let sia1000Noms=[], sia1000Local=false;
@@ -3132,20 +3184,33 @@ function sia1000Premier(ps){
 function sia1000Pose(noms){
   sia1000Noms=noms.slice();
   if(sia1000Local) return;          /* la copie hors-ligne a la main */
-  var ps=[];
   noms.forEach(function(n){
     var l=null; try{ l=makeSia1000(n); }catch(e){ return; }
-    sia1000.addLayer(l); ps.push(l.__hdr);
+    sia1000.addLayer(l);
   });
-  sia1000Premier(ps).then(sia1000.__ok, sia1000.__ko);
+  if(sia1000.__veut) sia1000.__verif();   /* on attendait la liste pour verifier */
 }
 try{
   if(window.pmtiles&&pmtiles.leafletRasterLayer){
     /* le groupe existe tout de suite — le selecteur se construit sans
        attendre le reseau — et se remplit des que la liste est connue */
     sia1000=L.layerGroup();
-    sia1000.__hdr=new Promise(function(res,rej){ sia1000.__ok=res; sia1000.__ko=rej; });
-    sia1000.__hdr.catch(function(){});
+    sia1000.__att=new Promise(function(res,rej){ sia1000.__ok=res; sia1000.__ko=rej; });
+    sia1000.__att.catch(function(){});
+    /* Verifier la presence de la carte, c'est lire l'en-tete de chaque morceau
+       — donc du reseau. On ne le fait qu'a la premiere demande : tant que
+       personne ne choisit cette carte, elle ne coute rien. Si la liste n'est
+       pas encore connue, la demande est retenue et honoree des sa venue. */
+    sia1000.__verif=function(){
+      sia1000.__veut=true;
+      var ls=sia1000.getLayers();
+      if(!ls.length||sia1000.__vu) return;
+      sia1000.__vu=true;
+      sia1000Premier(ls.map(function(l){ return l.__hdr; })).then(sia1000.__ok,sia1000.__ko);
+    };
+    try{ Object.defineProperty(sia1000,'__hdr',{configurable:true,
+      get:function(){ sia1000.__verif(); return sia1000.__att; }}); }
+    catch(e){ sia1000.__hdr=sia1000.__att; }
     var force1000=window.__SIA1000_FILE;
     if(typeof force1000==='string') force1000=[force1000];
     if(Array.isArray(force1000)&&force1000.length){ sia1000Pose(force1000); }
@@ -3177,6 +3242,7 @@ window.__SIA1000_SET_LOCAL=function(bs){
 window.__SIA1000_SET_REMOTE=function(){
   if(!sia1000) return; sia1000Local=false;
   try{ sia1000.clearLayers(); }catch(e){}
+  sia1000.__vu=false;                 /* nouvelles couches : verification a refaire */
   if(sia1000Noms.length) sia1000Pose(sia1000Noms.slice());
 };
 /* Copie presente : on prend la main AVANT que le manifeste ne pose les couches
@@ -3235,7 +3301,7 @@ function attachErr(key, layer){
   }
   layer.once('tileerror', ()=>{
     showToast(String(key).indexOf('oaci')===0
-      ? 'Carte OACI indisponible : donnée IGN non libre, votre propre clé Géoplateforme est requise (voir la note en bas du panneau).'
+      ? 'Carte OACI 1/500 000 indisponible : le service IGN Géoplateforme ne répond pas. Réessayez plus tard, ou utilisez sa copie hors-ligne.'
       : 'Ce fond est bloqué par l\u2019aperçu intégré de cette fenêtre. Téléchargez le fichier et ouvrez-le dans votre navigateur : il s\u2019affichera normalement.');
   });
 }
@@ -7524,11 +7590,19 @@ class ErrB extends React.Component{constructor(p){super(p);this.state={e:null};}
    de la carte et par les copies hors-ligne. Absent ou illisible, on repond un
    objet vide et chacun retombe sur son adresse d'origine. */
 window.__CARTES=(function(){
-  var p=null;
+  var p=null, MEM='lognav_cartes';
+  var garde=function(j){ try{ localStorage.setItem(MEM,JSON.stringify(j)); }catch(e){} return j; };
+  /* Le dernier carnet lu est conserve : si la lecture echoue une fois — reseau
+     coupe au mauvais moment — on repart de celui-la plutot que de l'adresse de
+     secours inscrite dans le code, qui designe une edition ancienne. */
+  var memoire=function(){
+    try{ var v=JSON.parse(localStorage.getItem(MEM)||'null');
+         return (v&&typeof v==='object')?v:{}; }catch(e){ return {}; }
+  };
   return function(){
     if(!p) p=fetch('cartes.json',{cache:'no-cache'})
-      .then(function(r){ return r.ok?r.json():{}; },function(){ return {}; })
-      .then(function(j){ return j&&typeof j==='object'?j:{}; },function(){ return {}; });
+      .then(function(r){ return r.ok?r.json():Promise.reject(); })
+      .then(function(j){ return (j&&typeof j==='object')?garde(j):memoire(); },memoire);
     return p;
   };
 })();
@@ -7548,7 +7622,7 @@ window.__CARTE_ADR=function(j,cle){
     });
   }
   window.__SIA250_FILE='SIA_Paris_250k_2026-1_FULL.pmtiles';
-  var FLAG='lognav_sia250_off';
+  var FLAG='lognav_sia250_off', adr250=null;
   function idb(){ return new Promise(function(res,rej){ var r=indexedDB.open('lognav_sia250',1);
     r.onupgradeneeded=function(){ r.result.createObjectStore('f'); };
     r.onsuccess=function(){ res(r.result); }; r.onerror=function(){ rej(r.error); }; }); }
@@ -7567,8 +7641,18 @@ window.__CARTE_ADR=function(j,cle){
         return window.__SIA250_FILE;
       },function(){ return window.__SIA250_FILE; });
     },
+    /* d'ou vient la copie posee sur cet appareil : c'est ce qui permet de dire
+       qu'elle n'est plus l'edition en service */
+    source:function(){ try{ var v=JSON.parse(localStorage.getItem(FLAG+'_src')||'null');
+      return (v&&v.length)?v:null; }catch(e){ return null; } },
+    aJour:function(){
+      var moi=this, copie=moi.source();
+      return moi.fichier().then(function(f){
+        return {copie:copie, courant:[f], aJour:!copie||copie.join('|')===f};
+      },function(){ return {copie:copie, courant:null, aJour:true}; });
+    },
     download:function(onProg){
-      return this.fichier().then(function(f){ return fetch(f); }).then(function(r){
+      return this.fichier().then(function(f){ adr250=f; return fetch(f); }).then(function(r){
         if(!r.ok) throw new Error('HTTP '+r.status);
         var total=+r.headers.get('content-length')||0;
         if(!r.body||!r.body.getReader) return r.arrayBuffer();
@@ -7583,10 +7667,12 @@ window.__CARTE_ADR=function(j,cle){
         }catch(e){}
         if(!ok||buf.byteLength<100000)
           throw new Error('fichier re\u00e7u invalide ('+Math.round(buf.byteLength/1024)+' Ko) \u2014 v\u00e9rifiez que '+window.__SIA250_FILE+' est bien accessible \u00e0 cette adresse (jamais via Git LFS)');
-        return put(buf).then(function(){ try{ localStorage.setItem(FLAG,'1'); localStorage.setItem(FLAG+'_size',String(buf.byteLength)); }catch(e){} return buf; });
+        return put(buf).then(function(){ try{ localStorage.setItem(FLAG,'1');
+          localStorage.setItem(FLAG+'_size',String(buf.byteLength));
+          localStorage.setItem(FLAG+'_src',JSON.stringify([adr250])); }catch(e){} return buf; });
       });
     },
-    remove:function(){ try{ localStorage.removeItem(FLAG); localStorage.removeItem(FLAG+'_size'); }catch(e){} return del(); },
+    remove:function(){ try{ localStorage.removeItem(FLAG); localStorage.removeItem(FLAG+'_size'); localStorage.removeItem(FLAG+'_src'); }catch(e){} return del(); },
     sizeMo:function(){ try{ var v=+localStorage.getItem(FLAG+'_size')||0; return v?(v/1048576):0; }catch(e){ return 0; } }
   };
 })();
@@ -7662,6 +7748,15 @@ window.__CARTE_ADR=function(j,cle){
       });
     },
     stop:function(){ try{ if(arret) arret.abort(); }catch(e){} },
+    /* d'ou viennent les morceaux poses sur cet appareil */
+    source:function(){ try{ var v=JSON.parse(localStorage.getItem(FLAG+'_src')||'null');
+      return (v&&v.length)?v:null; }catch(e){ return null; } },
+    aJour:function(){
+      var copie=this.source();
+      return urls().then(function(l){
+        return {copie:copie, courant:l, aJour:!copie||!l.length||copie.join('|')===l.join('|')};
+      },function(){ return {copie:copie, courant:null, aJour:true}; });
+    },
     download:function(onProg){
       return urls().then(function(l){
         if(!l.length) throw new Error('adresse inconnue — vérifiez cartes.json');
@@ -7672,13 +7767,14 @@ window.__CARTE_ADR=function(j,cle){
                    .then(function(b){ blobs.push(b); octets+=b.size; });
         },Promise.resolve()).then(function(){
           return put(blobs).then(function(){
-            try{ localStorage.setItem(FLAG,'1'); localStorage.setItem(FLAG+'_size',String(octets)); }catch(e){}
+            try{ localStorage.setItem(FLAG,'1'); localStorage.setItem(FLAG+'_size',String(octets));
+              localStorage.setItem(FLAG+'_src',JSON.stringify(l)); }catch(e){}
             arret=null; return blobs;
           });
         },function(e){ arret=null; throw e; });
       });
     },
-    remove:function(){ try{ localStorage.removeItem(FLAG); localStorage.removeItem(FLAG+'_size'); }catch(e){} return del(); },
+    remove:function(){ try{ localStorage.removeItem(FLAG); localStorage.removeItem(FLAG+'_size'); localStorage.removeItem(FLAG+'_src'); }catch(e){} return del(); },
     sizeMo:function(){ try{ var v=+localStorage.getItem(FLAG+'_size')||0; return v?(v/1048576):0; }catch(e){ return 0; } }
   };
 })();
