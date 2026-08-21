@@ -1,0 +1,62 @@
+LogNavAK — Log de Nav AK
+Copyright (c) 2025-2026 Alexandre Kilinc. Tous droits reserves.
+
+FRANCAIS
+
+Ce depot et l'application qu'il contient sont publies pour etre UTILISES en
+ligne, non pour etre repris. Le code source est visible : c'est la nature meme
+d'une application web, tout navigateur en donne la lecture. Cette visibilite
+n'emporte aucune cession de droits.
+
+Sont autorises, sans demande prealable :
+  - utiliser l'application a l'adresse ou son auteur la publie ;
+  - en lire le code source, l'etudier, s'en instruire ;
+  - en signaler les defauts a l'auteur.
+
+Sont interdits sans accord ecrit et prealable de l'auteur :
+  - reproduire, copier, republier ou heberger tout ou partie de ce code, sous
+    quelque forme et par quelque moyen que ce soit ;
+  - en produire, publier ou distribuer une version modifiee, traduite ou
+    derivee, y compris obtenue par un outil automatique ou un modele de langage
+    a partir de ce code ;
+  - en faire un usage commercial, direct ou indirect ;
+  - retirer ou alterer la presente mention, les mentions de droits d'auteur ou
+    les attributions de sources.
+
+DONNEES CARTOGRAPHIQUES ET AERONAUTIQUES
+
+Les donnees affichees ne sont pas couvertes par la presente licence et restent
+soumises a celle de leurs producteurs :
+  - Cartes OACI 1/250 000 et 1/1 000 000, aerodromes, VOR/NDB et espaces
+    aeriens : SIA / DGAC, Licence Ouverte (Etalab). Attribution obligatoire.
+  - Carte OACI 1/500 000 (SCAN-OACI) : IGN, donnee non libre, soumise aux
+    conditions de la Geoplateforme.
+  - Fonds OpenStreetMap : (c) contributeurs OpenStreetMap, ODbL.
+
+Les attributions portees par l'application ne doivent jamais etre retirees.
+
+ABSENCE DE GARANTIE
+
+L'application est fournie EN L'ETAT, sans garantie d'aucune sorte, expresse ou
+implicite. Elle n'est ni officielle, ni validee DGAC, et ses donnees ne sont
+pas certifiees pour la navigation aerienne. L'auteur ne saurait etre tenu
+responsable d'un dommage, direct ou indirect, resultant de son usage. Toute
+information doit etre verifiee sur la source officielle (SIA, SOFIA-Briefing,
+NOTAM, cartes VAC en vigueur) avant tout vol.
+
+--------------------------------------------------------------------------
+
+ENGLISH (summary — the French text above prevails)
+
+All rights reserved. This source code is published to be run at the address
+where its author publishes it, not to be reused. You may use the application,
+read and study its source, and report defects. You may NOT copy, republish,
+host, modify, translate, derive — including by automated means or a language
+model — or commercially exploit any part of it without prior written consent
+of the author. Map and aeronautical data belong to their producers (SIA/DGAC
+Licence Ouverte, IGN, OpenStreetMap ODbL) and keep their own terms; their
+attributions must never be removed. Provided AS IS, without warranty of any
+kind. Not an official product, not DGAC-approved, not certified for air
+navigation.
+
+Contact : https://github.com/AlexKilinc/LogNav
