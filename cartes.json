@@ -5,7 +5,7 @@
   "https://pub-3255550d78614e53914f48f1897a111a.r2.dev/SIA_France_1000k_2026-01.pmtiles"
  ],
  "meteo": {
-  "_lisezmoi": "Cartes TEMSI/WINTEM de Meteo-France (aviation.meteo.fr), telles qu'affichees par SOFIA-Briefing : affiche_image.php sans jeton, avec type (couche) et date={AAAA}{MM}{JJ}{HH}0000 (validite UTC) ; time n'est qu'un anti-cache. pas = heures entre deux validites (UTC) ; avance = heures entre publication et validite. Chaque carte liste plusieurs adresses : la premiere image qui charge est affichee. Si aucune ne repond : afficher la carte sur sofia-briefing.aviation-civile.gouv.fr, copier l'adresse de l'image (clic droit), la coller ici en remplacant les 14 chiffres de date par {AAAA}{MM}{JJ}{HH}0000. Modifiable sans toucher a l'application.",
+  "_lisezmoi": "Cartes TEMSI/WINTEM de Meteo-France. Les images d'aviation.meteo.fr exigent un jeton de session perissable : l'application passe donc par le relais 'cartes' (fonction Supabase, dossier supabase/functions/cartes du depot) qui recolte un lien frais a chaque demande puis renvoie l'image. {AAAA}{MM}{JJ}{HH} tiennent la place de la validite UTC (date={AAAA}{MM}{JJ}{HH}0000). pas = heures entre deux validites ; avance = heures entre publication et validite. Chaque carte liste plusieurs adresses : la premiere image qui charge est affichee (le relais d'abord, l'adresse directe en secours). Diagnostic du relais : ouvrir .../functions/v1/cartes?debug=1 dans un navigateur. Modifiable sans toucher a l'application.",
   "cartes": [
    {
     "id": "temsi-france",
@@ -14,8 +14,8 @@
     "pas": 3,
     "avance": 3,
     "urls": [
-     "https://aviation.meteo.fr/affiche_image.php?time={AAAA}{MM}{JJ}{HH}&type=sigwx/fr/france&date={AAAA}{MM}{JJ}{HH}0000&mode=img&comment=",
-     "https://aviation.meteo.fr/affiche_image.php?type=sigwx/fr/france&date={AAAA}{MM}{JJ}{HH}0000&mode=img&comment="
+     "https://fshhzsvpyabtylwnxroz.supabase.co/functions/v1/cartes?type=sigwx/fr/france&date={AAAA}{MM}{JJ}{HH}0000",
+     "https://aviation.meteo.fr/affiche_image.php?time={AAAA}{MM}{JJ}{HH}&type=sigwx/fr/france&date={AAAA}{MM}{JJ}{HH}0000&mode=img&comment="
     ]
    },
    {
@@ -25,9 +25,8 @@
     "pas": 6,
     "avance": 6,
     "urls": [
-     "https://aviation.meteo.fr/affiche_image.php?time={AAAA}{MM}{JJ}{HH}&type=sigwx/fr/euroc&date={AAAA}{MM}{JJ}{HH}0000&mode=img&comment=",
-     "https://aviation.meteo.fr/affiche_image.php?type=sigwx/fr/euroc&date={AAAA}{MM}{JJ}{HH}0000&mode=img&comment=",
-     "https://aviation.meteo.fr/affiche_image.php?time={AAAA}{MM}{JJ}{HH}&type=sigwx/eur/euroc&date={AAAA}{MM}{JJ}{HH}0000&mode=img&comment="
+     "https://fshhzsvpyabtylwnxroz.supabase.co/functions/v1/cartes?type=sigwx/fr/euroc&date={AAAA}{MM}{JJ}{HH}0000",
+     "https://aviation.meteo.fr/affiche_image.php?time={AAAA}{MM}{JJ}{HH}&type=sigwx/fr/euroc&date={AAAA}{MM}{JJ}{HH}0000&mode=img&comment="
     ]
    },
    {
@@ -37,8 +36,8 @@
     "pas": 3,
     "avance": 3,
     "urls": [
-     "https://aviation.meteo.fr/affiche_image.php?time={AAAA}{MM}{JJ}{HH}&type=wintemp/fr/france/fl020&date={AAAA}{MM}{JJ}{HH}0000&mode=img&comment=",
-     "https://aviation.meteo.fr/affiche_image.php?type=wintemp/fr/france/fl020&date={AAAA}{MM}{JJ}{HH}0000&mode=img&comment="
+     "https://fshhzsvpyabtylwnxroz.supabase.co/functions/v1/cartes?type=wintemp/fr/france/fl020&date={AAAA}{MM}{JJ}{HH}0000",
+     "https://aviation.meteo.fr/affiche_image.php?time={AAAA}{MM}{JJ}{HH}&type=wintemp/fr/france/fl020&date={AAAA}{MM}{JJ}{HH}0000&mode=img&comment="
     ]
    },
    {
@@ -48,8 +47,8 @@
     "pas": 3,
     "avance": 3,
     "urls": [
-     "https://aviation.meteo.fr/affiche_image.php?time={AAAA}{MM}{JJ}{HH}&type=wintemp/fr/france/fl050&date={AAAA}{MM}{JJ}{HH}0000&mode=img&comment=",
-     "https://aviation.meteo.fr/affiche_image.php?type=wintemp/fr/france/fl050&date={AAAA}{MM}{JJ}{HH}0000&mode=img&comment="
+     "https://fshhzsvpyabtylwnxroz.supabase.co/functions/v1/cartes?type=wintemp/fr/france/fl050&date={AAAA}{MM}{JJ}{HH}0000",
+     "https://aviation.meteo.fr/affiche_image.php?time={AAAA}{MM}{JJ}{HH}&type=wintemp/fr/france/fl050&date={AAAA}{MM}{JJ}{HH}0000&mode=img&comment="
     ]
    },
    {
@@ -59,8 +58,8 @@
     "pas": 3,
     "avance": 3,
     "urls": [
-     "https://aviation.meteo.fr/affiche_image.php?time={AAAA}{MM}{JJ}{HH}&type=wintemp/fr/france/fl100&date={AAAA}{MM}{JJ}{HH}0000&mode=img&comment=",
-     "https://aviation.meteo.fr/affiche_image.php?type=wintemp/fr/france/fl100&date={AAAA}{MM}{JJ}{HH}0000&mode=img&comment="
+     "https://fshhzsvpyabtylwnxroz.supabase.co/functions/v1/cartes?type=wintemp/fr/france/fl100&date={AAAA}{MM}{JJ}{HH}0000",
+     "https://aviation.meteo.fr/affiche_image.php?time={AAAA}{MM}{JJ}{HH}&type=wintemp/fr/france/fl100&date={AAAA}{MM}{JJ}{HH}0000&mode=img&comment="
     ]
    }
   ]
