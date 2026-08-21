@@ -2900,7 +2900,7 @@ window.__TRACE_MARKUP="\n\n<header>\n  <div class=\"hdr-row1\">\n    <span class
    accessible depuis le bouton ⓘ du bandeau du log, avant toute ouverture de la carte */
 (function(){
   var host=document.createElement('div');
-  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Cartes OACI — origine et mise à jour</b></p>\n    <p style=\"margin-top:-6px\"><b>1/250 000 Région parisienne</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte250\">—</span>.</p>\n    <p style=\"margin-top:-6px\"><b>1/500 000 France</b> — IGN Géoplateforme (SCAN-OACI). Donnée <b>non libre</b>, tenue à jour par l’IGN.</p>\n    <p style=\"margin-top:-6px\"><b>1/1 000 000 France</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte1000\">—</span>.</p>\n    <p>Les deux cartes du SIA sont hébergées à part et lues par plages : seules les tuiles affichées sont téléchargées. Les trois se copient sur l’appareil pour voler sans réseau depuis <b>Profil → Cartes hors-ligne</b>. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.398</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
+  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Cartes OACI — origine et mise à jour</b></p>\n    <p style=\"margin-top:-6px\"><b>1/250 000 Région parisienne</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte250\">—</span>.</p>\n    <p style=\"margin-top:-6px\"><b>1/500 000 France</b> — IGN Géoplateforme (SCAN-OACI). Donnée <b>non libre</b>, tenue à jour par l’IGN.</p>\n    <p style=\"margin-top:-6px\"><b>1/1 000 000 France</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte1000\">—</span>.</p>\n    <p>Les deux cartes du SIA sont hébergées à part et lues par plages : seules les tuiles affichées sont téléchargées. Les trois se copient sur l’appareil pour voler sans réseau depuis <b>Profil → Cartes hors-ligne</b>. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.399</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
   (document.body||document.documentElement).appendChild(host.firstElementChild);
   /* le nom du fichier de la 1/1 000 000 dit son edition : on le lit la ou il
      est vraiment (cartes.json), jamais en dur, sinon il mentirait un jour */
@@ -9687,9 +9687,28 @@ window.__pickGpx=function(cb){
         +'title="Imprimer le dossier, ou l\u2019enregistrer en PDF">Imprimer / PDF</button></div>';
       html+='<div class="wxd-feuille">';
       html+='<div class="wxd-titre">DOSSIER M\u00c9T\u00c9O <span>\u2014 pr\u00e9paration du vol</span></div>';
+      /* le commandant de bord : le pilote connecte, comme sur le log papier */
+      var cdb='';
+      try{ var em=String(localStorage.getItem('akila_session_v1')||'');
+        var db=JSON.parse(localStorage.getItem('akila_users_v1')||'{}')||{};
+        var uu=db[em]; if(uu) cdb=((uu.prenom||'')+' '+(uu.nom||'')).trim(); }catch(e){}
+      if(!cdb){ try{ cdb=(window.__AKILA_USER&&window.__AKILA_USER.name)||''; }catch(e){} }
+      /* la nuit aeronautique qui borne le vol : celle de l'arrivee — c'est la
+         qu'il faut etre pose — sinon celle du depart */
+      var nuitRow='';
+      if(typeof window.__SUN_NIGHT==='function'){
+        var tN=null, z;
+        for(z=0;z<terrains.length;z++) if(terrains[z].role==='arr'){ tN=terrains[z]; break; }
+        if(!tN) for(z=0;z<terrains.length;z++) if(terrains[z].role==='dep'){ tN=terrains[z]; break; }
+        if(tN){ try{ var snN=window.__SUN_NIGHT(tN.code,dateVol);
+          if(snN) nuitRow='<tr><td>Nuit a\u00e9ronautique</td><td>'+snN.night+' locale \u00b7 '
+            +wxEchap(tN.code)+' (coucher '+snN.set+')</td></tr>'; }catch(e2){} }
+      }
       html+='<table class="wxd-ent">'
         +'<tr><td>Navigation</td><td>'+wxEchap(nomNav||'\u2014')+'</td></tr>'
+        +'<tr><td>Commandant de bord</td><td>'+wxEchap(cdb||'\u2014')+'</td></tr>'
         +'<tr><td>Date du vol</td><td>'+wxEchap(dateVolAff)+'</td></tr>'
+        +nuitRow
         +'<tr><td>Dossier \u00e9tabli le</td><td>'+locale+' locale \u00b7 '+utc+'</td></tr>'
         +(c.t?'<tr><td>Messages relev\u00e9s</td><td>'+hm(c.t)+'</td></tr>':'')
         +'</table>';
