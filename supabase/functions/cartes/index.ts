@@ -15,10 +15,10 @@
  * Déploiement : Supabase > Edge Functions > fonction « cartes », coller ce
  * fichier EN ENTIER (vérifier que la dernière ligne dans l'éditeur est bien
  * « }); »), déployer, et laisser « Enforce JWT verification » DÉSACTIVÉ.
- * Aucun secret requis. Vérification : ouvrir ?version=1 -> doit répondre 7.4.
+ * Aucun secret requis. Vérification : ouvrir ?version=1 -> doit répondre 7.5.
  */
 
-const VERSION = "7.4";
+const VERSION = "7.5";
 const AERO = "https://aviation.meteo.fr";
 const SOFIA = "https://sofia-briefing.aviation-civile.gouv.fr";
 const UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Safari/605.1.15";
@@ -122,6 +122,46 @@ async function posteSofia(op: string, champs: Record<string, string>): Promise<s
   return texte;
 }
 
+/* Voie officielle AEROWEB : active dès que le code d'accès (convention
+   Météo-France, webmaster.aeroweb@meteo.fr) est posé en secret AEROWEB_ID
+   dans Supabase (Edge Functions > cartes > Secrets). Jamais dans GitHub.
+   L'API serveur_donnees.jsp rend un XML dont les liens sont signés. */
+function paramsAeroweb(type: string): string | null {
+  const t = type.toLowerCase();
+  if (t === "sigwx/fr/france") return "VUE_CARTE=AERO_TEMSI";
+  if (t === "sigwx/fr/euroc" || t === "sigwx/eur/euroc") {
+    return "VUE_CARTE=AERO_TEMSI&ZONE=AERO_EUROC";
+  }
+  const m = t.match(/^wintemp\/fr\/france\/fl(\d{3})$/);
+  if (m) return "VUE_CARTE=AERO_WINTEM&ALTITUDE=" + m[1];
+  return null;
+}
+
+async function viaAeroweb(type: string, date: string, journal: Record<string, unknown>[]): Promise<Lien | null> {
+  const id = Deno.env.get("AEROWEB_ID") || "";
+  const pa = paramsAeroweb(type);
+  if (!id || !pa) return null;
+  const u = AERO + "/FR/aviation/serveur_donnees.jsp?ID=" + encodeURIComponent(id) +
+    "&TYPE_DONNEES=CARTES&BASE_COMPLETE=non&" + pa;
+  try {
+    const r = await fetch(u, { headers: { "User-Agent": UA, "Accept": "*/*" }, redirect: "follow" });
+    const texte = await r.text();
+    const liens = recolte(texte, AERO + "/FR/aviation/");
+    journal.push({ voie: "AEROWEB (code officiel)", http: r.status, liens: liens.length,
+      apercu: liens.length ? undefined : texte.slice(0, 160) });
+    if (!liens.length) return null;
+    const cible = Number((date || "0").padEnd(14, "0"));
+    const dispo = liens.filter((l) => l.couche === type);
+    const tri = (dispo.length ? dispo : liens).sort((a, b) =>
+      Math.abs(Number(a.date || "0") - cible) - Math.abs(Number(b.date || "0") - cible));
+    const chemin = tri[0].url.replace(/^https?:\/\/[^/]+/, "");
+    return { url: AERO + chemin, couche: tri[0].couche, date: tri[0].date };
+  } catch (e) {
+    journal.push({ voie: "AEROWEB (code officiel)", erreur: String(e).slice(0, 120) });
+    return null;
+  }
+}
+
 async function viaSofia(type: string, date: string, journal: Record<string, unknown>[]): Promise<Lien | null> {
   for (const jeu of opsPour(type)) {
     let texte = "";
@@ -194,7 +234,10 @@ Deno.serve(async (req: Request) => {
   }
   const journal: Record<string, unknown>[] = [];
   let lien: Lien | null = null;
-  try { lien = await viaSofia(type, date, journal); } catch (e) {
+  try {
+    lien = await viaAeroweb(type, date, journal);
+    if (!lien) lien = await viaSofia(type, date, journal);
+  } catch (e) {
     journal.push({ erreur: String(e).slice(0, 160) });
   }
   if (q.get("essai") === "1" || q.get("debug") === "1") {
