@@ -97,12 +97,35 @@ create policy "profil : modification par l'admin"
 -- (SECURITY DEFINER), ou a la main par l'administrateur. Verifiez-le avant
 -- de tester une inscription (voir le controle 3 en fin de fichier).
 
--- Le nerf de l'affaire : sans cela, la politique « modification de soi »
--- laisserait n'importe qui s'ecrire role = 'admin' ou status = 'approved'
--- et s'octroyer la base entiere. Le droit d'ecrire ces trois colonnes est
--- retire au client ; seuls le SQL Editor et une fonction SECURITY DEFINER
--- peuvent encore les changer.
-revoke update (role, status, id) on public.profiles from authenticated;
+-- Le nerf de l'affaire. Sans quoi la politique « modification de soi »
+-- laisserait n'importe qui s'ecrire role = 'owner' ou status = 'approved' et
+-- s'octroyer la base entiere.
+--   On ne peut pas simplement retirer le droit d'ecrire ces colonnes : c'est
+--   l'application elle-meme qui les modifie quand vous validez une
+--   inscription (« cloudProf(email, {status:'approved'}) »), et un droit de
+--   colonne ne distingue pas l'administrateur du membre. Un declencheur, si :
+--   il remet en place les anciennes valeurs pour quiconque n'est pas
+--   administrateur, et laisse passer les siennes.
+create or replace function public.profil_garde_privileges()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if not public.est_admin() then
+    new.id     := old.id;
+    new.role   := old.role;
+    new.status := old.status;
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists profil_garde_privileges on public.profiles;
+create trigger profil_garde_privileges
+  before update on public.profiles
+  for each row execute function public.profil_garde_privileges();
 
 
 -- ---------------------------------------------------------------------
@@ -152,6 +175,11 @@ end $$;
 -- Controle 2 : les politiques en place, table par table
 --   select tablename, policyname, cmd, roles
 --   from pg_policies where schemaname = 'public' order by tablename, policyname;
+
+-- Controle 2 bis : le garde-fou des privileges est-il pose ?
+--   select tgname from pg_trigger
+--   where tgrelid = 'public.profiles'::regclass and not tgisinternal;
+--   Doit rendre « profil_garde_privileges ».
 
 -- Controle 3 : la ligne de profil est-elle creee par un declencheur ?
 --   select tgname, tgrelid::regclass from pg_trigger
