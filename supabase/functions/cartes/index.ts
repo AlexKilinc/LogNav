@@ -14,10 +14,10 @@
  * Déploiement : Supabase > Edge Functions > fonction « cartes », coller ce
  * fichier EN ENTIER (vérifier que la dernière ligne dans l'éditeur est bien
  * « }); »), déployer, et laisser « Enforce JWT verification » DÉSACTIVÉ.
- * Aucun secret requis. Vérification : ouvrir ?version=1 -> doit répondre 7.2.
+ * Aucun secret requis. Vérification : ouvrir ?version=1 -> doit répondre 7.3.
  */
 
-const VERSION = "7.2";
+const VERSION = "7.3";
 const AERO = "https://aviation.meteo.fr";
 const SOFIA = "https://sofia-briefing.aviation-civile.gouv.fr";
 const UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Safari/605.1.15";
@@ -149,7 +149,8 @@ async function viaSofia(type: string, date: string, journal: Record<string, unkn
     for (const hote of [SOFIA, AERO]) {
       const brut = await chercheImage(hote + chemin, referer, journal, 0);
       if (brut) {
-        return new Response(brut.corps, { headers: {
+        journal.push({ servie: brut.tampon.byteLength + " octets" });
+        return new Response(brut.tampon, { headers: {
           "Content-Type": brut.contenu,
           "Cache-Control": "public, max-age=600",
           "Access-Control-Allow-Origin": "*",
@@ -163,20 +164,29 @@ async function viaSofia(type: string, date: string, journal: Record<string, unkn
   return null;
 }
 
-/* Les adresses d'images qu'une page HTML d'habillage peut contenir. */
+/* Les adresses d'images qu'une page HTML d'habillage peut contenir —
+   triées : ce qui ressemble à une carte d'abord, les logos écartés. */
 function candidatsDansHtml(html: string, base: string): string[] {
   const out: string[] = [];
   for (const l of recolte(html, base)) out.push(l.url);
   const re = /(?:src|href)=["']([^"']+\.(?:png|gif|jpe?g)[^"']*|[^"']*affiche[^"']*\?[^"']*)["']/gi;
   let m;
-  while ((m = re.exec(html)) && out.length < 8) {
+  while ((m = re.exec(html)) && out.length < 12) {
     try { out.push(new URL(m[1], base).href); } catch { /* ignore */ }
   }
-  return [...new Set(out)];
+  const note = (u: string) =>
+    (/logo|icon|favicon|marianne|bandeau|banner|header|footer/i.test(u) ? -2 : 0) +
+    (/wintem|temsi|sigwx|carte|chart|meteo|echeance|affiche/i.test(u) ? 2 : 0) +
+    (/\d{10,14}/.test(u) ? 1 : 0);
+  return [...new Set(out)].sort((a, b) => note(b) - note(a));
 }
 
+/* Une carte pèse des dizaines de kilo-octets ; un logo, quelques-uns. */
+const IMAGE_MIN = 15000;
+type Image = { tampon: ArrayBuffer; contenu: string };
 async function chercheImage(u: string, referer: string, journal: Record<string, unknown>[], profondeur: number):
-  Promise<{ corps: ReadableStream<Uint8Array> | null; contenu: string } | null> {
+  Promise<Image | null> {
+  let pisAller: Image | null = null;
   try {
     const r = await fetch(u, {
       headers: { "User-Agent": UA, "Referer": referer,
@@ -184,18 +194,25 @@ async function chercheImage(u: string, referer: string, journal: Record<string, 
       redirect: "follow",
     });
     const ct = r.headers.get("Content-Type") || "";
-    if (r.ok && /^image\//i.test(ct)) return { corps: r.body, contenu: ct };
-    const texte = await r.text();
-    journal.push({ image: u.slice(0, 90) + "…", http: r.status, contenu: ct, apercu: texte.slice(0, 220) });
-    if (profondeur < 1 && r.ok && /html/i.test(ct)) {
-      for (const c of candidatsDansHtml(texte, u).slice(0, 3)) {
-        if (c === u) continue;
-        const ri = await chercheImage(c, u, journal, profondeur + 1);
-        if (ri) return ri;
+    if (r.ok && /^image\//i.test(ct)) {
+      const tampon = await r.arrayBuffer();
+      if (tampon.byteLength >= IMAGE_MIN) return { tampon, contenu: ct };
+      journal.push({ image: u.slice(0, 90) + "…", petite: tampon.byteLength + " octets (vignette ?)" });
+      pisAller = { tampon, contenu: ct };
+    } else {
+      const texte = await r.text();
+      journal.push({ image: u.slice(0, 90) + "…", http: r.status, contenu: ct, apercu: texte.slice(0, 220) });
+      if (profondeur < 1 && r.ok && /html/i.test(ct)) {
+        for (const c of candidatsDansHtml(texte, u).slice(0, 5)) {
+          if (c === u) continue;
+          const ri = await chercheImage(c, u, journal, profondeur + 1);
+          if (ri && ri.tampon.byteLength >= IMAGE_MIN) return ri;
+          if (ri && (!pisAller || ri.tampon.byteLength > pisAller.tampon.byteLength)) pisAller = ri;
+        }
       }
     }
   } catch (e) { journal.push({ image: u.slice(0, 90), erreur: String(e).slice(0, 100) }); }
-  return null;
+  return pisAller;
 }
 
 /* Mode poste (diagnostic) : rejouer un POST applicatif SOFIA à la main.
@@ -232,10 +249,44 @@ async function poste(q: URLSearchParams): Promise<Response> {
   }
 }
 
+/* Mode page (diagnostic) : montrer la page d'habillage d'une carte et le
+   classement des adresses d'images qu'on y lit. */
+async function pageMode(type: string, date: string): Promise<Response> {
+  for (const jeu of opsPour(type)) {
+    const texte = await posteSofia(jeu.op, jeu.champs).catch((e) => String(e));
+    const liens = recolte(texte, SOFIA + "/sofia/pages/");
+    if (!liens.length) continue;
+    const chemin = liens[0].url.replace(/^https?:\/\/[^/]+/, "");
+    const r = await fetch(SOFIA + chemin, {
+      headers: { "User-Agent": UA, "Referer": SOFIA + "/sofia/pages/meteosearchtemsi.html",
+        "Accept": "image/avif,image/webp,image/png,image/*,*/*;q=0.8" },
+      redirect: "follow",
+    });
+    const ct = r.headers.get("Content-Type") || "";
+    if (/^image\//i.test(ct)) {
+      const t = await r.arrayBuffer();
+      return reponseJson({ note: "l'adresse signée rend directement une image", contenu: ct, octets: t.byteLength });
+    }
+    const html = await r.text();
+    return reponseJson({
+      lien: tronque(liens[0].url), http: r.status, contenu: ct, octets: html.length,
+      candidats: candidatsDansHtml(html, SOFIA + chemin).map(tronque),
+      habillage: html.slice(0, 3500),
+    });
+  }
+  return reponseJson({ erreur: "aucun lien signé obtenu pour cette couche" }, 404);
+}
+
 Deno.serve(async (req: Request) => {
   const q = new URL(req.url).searchParams;
   if (q.get("version") === "1") return reponseJson({ version: VERSION });
   if (q.get("poste") === "1") return poste(q);
+  if (q.get("page") === "1") {
+    const t = (q.get("type") || "").toLowerCase();
+    const d = (q.get("date") || "").replace(/\D/g, "");
+    if (!t || !d) return reponseJson({ erreur: "page=1 demande type et date" }, 400);
+    return pageMode(t, d);
+  }
   const type = (q.get("type") || q.get("layer") || "").toLowerCase();
   const date = (q.get("date") || q.get("echeance") || "").replace(/\D/g, "");
   if (!type || !date) {
