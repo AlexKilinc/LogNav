@@ -115,8 +115,62 @@ function tronque(u: string): string {
   return u.replace(/(login=[^&]{6})[^&]*/, "$1……");
 }
 
+function reponseJson(objet: unknown, statut = 200): Response {
+  return new Response(JSON.stringify(objet, null, 1), {
+    status: statut,
+    headers: { "Content-Type": "application/json; charset=utf-8", "Access-Control-Allow-Origin": "*" },
+  });
+}
+
+/* Mode sonde : quand la récolte simple ne trouve rien, extraire le code qui
+   entoure les mots-clés dans les pages et scripts des sources — c'est là que
+   se lit la façon dont elles demandent leurs cartes.
+   ?sonde=auto                        -> jeu d'extraits choisi d'avance
+   ?sonde=<adresse>&motif=<regex>     -> extraits sur mesure d'une page donnée */
+async function sonde(q: URLSearchParams): Promise<Response> {
+  const cible = q.get("sonde") || "";
+  const travaux: { url: string; motif: string }[] = [];
+  if (cible === "auto") {
+    const acc = await attrape("https://loxodrome.fr/", 8000);
+    for (const j of scriptsDe(acc.texte, "https://loxodrome.fr/")) {
+      travaux.push({ url: j, motif: "wx_temsi|wx_wintem|affiche_image|sigwx/|wintemp/" });
+    }
+    travaux.push({
+      url: "https://sofia-briefing.aviation-civile.gouv.fr/sofia/pages/meteotemsi.html",
+      motif: "\\$\\.ajax|XMLHttpRequest|servlet|\\.php|affiche|imageTemsi|prodDateTemsi",
+    });
+    travaux.push({
+      url: "https://sofia-briefing.aviation-civile.gouv.fr/sofia/pages/meteowintem.html",
+      motif: "\\$\\.ajax|XMLHttpRequest|servlet|\\.php|affiche|imageWintem|prodDateWintem",
+    });
+  } else {
+    travaux.push({ url: cible, motif: q.get("motif") || "temsi|wintem|affiche_image" });
+  }
+  const portee = Math.min(Number(q.get("portee") || "150"), 400);
+  const nmax = Math.min(Number(q.get("n") || "10"), 40);
+  const rap: Record<string, unknown>[] = [];
+  for (const t of travaux) {
+    const r = await attrape(t.url, 9000);
+    const extraits: string[] = [];
+    try {
+      const re = new RegExp(t.motif, "gi");
+      const vus = new Set<string>();
+      let m;
+      while ((m = re.exec(r.texte)) && extraits.length < nmax) {
+        const e = r.texte.slice(Math.max(0, m.index - portee), m.index + m[0].length + portee);
+        const cle = e.slice(0, 60);
+        if (!vus.has(cle)) { vus.add(cle); extraits.push(e); }
+        re.lastIndex = m.index + m[0].length + portee;
+      }
+    } catch (e) { extraits.push("motif irrecevable : " + String(e).slice(0, 80)); }
+    rap.push({ url: t.url, http: r.http, octets: r.texte.length, extraits });
+  }
+  return reponseJson({ sonde: rap });
+}
+
 Deno.serve(async (req) => {
   const q = new URL(req.url).searchParams;
+  if (q.get("sonde")) return sonde(q);
   const type = (q.get("type") || q.get("layer") || "").toLowerCase();
   const date = (q.get("date") || q.get("echeance") || "").replace(/\D/g, "");
   const debug = q.get("debug") === "1";
