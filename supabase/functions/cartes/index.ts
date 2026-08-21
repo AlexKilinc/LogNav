@@ -261,6 +261,110 @@ async function voieDirecte(type: string, date: string): Promise<{ essais: Record
   return { essais, image: null };
 }
 
+const SOFIA = "https://sofia-briefing.aviation-civile.gouv.fr";
+
+/* Voie SOFIA — la bonne : le point d'accès applicatif public de SOFIA
+   (POST /sofia, :operation=postTemsi...) rend pour chaque carte un lien
+   d'image fraîchement signé. On le demande, puis on va chercher l'image. */
+
+/* Quels POST tenter pour une couche demandée. Le TEMSI est connu ; pour le
+   WINTEM, la forme du champ des niveaux n'est pas documentée : on essaie
+   plusieurs noms/valeurs plausibles, et la forme gagnante est mémorisée. */
+let wintemGagnant: Record<string, string> | null = null;
+function opsPour(type: string, date: string): { op: string; champs: Record<string, string> }[] {
+  const t = type.toLowerCase();
+  if (t === "sigwx/fr/france") return [{ op: "postTemsi", champs: { zone: "FRANCE" } }];
+  if (t === "sigwx/fr/euroc" || t === "sigwx/eur/euroc") {
+    return [{ op: "postTemsi", champs: { zone: "EUROC" } }];
+  }
+  const m = t.match(/^wintemp\/fr\/france\/fl(\d{3})$/);
+  if (m) {
+    const fl = m[1];
+    const jeux: { op: string; champs: Record<string, string> }[] = [];
+    if (wintemGagnant) {
+      const c: Record<string, string> = { zone: "FRANCE" };
+      for (const k of Object.keys(wintemGagnant)) c[k] = wintemGagnant[k].replace(/\d{3}/, fl);
+      jeux.push({ op: "postWintem", champs: c });
+    }
+    for (const cle of ["levels", "level", "wintemLevels", "flightLevels"]) {
+      for (const val of ["FL" + fl, fl, "FL" + String(Number(fl))]) {
+        jeux.push({ op: "postWintem", champs: { zone: "FRANCE", [cle]: val } });
+      }
+    }
+    return jeux.slice(0, 13);
+  }
+  return [];
+}
+
+/* POST vers /sofia, mémorisé 2 minutes pour ne pas marteler le service quand
+   le dossier météo charge cinq cartes d'un coup. */
+const memoPoste = new Map<string, { t: number; texte: string }>();
+async function posteSofia(op: string, champs: Record<string, string>): Promise<string> {
+  const corps = new URLSearchParams();
+  corps.set(":operation", op);
+  for (const k of Object.keys(champs)) corps.set(k, champs[k]);
+  const cle = corps.toString();
+  const su = memoPoste.get(cle);
+  if (su && Date.now() - su.t < 120000) return su.texte;
+  const r = await fetch(SOFIA + "/sofia", {
+    method: "POST",
+    headers: {
+      "User-Agent": UA,
+      "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
+      "Referer": SOFIA + "/sofia/pages/" + (op === "postWintem" ? "meteosearchwintem" : "meteosearchtemsi") + ".html",
+      "Origin": SOFIA,
+      "X-Requested-With": "XMLHttpRequest",
+      "Accept": "application/json, text/javascript, */*; q=0.01",
+    },
+    body: cle,
+    redirect: "follow",
+  });
+  const texte = await r.text();
+  if (r.ok) memoPoste.set(cle, { t: Date.now(), texte });
+  return texte;
+}
+
+async function viaSofia(type: string, date: string, journal: Record<string, unknown>[]): Promise<Response | null> {
+  for (const jeu of opsPour(type, date)) {
+    let texte = "";
+    try { texte = await posteSofia(jeu.op, jeu.champs); } catch (e) {
+      journal.push({ op: jeu.op, champs: jeu.champs, erreur: String(e).slice(0, 100) });
+      continue;
+    }
+    const liens = recolte(texte, SOFIA + "/sofia/pages/");
+    journal.push({ op: jeu.op, champs: jeu.champs, liens: liens.length });
+    if (!liens.length) continue;
+    if (jeu.op === "postWintem") wintemGagnant = jeu.champs;
+    /* la couche demandée à la validité la plus proche ; sinon le premier lien */
+    const cible = Number((date || "0").padEnd(14, "0"));
+    const dispo = liens.filter((l) => l.couche === type);
+    const tri = (dispo.length ? dispo : liens).sort((a, b) =>
+      Math.abs(Number(a.date || "0") - cible) - Math.abs(Number(b.date || "0") - cible));
+    const lien = tri[0];
+    /* l'image : d'abord sur l'hôte SOFIA (comme la page), sinon chez Météo-France */
+    const chemin = lien.url.replace(/^https?:\/\/[^/]+/, "");
+    for (const hote of [SOFIA, AERO]) {
+      try {
+        const ri = await fetch(hote + chemin, {
+          headers: { "User-Agent": UA, "Referer": SOFIA + "/sofia/pages/meteosearchtemsi.html",
+            "Accept": "image/avif,image/webp,image/png,image/*,*/*;q=0.8" },
+          redirect: "follow",
+        });
+        const ct = ri.headers.get("Content-Type") || "";
+        if (ri.ok && /^image\//i.test(ct)) {
+          return new Response(ri.body, { headers: {
+            "Content-Type": ct, "Cache-Control": "public, max-age=600",
+            "Access-Control-Allow-Origin": "*",
+            "X-Cartes-Voie": "SOFIA " + jeu.op, "X-Cartes-Date": lien.date,
+          } });
+        }
+        journal.push({ image: hote + chemin.slice(0, 60) + "…", http: ri.status, contenu: ct });
+      } catch (e) { journal.push({ image: hote, erreur: String(e).slice(0, 100) }); }
+    }
+  }
+  return null;
+}
+
 /* Mode poste : rejouer les POST applicatifs de SOFIA (:operation=postTemsi,
    zone=FRANCE, ...) et rapporter la réponse. Générique : tous les paramètres
    de la requête (hors poste/op/cible) sont transmis comme champs du POST.
@@ -308,11 +412,20 @@ Deno.serve(async (req) => {
   const rapport: Record<string, unknown>[] = [];
   const liens: { lien: Lien; via: string }[] = [];
 
-  /* 0. La voie directe d'abord : c'est elle qui doit marcher au quotidien. */
+  /* 0. La voie SOFIA d'abord : le point d'accès applicatif public qui signe
+     un lien d'image frais à chaque demande. */
   if (type && date && !debug) {
+    const journal: Record<string, unknown>[] = [];
+    const im = await viaSofia(type, date, journal);
+    if (im && q.get("essai") !== "1") return im;
+    if (q.get("essai") === "1") {
+      return reponseJson({ demande: { type, date }, sofia: journal,
+        image: im ? "obtenue (voie SOFIA)" : "non obtenue par la voie SOFIA" });
+    }
+    rapport.push({ source: "voie SOFIA", journal });
+    /* 0bis. La voie directe, au cas où. */
     const vd = await voieDirecte(type, date);
     if (vd.image) return vd.image;
-    if (q.get("essai") === "1") return reponseJson({ demande: { type, date }, essais: vd.essais });
     rapport.push({ source: "voie directe", essais: vd.essais });
   } else if (q.get("essai") === "1") {
     return reponseJson({ erreur: "essai=1 demande type et date" }, 400);
