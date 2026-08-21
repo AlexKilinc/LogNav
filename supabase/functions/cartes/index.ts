@@ -180,12 +180,55 @@ async function sonde(q: URLSearchParams): Promise<Response> {
         re.lastIndex = m.index + m[0].length + portee;
       }
     } catch (e) { extraits.push("motif irrecevable : " + String(e).slice(0, 80)); }
-    /* les fichiers muets n'encombrent pas le rapport : on les compte */
-    if (extraits.length || r.http !== 200) {
+    /* les fichiers muets n'encombrent pas le rapport : on les compte —
+       sauf quand la fouille est ciblée, où chaque réponse compte */
+    if (extraits.length || r.http !== 200 || travaux.length <= 2) {
       rap.push({ url: t.url, http: r.http, octets: r.texte.length, extraits });
     } else muets++;
   }
   return reponseJson({ fouilles: travaux.length, muets, sonde: rap });
+}
+
+/* Voie directe : SOFIA hotlinke les images d'aviation.meteo.fr sans jeton ;
+   le serveur semble filtrer sur l'en-tête Referer. Le relais essaie donc
+   l'adresse construite, coiffée du Referer des pages SOFIA. */
+function refererPour(type: string): string {
+  const p = type.startsWith("wintemp") ? "meteosearchwintem" : "meteosearchtemsi";
+  return "https://sofia-briefing.aviation-civile.gouv.fr/sofia/pages/" + p + ".html";
+}
+
+async function voieDirecte(type: string, date: string): Promise<{ essais: Record<string, unknown>[]; image: Response | null }> {
+  const epoch = Math.floor(Date.now() / 1000);
+  const u1 = AERO + "/affiche_image.php?time=" + epoch + "&type=" + type + "&date=" + date + "&mode=img&comment=";
+  const u2 = AERO + "/FR/aviation/affiche_image.php?time=" + epoch + "&type=" + type + "&date=" + date + "&mode=img&comment=";
+  const jeux: { u: string; nom: string; h: Record<string, string> }[] = [
+    { u: u1, nom: "referer SOFIA", h: { "Referer": refererPour(type) } },
+    { u: u1, nom: "sans referer", h: {} },
+    { u: u1, nom: "referer aviation.meteo.fr", h: { "Referer": AERO + "/" } },
+    { u: u2, nom: "chemin /FR/aviation + referer SOFIA", h: { "Referer": refererPour(type) } },
+  ];
+  const essais: Record<string, unknown>[] = [];
+  for (const j of jeux) {
+    try {
+      const r = await fetch(j.u, {
+        headers: { "User-Agent": UA, "Accept": "image/avif,image/webp,image/png,image/*,*/*;q=0.8", ...j.h },
+        redirect: "follow",
+      });
+      const ct = r.headers.get("Content-Type") || "";
+      if (r.ok && /^image\//i.test(ct)) {
+        return { essais, image: new Response(r.body, { headers: {
+          "Content-Type": ct, "Cache-Control": "public, max-age=600",
+          "Access-Control-Allow-Origin": "*", "X-Cartes-Voie": j.nom, "X-Cartes-Date": date,
+        } }) };
+      }
+      /* pas une image : on lit un bout de la réponse, elle dit souvent pourquoi */
+      const corps = (await r.text()).slice(0, 220);
+      essais.push({ essai: j.nom, http: r.status, contenu: ct, apercu: corps });
+    } catch (e) {
+      essais.push({ essai: j.nom, http: 0, erreur: String(e).slice(0, 120) });
+    }
+  }
+  return { essais, image: null };
 }
 
 Deno.serve(async (req) => {
@@ -196,6 +239,16 @@ Deno.serve(async (req) => {
   const debug = q.get("debug") === "1";
   const rapport: Record<string, unknown>[] = [];
   const liens: { lien: Lien; via: string }[] = [];
+
+  /* 0. La voie directe d'abord : c'est elle qui doit marcher au quotidien. */
+  if (type && date && !debug) {
+    const vd = await voieDirecte(type, date);
+    if (vd.image) return vd.image;
+    if (q.get("essai") === "1") return reponseJson({ demande: { type, date }, essais: vd.essais });
+    rapport.push({ source: "voie directe", essais: vd.essais });
+  } else if (q.get("essai") === "1") {
+    return reponseJson({ erreur: "essai=1 demande type et date" }, 400);
+  }
 
   /* 1. Voie officielle si un code AEROWEB est posé en secret. */
   const id = Deno.env.get("AEROWEB_ID") || "";
