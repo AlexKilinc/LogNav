@@ -14,10 +14,10 @@
  * Déploiement : Supabase > Edge Functions > fonction « cartes », coller ce
  * fichier EN ENTIER (vérifier que la dernière ligne dans l'éditeur est bien
  * « }); »), déployer, et laisser « Enforce JWT verification » DÉSACTIVÉ.
- * Aucun secret requis. Vérification : ouvrir ?version=1 -> doit répondre 7.1.
+ * Aucun secret requis. Vérification : ouvrir ?version=1 -> doit répondre 7.2.
  */
 
-const VERSION = "7.1";
+const VERSION = "7.2";
 const AERO = "https://aviation.meteo.fr";
 const SOFIA = "https://sofia-briefing.aviation-civile.gouv.fr";
 const UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Safari/605.1.15";
@@ -76,6 +76,8 @@ function opsPour(type: string): { op: string; champs: Record<string, string> }[]
   if (m) {
     const fl = m[1];
     const jeux: { op: string; champs: Record<string, string> }[] = [];
+    /* forme confirmée en vrai le 22/08/2026 : level=020 (sans « FL ») */
+    jeux.push({ op: "postWintem", champs: { zone: "FRANCE", level: fl } });
     if (wintemGagnant) {
       const c: Record<string, string> = { zone: "FRANCE" };
       for (const k of Object.keys(wintemGagnant)) c[k] = wintemGagnant[k].replace(/\d{2,3}/, fl);
@@ -138,33 +140,61 @@ async function viaSofia(type: string, date: string, journal: Record<string, unkn
     const tri = (dispo.length ? dispo : liens).sort((a, b) =>
       Math.abs(Number(a.date || "0") - cible) - Math.abs(Number(b.date || "0") - cible));
     const lien = tri[0];
-    /* l'image : d'abord sur l'hôte SOFIA (comme la page), sinon chez Météo-France */
+    /* l'image : d'abord sur l'hôte SOFIA (comme la page), sinon chez
+       Météo-France ; si l'hôte répond une page HTML d'habillage, on y cherche
+       la vraie adresse de l'image et on la suit. */
     const chemin = lien.url.replace(/^https?:\/\/[^/]+/, "");
+    const referer = SOFIA + "/sofia/pages/" +
+      (jeu.op === "postWintem" ? "meteosearchwintem" : "meteosearchtemsi") + ".html";
     for (const hote of [SOFIA, AERO]) {
-      try {
-        const ri = await fetch(hote + chemin, {
-          headers: {
-            "User-Agent": UA,
-            "Referer": SOFIA + "/sofia/pages/meteosearchtemsi.html",
-            "Accept": "image/avif,image/webp,image/png,image/*,*/*;q=0.8",
-          },
-          redirect: "follow",
-        });
-        const ct = ri.headers.get("Content-Type") || "";
-        if (ri.ok && /^image\//i.test(ct)) {
-          return new Response(ri.body, { headers: {
-            "Content-Type": ct,
-            "Cache-Control": "public, max-age=600",
-            "Access-Control-Allow-Origin": "*",
-            "X-Cartes-Version": VERSION,
-            "X-Cartes-Voie": "SOFIA " + jeu.op,
-            "X-Cartes-Date": lien.date,
-          } });
-        }
-        journal.push({ image: hote + chemin.slice(0, 60) + "…", http: ri.status, contenu: ct });
-      } catch (e) { journal.push({ image: hote, erreur: String(e).slice(0, 100) }); }
+      const brut = await chercheImage(hote + chemin, referer, journal, 0);
+      if (brut) {
+        return new Response(brut.corps, { headers: {
+          "Content-Type": brut.contenu,
+          "Cache-Control": "public, max-age=600",
+          "Access-Control-Allow-Origin": "*",
+          "X-Cartes-Version": VERSION,
+          "X-Cartes-Voie": "SOFIA " + jeu.op,
+          "X-Cartes-Date": lien.date,
+        } });
+      }
     }
   }
+  return null;
+}
+
+/* Les adresses d'images qu'une page HTML d'habillage peut contenir. */
+function candidatsDansHtml(html: string, base: string): string[] {
+  const out: string[] = [];
+  for (const l of recolte(html, base)) out.push(l.url);
+  const re = /(?:src|href)=["']([^"']+\.(?:png|gif|jpe?g)[^"']*|[^"']*affiche[^"']*\?[^"']*)["']/gi;
+  let m;
+  while ((m = re.exec(html)) && out.length < 8) {
+    try { out.push(new URL(m[1], base).href); } catch { /* ignore */ }
+  }
+  return [...new Set(out)];
+}
+
+async function chercheImage(u: string, referer: string, journal: Record<string, unknown>[], profondeur: number):
+  Promise<{ corps: ReadableStream<Uint8Array> | null; contenu: string } | null> {
+  try {
+    const r = await fetch(u, {
+      headers: { "User-Agent": UA, "Referer": referer,
+        "Accept": "image/avif,image/webp,image/png,image/*,*/*;q=0.8" },
+      redirect: "follow",
+    });
+    const ct = r.headers.get("Content-Type") || "";
+    if (r.ok && /^image\//i.test(ct)) return { corps: r.body, contenu: ct };
+    const texte = await r.text();
+    journal.push({ image: u.slice(0, 90) + "…", http: r.status, contenu: ct, apercu: texte.slice(0, 220) });
+    if (profondeur < 1 && r.ok && /html/i.test(ct)) {
+      for (const c of candidatsDansHtml(texte, u).slice(0, 3)) {
+        if (c === u) continue;
+        const ri = await chercheImage(c, u, journal, profondeur + 1);
+        if (ri) return ri;
+      }
+    }
+  } catch (e) { journal.push({ image: u.slice(0, 90), erreur: String(e).slice(0, 100) }); }
   return null;
 }
 
