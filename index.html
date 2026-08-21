@@ -1197,8 +1197,8 @@ html:has(.ovl) #uiScaleBox,html:has(body.rec-full) #uiScaleBox{display:none!impo
 .nc-tot{display:flex;justify-content:space-between;align-items:baseline;gap:10px;background:#0d2247;border:1px solid #2a4372;border-radius:10px;padding:11px 13px;font:700 13.5px "Poppins",sans-serif;color:#9fb8d8}
 .nc-tot b{font:800 25px "JetBrains Mono",monospace;color:#48d597}
 .nc-deg{margin-top:10px}
-.nc-degh{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;margin:0 2px 7px;
-  font:800 11px "Poppins",sans-serif;letter-spacing:.06em;text-transform:uppercase;color:#8fb2ce}
+.nc-degh{margin:0 2px 6px;font:800 11px "Poppins",sans-serif;letter-spacing:.06em;
+  text-transform:uppercase;color:#8fb2ce}
 .nc-degh span{font:600 10.5px "Poppins",sans-serif;letter-spacing:0;text-transform:none;color:#6f8dae}
 .nc-deg2{grid-template-columns:1fr 1fr!important}
 .nc-deg2 input{text-transform:uppercase;letter-spacing:.12em}
@@ -2804,7 +2804,7 @@ window.__TRACE_MARKUP="\n\n<header>\n  <div class=\"hdr-row1\">\n    <span class
    accessible depuis le bouton ⓘ du bandeau du log, avant toute ouverture de la carte */
 (function(){
   var host=document.createElement('div');
-  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Cartes OACI — origine et mise à jour</b></p>\n    <p style=\"margin-top:-6px\"><b>1/250 000 Région parisienne</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte250\">—</span>.</p>\n    <p style=\"margin-top:-6px\"><b>1/500 000 France</b> — IGN Géoplateforme (SCAN-OACI). Donnée <b>non libre</b>, tenue à jour par l’IGN.</p>\n    <p style=\"margin-top:-6px\"><b>1/1 000 000 France</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte1000\">—</span>.</p>\n    <p>Les deux cartes du SIA sont hébergées à part et lues par plages : seules les tuiles affichées sont téléchargées. Les trois se copient sur l’appareil pour voler sans réseau depuis <b>Profil → Cartes hors-ligne</b>. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.384</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
+  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Cartes OACI — origine et mise à jour</b></p>\n    <p style=\"margin-top:-6px\"><b>1/250 000 Région parisienne</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte250\">—</span>.</p>\n    <p style=\"margin-top:-6px\"><b>1/500 000 France</b> — IGN Géoplateforme (SCAN-OACI). Donnée <b>non libre</b>, tenue à jour par l’IGN.</p>\n    <p style=\"margin-top:-6px\"><b>1/1 000 000 France</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte1000\">—</span>.</p>\n    <p>Les deux cartes du SIA sont hébergées à part et lues par plages : seules les tuiles affichées sont téléchargées. Les trois se copient sur l’appareil pour voler sans réseau depuis <b>Profil → Cartes hors-ligne</b>. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.385</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
   (document.body||document.documentElement).appendChild(host.firstElementChild);
   /* le nom du fichier de la 1/1 000 000 dit son edition : on le lit la ou il
      est vraiment (cartes.json), jamais en dur, sinon il mentirait un jour */
@@ -7382,11 +7382,10 @@ function NavCards({nav,setNav,tsvOf,tavOf,capOf}){
                 h("span",null,Math.abs(avDist-avT)<.05?"réparti \u2713":"reste "+r1(avRest)+" L")):null))),
         h("div",{className:"nc-tot"},h("span",null,"Total essence à bord"),h("b",null,String(Math.round(totFuel*10)/10).replace(".",",")+" L")),
         h("div",{className:"nc-deg"},
-          h("div",{className:"nc-degh"},"Aérodromes de dégagement",
-            h("span",null,"facultatif · code OACI · repris au log et à la météo")),
+          h("div",{className:"nc-degh"},"Aérodromes de dégagement ",h("span",null,"(facultatif, OACI)")),
           h("div",{className:"nc-grid nc-deg2"},
             [0,1].map(i=>h("div",{key:"dg"+i,className:"nc-f"},
-              h("label",null,"Dégagement "+(i+1),h("span",{className:"nc-u"},"OACI")),
+              h("label",null,"Dégagement "+(i+1)),
               /* pas de maxLength : il tronquerait « LF PN » colle depuis une
                  fiche avant que le nettoyage n'ait retire l'espace */
               h("input",{value:deg[i]||"",placeholder:i?"LFOB":"LFPO",
