@@ -147,6 +147,28 @@ async function sonde(q: URLSearchParams): Promise<Response> {
         travaux.push({ url: new URL("/" + n, "https://loxodrome.fr/").href, motif: MOTIF_CHASSE });
       }
     }
+    /* Aéroweb mobile : s'il sert les cartes sans compte, ses pages ou
+       scripts contiendront leurs adresses. */
+    const am = await attrape("https://aviation-mobile.meteo.fr/", 9000);
+    rap.push({ url: "https://aviation-mobile.meteo.fr/", http: am.http,
+      scripts: scriptsDe(am.texte, "https://aviation-mobile.meteo.fr/", 20) });
+    travaux.push({ url: "https://aviation-mobile.meteo.fr/", motif: MOTIF_CHASSE + "|carte|image" });
+    for (const sc of scriptsDe(am.texte, "https://aviation-mobile.meteo.fr/", 20)
+      .filter((u) => /temsi|wintem|meteo|carte|image|app|main/i.test(u)).slice(0, 6)) {
+      travaux.push({ url: sc, motif: MOTIF_CHASSE + "|carte|image" });
+    }
+    /* aviation.meteo.fr : relever le formulaire de connexion (action et noms
+       des champs), pour la voie « identifiants en secrets » si tout le reste
+       échoue. */
+    for (const pl of [AERO + "/", AERO + "/FR/aviation/"]) {
+      const rl = await attrape(pl, 9000);
+      const formes = (rl.texte.match(/<form[\s\S]{0,700}?<\/form>/gi) || []).slice(0, 3)
+        .map((f) => ({
+          action: (f.match(/action=["']([^"']*)["']/i) || [])[1] || "",
+          champs: [...f.matchAll(/<input[^>]+name=["']([^"']+)["']/gi)].map((x) => x[1]),
+        }));
+      rap.push({ url: pl, http: rl.http, octets: rl.texte.length, formulaires: formes });
+    }
     /* SOFIA : la page charge beaucoup de scripts — on les liste TOUS, et on
        fouille ceux dont le nom évoque la météo ou la préparation. */
     for (const page of [
@@ -199,13 +221,20 @@ function refererPour(type: string): string {
 
 async function voieDirecte(type: string, date: string): Promise<{ essais: Record<string, unknown>[]; image: Response | null }> {
   const epoch = Math.floor(Date.now() / 1000);
+  const rs = refererPour(type);
   const u1 = AERO + "/affiche_image.php?time=" + epoch + "&type=" + type + "&date=" + date + "&mode=img&comment=";
-  const u2 = AERO + "/FR/aviation/affiche_image.php?time=" + epoch + "&type=" + type + "&date=" + date + "&mode=img&comment=";
+  /* le serveur de /FR/aviation/ a avoue attendre 'layer' — la forme des
+     adresses de loxodrome : layer + echeance */
+  const u3 = AERO + "/FR/aviation/affiche_image.php?layer=" + type + "&echeance=" + date;
+  const u4 = AERO + "/FR/aviation/affiche_image.php?login=&layer=" + type + "&echeance=" + date;
+  const u5 = AERO + "/affiche_image.php?layer=" + type + "&echeance=" + date + "&mode=img";
   const jeux: { u: string; nom: string; h: Record<string, string> }[] = [
-    { u: u1, nom: "referer SOFIA", h: { "Referer": refererPour(type) } },
-    { u: u1, nom: "sans referer", h: {} },
-    { u: u1, nom: "referer aviation.meteo.fr", h: { "Referer": AERO + "/" } },
-    { u: u2, nom: "chemin /FR/aviation + referer SOFIA", h: { "Referer": refererPour(type) } },
+    { u: u3, nom: "/FR/aviation layer+echeance, referer SOFIA", h: { "Referer": rs } },
+    { u: u3, nom: "/FR/aviation layer+echeance, sans referer", h: {} },
+    { u: u4, nom: "/FR/aviation login vide + layer+echeance", h: { "Referer": rs } },
+    { u: u5, nom: "racine layer+echeance+mode=img", h: { "Referer": rs } },
+    { u: u1, nom: "racine type+date, referer SOFIA", h: { "Referer": rs } },
+    { u: u1, nom: "racine type+date, sans referer", h: {} },
   ];
   const essais: Record<string, unknown>[] = [];
   for (const j of jeux) {
@@ -223,7 +252,8 @@ async function voieDirecte(type: string, date: string): Promise<{ essais: Record
       }
       /* pas une image : on lit un bout de la réponse, elle dit souvent pourquoi */
       const corps = (await r.text()).slice(0, 220);
-      essais.push({ essai: j.nom, http: r.status, contenu: ct, apercu: corps });
+      essais.push({ essai: j.nom, http: r.status, contenu: ct,
+        serveur: r.headers.get("Server") || "", apercu: corps });
     } catch (e) {
       essais.push({ essai: j.nom, http: 0, erreur: String(e).slice(0, 120) });
     }
