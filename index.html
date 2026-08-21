@@ -395,6 +395,10 @@ try{ window.sb=(window.supabase&&window.supabase.createClient)?window.supabase.c
 #trace-host .vf-alt2 .vf-alt-auto{background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.22);color:#cfe0ec;padding:4px 9px;border-radius:7px;font:600 11px "Poppins",sans-serif;cursor:pointer}
 #trace-host .vf-alt2 .vf-alt-auto.active{background:var(--brand);color:#fff;border-color:var(--brand)}
 #trace-host .vf-cards{position:absolute;left:12px;right:12px;bottom:12px;z-index:600;display:flex;gap:10px;pointer-events:none}
+/* Le bouton Vent occupe le meme coin que le premier cartouche du vol virtuel.
+   Tant que les cartouches sont affiches, il se pose au-dessus d'eux : --vfc-h
+   porte leur hauteur, mesuree a chaque changement (elle depend du contenu). */
+#trace-host #wndWrap{transform:translateY(calc(-1 * var(--vfc-h,0px)))}
 #trace-host .vf-cards[hidden]{display:none}
 #trace-host .vf-cards>.vf-card{flex:1;pointer-events:auto;background:rgba(13,32,62,.85);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);
     border:1px solid rgba(255,255,255,.16);border-radius:12px;padding:9px 13px;color:#eaf1f8;max-height:34vh;overflow-y:auto}
@@ -2781,7 +2785,7 @@ window.__TRACE_MARKUP="\n\n<header>\n  <div class=\"hdr-row1\">\n    <span class
    accessible depuis le bouton ⓘ du bandeau du log, avant toute ouverture de la carte */
 (function(){
   var host=document.createElement('div');
-  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Cartes OACI — origine et mise à jour</b></p>\n    <p style=\"margin-top:-6px\"><b>1/250 000 Région parisienne</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte250\">—</span>.</p>\n    <p style=\"margin-top:-6px\"><b>1/500 000 France</b> — IGN Géoplateforme (SCAN-OACI). Donnée <b>non libre</b>, tenue à jour par l’IGN.</p>\n    <p style=\"margin-top:-6px\"><b>1/1 000 000 France</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte1000\">—</span>.</p>\n    <p>Les deux cartes du SIA sont hébergées à part et lues par plages : seules les tuiles affichées sont téléchargées. Les trois se copient sur l’appareil pour voler sans réseau depuis <b>Profil → Cartes hors-ligne</b>. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.381</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
+  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Cartes OACI — origine et mise à jour</b></p>\n    <p style=\"margin-top:-6px\"><b>1/250 000 Région parisienne</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte250\">—</span>.</p>\n    <p style=\"margin-top:-6px\"><b>1/500 000 France</b> — IGN Géoplateforme (SCAN-OACI). Donnée <b>non libre</b>, tenue à jour par l’IGN.</p>\n    <p style=\"margin-top:-6px\"><b>1/1 000 000 France</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte1000\">—</span>.</p>\n    <p>Les deux cartes du SIA sont hébergées à part et lues par plages : seules les tuiles affichées sont téléchargées. Les trois se copient sur l’appareil pour voler sans réseau depuis <b>Profil → Cartes hors-ligne</b>. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.382</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
   (document.body||document.documentElement).appendChild(host.firstElementChild);
   /* le nom du fichier de la 1/1 000 000 dit son edition : on le lit la ou il
      est vraiment (cartes.json), jamais en dur, sinon il mentirait un jour */
@@ -4539,6 +4543,42 @@ window.__AVION_HTML=function(px){
   document.getElementById('vfCorridor').addEventListener('click',()=>{ corridorNm=(corridorNm===0)?2.5:(corridorNm===2.5)?5:0; buildCorridor(); });
   window.vfSyncCorridor=buildCorridor;
   ['vfPanel','vfCards'].forEach(id=>{ const el=document.getElementById(id); if(el){ L.DomEvent.disableClickPropagation(el); L.DomEvent.disableScrollPropagation(el); } });
+  /* Hauteur des cartouches, publiee pour que le bouton Vent s'ecarte. On la
+     mesure en unites de mise en page (offsetHeight), et non a l'ecran : sous
+     un zoom d'interface, les deux ne coincident pas. */
+  (function(){
+    var c=document.getElementById('vfCards'), th=document.getElementById('trace-host');
+    if(!c||!th) return;
+    var mesure=function(){
+      var h=0;
+      if(!c.hidden){
+        /* de combien le bouton doit-il monter pour passer au-dessus du premier
+           cartouche ? La hauteur de celui-ci ne suffit pas : les deux ne
+           partent pas du meme bord — 10 px du bas pour le bouton, 12, 58 ou
+           148 pour les cartouches selon l'appareil. On mesure donc l'ecart
+           reel, en unites de mise en page, que la transformation ne fausse pas. */
+        var w=document.getElementById('wndWrap');
+        if(w){
+          /* on remet le bouton a sa place avant de mesurer : lire un rectangle
+             force le recalcul, la mesure est donc celle de l'etat repose et ne
+             s'ajoute pas a elle-meme d'un appel a l'autre */
+          th.style.setProperty('--vfc-h','0px');
+          var rb=c.getBoundingClientRect(), ra=w.getBoundingClientRect();
+          /* les rectangles sont en pixels d'ecran, la propriete en unites de
+             mise en page : sous un zoom d'interface, il faut convertir */
+          var z=1, oh=c.offsetHeight||0;
+          if(oh>0&&rb.height>0) z=rb.height/oh;
+          if(!(z>0.2&&z<5)) z=1;
+          h=Math.max(0,(ra.bottom-rb.top)/z+10);
+        }
+      }
+      th.style.setProperty('--vfc-h', h?h+'px':'0px');
+    };
+    try{ new MutationObserver(mesure).observe(c,{attributes:true,attributeFilter:['hidden'],childList:true,subtree:true}); }catch(e){}
+    try{ new ResizeObserver(mesure).observe(c); }catch(e){}
+    window.addEventListener('resize',mesure);
+    mesure();
+  })();
   document.getElementById('vfBtn').addEventListener('click',()=>{
     /* une trace enregistrée est affichée : le vol virtuel laisse place à la lecture du vol */
     if(window.__TRACE_SHOWN&&document.getElementById('vfPanel').hidden){ if(typeof window.__TRK_PLAY==='function') window.__TRK_PLAY(); return; }
@@ -6484,8 +6524,24 @@ const wrap=document.createElement("div");sheets.forEach((s,i)=>{const c=s.cloneN
             bottom:calc(148px + env(safe-area-inset-bottom,0px))!important;}
           #root .mswipe.mmap #trace-host .toast{
             bottom:calc(148px + env(safe-area-inset-bottom,0px))!important;}
+          /* Les cartouches du vol virtuel — zones, frequences, aerodrome — se
+             calent au meme endroit. Poses a 12 px du bas comme sur l'ordinateur,
+             ils passaient entierement derriere la barre d'onglets : on croyait a
+             une zone sans information alors qu'ils etaient seulement caches. */
+          #root .mswipe.mmap #trace-host .vf-cards{
+            bottom:calc(148px + env(safe-area-inset-bottom,0px))!important;}
+          /* et ils ne mangent pas la carte : trois cartouches hauts la
+             masqueraient entierement sur un telephone */
+          #root .mswipe.mmap #trace-host .vf-cards>.vf-card{max-height:26vh}
         }
         @media screen and (min-width:821px) and (min-height:521px), screen and (min-width:821px) and (pointer:fine){#mdots,#mtabs{display:none!important;}}
+        /* Telephone couche : la presentation redevient celle de l'ordinateur,
+           mais la barre d'onglets reste posee sur la carte. Les cartouches du
+           vol virtuel doivent passer au-dessus d'elle, comme debout. */
+        @media screen and (min-width:821px) and (max-height:520px) and (pointer:coarse){
+          #trace-host .vf-cards{bottom:calc(58px + env(safe-area-inset-bottom,0px))!important}
+          #trace-host .vf-cards>.vf-card{max-height:44vh}
+        }
         /* ===== Barre d'onglets du bas =====
            Fixée au bas de l'écran, pleine largeur, elle reprend le bleu du thème
            et les angles arrondis des bandeaux. Elle paraît sur le téléphone
