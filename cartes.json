@@ -1,5 +1,64 @@
 {
   "_lisezmoi": "Carnet d'adresses des cartes. Chaque carte peut vivre dans le depot (nom seul, a cote de index.html) ou chez un hebergeur public acceptant la lecture par plages et les requetes d'une autre origine (Cloudflare R2). Nouvelle edition : deposer le fichier date, remplacer l'adresse ci-dessous, rien d'autre. Ne jamais reutiliser le nom d'une edition precedente : les PMTiles se lisent par plages, et un cache melangerait les octets des deux. Une liste de plusieurs adresses est acceptee pour oaci1000 : une carte decoupee en morceaux redevient une seule carte dans l'application.",
   "oaci250": "https://pub-3255550d78614e53914f48f1897a111a.r2.dev/SIA_Paris_250k_2026-1_FULL.pmtiles",
-  "oaci1000": ["https://pub-3255550d78614e53914f48f1897a111a.r2.dev/SIA_France_1000k_2026-01.pmtiles"]
+  "oaci1000": [
+    "https://pub-3255550d78614e53914f48f1897a111a.r2.dev/SIA_France_1000k_2026-01.pmtiles"
+  ],
+  "meteo": {
+    "_lisezmoi": "Cartes TEMSI/WINTEM (SOFIA-Briefing). pas = heures entre deux validites (UTC) ; avance = heures entre publication et validite. Dans les adresses, {AAAA}{MM}{JJ}{HH} tiennent la place de la date/heure UTC de validite. Chaque carte peut lister plusieurs adresses : la premiere image qui charge est affichee. Si aucune ne repond : ouvrir la carte sur sofia-briefing.aviation-civile.gouv.fr, copier l'adresse de l'image, la coller ici en remplacant date et heure par les gabarits. Modifiable sans toucher a l'application.",
+    "cartes": [
+      {
+        "id": "temsi-france",
+        "groupe": "TEMSI",
+        "nom": "TEMSI France",
+        "pas": 3,
+        "avance": 3,
+        "urls": [
+          "https://sofia-briefing.aviation-civile.gouv.fr/sofia/services/meteo/temsi/FRANCE/{AAAA}{MM}{JJ}{HH}00.png",
+          "https://sofia-briefing.aviation-civile.gouv.fr/content/sofia/datas/meteo/temsi/TEMSI_FRANCE_{AAAA}{MM}{JJ}_{HH}00.png"
+        ]
+      },
+      {
+        "id": "temsi-euroc",
+        "groupe": "TEMSI",
+        "nom": "TEMSI EUROC",
+        "pas": 6,
+        "avance": 6,
+        "urls": [
+          "https://sofia-briefing.aviation-civile.gouv.fr/sofia/services/meteo/temsi/EUROC/{AAAA}{MM}{JJ}{HH}00.png",
+          "https://sofia-briefing.aviation-civile.gouv.fr/content/sofia/datas/meteo/temsi/TEMSI_EUROC_{AAAA}{MM}{JJ}_{HH}00.png"
+        ]
+      },
+      {
+        "id": "wintem-fl020",
+        "groupe": "WINTEM",
+        "nom": "WINTEM FL020",
+        "pas": 3,
+        "avance": 3,
+        "urls": [
+          "https://sofia-briefing.aviation-civile.gouv.fr/sofia/services/meteo/wintem/FL020/{AAAA}{MM}{JJ}{HH}00.png"
+        ]
+      },
+      {
+        "id": "wintem-fl050",
+        "groupe": "WINTEM",
+        "nom": "WINTEM FL050",
+        "pas": 3,
+        "avance": 3,
+        "urls": [
+          "https://sofia-briefing.aviation-civile.gouv.fr/sofia/services/meteo/wintem/FL050/{AAAA}{MM}{JJ}{HH}00.png"
+        ]
+      },
+      {
+        "id": "wintem-fl100",
+        "groupe": "WINTEM",
+        "nom": "WINTEM FL100",
+        "pas": 3,
+        "avance": 3,
+        "urls": [
+          "https://sofia-briefing.aviation-civile.gouv.fr/sofia/services/meteo/wintem/FL100/{AAAA}{MM}{JJ}{HH}00.png"
+        ]
+      }
+    ]
+  }
 }

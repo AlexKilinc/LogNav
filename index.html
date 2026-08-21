@@ -2900,7 +2900,7 @@ window.__TRACE_MARKUP="\n\n<header>\n  <div class=\"hdr-row1\">\n    <span class
    accessible depuis le bouton ⓘ du bandeau du log, avant toute ouverture de la carte */
 (function(){
   var host=document.createElement('div');
-  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Cartes OACI — origine et mise à jour</b></p>\n    <p style=\"margin-top:-6px\"><b>1/250 000 Région parisienne</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte250\">—</span>.</p>\n    <p style=\"margin-top:-6px\"><b>1/500 000 France</b> — IGN Géoplateforme (SCAN-OACI). Donnée <b>non libre</b>, tenue à jour par l’IGN.</p>\n    <p style=\"margin-top:-6px\"><b>1/1 000 000 France</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte1000\">—</span>.</p>\n    <p>Les deux cartes du SIA sont hébergées à part et lues par plages : seules les tuiles affichées sont téléchargées. Les trois se copient sur l’appareil pour voler sans réseau depuis <b>Profil → Cartes hors-ligne</b>. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.396</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
+  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Cartes OACI — origine et mise à jour</b></p>\n    <p style=\"margin-top:-6px\"><b>1/250 000 Région parisienne</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte250\">—</span>.</p>\n    <p style=\"margin-top:-6px\"><b>1/500 000 France</b> — IGN Géoplateforme (SCAN-OACI). Donnée <b>non libre</b>, tenue à jour par l’IGN.</p>\n    <p style=\"margin-top:-6px\"><b>1/1 000 000 France</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte1000\">—</span>.</p>\n    <p>Les deux cartes du SIA sont hébergées à part et lues par plages : seules les tuiles affichées sont téléchargées. Les trois se copient sur l’appareil pour voler sans réseau depuis <b>Profil → Cartes hors-ligne</b>. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.397</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
   (document.body||document.documentElement).appendChild(host.firstElementChild);
   /* le nom du fichier de la 1/1 000 000 dit son edition : on le lit la ou il
      est vraiment (cartes.json), jamais en dur, sinon il mentirait un jour */
@@ -9144,6 +9144,33 @@ window.__CARTE_ADR=function(j,cle){
 .wx-soon svg{width:54px;height:54px;opacity:.55}
 .wx-soon b{font:800 14px "Poppins",sans-serif;color:#cfe0f5}
 .wx-soon span{font:600 12px/1.5 "Poppins",sans-serif;max-width:320px}
+/* La meme boite, une fois les cartes decrites dans cartes.json : une liste. */
+.wx-soon.wxc-liste{align-items:stretch;justify-content:flex-start;gap:0;padding:10px 12px 16px;
+  overflow:auto;-webkit-overflow-scrolling:touch;text-align:left;color:inherit}
+.wxc-row{display:flex;align-items:center;gap:10px;width:100%;background:rgba(255,255,255,.05);
+  border:1px solid #22406e;border-radius:11px;padding:11px 12px;margin:3px 0;cursor:pointer;color:#EAF1FB}
+.wxc-row .wxc-nom{font:800 13px "Poppins",sans-serif;flex:0 0 auto}
+.wxc-row .wxc-sub{flex:1 1 auto;min-width:0;text-align:right;font:600 11px "Poppins",sans-serif;
+  color:#8fa9cc;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wxc-row .wxc-chev{flex:0 0 auto;color:#5c7aa6;font:700 16px/1 sans-serif}
+.wxc-row.vig{border-color:#1E9FE0;background:rgba(30,159,224,.14)}
+.wxc-row.vig .wxc-sub{color:#7fd1ff}
+.wxc-src{font:600 10.5px "Poppins",sans-serif;color:#6f8bb0;padding:10px 2px 0;text-align:center}
+/* Visionneuse plein ecran : pincement, molette, double toucher pour zoomer */
+.wxc-vue{position:fixed;inset:0;z-index:5200;background:#06101f;display:flex;flex-direction:column;
+  padding-top:env(safe-area-inset-top,0px)}
+.wxc-vhd{flex:none;display:flex;align-items:center;gap:10px;padding:10px 14px;background:#0E2348;
+  border-bottom:2px solid #e94560;color:#fff}
+.wxc-vhd b{font:800 14px "Poppins",sans-serif;white-space:nowrap}
+.wxc-vhd span{flex:1 1 auto;min-width:0;font:600 11.5px "Poppins",sans-serif;color:#8fa9cc;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wxc-vhd .wxc-vx{flex:0 0 auto;background:rgba(255,255,255,.08);border:1px solid #2a4372;border-radius:9px;
+  color:#fff;width:38px;height:34px;font:700 20px/1 ui-sans-serif;cursor:pointer}
+.wxc-vcorps{flex:1 1 auto;min-height:0;position:relative;overflow:hidden;display:flex;align-items:center;
+  justify-content:center;touch-action:none;-webkit-user-select:none;user-select:none}
+.wxc-vcorps img{max-width:100%;max-height:100%;transform-origin:0 0;will-change:transform;
+  background:#fff;border-radius:4px}
+.wxc-vmsg{color:#8fa9cc;font:600 13px/1.7 "Poppins",sans-serif;text-align:center;padding:30px;max-width:440px;margin:0 auto}
 @keyframes wxspin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
 .wx-hd button{background:rgba(255,255,255,.08);border:1px solid #2a4372;border-radius:9px;color:#dce8fa;
   font:700 12px "Poppins",sans-serif;padding:7px 11px;cursor:pointer}
@@ -9515,10 +9542,158 @@ window.__pickGpx=function(cb){
         var cartes=(t==='cartes');
         var l=ov.querySelector('.wx-list'), s=ov.querySelector('#wxSrc'), so=ov.querySelector('#wxSoon');
         if(l) l.hidden=cartes; if(s) s.hidden=cartes; if(so) so.hidden=!cartes;
+        /* la liste se reconstruit a chaque ouverture : les validites avancent */
+        if(cartes){ try{ wxCartesMaj(ov); }catch(e){} }
       };
       for(var i=0;i<onglets.length;i++) onglets[i].onclick=function(){ maj(this.getAttribute('data-t')); };
       maj('metar');
     })();
+    /* ==== Cartes TEMSI / WINTEM — pilotees par la section meteo de cartes.json ====
+       Le carnet d'adresses decrit chaque carte : nom, groupe, pas entre deux
+       validites, avance de publication, et adresses candidates ou {AAAA}{MM}{JJ}{HH}
+       tiennent la place de la date/heure UTC de validite. L'application n'invente
+       rien : elle calcule les validites publiees a l'instant T et les liste. */
+    function wxEchap(t){ return String(t==null?'':t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+    function wxAdr(u,v){ var d=new Date(v);
+      return String(u).replace(/\{AAAA\}/g,String(d.getUTCFullYear()))
+        .replace(/\{MM\}/g,('0'+(d.getUTCMonth()+1)).slice(-2))
+        .replace(/\{JJ\}/g,('0'+d.getUTCDate()).slice(-2))
+        .replace(/\{HH\}/g,('0'+d.getUTCHours()).slice(-2)); }
+    function wxCartesMaj(ov){
+      var so=ov.querySelector('#wxSoon'); if(!so) return;
+      if(typeof window.__CARTES!=='function') return;
+      window.__CARTES().then(function(j){
+        var mo=(j&&j.meteo&&j.meteo.cartes&&j.meteo.cartes.length)?j.meteo.cartes:null;
+        if(!mo){ so.classList.remove('wxc-liste'); return; }   /* pas de section meteo : message chantier */
+        var H=3600e3, now=Date.now();
+        var plates=[], html='', groupes={}, ordre=[];
+        for(var i=0;i<mo.length;i++){ var c=mo[i]; var g=c.groupe||'Cartes';
+          if(!groupes[g]){ groupes[g]=[]; ordre.push(g); } groupes[g].push(c); }
+        for(var gi=0;gi<ordre.length;gi++){ var g2=ordre[gi];
+          html+='<div class="wx-sect"><h4>'+wxEchap(g2)+'</h4><span class="wx-hint">heures UTC</span></div>';
+          var lst=groupes[g2];
+          for(var k=0;k<lst.length;k++){ var c2=lst[k];
+            var pas=Math.max(1,+c2.pas||3), av=(+c2.avance>=0)?+c2.avance:pas;
+            var P=pas*H;
+            /* v0 : la validite qui couvre maintenant ; vmax : la derniere deja
+               publiee (publication = validite - avance) */
+            var v0=Math.floor(now/P)*P, vmax=Math.floor((now+av*H)/P)*P;
+            /* en vigueur : la validite la plus proche de maintenant */
+            var vig=(now-v0<=P/2)?v0:(v0+P);
+            for(var v=v0; v<=vmax; v+=P){
+              var d=new Date(v);
+              var hh=('0'+d.getUTCHours()).slice(-2)+':00';
+              var auj=new Date(now);
+              var demain=(d.getUTCDate()!==auj.getUTCDate())?'demain ':'';
+              var estVig=(v===vig);
+              plates.push({c:c2,v:v});
+              html+='<button type="button" class="wxc-row'+(estVig?' vig':'')+'" data-k="'+(plates.length-1)+'">'
+                +'<span class="wxc-nom">'+wxEchap(c2.nom||c2.id||'Carte')+'</span>'
+                +'<span class="wxc-sub">Validit\u00e9 '+demain+hh+' UTC \u00b7 '+(estVig?'en vigueur':'prochaine')+'</span>'
+                +'<span class="wxc-chev">\u203a</span></button>';
+            }
+          }
+        }
+        html+='<div class="wxc-src">Source : SOFIA-Briefing (DGAC / M\u00e9t\u00e9o-France) \u2014 adresses g\u00e9r\u00e9es par cartes.json</div>';
+        so.classList.add('wxc-liste'); so.innerHTML=html;
+        var rows=so.querySelectorAll('.wxc-row');
+        for(var r=0;r<rows.length;r++) rows[r].onclick=function(){
+          var e=plates[+this.getAttribute('data-k')]; if(!e) return;
+          var d=new Date(e.v); var hh=('0'+d.getUTCHours()).slice(-2)+':00 UTC';
+          var urls=[]; var src=e.c.urls||e.c.url||[];
+          if(typeof src==='string') src=[src];
+          for(var q=0;q<src.length;q++) urls.push(wxAdr(src[q],e.v));
+          wxOuvrirCarte(e.c.nom||e.c.id||'Carte','Validit\u00e9 '+hh,urls);
+        };
+      },function(){ so.classList.remove('wxc-liste'); });
+    }
+    /* ---- Visionneuse plein ecran : pincement, molette, double toucher ---- */
+    function wxOuvrirCarte(nom,sous,urls){
+      var v=document.createElement('div'); v.className='wxc-vue';
+      v.innerHTML='<div class="wxc-vhd"><b>'+wxEchap(nom)+'</b><span>'+wxEchap(sous)+'</span>'
+        +'<button type="button" class="wxc-vx" aria-label="Fermer" title="Fermer">\u00d7</button></div>'
+        +'<div class="wxc-vcorps"><div class="wxc-vmsg">Chargement\u2026</div></div>';
+      document.body.appendChild(v);
+      var corps=v.querySelector('.wxc-vcorps');
+      function fermer(){ try{ v.remove(); }catch(e){} document.removeEventListener('keydown',clav); }
+      function clav(e){ if(e.key==='Escape') fermer(); }
+      v.querySelector('.wxc-vx').onclick=fermer;
+      document.addEventListener('keydown',clav);
+      /* les adresses candidates sont essayees dans l'ordre : la premiere image
+         qui charge est affichee — une balise <img> ignore le CORS */
+      var k=0;
+      function essai(){
+        if(k>=urls.length){
+          corps.innerHTML='<div class="wxc-vmsg"><b>Carte indisponible.</b><br><br>'
+            +'V\u00e9rifiez la connexion, ou l\u2019adresse de cette carte dans la section '
+            +'<b>meteo</b> de cartes.json : ouvrez la carte sur sofia-briefing.aviation-civile.gouv.fr, '
+            +'copiez l\u2019adresse de l\u2019image et remplacez date et heure par {AAAA}{MM}{JJ}{HH}.</div>';
+          return;
+        }
+        var im=new Image();
+        im.onload=function(){ corps.innerHTML=''; corps.appendChild(im); wxZoom(corps,im); };
+        im.onerror=function(){ k++; essai(); };
+        im.src=urls[k];
+      }
+      if(urls.length) essai();
+      else corps.innerHTML='<div class="wxc-vmsg">Aucune adresse d\u00e9finie pour cette carte dans cartes.json.</div>';
+    }
+    function wxZoom(zone,img){
+      var sc=1,tx=0,ty=0,pts={},nb=0,g=null,dernierTap=0;
+      function pos(){ return {x:img.offsetLeft,y:img.offsetTop}; }
+      function appli(){ img.style.transform='translate('+tx+'px,'+ty+'px) scale('+sc+')'; }
+      function borne(){
+        if(sc<=1.001){ sc=1; tx=0; ty=0; return; }
+        var o=pos(), w=img.clientWidth*sc, h=img.clientHeight*sc;
+        var zw=zone.clientWidth, zh=zone.clientHeight, m=60;
+        if(o.x+tx>zw-m) tx=zw-m-o.x;
+        if(o.x+tx+w<m)  tx=m-w-o.x;
+        if(o.y+ty>zh-m) ty=zh-m-o.y;
+        if(o.y+ty+h<m)  ty=m-h-o.y;
+      }
+      function vers(nsc,px,py){
+        nsc=Math.max(1,Math.min(8,nsc));
+        var o=pos(); var cx=(px-o.x-tx)/sc, cy=(py-o.y-ty)/sc;
+        tx=px-o.x-nsc*cx; ty=py-o.y-nsc*cy; sc=nsc; borne(); appli();
+      }
+      zone.addEventListener('wheel',function(e){ e.preventDefault();
+        var r=zone.getBoundingClientRect();
+        vers(sc*Math.exp(-e.deltaY*0.0022), e.clientX-r.left, e.clientY-r.top);
+      },{passive:false});
+      zone.addEventListener('pointerdown',function(e){ e.preventDefault();
+        try{ zone.setPointerCapture(e.pointerId); }catch(err){}
+        pts[e.pointerId]={x:e.clientX,y:e.clientY}; nb++;
+        var ks=Object.keys(pts);
+        if(nb===2){ var a=pts[ks[0]], b=pts[ks[1]];
+          var mid={x:(a.x+b.x)/2,y:(a.y+b.y)/2};
+          var r=zone.getBoundingClientRect(), o=pos();
+          g={d0:Math.hypot(a.x-b.x,a.y-b.y)||1, s0:sc,
+             c0:{x:((mid.x-r.left)-o.x-tx)/sc, y:((mid.y-r.top)-o.y-ty)/sc}};
+        }else if(nb===1){
+          var t=Date.now();
+          if(t-dernierTap<300){ var r2=zone.getBoundingClientRect();
+            vers(sc>1.3?1:2.5, e.clientX-r2.left, e.clientY-r2.top); }
+          dernierTap=t;
+        }
+      });
+      zone.addEventListener('pointermove',function(e){
+        if(!pts[e.pointerId]) return;
+        var av=pts[e.pointerId]; pts[e.pointerId]={x:e.clientX,y:e.clientY};
+        if(nb===1&&!g){ tx+=e.clientX-av.x; ty+=e.clientY-av.y; borne(); appli(); return; }
+        if(nb>=2&&g){ var ks=Object.keys(pts); var a=pts[ks[0]], b=pts[ks[1]];
+          var d=Math.hypot(a.x-b.x,a.y-b.y)||1;
+          var mid={x:(a.x+b.x)/2,y:(a.y+b.y)/2};
+          var r=zone.getBoundingClientRect(), o=pos();
+          var nsc=Math.max(1,Math.min(8,g.s0*d/g.d0));
+          tx=(mid.x-r.left)-o.x-nsc*g.c0.x; ty=(mid.y-r.top)-o.y-nsc*g.c0.y;
+          sc=nsc; borne(); appli();
+        }
+      });
+      function fin(e){ if(pts[e.pointerId]){ delete pts[e.pointerId]; nb=Math.max(0,nb-1); }
+        if(nb<2) g=null; }
+      zone.addEventListener('pointerup',fin);
+      zone.addEventListener('pointercancel',fin);
+    }
     ov.querySelector('#wxRefresh').onclick=function(){load(true)};
     /* l'horloge des mises à jour automatiques pilote le panneau tant qu'il est
        affiché : même cycle que le bouton, donc mêmes messages à l'écran */
