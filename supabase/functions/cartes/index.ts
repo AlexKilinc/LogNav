@@ -261,9 +261,47 @@ async function voieDirecte(type: string, date: string): Promise<{ essais: Record
   return { essais, image: null };
 }
 
+/* Mode poste : rejouer les POST applicatifs de SOFIA (:operation=postTemsi,
+   zone=FRANCE, ...) et rapporter la réponse. Générique : tous les paramètres
+   de la requête (hors poste/op/cible) sont transmis comme champs du POST.
+   ?poste=1&op=postTemsi&zone=FRANCE
+   ?poste=1&op=postWintem&zone=FRANCE&cible=<autre point d'accès>  */
+async function poste(q: URLSearchParams): Promise<Response> {
+  const corps = new URLSearchParams();
+  corps.set(":operation", q.get("op") || "postTemsi");
+  q.forEach((v, k) => { if (!["poste", "op", "cible"].includes(k)) corps.set(k, v); });
+  const cible = q.get("cible") || "https://sofia-briefing.aviation-civile.gouv.fr/sofia";
+  try {
+    const r = await fetch(cible, {
+      method: "POST",
+      headers: {
+        "User-Agent": UA,
+        "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
+        "Referer": "https://sofia-briefing.aviation-civile.gouv.fr/sofia/pages/meteosearchtemsi.html",
+        "Origin": "https://sofia-briefing.aviation-civile.gouv.fr",
+        "X-Requested-With": "XMLHttpRequest",
+        "Accept": "application/json, text/javascript, */*; q=0.01",
+      },
+      body: corps.toString(),
+      redirect: "follow",
+    });
+    const ct = r.headers.get("Content-Type") || "";
+    const texte = await r.text();
+    const liens = recolte(texte, cible);
+    return reponseJson({
+      cible, envoye: corps.toString(), http: r.status, contenu: ct, octets: texte.length,
+      liens: liens.map((l) => ({ couche: l.couche, date: l.date, url: tronque(l.url) })),
+      apercu: texte.slice(0, 3000),
+    });
+  } catch (e) {
+    return reponseJson({ cible, envoye: corps.toString(), erreur: String(e).slice(0, 160) });
+  }
+}
+
 Deno.serve(async (req) => {
   const q = new URL(req.url).searchParams;
   if (q.get("sonde")) return sonde(q);
+  if (q.get("poste") === "1") return poste(q);
   const type = (q.get("type") || q.get("layer") || "").toLowerCase();
   const date = (q.get("date") || q.get("echeance") || "").replace(/\D/g, "");
   const debug = q.get("debug") === "1";
