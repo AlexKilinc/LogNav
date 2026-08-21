@@ -948,6 +948,14 @@ html:has(.ovl) #uiScaleBox,html:has(body.rec-full) #uiScaleBox{display:none!impo
    plus proche. Une ligne discrete, aux couleurs de la classe. */
 .mlog-rep{display:flex;flex-wrap:wrap;gap:3px 8px;margin-top:3px}
 .mlog-rep span{font:700 11.5px/1.25 "Poppins",sans-serif;white-space:nowrap}
+/* ce qui se touche pour lire l'autre sens du relevement */
+.qdm-tap{cursor:pointer;-webkit-tap-highlight-color:rgba(127,209,255,.18)}
+.mlog-rep span.qdm-tap{text-decoration:underline;text-decoration-style:dotted;
+  text-underline-offset:3px;text-decoration-thickness:1px}
+.nc-blk.qdm-tap .bd{text-decoration:underline;text-decoration-style:dotted;
+  text-underline-offset:3px;text-decoration-thickness:1px;
+  text-decoration-color:rgba(234,241,251,.35)}
+.nc-blk.qdm-tap:active .bd{opacity:.65}
 .mlog-chev{flex:0 0 auto;color:#c0c8d4;font:700 18px/1 sans-serif}
 .mlog-add{display:block;width:100%;background:#f4f7fc;color:#2c5282;border:0;border-top:1px dashed #c3d2ea;padding:11px;font:700 13px "Poppins",sans-serif;cursor:pointer}
 .mlog-sync{display:flex;align-items:stretch;background:#eef3fa;border-top:1px solid #d8e3f3}
@@ -1089,13 +1097,21 @@ html:has(.ovl) #uiScaleBox,html:has(body.rec-full) #uiScaleBox{display:none!impo
 .nc-card{container-type:inline-size}
 @container (min-width:330px){
   .nc-info.nc-2col{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,.86fr);
-    gap:0;align-content:start}
-  /* Le rouge de l'application sert deja aux traits qui bornent la carte : un
-     second trait rouge a la verticale brouillait la lecture. Un filet bleu clair
-     suffit a separer, et il s'arrete avant le trait du bas. */
-  .nc-info.nc-2col .nc-cd{position:relative;padding-left:13px;margin-left:12px}
-  .nc-info.nc-2col .nc-cd::before{content:"";position:absolute;left:0;top:2px;bottom:16px;
-    width:2px;border-radius:1px;background:rgba(127,209,255,.42)}
+    align-content:start}
+  /* Le rouge de l'application borne deja la carte : un second trait rouge a la
+     verticale brouillait la lecture. Un filet d'un pixel, bleu ciel pale, suffit.
+     Il est peint en fond de la zone — un element aurait defile avec le texte
+     jusqu'a toucher le trait rouge du bas, un fond reste accroche a ce qu'on voit. */
+  .nc-info.nc-2col{column-gap:26px}
+  .nc-info.nc-2col .nc-cd{padding-left:0;margin-left:0}
+  .nc-info.nc-2col{
+    background-image:linear-gradient(to bottom,
+      transparent 0 12px, rgba(178,231,255,.26) 12px calc(100% - 30px),
+      transparent calc(100% - 30px));
+    background-repeat:no-repeat;
+    background-size:1px 100%;
+    background-position:calc(12px + (100% - 49px)/1.86 + 13px) 0;
+    background-attachment:scroll}
   .nc-info.nc-2col .nc-cd .bd{font-size:14.5px;line-height:1.35}
 }
 .nc-info .hd{display:flex;align-items:center;gap:8px;font:700 11.5px "Poppins",sans-serif;color:#8fa9cc;text-transform:uppercase;letter-spacing:.09em;flex:none;margin-bottom:3px}
@@ -2859,7 +2875,7 @@ window.__TRACE_MARKUP="\n\n<header>\n  <div class=\"hdr-row1\">\n    <span class
    accessible depuis le bouton ⓘ du bandeau du log, avant toute ouverture de la carte */
 (function(){
   var host=document.createElement('div');
-  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Cartes OACI — origine et mise à jour</b></p>\n    <p style=\"margin-top:-6px\"><b>1/250 000 Région parisienne</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte250\">—</span>.</p>\n    <p style=\"margin-top:-6px\"><b>1/500 000 France</b> — IGN Géoplateforme (SCAN-OACI). Donnée <b>non libre</b>, tenue à jour par l’IGN.</p>\n    <p style=\"margin-top:-6px\"><b>1/1 000 000 France</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte1000\">—</span>.</p>\n    <p>Les deux cartes du SIA sont hébergées à part et lues par plages : seules les tuiles affichées sont téléchargées. Les trois se copient sur l’appareil pour voler sans réseau depuis <b>Profil → Cartes hors-ligne</b>. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.391</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
+  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Cartes OACI — origine et mise à jour</b></p>\n    <p style=\"margin-top:-6px\"><b>1/250 000 Région parisienne</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte250\">—</span>.</p>\n    <p style=\"margin-top:-6px\"><b>1/500 000 France</b> — IGN Géoplateforme (SCAN-OACI). Donnée <b>non libre</b>, tenue à jour par l’IGN.</p>\n    <p style=\"margin-top:-6px\"><b>1/1 000 000 France</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte1000\">—</span>.</p>\n    <p>Les deux cartes du SIA sont hébergées à part et lues par plages : seules les tuiles affichées sont téléchargées. Les trois se copient sur l’appareil pour voler sans réseau depuis <b>Profil → Cartes hors-ligne</b>. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.392</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
   (document.body||document.documentElement).appendChild(host.firstElementChild);
   /* le nom du fichier de la 1/1 000 000 dit son edition : on le lit la ou il
      est vraiment (cartes.json), jamais en dur, sinon il mentirait un jour */
@@ -6475,6 +6491,22 @@ const{useState,useEffect,useMemo}=React;const INK="#1a1a1a",RED="#e94560",REDH="
 /* Reperes d'un terrain : la classe qui le couvre avec son plancher — ce qu'on a
    au-dessus de la tete — et le VOR le plus proche pour se situer. Distincts des
    notes libres : ils se calculent, ils ne s'ecrivent pas. */
+/* QDM ou QDR : le meme axe, lu dans un sens ou dans l'autre. Afficher les deux
+   allonge la ligne pour rien — on n'en montre qu'un, et une touche fait passer
+   a l'autre. Le choix se retient, et vaut pour tout l'appareil. */
+const QDM_MEM='lognav_qdmqdr';
+let QDM_MODE=(function(){ try{ return localStorage.getItem(QDM_MEM)==='qdr'?'qdr':'qdm'; }
+                          catch(e){ return 'qdm'; } })();
+const basculeQdm=()=>{ QDM_MODE=(QDM_MODE==='qdm')?'qdr':'qdm';
+  try{ localStorage.setItem(QDM_MEM,QDM_MODE); }catch(e){}
+  try{ window.dispatchEvent(new CustomEvent('lognav-qdm')); }catch(e){} };
+/* toutes les vues qui montrent un relevement se redessinent ensemble */
+const useQdm=()=>{ const [v,setV]=React.useState(QDM_MODE);
+  React.useEffect(()=>{ const f=()=>setV(QDM_MODE);
+    window.addEventListener('lognav-qdm',f);
+    return ()=>window.removeEventListener('lognav-qdm',f); },[]);
+  return v; };
+const releve=v=>(QDM_MODE==='qdr'?("QDR "+v.qdr):("QDM "+v.qdm))+"\u00b0";
 const reperesDe=code=>{
   const c=String(code||"").trim().toUpperCase();
   if(!/^[A-Z]{4}$/.test(c)) return null;
@@ -6485,13 +6517,13 @@ const espaceLigne=r=>(r&&r.esp)?("Classe "+r.esp.classe+" "+r.esp.plancher
   +(r.esp.dessus?" \u00b7 sous classe "+r.esp.dessus.classe+" "+r.esp.dessus.plancher:"")):null;
 const vorLigne=r=>(r&&r.vor)?("VOR "+r.vor.id+(r.vor.freq?" "+r.vor.freq:"")
   +(r.vor.sur?" \u00b7 \u00e0 la verticale"
-            :" \u00b7 QDM "+r.vor.qdm+"\u00b0 / QDR "+r.vor.qdr+"\u00b0 \u00b7 "+r.vor.nm+" NM")):null;
+            :" \u00b7 "+releve(r.vor)+" \u00b7 "+r.vor.nm+" NM")):null;
 /* la classe d'espace : elle reste dans les notes, c'est une donnee de terrain */
 const reperesEspace=code=>{ const l=espaceLigne(reperesDe(code)); return l?[l]:[]; };
 /* la balise : elle part en RadioNav. La colonne y est etroite, deux lignes courtes */
 const reperesVor=code=>{ const r=reperesDe(code); if(!r||!r.vor) return [];
   return ["VOR "+r.vor.id+(r.vor.freq?" "+r.vor.freq:""),
-          r.vor.sur?"\u00e0 la verticale":("QDM "+r.vor.qdm+"\u00b0 \u00b7 "+r.vor.nm+" NM")]; };
+          r.vor.sur?"\u00e0 la verticale":(releve(r.vor)+" \u00b7 "+r.vor.nm+" NM")]; };
 /* la meme, en une ligne, la ou la place ne manque pas */
 const reperesVorLong=code=>{ const l=vorLigne(reperesDe(code)); return l?[l]:[]; };
 /* Ce que le log affiche, la modale doit le montrer : sinon le pilote ouvre son
@@ -7012,6 +7044,7 @@ function NavCards({nav,setNav:setNav0,tsvOf,tavOf,capOf}){
      desactiver un a un les vingt boutons qui la declenchent : un oubli aurait
      laisse modifier un vol vole. */
   const [consult,setConsult]=React.useState(false);
+  useQdm();
   const setNav=React.useCallback(function(p){ if(!consult) setNav0(p); },[consult,setNav0]);
   const F=nav.flight||{};
   const hasR=nav.type==="ar"&&nav.retour&&nav.retour.length>=2;
@@ -7715,7 +7748,9 @@ function NavCards({nav,setNav:setNav0,tsvOf,tavOf,capOf}){
       const es=reperesEspace(code); if(es.length)
         out.push([pref+"Espace "+(nom||""),
           '<span style="color:'+(reperesCouleur(es[0],true)||"#EAF1FB")+'">'+es[0]+'</span>',1]);
-      const vo=reperesVorLong(code); if(vo.length) out.push([pref+"RadioNav "+(nom||""),vo[0],1]);
+      /* le quatrieme element : ce bloc porte un relevement, donc il se touche */
+      const vo=reperesVorLong(code); if(vo.length)
+        out.push([pref+"RadioNav "+(nom||""),vo[0],1,/QD[MR] /.test(vo[0])]);
     };
     droite((legs[ci]||{}).position,b.from,"");
     /* dernière branche : on ajoute les informations propres à l'aérodrome d'arrivée */
@@ -7800,7 +7835,10 @@ function NavCards({nav,setNav:setNav0,tsvOf,tavOf,capOf}){
             h("div",{key:"g",className:"nc-cg"},blocks.filter(p=>!p[2]).map(p=>h("div",{key:p[0],className:"nc-blk"},
               h("div",{className:"hd"},p[0]),
               h("div",{className:"bd",dangerouslySetInnerHTML:{__html:p[1]}})))),
-            blocks.some(p=>p[2])?h("div",{key:"d",className:"nc-cd"},blocks.filter(p=>p[2]).map(p=>h("div",{key:p[0],className:"nc-blk"},
+            blocks.some(p=>p[2])?h("div",{key:"d",className:"nc-cd"},blocks.filter(p=>p[2]).map(p=>h("div",{key:p[0],
+              className:"nc-blk"+(p[3]?" qdm-tap":""),
+              title:p[3]?"Toucher pour lire l'autre sens : QDM \u2194 QDR":null,
+              onClick:p[3]?(e=>{e.stopPropagation();basculeQdm();}):null},
               h("div",{className:"hd"},p[0]),
               h("div",{className:"bd",dangerouslySetInnerHTML:{__html:p[1]}})))):null]
           :h("div",{className:"bd",style:{opacity:.45}},"—"))),
@@ -7897,6 +7935,7 @@ function NavCards({nav,setNav:setNav0,tsvOf,tavOf,capOf}){
 
 function MobileLog({nav,openLeg,addPoint,changeType,onSingle,onName,onMeta,regen,desync,syncArmed,setSyncArmed,tsvOf,tavOf,capOf}){
   const [mx,setMx]=React.useState(false);
+  useQdm();
   if(!nav) return null;
   const ini=s=>{const v=String(s||"").trim().split(/\s+/).map(w=>w.charAt(0)).join("").toUpperCase().slice(0,3);return v||"CDB";};
   const pad3=n=>{const v=parseInt(n,10);return isNaN(v)?"—":String((v%360+360)%360).padStart(3,"0");};
@@ -7955,8 +7994,12 @@ function MobileLog({nav,openLeg,addPoint,changeType,onSingle,onName,onMeta,regen
             React.createElement("div",{className:"mlog-sub"},summary(arr,i)),
             (()=>{ const rp=reperesLines(l.position); if(!rp.length) return null;
               return React.createElement("div",{className:"mlog-rep"},
-                rp.map((t,k2)=>React.createElement("span",{key:k2,
-                  style:{color:reperesCouleur(t)||"#64748b"}},t))); })()),
+                rp.map((t,k2)=>{ const bal=/^VOR /.test(t)&&/QD[MR] /.test(t);
+                  return React.createElement("span",{key:k2,
+                    className:bal?"qdm-tap":null,
+                    title:bal?"Toucher pour lire l'autre sens : QDM \u2194 QDR":null,
+                    onClick:bal?(e=>{e.preventDefault();e.stopPropagation();basculeQdm();}):null,
+                    style:{color:reperesCouleur(t)||"#64748b"}},t); })); })()),
           React.createElement("div",{className:"mlog-chev"},"›"))),
         (block==="retour"&&regen)?React.createElement("div",{className:"mlog-sync"},
           React.createElement("button",{className:"ms-arm"+(syncArmed?" on":""),onClick:()=>setSyncArmed&&setSyncArmed(!syncArmed)},(syncArmed?"\u2713 ":"")+"Activer Sync"),
@@ -7965,7 +8008,7 @@ function MobileLog({nav,openLeg,addPoint,changeType,onSingle,onName,onMeta,regen
         React.createElement("button",{className:"mlog-add",onClick:()=>addPoint(block)},"+ Point tournant"));
     }));
 }
-function LogBlock({title,block,legs,openLeg,addPoint,totals,accent=ACCENT,regen,fuel,desync,syncArmed,setSyncArmed,rowH=ROWH,reorderOn,onReorderToggle,movePoint,hoverBr,setHoverBr,windActive,tavOf,tsvOf,capOf}){const n=legs.length,branches=legs.slice(1);const RH=rowH,HH=RH/2;const bodyH=Math.max(n,2)*RH+RH;const greyFor=i=>i%2===1;
+function LogBlock({title,block,legs,openLeg,addPoint,totals,accent=ACCENT,regen,fuel,desync,syncArmed,setSyncArmed,rowH=ROWH,reorderOn,onReorderToggle,movePoint,hoverBr,setHoverBr,windActive,tavOf,tsvOf,capOf}){useQdm();const n=legs.length,branches=legs.slice(1);const RH=rowH,HH=RH/2;const bodyH=Math.max(n,2)*RH+RH;const greyFor=i=>i%2===1;
   /* la colonne Notes se lit comme un tout : une seule taille pour ses cases */
   const casesNotes=branches.map((l,bi)=>({obs:obsLibre(l.obs),autoNotes:notesLines(legs[bi].position),
     reperes:reperesEspace(legs[bi].position)}));
