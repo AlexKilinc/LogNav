@@ -90,11 +90,11 @@ function recolte(texte: string, origine: string): Lien[] {
 
 /* Adresses des scripts d'une page (pour fouiller le JavaScript des pages qui
    construisent leurs images côté client). */
-function scriptsDe(texte: string, origine: string): string[] {
+function scriptsDe(texte: string, origine: string, nmax = 6): string[] {
   const out: string[] = [];
   const re = /<script[^>]+src=["']([^"']+)["']/gi;
   let m;
-  while ((m = re.exec(texte)) && out.length < 6) {
+  while ((m = re.exec(texte)) && out.length < nmax) {
     try { out.push(new URL(m[1], origine).href); } catch { /* ignore */ }
   }
   return out;
@@ -130,25 +130,42 @@ function reponseJson(objet: unknown, statut = 200): Response {
 async function sonde(q: URLSearchParams): Promise<Response> {
   const cible = q.get("sonde") || "";
   const travaux: { url: string; motif: string }[] = [];
+  const rap: Record<string, unknown>[] = [];
+  const MOTIF_CHASSE = "affiche_image|serveur_donnees|aeroweb|sigwx/|wintemp/|temsi\\.|getTemsi|getWintem|/meteo/";
   if (cible === "auto") {
+    /* Loxodrome : application monopage — le code des cartes vit dans des
+       morceaux chargés à la demande, dont les noms sont inscrits dans le
+       paquet d'entrée. On les énumère, puis on fouille chacun. */
     const acc = await attrape("https://loxodrome.fr/", 8000);
-    for (const j of scriptsDe(acc.texte, "https://loxodrome.fr/")) {
-      travaux.push({ url: j, motif: "wx_temsi|wx_wintem|affiche_image|sigwx/|wintemp/" });
+    for (const j of scriptsDe(acc.texte, "https://loxodrome.fr/", 3)) {
+      const entree = await attrape(j, 9000);
+      const noms = new Set<string>();
+      for (const c of entree.texte.match(/assets\/[A-Za-z0-9._-]+\.js/g) || []) noms.add(c);
+      travaux.push({ url: j, motif: MOTIF_CHASSE });
+      for (const n of [...noms].slice(0, 14)) {
+        if (j.endsWith(n)) continue;
+        travaux.push({ url: new URL("/" + n, "https://loxodrome.fr/").href, motif: MOTIF_CHASSE });
+      }
     }
-    travaux.push({
-      url: "https://sofia-briefing.aviation-civile.gouv.fr/sofia/pages/meteotemsi.html",
-      motif: "\\$\\.ajax|XMLHttpRequest|servlet|\\.php|affiche|imageTemsi|prodDateTemsi",
-    });
-    travaux.push({
-      url: "https://sofia-briefing.aviation-civile.gouv.fr/sofia/pages/meteowintem.html",
-      motif: "\\$\\.ajax|XMLHttpRequest|servlet|\\.php|affiche|imageWintem|prodDateWintem",
-    });
+    /* SOFIA : la page charge beaucoup de scripts — on les liste TOUS, et on
+       fouille ceux dont le nom évoque la météo ou la préparation. */
+    for (const page of [
+      "https://sofia-briefing.aviation-civile.gouv.fr/sofia/pages/meteotemsi.html",
+      "https://sofia-briefing.aviation-civile.gouv.fr/sofia/pages/meteowintem.html",
+    ]) {
+      const rp = await attrape(page, 9000);
+      const tous = scriptsDe(rp.texte, page, 60);
+      rap.push({ url: page, http: rp.http, scripts: tous });
+      for (const sc of tous.filter((u) => /temsi|wintem|meteo|carte|prepa|image/i.test(u)).slice(0, 8)) {
+        travaux.push({ url: sc, motif: MOTIF_CHASSE + "|\\$\\.ajax|\\.php" });
+      }
+    }
   } else {
     travaux.push({ url: cible, motif: q.get("motif") || "temsi|wintem|affiche_image" });
   }
   const portee = Math.min(Number(q.get("portee") || "150"), 400);
-  const nmax = Math.min(Number(q.get("n") || "10"), 40);
-  const rap: Record<string, unknown>[] = [];
+  const nmax = Math.min(Number(q.get("n") || "8"), 40);
+  let muets = 0;
   for (const t of travaux) {
     const r = await attrape(t.url, 9000);
     const extraits: string[] = [];
@@ -163,9 +180,12 @@ async function sonde(q: URLSearchParams): Promise<Response> {
         re.lastIndex = m.index + m[0].length + portee;
       }
     } catch (e) { extraits.push("motif irrecevable : " + String(e).slice(0, 80)); }
-    rap.push({ url: t.url, http: r.http, octets: r.texte.length, extraits });
+    /* les fichiers muets n'encombrent pas le rapport : on les compte */
+    if (extraits.length || r.http !== 200) {
+      rap.push({ url: t.url, http: r.http, octets: r.texte.length, extraits });
+    } else muets++;
   }
-  return reponseJson({ sonde: rap });
+  return reponseJson({ fouilles: travaux.length, muets, sonde: rap });
 }
 
 Deno.serve(async (req) => {
