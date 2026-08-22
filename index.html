@@ -2900,7 +2900,7 @@ window.__TRACE_MARKUP="\n\n<header>\n  <div class=\"hdr-row1\">\n    <span class
    accessible depuis le bouton ⓘ du bandeau du log, avant toute ouverture de la carte */
 (function(){
   var host=document.createElement('div');
-  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Cartes OACI — origine et mise à jour</b></p>\n    <p style=\"margin-top:-6px\"><b>1/250 000 Région parisienne</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte250\">—</span>.</p>\n    <p style=\"margin-top:-6px\"><b>1/500 000 France</b> — IGN Géoplateforme (SCAN-OACI). Donnée <b>non libre</b>, tenue à jour par l’IGN.</p>\n    <p style=\"margin-top:-6px\"><b>1/1 000 000 France</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte1000\">—</span>.</p>\n    <p>Les deux cartes du SIA sont hébergées à part et lues par plages : seules les tuiles affichées sont téléchargées. Les trois se copient sur l’appareil pour voler sans réseau depuis <b>Profil → Cartes hors-ligne</b>. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.401</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
+  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Cartes OACI — origine et mise à jour</b></p>\n    <p style=\"margin-top:-6px\"><b>1/250 000 Région parisienne</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte250\">—</span>.</p>\n    <p style=\"margin-top:-6px\"><b>1/500 000 France</b> — IGN Géoplateforme (SCAN-OACI). Donnée <b>non libre</b>, tenue à jour par l’IGN.</p>\n    <p style=\"margin-top:-6px\"><b>1/1 000 000 France</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte1000\">—</span>.</p>\n    <p>Les deux cartes du SIA sont hébergées à part et lues par plages : seules les tuiles affichées sont téléchargées. Les trois se copient sur l’appareil pour voler sans réseau depuis <b>Profil → Cartes hors-ligne</b>. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.402</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
   (document.body||document.documentElement).appendChild(host.firstElementChild);
   /* le nom du fichier de la 1/1 000 000 dit son edition : on le lit la ou il
      est vraiment (cartes.json), jamais en dur, sinon il mentirait un jour */
@@ -6616,13 +6616,18 @@ const posLeg=(legs,i)=>{
 };
 /* L'indicatif que le pilote a inscrit dans RadioNav — on ne retient que son
    choix, le relevement se recalcule pour suivre la bascule QDM/QDR. */
+/* les editeurs ecrivent les retours a la ligne en <div> ou <p> : on ramene
+   tout a <br>, y compris la premiere ligne nue collee au premier <div> */
+const versBr=t=>String(t||"")
+  .replace(/<(div|p)[^>]*>/gi,"<br>").replace(/<\/(div|p)>/gi,"")
+  .replace(/^(?:\s|&nbsp;)*<br>/i,"");
 const RE_VOR_ID=new RegExp("^VOR ([A-Z0-9]{2,4})(?: [\\d.]+)? \\u00b7 (?:"
   +"\\u00e0 la verticale|QD[MR] \\d{3}\\u00b0(?: / QD[MR] \\d{3}\\u00b0)? \\u00b7 [\\d.]+ NM)$","i");
 /* Le pilote peut inscrire deux balises pour se recouper : on retient chacune,
    dans l'ordre ou il les a mises. */
 const vorsDuTexte=html=>{
   let t=String(html||""); if(!t.trim()) return [];
-  t=t.replace(/<\/(div|p)>\s*<(div|p)[^>]*>/gi,"<br>").replace(/<\/?(div|p)[^>]*>/gi,"");
+  t=versBr(t);
   const out=[];
   t.split(/<br\s*\/?>/i)
    .map(x=>x.replace(/<[^>]*>/g,"").replace(/&nbsp;/g," ").trim())
@@ -6655,7 +6660,7 @@ const rnRetirer=(code,html,pos)=>!calculOn(code)||vorsDuPoint(code,html,pos).len
 /* le champ RadioNav d'un point : « LGL » puis espace devient la ligne complete */
 const expanseurVor=(pos,code)=>html=>{
   if(!pos||!calculOn(code)) return null;
-  const t=String(html||"");
+  const t=versBr(html);
   const parts=t.split(/<br\s*\/?>/i);
   const der=parts[parts.length-1].replace(/<[^>]*>/g,"").replace(/&nbsp;/g," ");
   const m=/^\s*([A-Za-z][A-Za-z0-9]{1,3})\s$/.exec(der);
@@ -6680,7 +6685,7 @@ const radioNavAuto=code=>calculOn(code)?reperesVorLong(code):[];
    mots — « VOR CAD 115.950 axe 260 » — reste intacte. */
 const sansCalcul=(html,re)=>{
   let t=String(html||""); if(!t.trim()) return "";
-  t=t.replace(/<\/(div|p)>\s*<(div|p)[^>]*>/gi,"<br>").replace(/<\/?(div|p)[^>]*>/gi,"");
+  t=versBr(t);
   const gardes=t.split(/<br\s*\/?>/i)
     .filter(x=>!re.test(x.replace(/<[^>]*>/g,"").replace(/&nbsp;/g," ").trim()));
   return gardes.join("<br>").replace(/^(?:<br>)+/,"").replace(/(?:<br>)+$/,"");
