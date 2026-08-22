@@ -17,16 +17,16 @@
  * Déploiement : Supabase > Edge Functions > fonction « cartes », coller ce
  * fichier EN ENTIER (vérifier que la dernière ligne dans l'éditeur est bien
  * « }); »), déployer, et laisser « Enforce JWT verification » DÉSACTIVÉ.
- * Aucun secret requis. Vérification : ouvrir ?version=1 -> doit répondre 7.12.
+ * Aucun secret requis. Vérification : ouvrir ?version=1 -> doit répondre 7.13.
  */
 
-const VERSION = "7.12";
+const VERSION = "7.13";
 const AERO = "https://aviation.meteo.fr";
 const SOFIA = "https://sofia-briefing.aviation-civile.gouv.fr";
 const UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Safari/605.1.15";
 
 /* Un lien d'image : couche, validité, adresse complète. */
-type Lien = { url: string; couche: string; date: string };
+type Lien = { url: string; couche: string; date: string; brut?: string };
 
 /* Déterre les adresses affiche_image.php d'un texte, quelles que soient les
    échappures (\/ des JSON, &amp; du HTML) et la forme des paramètres. */
@@ -55,7 +55,7 @@ function recolte(texte: string, origine: string): Lien[] {
    avec son lien signé. L'étiquette layer du lien, elle, est un gabarit
    constant (toujours fl020 pour les WINTEM) : elle ment. La vérité vient des
    métadonnées. */
-function recolteSofia(texte: string): Lien[] {
+function recolteSofia(texte: string, flDemande = ""): Lien[] {
   try {
     const j = JSON.parse(texte);
     let sm: unknown = j && (j["status.message"]);
@@ -68,10 +68,19 @@ function recolteSofia(texte: string): Lien[] {
           if (!it || !it.link) continue;
           let u = String(it.link);
           if (!/^https?:/.test(u)) { try { u = new URL(u, SOFIA + "/sofia/pages/").href; } catch { continue; } }
-          let couche = "";
+          let couche = "", brut = "";
           if (fam === "wintem") {
-            const d = String(it.level || "").replace(/\D/g, "");
-            if (d) couche = "wintemp/fr/france/fl" + d.padStart(3, "0");
+            brut = String(it.level ?? "");
+            const grp = brut.match(/\d{1,3}/g) || [];
+            let fl = "";
+            if (grp.length === 1) fl = grp[0].padStart(3, "0");
+            else if (grp.length > 1 && flDemande) fl = flDemande;
+            else if (!grp.length) {
+              /* pas de métadonnée : l'étiquette du lien est notre seule piste */
+              const um = u.match(/fl0*(\d{1,3})/i);
+              if (um) fl = um[1].padStart(3, "0");
+            }
+            if (fl) couche = "wintemp/fr/france/fl" + fl;
           } else {
             const zn = /euroc/i.test(String(it.zone || z.id || z.name || "")) ? "euroc" : "france";
             couche = "sigwx/fr/" + zn;
@@ -81,12 +90,23 @@ function recolteSofia(texte: string): Lien[] {
             date = q2.get("echeance") || q2.get("date") || ""; } catch { /* rien */ }
           const md = String(it.date || "").match(/^(\d{2}) (\d{2}) (\d{4}) (\d{2}):(\d{2})/);
           if (md) date = md[3] + md[2] + md[1] + md[4] + md[5] + "00";
-          if (couche) out.push({ url: u, couche, date });
+          if (couche) out.push({ url: u, couche, date, brut });
         }
       }
     }
     return out;
   } catch { return []; }
+}
+
+/* le niveau que ce jeu de champs postWintem réclame à SOFIA (une seule
+   valeur nette — les formes en liste restent ambiguës et rendent "") */
+function flDesChamps(champs: Record<string, string>): string {
+  for (const k of Object.keys(champs)) {
+    if (k === "zone") continue;
+    const m = String(champs[k]).match(/^(?:fl)?0*(\d{1,3})$/i);
+    if (m) return m[1].padStart(3, "0");
+  }
+  return "";
 }
 
 /* remet l'étiquette (layer/type) du lien en accord avec la vraie couche —
@@ -270,7 +290,7 @@ async function viaSofia(type: string, date: string, journal: Record<string, unkn
       journal.push({ op: jeu.op, champs: jeu.champs, erreur: String(e).slice(0, 100) });
       continue;
     }
-    let liens = recolteSofia(texte);
+    let liens = recolteSofia(texte, jeu.op === "postWintem" ? flDesChamps(jeu.champs) : "");
     if (!liens.length) liens = recolte(texte, SOFIA + "/sofia/pages/");
     const entree: Record<string, unknown> = { op: jeu.op, champs: jeu.champs, liens: liens.length };
     if (!liens.length) entree.apercu = texte.slice(0, 160);
@@ -280,7 +300,8 @@ async function viaSofia(type: string, date: string, journal: Record<string, unkn
     const cible = tempsDe((date || "").padEnd(14, "0"));
     const dispo = liens.filter((l) => memeCouche(type, l.couche));
     if (!dispo.length) {
-      journal.push({ op: jeu.op, coucheAbsente: type, recu: liens.map((l) => l.couche).slice(0, 6) });
+      journal.push({ op: jeu.op, coucheAbsente: type,
+        recu: liens.map((l) => l.couche + (l.brut ? " (level brut : " + l.brut + ")" : "")).slice(0, 6) });
       continue;
     }
     /* la forme n'est « gagnante » que si elle a livre la bonne couche */
@@ -386,9 +407,9 @@ async function chasse(q: URLSearchParams): Promise<Response> {
     try { texte = await posteSofia(jeu.op, jeu.champs); } catch (e) {
       rap.push({ champs: jeu.champs, erreur: String(e).slice(0, 80) }); continue;
     }
-    let liens = recolteSofia(texte);
+    let liens = recolteSofia(texte, jeu.op === "postWintem" ? flDesChamps(jeu.champs) : "");
     if (!liens.length) liens = recolte(texte, SOFIA + "/sofia/pages/");
-    const couches = [...new Set(liens.map((l) => l.couche))];
+    const couches = [...new Set(liens.map((l) => l.couche + (l.brut ? " (level brut : " + l.brut + ")" : "")))];
     const ch0 = liens.length ? liens[0].url.replace(/^https?:\/\/[^/]+/, "") : "";
     rap.push({ champs: jeu.champs, liens: liens.length, couches,
       ok: liens.some((l) => memeCouche(t, l.couche)),
