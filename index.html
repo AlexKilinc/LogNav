@@ -1157,7 +1157,8 @@ html:has(.ovl) #uiScaleBox,html:has(body.rec-full) #uiScaleBox{display:none!impo
 .nc-seg button.on{background:#e94560;border-color:#e94560;color:#fff}
 .nc-f{display:flex;flex-direction:column;gap:3px;min-width:0}
 .nc-f label{font:700 11.5px "Poppins",sans-serif;color:#8fa9cc;text-transform:uppercase;letter-spacing:.06em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.nc-u{display:block;font:600 10.5px "Poppins",sans-serif;color:#6f88ab;text-transform:none;letter-spacing:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.nc-u{display:inline;margin-left:4px;font:600 10.5px "Poppins",sans-serif;color:#6f88ab;text-transform:none;letter-spacing:0}
+.nc-u::before{content:'· ';color:#49648c}
 .nc-lg{font:700 11.5px "Poppins",sans-serif;color:#8fa9cc;text-transform:uppercase;letter-spacing:.06em}
 .nc-f input{background:#0d2247;border:1px solid #2a4372;border-radius:9px;padding:11px;font:700 19px "JetBrains Mono",monospace;color:#fff;outline:none;width:100%;box-sizing:border-box}
 .nc-f input:focus{border-color:#3A7BFF;box-shadow:0 0 0 3px rgba(58,123,255,.18)}
@@ -1165,9 +1166,9 @@ html:has(.ovl) #uiScaleBox,html:has(body.rec-full) #uiScaleBox{display:none!impo
 .nc-sel:focus{border-color:#3A7BFF;box-shadow:0 0 0 3px rgba(58,123,255,.18)}
 .nc-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(102px,1fr));gap:9px;align-items:end}
 /* 1re ligne de la préparation : avion resserré, le reste pour le bouton ATIS */
-.nc-row2{display:flex;gap:9px;align-items:flex-end}
+.nc-row2{display:flex;gap:9px;align-items:stretch}
 .nc-favion{flex:0 0 118px;min-width:0}
-.nc-atisb{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;align-items:flex-start;gap:2px;background:#0d2247;border:1px dashed #2a4372;border-radius:9px;padding:9px 11px;cursor:pointer;text-align:left}
+.nc-atisb{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:2px;background:#0d2247;border:1px dashed #2a4372;border-radius:9px;padding:9px 11px;cursor:pointer;text-align:left}
 .nc-atisb.on{border-style:solid;border-color:#3A7BFF;background:rgba(58,123,255,.14)}
 .nc-atisb .k{font:800 10.5px "Poppins",sans-serif;color:#7fd1ff;text-transform:uppercase;letter-spacing:.09em}
 .nc-atisb .v{max-width:100%;font:700 14px "JetBrains Mono",monospace;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -2900,7 +2901,7 @@ window.__TRACE_MARKUP="\n\n<header>\n  <div class=\"hdr-row1\">\n    <span class
    accessible depuis le bouton ⓘ du bandeau du log, avant toute ouverture de la carte */
 (function(){
   var host=document.createElement('div');
-  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Cartes OACI — origine et mise à jour</b></p>\n    <p style=\"margin-top:-6px\"><b>1/250 000 Région parisienne</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte250\">—</span>.</p>\n    <p style=\"margin-top:-6px\"><b>1/500 000 France</b> — IGN Géoplateforme (SCAN-OACI). Donnée <b>non libre</b>, tenue à jour par l’IGN.</p>\n    <p style=\"margin-top:-6px\"><b>1/1 000 000 France</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte1000\">—</span>.</p>\n    <p>Les deux cartes du SIA sont hébergées à part et lues par plages : seules les tuiles affichées sont téléchargées. Les trois se copient sur l’appareil pour voler sans réseau depuis <b>Profil → Cartes hors-ligne</b>. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.419</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
+  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Cartes OACI — origine et mise à jour</b></p>\n    <p style=\"margin-top:-6px\"><b>1/250 000 Région parisienne</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte250\">—</span>.</p>\n    <p style=\"margin-top:-6px\"><b>1/500 000 France</b> — IGN Géoplateforme (SCAN-OACI). Donnée <b>non libre</b>, tenue à jour par l’IGN.</p>\n    <p style=\"margin-top:-6px\"><b>1/1 000 000 France</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte1000\">—</span>.</p>\n    <p>Les deux cartes du SIA sont hébergées à part et lues par plages : seules les tuiles affichées sont téléchargées. Les trois se copient sur l’appareil pour voler sans réseau depuis <b>Profil → Cartes hors-ligne</b>. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.421</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
   (document.body||document.documentElement).appendChild(host.firstElementChild);
   /* le nom du fichier de la 1/1 000 000 dit son edition : on le lit la ou il
      est vraiment (cartes.json), jamais en dur, sinon il mentirait un jour */
@@ -6441,6 +6442,14 @@ function openRelinkChoice(){
    +'#wndPanel .sig-row.on .dot{background:#fff}'
    +'.sig-pop{font:600 11px Poppins,sans-serif;color:#16213e;max-width:230px}'
    +'.sig-pop b{color:#c0392b}'
+   +'.ntm-badge{display:flex;align-items:center;justify-content:center;min-width:22px;height:17px;'
+   +'padding:0 4px;border-radius:9px;background:#7C3AED;color:#fff;font:800 10px Poppins,sans-serif;'
+   +'border:1.5px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.4)}'
+   +'.ntm-badge.vide{background:#8fa6bd}'
+   +'.ntm-pop{font:600 11px Poppins,sans-serif;color:#16213e;max-width:280px;max-height:230px;overflow:auto}'
+   +'.ntm-pop b{color:#5B21B6}'
+   +'.ntm-un{margin-top:6px;padding-top:5px;border-top:1px solid #e3e6ee;white-space:pre-wrap;'
+   +'max-height:130px;overflow:auto;font:500 10.5px "JetBrains Mono",monospace}'
    +'#wndPanel[hidden]{display:none!important}'
    +'#wndPanel{display:flex;flex-direction:column;gap:4px;background:rgba(15,39,76,.94);border:1px solid rgba(255,255,255,.24);'
    +'border-radius:12px;padding:7px;box-shadow:0 8px 22px rgba(0,0,0,.35)}'
@@ -6480,9 +6489,7 @@ function openRelinkChoice(){
   window.addEventListener('orientationchange',function(){setTimeout(place,120)});
   try{ map.on('resize',place); map.whenReady(function(){ setTimeout(place,300); setTimeout(place,1200); }); }catch(e){}
   btn.addEventListener('click',function(e){ e.stopPropagation();
-    if(e.target.closest && e.target.closest('#mtoD')){
-      if(typeof showToast==='function') showToast('NOTAM / SUP AIP : bient\u00f4t disponibles.');
-      return; }
+    if(e.target.closest && e.target.closest('#mtoD')){ ntmToggle(); return; }
     panel.hidden=!panel.hidden; place(); });
   try{ map.on('zoomend',function(){ draw(); }); }catch(e){}
   function samples(){
@@ -6595,6 +6602,112 @@ function openRelinkChoice(){
   }
   (function(){ var row=document.getElementById('sigRow');
     if(row) row.addEventListener('click',function(e){ e.stopPropagation(); sigToggle(); }); })();
+  /* ===== Couche NOTAM (partie droite du bouton) — terrains du vol, dégagements
+     et terrains proches de la trace ; source EUROCONTROL (EAD) via autorouter,
+     relayée par la fonction « cartes ». autorouter livre la ligne Q décodée
+     (position, rayon NM, plancher/plafond FL) : rien à interpréter ici. */
+  var notamGroup=L.layerGroup().addTo(map);
+  var notamOn=false, notamData=null, notamBusy=false;
+  function ntmIdx(){ var idx={};
+    for(var i=0;i<AERO.length;i++){ var a=AERO[i];
+      if(/^LF[A-Z]{2}$/.test(a[0])) idx[a[0]]={lat:a[2],lng:a[3],nom:a[1]}; }
+    return idx; }
+  function terrainsNotam(){
+    var roles={}, ordre=[], idx=ntmIdx();
+    var pose=function(code,role){ code=String(code||'').toUpperCase();
+      if(!/^[A-Z]{4}$/.test(code)||!idx[code]) return;
+      if(!(code in roles)){ roles[code]=role; ordre.push(code); } };
+    var brs=[routes.aller,routes.retour];
+    /* terrains du vol : points nommés par un code, ou posés sur un terrain (moins de 2 NM) */
+    brs.forEach(function(arr,bi){ (arr||[]).forEach(function(pt,i){
+      var role=(bi===0&&i===0)?'d\u00e9part':((bi===0&&i===arr.length-1)?'arriv\u00e9e':'survol\u00e9');
+      var nm=String(pt.name||'').toUpperCase();
+      if(idx[nm]){ pose(nm,role); return; }
+      for(var k in idx){ if(legCalc(pt,idx[k]).nm<=2){ pose(k,role); break; } }
+    });});
+    /* dégagements choisis dans le log (miroir posé par la fiche de préparation) */
+    ((window.__NAV_DEGAG)||[]).forEach(function(c){ pose(c,'d\u00e9gagement'); });
+    /* à proximité : à moins de 10 NM de la trace, du plus près au plus loin */
+    var segs=[]; brs.forEach(function(arr){ (arr||[]).forEach(function(pt,i){ if(arr[i+1]) segs.push([pt,arr[i+1]]); }); });
+    if(segs.length){
+      var prox=[];
+      for(var k2 in idx){ if(k2 in roles) continue;
+        var best=1e9;
+        for(var si=0;si<segs.length;si++){ var pa=segs[si][0],pb=segs[si][1];
+          var kc=Math.cos(((pa.lat+pb.lat)/2)*Math.PI/180);
+          var ax=pa.lng*kc,ay=pa.lat,bx=pb.lng*kc,by=pb.lat,px=idx[k2].lng*kc,py=idx[k2].lat;
+          var dx=bx-ax,dy=by-ay,l2=dx*dx+dy*dy,t=l2?((px-ax)*dx+(py-ay)*dy)/l2:0;
+          if(t<0)t=0; else if(t>1)t=1;
+          var ex=ax+t*dx-px,ey=ay+t*dy-py,d=Math.sqrt(ex*ex+ey*ey)*60;
+          if(d<best) best=d; }
+        if(best<=10) prox.push([best,k2]); }
+      prox.sort(function(a,b){return a[0]-b[0]});
+      for(var s2=0;s2<prox.length&&ordre.length<12;s2++) pose(prox[s2][1],'\u00e0 proximit\u00e9');
+    }
+    return {codes:ordre.slice(0,12), roles:roles, idx:idx};
+  }
+  function ntmEsc(x){ return String(x||'').replace(/[<>&]/g,function(c){return {'<':'&lt;','>':'&gt;','&':'&amp;'}[c]}); }
+  function ntmDate(v){ if(!v) return '?';
+    var d=new Date(v*1000); if(isNaN(+d)) return '?';
+    return ('0'+d.getUTCDate()).slice(-2)+'/'+('0'+(d.getUTCMonth()+1)).slice(-2)
+      +' '+('0'+d.getUTCHours()).slice(-2)+':'+('0'+d.getUTCMinutes()).slice(-2); }
+  function ntmLigne(n){ return '<div class="ntm-un"><b>'+ntmEsc(n.serie||n.qcode||'NOTAM')+'</b> \u00b7 '
+    +ntmDate(n.debut)+' \u2192 '+(n.fin?ntmDate(n.fin)+(n.estimee?' (est.)':''):'PERM')
+    +((n.bas>0||(n.haut!=null&&n.haut<999))?' \u00b7 FL'+n.bas+'\u2013FL'+n.haut:'')
+    +'<br>'+ntmEsc(n.texte)+'</div>'; }
+  function ntmDraw(){ notamGroup.clearLayers();
+    if(!notamOn||!notamData) return;
+    var sel=notamData.sel, maintenant=Date.now()/1000, parAd={};
+    (notamData.notams||[]).forEach(function(n){
+      if(n.fin&&!n.estimee&&n.fin<maintenant) return;         /* expiré */
+      if(n.debut&&n.debut>maintenant+48*3600) return;         /* trop lointain */
+      (parAd[n.ad]=parAd[n.ad]||[]).push(n);
+      if(isFinite(n.lat)&&isFinite(n.lon)&&n.rayon>0&&n.rayon<=30){
+        var c=L.circle([n.lat,n.lon],{radius:n.rayon*1852,color:'#7C3AED',weight:1.5,
+          dashArray:'4 4',fill:true,fillColor:'#7C3AED',fillOpacity:.07});
+        c.bindPopup('<div class="ntm-pop"><b>'+ntmEsc(n.ad)+'</b>'+ntmLigne(n)+'</div>',{maxWidth:290});
+        notamGroup.addLayer(c);
+      }
+    });
+    (sel.codes||[]).forEach(function(code){
+      var q=sel.idx[code]; if(!q) return;
+      var lot=parAd[code]||[];
+      var ic=L.divIcon({className:'',iconSize:[30,18],iconAnchor:[15,24],
+        html:'<div class="ntm-badge'+(lot.length?'':' vide')+'">'+lot.length+'</div>'});
+      var m=L.marker([q.lat,q.lng],{icon:ic,keyboard:false});
+      m.bindPopup(lot.length
+        ?('<div class="ntm-pop"><b>'+code+' \u2014 '+lot.length+' NOTAM ('+(sel.roles[code]||'')+')</b>'+lot.map(ntmLigne).join('')+'</div>')
+        :('<div class="ntm-pop"><b>'+code+'</b> ('+(sel.roles[code]||'')+') : aucun NOTAM en vigueur.</div>'),
+        {maxWidth:290});
+      notamGroup.addLayer(m);
+    });
+  }
+  function ntmToggle(){
+    var d=document.getElementById('mtoD');
+    notamOn=!notamOn; if(d) d.classList.toggle('on',notamOn);
+    if(!notamOn){ notamGroup.clearLayers(); return; }
+    var sel=terrainsNotam();
+    if(!sel.codes.length){ notamOn=false; if(d) d.classList.remove('on');
+      if(typeof showToast==='function') showToast('Tracez d\u2019abord une navigation : les NOTAM s\u2019affichent pour les terrains du vol.');
+      return; }
+    var sig=sel.codes.join(',');
+    if(notamData&&notamData.sig===sig&&(Date.now()-notamData.t)<600000){ notamData.sel=sel; ntmDraw(); return; }
+    if(notamBusy) return; notamBusy=true;
+    var base=String(window.__SB_URL||'').replace(/\/+$/,''), key=String(window.__SB_KEY||'');
+    var hd=key?{apikey:key,Authorization:'Bearer '+key}:undefined;
+    if(!base){ notamBusy=false; notamOn=false; if(d) d.classList.remove('on');
+      if(typeof showToast==='function') showToast('NOTAM : relais non configur\u00e9.'); return; }
+    fetch(base+'/functions/v1/cartes?notam=1&ad='+sig+'&_='+Date.now(),{cache:'no-store',headers:hd})
+      .then(function(r){ return r.json().then(function(j){ if(!r.ok) throw (j&&j.erreur)||('http '+r.status); return j; }); })
+      .then(function(j){ notamBusy=false;
+        notamData={t:Date.now(),sig:sig,sel:sel,notams:(j&&j.notams)||[]};
+        ntmDraw();
+        if(typeof showToast==='function')
+          showToast(((j&&j.notams)||[]).length+' NOTAM \u00b7 '+sel.codes.length+' terrain(s) \u2014 source EUROCONTROL via autorouter. SUP AIP : \u00e0 venir.'); })
+      .catch(function(err){ notamBusy=false; notamOn=false;
+        var d2=document.getElementById('mtoD'); if(d2) d2.classList.remove('on');
+        if(typeof showToast==='function') showToast('NOTAM indisponibles \u00b7 '+String(err).slice(0,80)); });
+  }
   try{ map.on('click',function(){ panel.hidden=true; }); }catch(e){}
 })();
 try{window.__traceMap=map;}catch(e){}
@@ -7873,6 +7986,8 @@ function NavCards({nav,setNav:setNav0,tsvOf,tavOf,capOf}){
      nav.meta, donc dans la navigation elle-meme — ils suivent la synchronisation
      et se retrouvent sur tous les appareils sans rien ajouter a la base. */
   const deg=(nav.meta&&Array.isArray(nav.meta.degag))?nav.meta.degag:[];
+  /* miroir pour la couche NOTAM de la carte : les degagements choisis ici */
+  try{ window.__NAV_DEGAG=deg.filter(Boolean).map(c=>String(c).trim().toUpperCase()); }catch(e){}
   const setDeg=(i,v)=>{
     const d=[deg[0]||"",deg[1]||""];
     d[i]=String(v||"").toUpperCase().replace(/[^A-Z0-9]/g,"").slice(0,4);
@@ -7922,10 +8037,10 @@ function NavCards({nav,setNav:setNav0,tsvOf,tavOf,capOf}){
             h("button",{className:selBlock==="aller"?"on":"",onClick:()=>setSelBlock("aller")},"Log Aller"),
             h("button",{className:selBlock==="retour"?"on":"",onClick:()=>setSelBlock("retour")},"Log Retour"))):null,
         h("div",{className:"nc-grid"},
-          h("div",{className:"nc-f"},h("label",null,"Vent — dir.",h("span",{className:"nc-u"},"degrés")),h("input",{value:dr,inputMode:"decimal",onChange:e=>setWDir(e.target.value),placeholder:"270"})),
+          h("div",{className:"nc-f"},h("label",null,"Vent — dir.",h("span",{className:"nc-u"},"°")),h("input",{value:dr,inputMode:"decimal",onChange:e=>setWDir(e.target.value),placeholder:"270"})),
           h("div",{className:"nc-f"},h("label",null,"Vent — vit.",h("span",{className:"nc-u"},"kt")),h("input",{value:kt,inputMode:"decimal",onChange:e=>setWKt(e.target.value),placeholder:"15"})),
           h("div",{className:"nc-f"},h("label",null,"QNH",h("span",{className:"nc-u"},"hPa")),h("input",{value:qnh,inputMode:"decimal",onChange:e=>setQnh(e.target.value),placeholder:"1013"})),
-          h("div",{className:"nc-f nc-fhm"},h("label",null,"Horamètre",h("span",{className:"nc-u"},"départ · heures")),
+          h("div",{className:"nc-f nc-fhm"},h("label",null,"Horamètre",h("span",{className:"nc-u"},"départ")),
             h("input",{value:F.hmStart||"",inputMode:"decimal",maxLength:10,placeholder:"1234,56",
               onChange:e=>putHm("hmStart",e.target.value)})),
           h("div",{className:"nc-f"},h("label",null,"Cache Pitot",h("span",{className:"nc-u"},"prévol")),
@@ -9866,7 +9981,7 @@ window.__pickGpx=function(cb){
         +'<div id="wxdSigmet" class="wxd-sigmet">Chargement\u2026</div>';
       html+='<div class="wxd-sect">Cartes TEMSI &amp; WINTEM en vigueur</div>'
         +'<div class="wxd-srcl">Source : M\u00e9t\u00e9o-France \u2014 aviation.meteo.fr (A\u00e9roweb)</div>'
-        +(arch?'<div class="wxd-vide">Cartes non archiv\u00e9es \u2014 \u00e0 consulter en ligne (onglet WINTEM / TEMSI).</div>'
+        +(arch?'<div class="wxd-vide">Cartes non archiv\u00e9es : les images vivent chez M\u00e9t\u00e9o-France et leurs liens expirent \u2014 \u00e0 consulter en ligne (onglet WINTEM / TEMSI).</div>'
               :'<div id="wxdCartes" class="wxd-cartes">Chargement\u2026</div>');
       /* ephemeride : coucher et nuit aeronautique au depart et a l'arrivee */
       var eph='';
@@ -9989,23 +10104,13 @@ window.__pickGpx=function(cb){
           im.referrerPolicy='no-referrer';
           im.alt=c2.nom||''; im.title='Toucher pour agrandir';
           im.onload=function(){ fig.appendChild(im); };
-          var souple=false;
           function chainSuiv(){ ki++;
             if(ki<urls.length) im.src=urls[ki];
             else fig.insertAdjacentHTML('beforeend',
-              '<div class="wxd-vide">carte indisponible \u2014 voir cartes.json</div>'); }
-          im.onerror=function(){
-            /* la voie stricte a echoue : une seule consultation souple (banniere
-               honnete), puis la chaine d'adresses de secours */
-            if(!souple){ souple=true;
-              wxLienSouple(urls[0],function(j){
-                if(j){ if(String(j.date)!==wxDate14(vig)) fig.insertAdjacentHTML('beforeend',
-                    '<div class="wxd-vieille">\u26a0\ufe0e non actualis\u00e9e \u2014 validit\u00e9 r\u00e9elle '
-                    +wxEchap(wxDateMots(j.date))+'</div>');
-                  im.src=j.url; return; }
-                chainSuiv(); });
-              return; }
-            chainSuiv(); };
+              '<div class="wxd-vide">pas encore publi\u00e9e par M\u00e9t\u00e9o-France \u2014 r\u00e9essayer plus tard</div>'); }
+          /* voie stricte seulement : la voie souple peut dessiner une autre
+             carte que sa date annoncee (defaut serveur) — verifie en vivo */
+          im.onerror=function(){ chainSuiv(); };
           im.onclick=function(){ wxOuvrirCarte(c2.nom||c2.id||'Carte','Validit\u00e9 '+hh,urls,wxDate14(vig)); };
           if(urls.length) im.src=urls[0];
           else fig.insertAdjacentHTML('beforeend','<div class="wxd-vide">aucune adresse d\u00e9finie</div>');
@@ -10104,14 +10209,11 @@ window.__pickGpx=function(cb){
            souple ne sert qu'en secours (echeance pas encore publiee). */
         var im0=new Image(); im0.referrerPolicy='no-referrer';
         im0.onload=function(){ corps.innerHTML=''; corps.appendChild(im0); wxZoom(corps,im0); };
-        im0.onerror=function(){
-          wxLienSouple(urls[0],function(j){
-            k=1;
-            if(!j){ essai(); return; }
-            var retard=attendu&&j.date&&String(j.date)!==String(attendu);
-            montrer(j.url, retard?wxDateMots(j.date):null);
-          });
-        };
+        /* verifie en vivo (22/08) : le lien « le plus proche » rendu par la
+           voie souple peut dessiner une TOUT AUTRE carte que sa date annoncee
+           (l'image par defaut du serveur, un TEMSI France perime). On ne
+           montre donc que la voie stricte ; absente -> message honnete. */
+        im0.onerror=function(){ k=1; essai(); };
         im0.src=urls[0];
       }
       else corps.innerHTML='<div class="wxc-vmsg">Aucune adresse d\u00e9finie pour cette carte dans cartes.json.</div>';
