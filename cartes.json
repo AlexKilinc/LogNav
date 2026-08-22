@@ -21,7 +21,7 @@
     "id": "temsi-euroc",
     "groupe": "TEMSI",
     "nom": "TEMSI EUROC",
-    "pas": 6,
+    "pas": 3,
     "avance": 6,
     "urls": [
      "https://fshhzsvpyabtylwnxroz.supabase.co/functions/v1/cartes?type=sigwx/fr/euroc&date={AAAA}{MM}{JJ}{HH}0000"
