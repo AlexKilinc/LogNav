@@ -17,10 +17,10 @@
  * Déploiement : Supabase > Edge Functions > fonction « cartes », coller ce
  * fichier EN ENTIER (vérifier que la dernière ligne dans l'éditeur est bien
  * « }); »), déployer, et laisser « Enforce JWT verification » DÉSACTIVÉ.
- * Aucun secret requis. Vérification : ouvrir ?version=1 -> doit répondre 7.8.
+ * Aucun secret requis. Vérification : ouvrir ?version=1 -> doit répondre 7.9.
  */
 
-const VERSION = "7.8";
+const VERSION = "7.9";
 const AERO = "https://aviation.meteo.fr";
 const SOFIA = "https://sofia-briefing.aviation-civile.gouv.fr";
 const UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Safari/605.1.15";
@@ -245,9 +245,45 @@ async function poste(q: URLSearchParams): Promise<Response> {
   }
 }
 
+/* SIGMET : relais vers l'Aviation Weather Center (NOAA), qui sert les SIGMET
+   internationaux des FIR (dont les FIR français) en GeoJSON. aviationweather.gov
+   n'est pas bloqué pour les IP de datacenter (les METAR de l'appli en viennent
+   déjà) ; on ajoute juste l'autorisation CORS pour un usage direct côté carte.
+   ?sigmet=1[&fir=LFFF,LFRR,...] -> GeoJSON (filtré aux FIR demandés si fournis) */
+async function sigmet(q: URLSearchParams): Promise<Response> {
+  const firs = (q.get("fir") || "").toUpperCase().split(",").map((s) => s.trim()).filter(Boolean);
+  const u = "https://aviationweather.gov/api/data/isigmet?format=geojson";
+  try {
+    const r = await fetch(u, { headers: { "User-Agent": UA, "Accept": "application/json" } });
+    const texte = await r.text();
+    let gj: { type?: string; features?: { properties?: Record<string, unknown> }[] };
+    try { gj = JSON.parse(texte); } catch { gj = {}; }
+    let feats = (gj && gj.features) || [];
+    if (firs.length && feats.length) {
+      feats = feats.filter((f) => {
+        const p = (f && f.properties) || {};
+        const fir = String(p.firId || p.fir || p.icaoId || "").toUpperCase();
+        return firs.some((x) => fir.includes(x));
+      });
+    }
+    return new Response(JSON.stringify({ type: "FeatureCollection", features: feats }), {
+      headers: {
+        "Content-Type": "application/geo+json; charset=utf-8",
+        "Cache-Control": "public, max-age=300",
+        "Access-Control-Allow-Origin": "*",
+        "X-Cartes-Version": VERSION,
+        "X-Sigmet-Http": String(r.status),
+      },
+    });
+  } catch (e) {
+    return reponseJson({ erreur: "SIGMET indisponible", detail: String(e).slice(0, 140) }, 502);
+  }
+}
+
 Deno.serve(async (req: Request) => {
   const q = new URL(req.url).searchParams;
   if (q.get("version") === "1") return reponseJson({ version: VERSION });
+  if (q.get("sigmet") === "1") return sigmet(q);
   if (q.get("poste") === "1") return poste(q);
   const type = (q.get("type") || q.get("layer") || "").toLowerCase();
   const date = (q.get("date") || q.get("echeance") || "").replace(/\D/g, "");
