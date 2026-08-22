@@ -17,10 +17,10 @@
  * Déploiement : Supabase > Edge Functions > fonction « cartes », coller ce
  * fichier EN ENTIER (vérifier que la dernière ligne dans l'éditeur est bien
  * « }); »), déployer, et laisser « Enforce JWT verification » DÉSACTIVÉ.
- * Aucun secret requis. Vérification : ouvrir ?version=1 -> doit répondre 7.19.
+ * Aucun secret requis. Vérification : ouvrir ?version=1 -> doit répondre 7.20.
  */
 
-const VERSION = "7.19";
+const VERSION = "7.20";
 const AERO = "https://aviation.meteo.fr";
 const SOFIA = "https://sofia-briefing.aviation-civile.gouv.fr";
 const UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Safari/605.1.15";
@@ -480,6 +480,61 @@ async function notam(q: URLSearchParams): Promise<Response> {
   }
 }
 
+/* SUP AIP : lecture de l'index officiel du SIA (Métropole) — la liste est
+   rendue côté serveur dans la page (table listeSupAIP), chaque ligne portant
+   le numéro, le titre, le lien du PDF officiel et les dates de validité.
+   Structure relevée par sonde le 22/08/2026 :
+     <a class="lien_sup_aip" href=".../documents/download/f/d/NNN/">
+       <b>184/2026</b> <span>Titre… <i class="fas…"></i></span></a>
+     … Valide du <strong>2026-09-07</strong> [au <strong>…</strong>]
+   ?supaip=1 -> { maj, total, sups:[{num,titre,pdf,du,au}] } + CORS.
+   Mémo 12 h : l'index ne bouge qu'aux cycles AIRAC. */
+const SIA_SUP = "https://www.sia.aviation-civile.gouv.fr/documents/supaip/aip/id/6";
+let memoSup: { t: number; corps: string } | null = null;
+function nettoieTitre(t: string): string {
+  return t.replace(/<[^>]+>/g, " ")
+    .replace(/&#0?39;/g, "'").replace(/&amp;/g, "&").replace(/&#x20;/g, " ")
+    .replace(/&quot;/g, '"').replace(/&eacute;/gi, "é").replace(/&egrave;/gi, "è")
+    .replace(/\s+/g, " ").trim();
+}
+async function supAip(_q: URLSearchParams): Promise<Response> {
+  if (memoSup && Date.now() - memoSup.t < 12 * 3600e3) {
+    return new Response(memoSup.corps, { headers: {
+      "Content-Type": "application/json; charset=utf-8",
+      "Cache-Control": "public, max-age=3600",
+      "Access-Control-Allow-Origin": "*",
+      "X-Cartes-Version": VERSION, "X-Cartes-Supaip": "memo",
+    } });
+  }
+  try {
+    const r = await fetch(SIA_SUP, { headers: { "User-Agent": UA, "Accept": "text/html" }, redirect: "follow" });
+    const texte = await r.text();
+    if (!r.ok) return reponseJson({ erreur: "le SIA répond " + r.status }, 502);
+    const maj = (texte.match(/Date de derni\u00e8re mise \u00e0 jour de la liste\s*:\s*<b>([^<]+)<\/b>/) ||
+                 texte.match(/mise . jour de la liste\s*:\s*<b>([^<]+)<\/b>/i) || [])[1] || "";
+    const sups: { num: string; titre: string; pdf: string; du: string; au: string }[] = [];
+    const re = /class="lien_sup_aip"\s+href="([^"]+)"\s*>\s*<b>([^<]+)<\/b>\s*<span>([\s\S]*?)<\/span>[\s\S]*?Valide du\s*<strong>([0-9-]+)<\/strong>([\s\S]{0,300}?)<\/tr>/gi;
+    let m: RegExpExecArray | null;
+    while ((m = re.exec(texte)) && sups.length < 400) {
+      const au = (m[5].match(/au\s*<strong>([0-9-]+)<\/strong>/i) || [])[1] || "";
+      sups.push({ num: m[2].trim(), titre: nettoieTitre(m[3]), pdf: m[1], du: m[4], au });
+    }
+    if (!sups.length) {
+      return reponseJson({ erreur: "index SIA illisible (structure changée ?)", apercu: texte.slice(0, 300) }, 502);
+    }
+    const corps = JSON.stringify({ maj, total: sups.length, sups });
+    memoSup = { t: Date.now(), corps };
+    return new Response(corps, { headers: {
+      "Content-Type": "application/json; charset=utf-8",
+      "Cache-Control": "public, max-age=3600",
+      "Access-Control-Allow-Origin": "*",
+      "X-Cartes-Version": VERSION, "X-Cartes-Supaip": "frais",
+    } });
+  } catch (e) {
+    return reponseJson({ erreur: "SUP AIP indisponibles", detail: String(e).slice(0, 140) }, 502);
+  }
+}
+
 /* SIGMET : relais vers l'Aviation Weather Center (NOAA), qui sert les SIGMET
    internationaux des FIR (dont les FIR français) en GeoJSON. aviationweather.gov
    n'est pas bloqué pour les IP de datacenter (les METAR de l'appli en viennent
@@ -584,6 +639,7 @@ Deno.serve(async (req: Request) => {
   if (q.get("sonde")) return sonde(q);
   if (q.get("chasse")) return chasse(q);
   if (q.get("dates") === "1") return datesDe(q);
+  if (q.get("supaip") === "1") return supAip(q);
   if (q.get("notam") === "1") return notam(q);
   if (q.get("sigmet") === "1") return sigmet(q);
   if (q.get("poste") === "1") return poste(q);
