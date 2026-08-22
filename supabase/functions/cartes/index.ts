@@ -17,10 +17,10 @@
  * Déploiement : Supabase > Edge Functions > fonction « cartes », coller ce
  * fichier EN ENTIER (vérifier que la dernière ligne dans l'éditeur est bien
  * « }); »), déployer, et laisser « Enforce JWT verification » DÉSACTIVÉ.
- * Aucun secret requis. Vérification : ouvrir ?version=1 -> doit répondre 7.16.
+ * Aucun secret requis. Vérification : ouvrir ?version=1 -> doit répondre 7.17.
  */
 
-const VERSION = "7.16";
+const VERSION = "7.17";
 const AERO = "https://aviation.meteo.fr";
 const SOFIA = "https://sofia-briefing.aviation-civile.gouv.fr";
 const UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Safari/605.1.15";
@@ -345,6 +345,29 @@ async function poste(q: URLSearchParams): Promise<Response> {
   }
 }
 
+/* Catalogue d'une couche : les échéances RÉELLEMENT publiées par SOFIA —
+   pour que l'application ne propose jamais une carte qui n'existe pas encore
+   (même politique que loxodrome). ?dates=1&type=sigwx/fr/euroc ->
+   { type, dates: ["20260822180000", "20260822210000"] } */
+async function datesDe(q: URLSearchParams): Promise<Response> {
+  const type = (q.get("type") || q.get("layer") || "").toLowerCase();
+  if (!type) return reponseJson({ erreur: "type attendu (ex. sigwx/fr/euroc)" }, 400);
+  const journal: Record<string, unknown>[] = [];
+  for (const jeu of opsPour(type)) {
+    let texte = "";
+    try { texte = await posteSofia(jeu.op, jeu.champs); } catch (e) {
+      journal.push({ op: jeu.op, erreur: String(e).slice(0, 80) }); continue;
+    }
+    let liens = recolteSofia(texte);
+    if (!liens.length) liens = recolte(texte, SOFIA + "/sofia/pages/");
+    const dispo = liens.filter((l) => memeCouche(type, l.couche) && /^\d{14}$/.test(l.date));
+    if (dispo.length) {
+      return reponseJson({ type, dates: [...new Set(dispo.map((l) => l.date))].sort() });
+    }
+  }
+  return reponseJson({ type, dates: [], sofia: journal });
+}
+
 /* NOTAM : relais vers autorouter.aero, qui republie les NOTAM de la base
    EUROCONTROL (EAD) par indicateur OACI (item A), en JSON et sans
    authentification pour la lecture. autorouter fournit la ligne Q déjà
@@ -491,10 +514,21 @@ async function sonde(q: URLSearchParams): Promise<Response> {
 }
 
 Deno.serve(async (req: Request) => {
+  /* pré-vérification CORS : un fetch avec en-têtes personnalisés commence par
+     un OPTIONS ; sans cette réponse, le navigateur dit « Failed to fetch » */
+  if (req.method === "OPTIONS") {
+    return new Response(null, { headers: {
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "GET, OPTIONS",
+      "Access-Control-Allow-Headers": "authorization, apikey, x-client-info, content-type",
+      "Access-Control-Max-Age": "86400",
+    } });
+  }
   const q = new URL(req.url).searchParams;
   if (q.get("version") === "1") return reponseJson({ version: VERSION });
   if (q.get("sonde")) return sonde(q);
   if (q.get("chasse")) return chasse(q);
+  if (q.get("dates") === "1") return datesDe(q);
   if (q.get("notam") === "1") return notam(q);
   if (q.get("sigmet") === "1") return sigmet(q);
   if (q.get("poste") === "1") return poste(q);
