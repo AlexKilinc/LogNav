@@ -17,10 +17,10 @@
  * Déploiement : Supabase > Edge Functions > fonction « cartes », coller ce
  * fichier EN ENTIER (vérifier que la dernière ligne dans l'éditeur est bien
  * « }); »), déployer, et laisser « Enforce JWT verification » DÉSACTIVÉ.
- * Aucun secret requis. Vérification : ouvrir ?version=1 -> doit répondre 7.9.
+ * Aucun secret requis. Vérification : ouvrir ?version=1 -> doit répondre 7.10.
  */
 
-const VERSION = "7.9";
+const VERSION = "7.10";
 const AERO = "https://aviation.meteo.fr";
 const SOFIA = "https://sofia-briefing.aviation-civile.gouv.fr";
 const UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Safari/605.1.15";
@@ -154,8 +154,9 @@ async function viaAeroweb(type: string, date: string, journal: Record<string, un
       apercu: liens.length ? undefined : texte.slice(0, 160) });
     if (!liens.length) return null;
     const cible = Number((date || "0").padEnd(14, "0"));
-    const dispo = liens.filter((l) => l.couche === type);
-    const tri = (dispo.length ? dispo : liens).sort((a, b) =>
+    const dispo = liens.filter((l) => memeCouche(type, l.couche));
+    if (!dispo.length) return null;
+    const tri = dispo.sort((a, b) =>
       Math.abs(Number(a.date || "0") - cible) - Math.abs(Number(b.date || "0") - cible));
     const chemin = tri[0].url.replace(/^https?:\/\/[^/]+/, "");
     return { url: AERO + chemin, couche: tri[0].couche, date: tri[0].date };
@@ -175,6 +176,29 @@ function tempsDe(d: string): number {
    mieux vaut « pas encore publiée » qu'une vieille carte sous étiquette neuve */
 const TOLERANCE = 100 * 60 * 1000;
 
+/* Le relais ne doit JAMAIS servir une carte d'un autre type que celui demandé
+   (jamais un TEMSI pour un WINTEM, ni un mauvais niveau). On compare par famille
+   (WINTEM vs TEMSI), et par niveau de vol pour le WINTEM / zone pour le TEMSI. */
+function familleCouche(s: string): string {
+  s = (s || "").toLowerCase();
+  if (/wintem/.test(s)) return "wintem";
+  if (/sigwx|temsi/.test(s)) return "temsi";
+  return s.split("/")[0];
+}
+function flCouche(s: string): string {
+  const m = (s || "").toLowerCase().match(/fl0*(\d{1,3})/);
+  return m ? m[1] : "";
+}
+function zoneCouche(s: string): string {
+  s = (s || "").toLowerCase();
+  return /euroc/.test(s) ? "euroc" : (/france/.test(s) ? "france" : "");
+}
+function memeCouche(req: string, lien: string): boolean {
+  if (familleCouche(req) !== familleCouche(lien)) return false;
+  if (familleCouche(req) === "wintem") return flCouche(req) === flCouche(lien);
+  return zoneCouche(req) === zoneCouche(lien);
+}
+
 async function viaSofia(type: string, date: string, journal: Record<string, unknown>[], souple = false): Promise<Lien | null> {
   for (const jeu of opsPour(type)) {
     let texte = "";
@@ -188,10 +212,14 @@ async function viaSofia(type: string, date: string, journal: Record<string, unkn
     journal.push(entree);
     if (!liens.length) continue;
     if (jeu.op === "postWintem") wintemGagnant = jeu.champs;
-    /* la couche demandée, à la validité la plus proche */
+    /* la couche demandée, à la validité la plus proche — jamais un autre type */
     const cible = tempsDe((date || "").padEnd(14, "0"));
-    const dispo = liens.filter((l) => l.couche === type);
-    const tri = (dispo.length ? dispo : liens).sort((a, b) =>
+    const dispo = liens.filter((l) => memeCouche(type, l.couche));
+    if (!dispo.length) {
+      journal.push({ op: jeu.op, coucheAbsente: type, recu: liens.map((l) => l.couche).slice(0, 6) });
+      continue;
+    }
+    const tri = dispo.sort((a, b) =>
       Math.abs((tempsDe(a.date) || 0) - cible) - Math.abs((tempsDe(b.date) || 0) - cible));
     /* échéance demandée absente du catalogue : on le dit, on ne maquille pas —
        sauf en mode souple, où l'on rend le plus proche AVEC sa vraie date,
