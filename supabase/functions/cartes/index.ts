@@ -17,10 +17,10 @@
  * Déploiement : Supabase > Edge Functions > fonction « cartes », coller ce
  * fichier EN ENTIER (vérifier que la dernière ligne dans l'éditeur est bien
  * « }); »), déployer, et laisser « Enforce JWT verification » DÉSACTIVÉ.
- * Aucun secret requis. Vérification : ouvrir ?version=1 -> doit répondre 7.20.
+ * Aucun secret requis. Vérification : ouvrir ?version=1 -> doit répondre 7.21.
  */
 
-const VERSION = "7.20";
+const VERSION = "7.21";
 const AERO = "https://aviation.meteo.fr";
 const SOFIA = "https://sofia-briefing.aviation-civile.gouv.fr";
 const UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Safari/605.1.15";
@@ -513,11 +513,21 @@ async function supAip(_q: URLSearchParams): Promise<Response> {
     const maj = (texte.match(/Date de derni\u00e8re mise \u00e0 jour de la liste\s*:\s*<b>([^<]+)<\/b>/) ||
                  texte.match(/mise . jour de la liste\s*:\s*<b>([^<]+)<\/b>/i) || [])[1] || "";
     const sups: { num: string; titre: string; pdf: string; du: string; au: string }[] = [];
-    const re = /class="lien_sup_aip"\s+href="([^"]+)"\s*>\s*<b>([^<]+)<\/b>\s*<span>([\s\S]*?)<\/span>[\s\S]*?Valide du\s*<strong>([0-9-]+)<\/strong>([\s\S]{0,300}?)<\/tr>/gi;
-    let m: RegExpExecArray | null;
-    while ((m = re.exec(texte)) && sups.length < 400) {
-      const au = (m[5].match(/au\s*<strong>([0-9-]+)<\/strong>/i) || [])[1] || "";
-      sups.push({ num: m[2].trim(), titre: nettoieTitre(m[3]), pdf: m[1], du: m[4], au });
+    /* la page fait ~230 Ko : une expression unique avec retours en arriere
+       depassait le budget CPU de la fonction (WORKER_RESOURCE_LIMIT constate
+       en vivo). On decoupe donc ligne par ligne (<tr) et on n'applique que de
+       petites expressions LOCALES a chaque morceau — cout lineaire. */
+    const debut = texte.indexOf('class="listeSupAIP"');
+    const zone = debut >= 0 ? texte.slice(debut) : texte;
+    const lignes = zone.split(/<tr[\s>]/i).slice(1, 500);
+    for (const lg of lignes) {
+      const morceau = lg.slice(0, 4000);
+      const a = morceau.match(/class="lien_sup_aip"\s+href="([^"]+)"[^>]*>\s*<b>([^<]*)<\/b>\s*<span>([\s\S]*?)<\/span>/i);
+      if (!a) continue;
+      const du = (morceau.match(/Valide du\s*<strong[^>]*>\s*([0-9-]+)/i) || [])[1] || "";
+      const au = (morceau.match(/\bau\s*<strong[^>]*>\s*([0-9-]+)/i) || [])[1] || "";
+      sups.push({ num: a[2].trim(), titre: nettoieTitre(a[3]), pdf: a[1], du, au });
+      if (sups.length >= 400) break;
     }
     if (!sups.length) {
       return reponseJson({ erreur: "index SIA illisible (structure changée ?)", apercu: texte.slice(0, 300) }, 502);
