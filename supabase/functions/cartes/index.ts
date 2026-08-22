@@ -15,10 +15,10 @@
  * Déploiement : Supabase > Edge Functions > fonction « cartes », coller ce
  * fichier EN ENTIER (vérifier que la dernière ligne dans l'éditeur est bien
  * « }); »), déployer, et laisser « Enforce JWT verification » DÉSACTIVÉ.
- * Aucun secret requis. Vérification : ouvrir ?version=1 -> doit répondre 7.5.
+ * Aucun secret requis. Vérification : ouvrir ?version=1 -> doit répondre 7.6.
  */
 
-const VERSION = "7.5";
+const VERSION = "7.6";
 const AERO = "https://aviation.meteo.fr";
 const SOFIA = "https://sofia-briefing.aviation-civile.gouv.fr";
 const UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Safari/605.1.15";
@@ -71,7 +71,8 @@ function opsPour(type: string): { op: string; champs: Record<string, string> }[]
   const t = type.toLowerCase();
   if (t === "sigwx/fr/france") return [{ op: "postTemsi", champs: { zone: "FRANCE" } }];
   if (t === "sigwx/fr/euroc" || t === "sigwx/eur/euroc") {
-    return [{ op: "postTemsi", champs: { zone: "EUROC" } }];
+    return [{ op: "postTemsi", champs: { zone: "EUROC" } },
+            { op: "postTemsi", champs: { zone: "AERO_EUROC" } }];
   }
   const m = t.match(/^wintemp\/fr\/france\/fl(\d{3})$/);
   if (m) {
@@ -162,6 +163,16 @@ async function viaAeroweb(type: string, date: string, journal: Record<string, un
   }
 }
 
+/* validité « AAAAMMJJHHMMSS » -> millisecondes UTC */
+function tempsDe(d: string): number {
+  if (!/^\d{14}$/.test(d)) return NaN;
+  return Date.UTC(+d.slice(0, 4), +d.slice(4, 6) - 1, +d.slice(6, 8),
+    +d.slice(8, 10), +d.slice(10, 12), +d.slice(12, 14));
+}
+/* au-delà de cet écart, le lien ne correspond plus à l'échéance demandée :
+   mieux vaut « pas encore publiée » qu'une vieille carte sous étiquette neuve */
+const TOLERANCE = 100 * 60 * 1000;
+
 async function viaSofia(type: string, date: string, journal: Record<string, unknown>[]): Promise<Lien | null> {
   for (const jeu of opsPour(type)) {
     let texte = "";
@@ -175,11 +186,18 @@ async function viaSofia(type: string, date: string, journal: Record<string, unkn
     journal.push(entree);
     if (!liens.length) continue;
     if (jeu.op === "postWintem") wintemGagnant = jeu.champs;
-    /* la couche demandée à la validité la plus proche ; sinon le premier lien */
-    const cible = Number((date || "0").padEnd(14, "0"));
+    /* la couche demandée, à la validité la plus proche */
+    const cible = tempsDe((date || "").padEnd(14, "0"));
     const dispo = liens.filter((l) => l.couche === type);
     const tri = (dispo.length ? dispo : liens).sort((a, b) =>
-      Math.abs(Number(a.date || "0") - cible) - Math.abs(Number(b.date || "0") - cible));
+      Math.abs((tempsDe(a.date) || 0) - cible) - Math.abs((tempsDe(b.date) || 0) - cible));
+    /* échéance demandée absente du catalogue : on le dit, on ne maquille pas */
+    const ecart = Math.abs((tempsDe(tri[0].date) || 0) - cible);
+    if (isFinite(cible) && ecart > TOLERANCE) {
+      journal.push({ nonPubliee: date, plusProche: tri[0].date,
+        note: "échéance demandée absente du catalogue SOFIA (carte pas encore publiée ?)" });
+      return null;
+    }
     /* l'image vit chez Météo-France : le lien signé, posé sur l'hôte AERO —
        c'est le navigateur du pilote qui ira la chercher (redirection), car
        aviation.meteo.fr refuse les adresses IP de centres de données. */

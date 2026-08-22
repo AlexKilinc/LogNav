@@ -5,7 +5,7 @@
   "https://pub-3255550d78614e53914f48f1897a111a.r2.dev/SIA_France_1000k_2026-01.pmtiles"
  ],
  "meteo": {
-  "_lisezmoi": "Cartes TEMSI/WINTEM de Meteo-France. Les images d'aviation.meteo.fr exigent un jeton de session perissable : l'application passe donc par le relais 'cartes' (fonction Supabase, dossier supabase/functions/cartes du depot) qui recolte un lien frais a chaque demande puis renvoie l'image. {AAAA}{MM}{JJ}{HH} tiennent la place de la validite UTC (date={AAAA}{MM}{JJ}{HH}0000). pas = heures entre deux validites ; avance = heures entre publication et validite. Chaque carte liste plusieurs adresses : la premiere image qui charge est affichee (le relais d'abord, l'adresse directe en secours). Diagnostic du relais : ouvrir .../functions/v1/cartes?debug=1 dans un navigateur. Modifiable sans toucher a l'application.",
+  "_lisezmoi": "Cartes TEMSI/WINTEM de Meteo-France, servies par le relais 'cartes' (fonction Supabase, dossier supabase/functions/cartes du depot) qui obtient a chaque demande un lien d'image fraichement signe aupres de SOFIA-Briefing puis redirige le navigateur. {AAAA}{MM}{JJ}{HH} tiennent la place de la validite UTC (date={AAAA}{MM}{JJ}{HH}0000). pas = heures entre deux validites ; avance = combien d'heures de cartes A VENIR afficher au-dela de la carte en vigueur (9 pour les WINTEM -> en vigueur + 3 suivantes). Une carte a venir non encore publiee s'annonce indisponible, jamais remplacee par une ancienne. Diagnostic du relais : .../functions/v1/cartes?version=1 et ?essai=1&type=...&date=... Modifiable sans toucher a l'application.",
   "cartes": [
    {
     "id": "temsi-france",
@@ -34,7 +34,7 @@
     "groupe": "WINTEM",
     "nom": "WINTEM FL020",
     "pas": 3,
-    "avance": 3,
+    "avance": 9,
     "urls": [
      "https://fshhzsvpyabtylwnxroz.supabase.co/functions/v1/cartes?type=wintemp/fr/france/fl020&date={AAAA}{MM}{JJ}{HH}0000",
      "https://aviation.meteo.fr/affiche_image.php?time={AAAA}{MM}{JJ}{HH}&type=wintemp/fr/france/fl020&date={AAAA}{MM}{JJ}{HH}0000&mode=img&comment="
@@ -45,7 +45,7 @@
     "groupe": "WINTEM",
     "nom": "WINTEM FL050",
     "pas": 3,
-    "avance": 3,
+    "avance": 9,
     "urls": [
      "https://fshhzsvpyabtylwnxroz.supabase.co/functions/v1/cartes?type=wintemp/fr/france/fl050&date={AAAA}{MM}{JJ}{HH}0000",
      "https://aviation.meteo.fr/affiche_image.php?time={AAAA}{MM}{JJ}{HH}&type=wintemp/fr/france/fl050&date={AAAA}{MM}{JJ}{HH}0000&mode=img&comment="
@@ -56,7 +56,7 @@
     "groupe": "WINTEM",
     "nom": "WINTEM FL100",
     "pas": 3,
-    "avance": 3,
+    "avance": 9,
     "urls": [
      "https://fshhzsvpyabtylwnxroz.supabase.co/functions/v1/cartes?type=wintemp/fr/france/fl100&date={AAAA}{MM}{JJ}{HH}0000",
      "https://aviation.meteo.fr/affiche_image.php?time={AAAA}{MM}{JJ}{HH}&type=wintemp/fr/france/fl100&date={AAAA}{MM}{JJ}{HH}0000&mode=img&comment="
