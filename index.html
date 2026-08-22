@@ -2900,7 +2900,7 @@ window.__TRACE_MARKUP="\n\n<header>\n  <div class=\"hdr-row1\">\n    <span class
    accessible depuis le bouton ⓘ du bandeau du log, avant toute ouverture de la carte */
 (function(){
   var host=document.createElement('div');
-  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Cartes OACI — origine et mise à jour</b></p>\n    <p style=\"margin-top:-6px\"><b>1/250 000 Région parisienne</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte250\">—</span>.</p>\n    <p style=\"margin-top:-6px\"><b>1/500 000 France</b> — IGN Géoplateforme (SCAN-OACI). Donnée <b>non libre</b>, tenue à jour par l’IGN.</p>\n    <p style=\"margin-top:-6px\"><b>1/1 000 000 France</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte1000\">—</span>.</p>\n    <p>Les deux cartes du SIA sont hébergées à part et lues par plages : seules les tuiles affichées sont téléchargées. Les trois se copient sur l’appareil pour voler sans réseau depuis <b>Profil → Cartes hors-ligne</b>. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.408</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
+  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Cartes OACI — origine et mise à jour</b></p>\n    <p style=\"margin-top:-6px\"><b>1/250 000 Région parisienne</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte250\">—</span>.</p>\n    <p style=\"margin-top:-6px\"><b>1/500 000 France</b> — IGN Géoplateforme (SCAN-OACI). Donnée <b>non libre</b>, tenue à jour par l’IGN.</p>\n    <p style=\"margin-top:-6px\"><b>1/1 000 000 France</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte1000\">—</span>.</p>\n    <p>Les deux cartes du SIA sont hébergées à part et lues par plages : seules les tuiles affichées sont téléchargées. Les trois se copient sur l’appareil pour voler sans réseau depuis <b>Profil → Cartes hors-ligne</b>. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.409</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
   (document.body||document.documentElement).appendChild(host.firstElementChild);
   /* le nom du fichier de la 1/1 000 000 dit son edition : on le lit la ou il
      est vraiment (cartes.json), jamais en dur, sinon il mentirait un jour */
@@ -9773,8 +9773,10 @@ window.__pickGpx=function(cb){
          disputer le paysage a l'export de la carte. */
       dos.querySelector('#wxdImp').onclick=function(){
         var st=document.createElement('style'); st.id='wxdPage';
-        st.textContent='@page{size:A4 portrait;margin:12mm}';
-        document.head.appendChild(st);
+        /* pose en dernier dans le document pour l'emporter sur le @page paysage
+           global (le log), qui est defini plus loin cote React */
+        st.textContent='@media print{@page{size:A4 portrait!important;margin:12mm!important}}';
+        document.body.appendChild(st);
         document.body.classList.add('wxd-imp');
         /* ceinture et bretelles : tout ce qui n'est pas le dossier est masque
            par style direct (priorite maximale, qu'aucune feuille de style ne
@@ -9858,7 +9860,17 @@ window.__pickGpx=function(cb){
     function wxDate14(v){ var d=new Date(v);
       return String(d.getUTCFullYear())+('0'+(d.getUTCMonth()+1)).slice(-2)
         +('0'+d.getUTCDate()).slice(-2)+('0'+d.getUTCHours()).slice(-2)+'0000'; }
+    var estSafari=(function(){ try{ var u=navigator.userAgent||'';
+      return /safari/i.test(u) && !/chrome|crios|chromium|android|edg|edgios|fxios|opr|opera/i.test(u);
+    }catch(e){ return false; } })();
     function wxOuvrirCarte(nom,sous,urls,attendu){
+      /* Chrome & consorts : aviation.meteo.fr refuse l'affichage integre (en-tetes
+         de provenance) ; on ouvre donc la carte directement dans un onglet, ou
+         la navigation directe est acceptee. Safari, lui, affiche la visionneuse. */
+      if(!estSafari && urls && urls[0]){
+        try{ window.open(urls[0],'_blank','noopener'); }catch(e){}
+        return;
+      }
       var v=document.createElement('div'); v.className='wxc-vue';
       v.innerHTML='<div class="wxc-vhd"><b>'+wxEchap(nom)+'</b><span>'+wxEchap(sous)+'</span>'
         +'<button type="button" class="wxc-vx" aria-label="Fermer" title="Fermer">\u00d7</button></div>'
