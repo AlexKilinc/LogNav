@@ -2900,7 +2900,7 @@ window.__TRACE_MARKUP="\n\n<header>\n  <div class=\"hdr-row1\">\n    <span class
    accessible depuis le bouton ⓘ du bandeau du log, avant toute ouverture de la carte */
 (function(){
   var host=document.createElement('div');
-  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Cartes OACI — origine et mise à jour</b></p>\n    <p style=\"margin-top:-6px\"><b>1/250 000 Région parisienne</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte250\">—</span>.</p>\n    <p style=\"margin-top:-6px\"><b>1/500 000 France</b> — IGN Géoplateforme (SCAN-OACI). Donnée <b>non libre</b>, tenue à jour par l’IGN.</p>\n    <p style=\"margin-top:-6px\"><b>1/1 000 000 France</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte1000\">—</span>.</p>\n    <p>Les deux cartes du SIA sont hébergées à part et lues par plages : seules les tuiles affichées sont téléchargées. Les trois se copient sur l’appareil pour voler sans réseau depuis <b>Profil → Cartes hors-ligne</b>. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.405</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
+  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Cartes OACI — origine et mise à jour</b></p>\n    <p style=\"margin-top:-6px\"><b>1/250 000 Région parisienne</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte250\">—</span>.</p>\n    <p style=\"margin-top:-6px\"><b>1/500 000 France</b> — IGN Géoplateforme (SCAN-OACI). Donnée <b>non libre</b>, tenue à jour par l’IGN.</p>\n    <p style=\"margin-top:-6px\"><b>1/1 000 000 France</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte1000\">—</span>.</p>\n    <p>Les deux cartes du SIA sont hébergées à part et lues par plages : seules les tuiles affichées sont téléchargées. Les trois se copient sur l’appareil pour voler sans réseau depuis <b>Profil → Cartes hors-ligne</b>. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.406</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
   (document.body||document.documentElement).appendChild(host.firstElementChild);
   /* le nom du fichier de la 1/1 000 000 dit son edition : on le lit la ou il
      est vraiment (cartes.json), jamais en dur, sinon il mentirait un jour */
@@ -9175,6 +9175,10 @@ window.__CARTE_ADR=function(j,cle){
   justify-content:center;touch-action:none;-webkit-user-select:none;user-select:none}
 .wxc-vcorps img{max-width:100%;max-height:100%;transform-origin:0 0;will-change:transform;
   background:#fff;border-radius:4px}
+.wxc-vieille{background:#4a3413;border:1px solid #8a6a2a;color:#ffd98a;border-radius:9px;
+  padding:8px 12px;margin:10px auto;max-width:520px;font:700 12.5px "Poppins",sans-serif;text-align:center}
+.wxd-vieille{background:#fff3d6;border:1px solid #d8b25e;color:#7a5a12;border-radius:6px;
+  padding:4px 8px;margin-top:4px;font:700 10px "Poppins",sans-serif}
 .wxc-vlien{display:inline-block;margin-top:2px;padding:8px 14px;border:1px solid #7fb6d9;
   border-radius:9px;color:#bfe3ff;font:700 12.5px "Poppins",sans-serif;text-decoration:none}
 .wxc-vmsg{color:#8fa9cc;font:600 13px/1.7 "Poppins",sans-serif;text-align:center;padding:30px;max-width:440px;margin:0 auto}
@@ -9664,7 +9668,7 @@ window.__pickGpx=function(cb){
           var urls=[]; var src=e.c.urls||e.c.url||[];
           if(typeof src==='string') src=[src];
           for(var q=0;q<src.length;q++) urls.push(wxAdr(src[q],e.v));
-          wxOuvrirCarte(e.c.nom||e.c.id||'Carte','Validit\u00e9 '+hh,urls);
+          wxOuvrirCarte(e.c.nom||e.c.id||'Carte','Validit\u00e9 '+hh,urls,wxDate14(e.v));
         };
       },function(){ so.classList.remove('wxc-liste'); });
     }
@@ -9803,8 +9807,14 @@ window.__pickGpx=function(cb){
             if(ki<urls.length) im.src=urls[ki];
             else fig.insertAdjacentHTML('beforeend',
               '<div class="wxd-vide">carte indisponible \u2014 voir cartes.json</div>'); };
-          im.onclick=function(){ wxOuvrirCarte(c2.nom||c2.id||'Carte','Validit\u00e9 '+hh,urls); };
-          if(urls.length) im.src=urls[0];
+          im.onclick=function(){ wxOuvrirCarte(c2.nom||c2.id||'Carte','Validit\u00e9 '+hh,urls,wxDate14(vig)); };
+          if(urls.length) wxLienSouple(urls[0],function(j){
+            if(!j){ if(urls.length) im.src=urls[0]; return; }
+            if(String(j.date)!==wxDate14(vig)) fig.insertAdjacentHTML('beforeend',
+              '<div class="wxd-vieille">\u26a0\ufe0e non actualis\u00e9e \u2014 validit\u00e9 r\u00e9elle '
+              +wxEchap(wxDateMots(j.date))+'</div>');
+            im.src=j.url;
+          });
           else fig.insertAdjacentHTML('beforeend','<div class="wxd-vide">aucune adresse d\u00e9finie</div>');
           el.appendChild(fig);
         })(mo[k]);
@@ -9812,7 +9822,26 @@ window.__pickGpx=function(cb){
         if(el) el.innerHTML='<span class="wxd-vide">cartes.json inaccessible.</span>'; });
     }
     /* ---- Visionneuse plein ecran : pincement, molette, double toucher ---- */
-    function wxOuvrirCarte(nom,sous,urls){
+    /* Le relais sait dire, en JSON, le lien le plus recent d'une couche avec
+       sa vraie date — meme si l'echeance demandee manque au catalogue SOFIA.
+       C'est la parade aux retards SOFIA : on affiche la carte disponible,
+       coiffee d'un avertissement honnete, plutot qu'un ecran vide. */
+    function wxLienSouple(u0,cb){
+      if(!/functions\/v1\/cartes\?/.test(String(u0||''))){ cb(null); return; }
+      var ac=('AbortController' in window)?new AbortController():null;
+      var t=ac?setTimeout(function(){try{ac.abort()}catch(e){}},12000):null;
+      var o={cache:'no-store'}; if(ac) o.signal=ac.signal;
+      fetch(u0+'&lien=1&souple=1',o).then(function(r){ if(t)clearTimeout(t);
+        if(!r.ok) throw 0; return r.json(); })
+      .then(function(j){ cb((j&&j.url)?j:null); })
+      .catch(function(){ if(t)clearTimeout(t); cb(null); });
+    }
+    function wxDateMots(d){ var m=/^(\d{4})(\d{2})(\d{2})(\d{2})/.exec(String(d||''));
+      return m?(m[4]+':00 UTC le '+m[3]+'/'+m[2]):''; }
+    function wxDate14(v){ var d=new Date(v);
+      return String(d.getUTCFullYear())+('0'+(d.getUTCMonth()+1)).slice(-2)
+        +('0'+d.getUTCDate()).slice(-2)+('0'+d.getUTCHours()).slice(-2)+'0000'; }
+    function wxOuvrirCarte(nom,sous,urls,attendu){
       var v=document.createElement('div'); v.className='wxc-vue';
       v.innerHTML='<div class="wxc-vhd"><b>'+wxEchap(nom)+'</b><span>'+wxEchap(sous)+'</span>'
         +'<button type="button" class="wxc-vx" aria-label="Fermer" title="Fermer">\u00d7</button></div>'
@@ -9825,6 +9854,16 @@ window.__pickGpx=function(cb){
       document.addEventListener('keydown',clav);
       /* les adresses candidates sont essayees dans l'ordre : la premiere image
          qui charge est affichee — une balise <img> ignore le CORS */
+      function montrer(src,vieille){
+        var im=new Image(); im.referrerPolicy='no-referrer';
+        im.onload=function(){ corps.innerHTML='';
+          if(vieille) corps.insertAdjacentHTML('afterbegin',
+            '<div class="wxc-vieille">\u26a0\ufe0e Carte non actualis\u00e9e \u2014 validit\u00e9 r\u00e9elle '
+            +wxEchap(vieille)+' (SOFIA n\u2019a pas encore publi\u00e9 la suivante).</div>');
+          corps.appendChild(im); wxZoom(corps,im); };
+        im.onerror=function(){ k++; essai(); };
+        im.src=src;
+      }
       var k=0;
       function essai(){
         if(k>=urls.length){
@@ -9840,13 +9879,13 @@ window.__pickGpx=function(cb){
             +'</div>';
           return;
         }
-        var im=new Image();
-        im.referrerPolicy='no-referrer';
-        im.onload=function(){ corps.innerHTML=''; corps.appendChild(im); wxZoom(corps,im); };
-        im.onerror=function(){ k++; essai(); };
-        im.src=urls[k];
+        montrer(urls[k],null);
       }
-      if(urls.length) essai();
+      if(urls.length) wxLienSouple(urls[0],function(j){
+        if(!j){ essai(); return; }
+        var retard=attendu&&j.date&&String(j.date)!==String(attendu);
+        montrer(j.url, retard?wxDateMots(j.date):null);
+      });
       else corps.innerHTML='<div class="wxc-vmsg">Aucune adresse d\u00e9finie pour cette carte dans cartes.json.</div>';
     }
     function wxZoom(zone,img){

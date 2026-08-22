@@ -8,6 +8,8 @@
  * Appels :
  *   GET ?type=sigwx/fr/france&date=20260822090000   -> 302 vers l'image signée
  *   GET ?lien=1&type=...&date=...                   -> le lien signé, en JSON
+ *   GET ?lien=1&souple=1&...   -> le lien le plus récent même si l'échéance
+ *        demandée manque au catalogue (avec sa vraie date, jamais maquillée)
  *   GET ?essai=1&type=...&date=...                  -> journal JSON de la voie SOFIA
  *   GET ?poste=1&op=postTemsi&zone=FRANCE           -> rejouer un POST SOFIA (diagnostic)
  *   GET ?version=1                                  -> version du code déployé
@@ -15,10 +17,10 @@
  * Déploiement : Supabase > Edge Functions > fonction « cartes », coller ce
  * fichier EN ENTIER (vérifier que la dernière ligne dans l'éditeur est bien
  * « }); »), déployer, et laisser « Enforce JWT verification » DÉSACTIVÉ.
- * Aucun secret requis. Vérification : ouvrir ?version=1 -> doit répondre 7.6.
+ * Aucun secret requis. Vérification : ouvrir ?version=1 -> doit répondre 7.7.
  */
 
-const VERSION = "7.6";
+const VERSION = "7.7";
 const AERO = "https://aviation.meteo.fr";
 const SOFIA = "https://sofia-briefing.aviation-civile.gouv.fr";
 const UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Safari/605.1.15";
@@ -173,7 +175,7 @@ function tempsDe(d: string): number {
    mieux vaut « pas encore publiée » qu'une vieille carte sous étiquette neuve */
 const TOLERANCE = 100 * 60 * 1000;
 
-async function viaSofia(type: string, date: string, journal: Record<string, unknown>[]): Promise<Lien | null> {
+async function viaSofia(type: string, date: string, journal: Record<string, unknown>[], souple = false): Promise<Lien | null> {
   for (const jeu of opsPour(type)) {
     let texte = "";
     try { texte = await posteSofia(jeu.op, jeu.champs); } catch (e) {
@@ -191,9 +193,11 @@ async function viaSofia(type: string, date: string, journal: Record<string, unkn
     const dispo = liens.filter((l) => l.couche === type);
     const tri = (dispo.length ? dispo : liens).sort((a, b) =>
       Math.abs((tempsDe(a.date) || 0) - cible) - Math.abs((tempsDe(b.date) || 0) - cible));
-    /* échéance demandée absente du catalogue : on le dit, on ne maquille pas */
+    /* échéance demandée absente du catalogue : on le dit, on ne maquille pas —
+       sauf en mode souple, où l'on rend le plus proche AVEC sa vraie date,
+       à charge pour l'appelant d'afficher l'avertissement */
     const ecart = Math.abs((tempsDe(tri[0].date) || 0) - cible);
-    if (isFinite(cible) && ecart > TOLERANCE) {
+    if (!souple && isFinite(cible) && ecart > TOLERANCE) {
       journal.push({ nonPubliee: date, plusProche: tri[0].date,
         note: "échéance demandée absente du catalogue SOFIA (carte pas encore publiée ?)" });
       return null;
@@ -250,11 +254,12 @@ Deno.serve(async (req: Request) => {
   if (!type || !date) {
     return reponseJson({ erreur: "paramètres attendus : type (ex. sigwx/fr/france) et date (AAAAMMJJHH0000)", version: VERSION }, 400);
   }
+  const souple = q.get("souple") === "1";
   const journal: Record<string, unknown>[] = [];
   let lien: Lien | null = null;
   try {
     lien = await viaAeroweb(type, date, journal);
-    if (!lien) lien = await viaSofia(type, date, journal);
+    if (!lien) lien = await viaSofia(type, date, journal, souple);
   } catch (e) {
     journal.push({ erreur: String(e).slice(0, 160) });
   }
