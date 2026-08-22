@@ -2900,7 +2900,7 @@ window.__TRACE_MARKUP="\n\n<header>\n  <div class=\"hdr-row1\">\n    <span class
    accessible depuis le bouton ⓘ du bandeau du log, avant toute ouverture de la carte */
 (function(){
   var host=document.createElement('div');
-  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Cartes OACI — origine et mise à jour</b></p>\n    <p style=\"margin-top:-6px\"><b>1/250 000 Région parisienne</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte250\">—</span>.</p>\n    <p style=\"margin-top:-6px\"><b>1/500 000 France</b> — IGN Géoplateforme (SCAN-OACI). Donnée <b>non libre</b>, tenue à jour par l’IGN.</p>\n    <p style=\"margin-top:-6px\"><b>1/1 000 000 France</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte1000\">—</span>.</p>\n    <p>Les deux cartes du SIA sont hébergées à part et lues par plages : seules les tuiles affichées sont téléchargées. Les trois se copient sur l’appareil pour voler sans réseau depuis <b>Profil → Cartes hors-ligne</b>. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.412</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
+  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Cartes OACI — origine et mise à jour</b></p>\n    <p style=\"margin-top:-6px\"><b>1/250 000 Région parisienne</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte250\">—</span>.</p>\n    <p style=\"margin-top:-6px\"><b>1/500 000 France</b> — IGN Géoplateforme (SCAN-OACI). Donnée <b>non libre</b>, tenue à jour par l’IGN.</p>\n    <p style=\"margin-top:-6px\"><b>1/1 000 000 France</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte1000\">—</span>.</p>\n    <p>Les deux cartes du SIA sont hébergées à part et lues par plages : seules les tuiles affichées sont téléchargées. Les trois se copient sur l’appareil pour voler sans réseau depuis <b>Profil → Cartes hors-ligne</b>. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.413</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
   (document.body||document.documentElement).appendChild(host.firstElementChild);
   /* le nom du fichier de la 1/1 000 000 dit son edition : on le lit la ou il
      est vraiment (cartes.json), jamais en dur, sinon il mentirait un jour */
@@ -9184,12 +9184,6 @@ window.__CARTE_ADR=function(j,cle){
   padding:4px 8px;margin-top:4px;font:700 10px "Poppins",sans-serif}
 .wxd-pdfvide{background:#eef2f7;border:1px dashed #9db3cc;color:#41597a;border-radius:6px;
   padding:9px 11px;margin-top:5px;font:600 10.5px "Poppins",sans-serif}
-.wxd-capimg{display:block;max-width:100%;height:auto;border:1px solid #c9d4e2;border-radius:6px;margin-top:5px;cursor:zoom-in}
-.wxd-capbar{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin-top:5px}
-.wxd-capinfo{font:600 10px "Poppins",sans-serif;color:#5b7a9a}
-.wxd-caplien{background:rgba(30,159,224,.12);border:1px solid #7fb6d9;border-radius:8px;color:#1b6fa0;
-  font:700 10.5px "Poppins",sans-serif;padding:5px 10px;cursor:pointer}
-.wxd-caproug{color:#a23; border-color:#e0a2a2;background:rgba(224,80,80,.08)}
 .wxc-vlien{display:inline-block;margin-top:2px;padding:8px 14px;border:1px solid #7fb6d9;
   border-radius:9px;color:#bfe3ff;font:700 12.5px "Poppins",sans-serif;text-decoration:none}
 .wxc-vmsg{color:#8fa9cc;font:600 13px/1.7 "Poppins",sans-serif;text-align:center;padding:30px;max-width:440px;margin:0 auto}
@@ -9706,34 +9700,6 @@ window.__pickGpx=function(cb){
        quels terrains, quels messages, quelles cartes — et ce que le dossier ne
        couvre pas, dit en toutes lettres. Tout vient de ce que l'application
        possede deja : le cache METAR/TAF, le catalogue de cartes, l'ephemeride. */
-    /* Captures des cartes fournies par le pilote : aviation.meteo.fr bloque
-       l'IP du relais (403 « administrative rules »), donc ni le serveur ni le
-       navigateur ne peuvent lire les pixels des cartes en ligne pour les mettre
-       dans le PDF. Une image que le pilote importe, elle, est « maison » : elle
-       s'affiche et s'integre au PDF partout. On la garde en local (et non dans
-       la nav, pour ne pas alourdir la synchro), datee, par identifiant de carte. */
-    var WX_CAP_MEM='lognav_wx_cap';
-    function wxCapTout(){ try{ return JSON.parse(localStorage.getItem(WX_CAP_MEM)||'{}')||{}; }catch(e){ return {}; } }
-    function wxCapGet(id){ var o=wxCapTout(); return o[id]||null; }
-    function wxCapSet(id,data){ var o=wxCapTout(); o[id]={data:data,t:Date.now()};
-      try{ localStorage.setItem(WX_CAP_MEM,JSON.stringify(o)); }catch(e){ alert('Capture trop lourde pour la m\u00e9moire locale.'); } }
-    function wxCapDel(id){ var o=wxCapTout(); delete o[id]; try{ localStorage.setItem(WX_CAP_MEM,JSON.stringify(o)); }catch(e){} }
-    /* reduction : une carte n'a pas besoin de plus de ~1500 px de large */
-    function wxCapLire(file,id,cb){
-      var fr=new FileReader();
-      fr.onload=function(){ var im=new Image();
-        im.onload=function(){ var MAX=1500, sc=Math.min(1,MAX/im.naturalWidth);
-          var cw=Math.round(im.naturalWidth*sc), ch=Math.round(im.naturalHeight*sc);
-          var cv=document.createElement('canvas'); cv.width=cw; cv.height=ch;
-          cv.getContext('2d').drawImage(im,0,0,cw,ch);
-          var data=cv.toDataURL('image/jpeg',0.82);
-          wxCapSet(id,data); cb&&cb(); };
-        im.onerror=function(){ alert('Image illisible.'); }; im.src=fr.result; };
-      fr.readAsDataURL(file);
-    }
-    function wxCapDate(t){ if(!t) return ''; var d=new Date(t);
-      return ('0'+d.getDate()).slice(-2)+'/'+('0'+(d.getMonth()+1)).slice(-2)+' \u00e0 '
-        +('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2); }
     function wxDossierMaj(ov){
       var dos=ov.querySelector('#wxDossier'); if(!dos) return;
       var c=cget(); c.metar=c.metar||{}; c.taf=c.taf||{};
@@ -9856,17 +9822,10 @@ window.__pickGpx=function(cb){
            leur place un encart nomme, la carte reste consultable dans l'appli */
         var figs=clone.querySelectorAll('.wxd-carte');
         for(var fi=0;fi<figs.length;fi++){ var f=figs[fi];
-          var lbl=f.querySelector('.wxd-clbl');
-          var capImg=f.querySelector('img.wxd-capimg');
-          if(capImg && /^data:/.test(capImg.getAttribute('src')||'')){
-            /* capture du pilote : on la garde (elle s'integre au PDF) */
-            var im2=document.createElement('img'); im2.src=capImg.src; im2.className='wxd-capimg';
-            f.innerHTML=(lbl?lbl.outerHTML:''); f.appendChild(im2);
-          } else {
-            f.innerHTML=(lbl?lbl.outerHTML:'')
-              +'<div class="wxd-pdfvide">Carte \u00e0 consulter dans l\u2019application '
-              +'(non incluse au PDF) \u2014 onglet WINTEM / TEMSI.</div>';
-          } }
+          var lbl=f.querySelector('.wxd-clbl'); var nom=lbl?lbl.textContent:'Carte';
+          f.innerHTML=(lbl?lbl.outerHTML:'')
+            +'<div class="wxd-pdfvide">Carte \u00e0 consulter dans l\u2019application '
+            +'(non incluse au PDF) \u2014 onglet WINTEM / TEMSI.</div>'; }
         var wrap=document.createElement('div');
         wrap.style.background='#fff'; wrap.style.padding='0'; wrap.appendChild(clone);
         var stamp=(String(volDate||'').replace(/[^0-9]/g,'')||'').slice(0,8);
@@ -9901,51 +9860,23 @@ window.__pickGpx=function(cb){
           var fig=document.createElement('figure'); fig.className='wxd-carte';
           fig.innerHTML='<div class="wxd-clbl">'+wxEchap(c2.nom||c2.id||'Carte')
             +' \u00b7 validit\u00e9 '+hh+'</div>';
-          var idCarte=c2.id||c2.nom||('carte'+k);
-          /* fichier cache, partage par les boutons de cette figure */
-          var inp=document.createElement('input'); inp.type='file'; inp.accept='image/*';
-          inp.className='no-print'; inp.style.display='none';
-          inp.onchange=function(){ var f=inp.files&&inp.files[0]; inp.value='';
-            if(f) wxCapLire(f,idCarte,function(){ wxDossierMaj(ov); }); };
-          var cap=wxCapGet(idCarte);
-          var barre=document.createElement('div'); barre.className='wxd-capbar no-print';
-          if(cap){
-            /* la capture du pilote : elle s'affiche ET entre dans le PDF */
-            var ci=new Image(); ci.src=cap.data; ci.className='wxd-capimg';
-            ci.title='Capture import\u00e9e \u2014 toucher pour agrandir';
-            ci.onclick=function(){ wxOuvrirCarte(c2.nom||idCarte,'Capture import\u00e9e',[cap.data]); };
-            fig.appendChild(ci);
-            barre.innerHTML='<span class="wxd-capinfo">\u2713 capture import\u00e9e'
-              +(cap.t?' le '+wxCapDate(cap.t):'')+'</span>';
-            var bRem=document.createElement('button'); bRem.type='button'; bRem.className='wxd-caplien';
-            bRem.textContent='Remplacer'; bRem.onclick=function(){ inp.click(); };
-            var bDel=document.createElement('button'); bDel.type='button'; bDel.className='wxd-caplien wxd-caproug';
-            bDel.textContent='Retirer'; bDel.onclick=function(){ wxCapDel(idCarte); wxDossierMaj(ov); };
-            barre.appendChild(bRem); barre.appendChild(bDel);
-          } else {
-            /* pas de capture : la carte en ligne (Safari l'affiche ; sinon un
-               encart), et le bouton pour importer sa propre capture */
-            var ki=0, im=new Image();
-            im.referrerPolicy='no-referrer';
-            im.alt=c2.nom||''; im.title='Toucher pour agrandir';
-            im.onload=function(){ fig.insertBefore(im,barre); };
-            im.onerror=function(){ ki++;
-              if(ki<urls.length) im.src=urls[ki];
-              else fig.insertBefore(Object.assign(document.createElement('div'),
-                {className:'wxd-vide',textContent:'carte en ligne \u2014 importer une capture pour le PDF'}),barre); };
-            im.onclick=function(){ wxOuvrirCarte(c2.nom||c2.id||'Carte','Validit\u00e9 '+hh,urls,wxDate14(vig)); };
-            if(urls.length) wxLienSouple(urls[0],function(j){
-              if(!j){ if(urls.length) im.src=urls[0]; return; }
-              if(String(j.date)!==wxDate14(vig)) fig.insertBefore(Object.assign(document.createElement('div'),
-                {className:'wxd-vieille',innerHTML:'\u26a0\ufe0e non actualis\u00e9e \u2014 validit\u00e9 r\u00e9elle '+wxEchap(wxDateMots(j.date))}),barre);
-              im.src=j.url;
-            });
-            barre.innerHTML='<span class="wxd-capinfo">carte non incluse au PDF</span>';
-            var bImp=document.createElement('button'); bImp.type='button'; bImp.className='wxd-caplien';
-            bImp.textContent='\ud83d\udcce Importer une capture'; bImp.onclick=function(){ inp.click(); };
-            barre.appendChild(bImp);
-          }
-          fig.appendChild(barre); fig.appendChild(inp);
+          var ki=0, im=new Image();
+          im.referrerPolicy='no-referrer';
+          im.alt=c2.nom||''; im.title='Toucher pour agrandir';
+          im.onload=function(){ fig.appendChild(im); };
+          im.onerror=function(){ ki++;
+            if(ki<urls.length) im.src=urls[ki];
+            else fig.insertAdjacentHTML('beforeend',
+              '<div class="wxd-vide">carte indisponible \u2014 voir cartes.json</div>'); };
+          im.onclick=function(){ wxOuvrirCarte(c2.nom||c2.id||'Carte','Validit\u00e9 '+hh,urls,wxDate14(vig)); };
+          if(urls.length) wxLienSouple(urls[0],function(j){
+            if(!j){ if(urls.length) im.src=urls[0]; return; }
+            if(String(j.date)!==wxDate14(vig)) fig.insertAdjacentHTML('beforeend',
+              '<div class="wxd-vieille">\u26a0\ufe0e non actualis\u00e9e \u2014 validit\u00e9 r\u00e9elle '
+              +wxEchap(wxDateMots(j.date))+'</div>');
+            im.src=j.url;
+          });
+          else fig.insertAdjacentHTML('beforeend','<div class="wxd-vide">aucune adresse d\u00e9finie</div>');
           el.appendChild(fig);
         })(mo[k]);
       },function(){ var el=dos.querySelector('#wxdCartes');
