@@ -17,10 +17,10 @@
  * Déploiement : Supabase > Edge Functions > fonction « cartes », coller ce
  * fichier EN ENTIER (vérifier que la dernière ligne dans l'éditeur est bien
  * « }); »), déployer, et laisser « Enforce JWT verification » DÉSACTIVÉ.
- * Aucun secret requis. Vérification : ouvrir ?version=1 -> doit répondre 7.13.
+ * Aucun secret requis. Vérification : ouvrir ?version=1 -> doit répondre 7.14.
  */
 
-const VERSION = "7.13";
+const VERSION = "7.14";
 const AERO = "https://aviation.meteo.fr";
 const SOFIA = "https://sofia-briefing.aviation-civile.gouv.fr";
 const UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Safari/605.1.15";
@@ -109,16 +109,6 @@ function flDesChamps(champs: Record<string, string>): string {
   return "";
 }
 
-/* remet l'étiquette (layer/type) du lien en accord avec la vraie couche —
-   l'image est choisie par le jeton, pas par cette étiquette */
-function urlAvecCouche(u: string, couche: string): string {
-  try { const x = new URL(u);
-    if (x.searchParams.has("layer")) x.searchParams.set("layer", couche);
-    else if (x.searchParams.has("type")) x.searchParams.set("type", couche);
-    return x.toString();
-  } catch { return u; }
-}
-
 function tronque(u: string): string {
   return u.replace(/(login=[^&]{6})[^&]*/, "$1……");
 }
@@ -161,6 +151,9 @@ function opsPour(type: string): { op: string; champs: Record<string, string> }[]
     }
     pousse({ zone: "FRANCE", level: fl });
     pousse({ zone: "FRANCE", level: String(Number(fl)) });
+    /* multi-choix en clé répétée : level=020&level=050&level=100 — si SOFIA
+       répond par niveau, les métadonnées départageront proprement */
+    pousse({ zone: "FRANCE", "level|": "020|050|100" });
     /* recolte croisee : level=020 est la forme PROUVEE — sa reponse contient
        peut-etre aussi les autres niveaux (le filtre memeCouche fera le tri) */
     pousse({ zone: "FRANCE", level: "020" });
@@ -187,7 +180,11 @@ const memoPoste = new Map<string, { t: number; texte: string }>();
 async function posteSofia(op: string, champs: Record<string, string>): Promise<string> {
   const corps = new URLSearchParams();
   corps.set(":operation", op);
-  for (const k of Object.keys(champs)) corps.set(k, champs[k]);
+  for (const k of Object.keys(champs)) {
+    /* "cle|" : valeur "a|b|c" à poster en clé répétée (multi-choix du formulaire) */
+    if (k.endsWith("|")) for (const part of champs[k].split("|")) corps.append(k.slice(0, -1), part);
+    else corps.set(k, champs[k]);
+  }
   const cle = corps.toString();
   const su = memoPoste.get(cle);
   if (su && Date.now() - su.t < 120000) return su.texte;
@@ -320,8 +317,11 @@ async function viaSofia(type: string, date: string, journal: Record<string, unkn
     /* l'image vit chez Météo-France : le lien signé, posé sur l'hôte AERO —
        c'est le navigateur du pilote qui ira la chercher (redirection), car
        aviation.meteo.fr refuse les adresses IP de centres de données. */
+    /* le lien signe part TEL QUEL : la signature couvre la valeur exacte de
+       layer, toute retouche provoque un « internal error » chez Météo-France.
+       La couche vraie voyage à côté (JSON et en-tête), jamais dans le lien. */
     const chemin = tri[0].url.replace(/^https?:\/\/[^/]+/, "");
-    return { url: urlAvecCouche(AERO + chemin, tri[0].couche), couche: tri[0].couche, date: tri[0].date };
+    return { url: AERO + chemin, couche: tri[0].couche, date: tri[0].date };
   }
   return null;
 }
@@ -413,7 +413,7 @@ async function chasse(q: URLSearchParams): Promise<Response> {
     const ch0 = liens.length ? liens[0].url.replace(/^https?:\/\/[^/]+/, "") : "";
     rap.push({ champs: jeu.champs, liens: liens.length, couches,
       ok: liens.some((l) => memeCouche(t, l.couche)),
-      exemple: ch0 ? urlAvecCouche(AERO + ch0, liens[0].couche) : undefined,
+      exemple: ch0 ? AERO + ch0 : undefined,
       apercu: liens.length ? undefined : texte.slice(0, 100) });
   }
   return reponseJson({ demande: t, essais: rap });
@@ -522,6 +522,7 @@ Deno.serve(async (req: Request) => {
       "Access-Control-Allow-Origin": "*",
       "X-Cartes-Version": VERSION,
       "X-Cartes-Voie": "redirection",
+      "X-Cartes-Couche": lien.couche,
       "X-Cartes-Date": lien.date,
     } });
   }
