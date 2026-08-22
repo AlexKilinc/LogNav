@@ -2900,7 +2900,7 @@ window.__TRACE_MARKUP="\n\n<header>\n  <div class=\"hdr-row1\">\n    <span class
    accessible depuis le bouton ⓘ du bandeau du log, avant toute ouverture de la carte */
 (function(){
   var host=document.createElement('div');
-  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Cartes OACI — origine et mise à jour</b></p>\n    <p style=\"margin-top:-6px\"><b>1/250 000 Région parisienne</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte250\">—</span>.</p>\n    <p style=\"margin-top:-6px\"><b>1/500 000 France</b> — IGN Géoplateforme (SCAN-OACI). Donnée <b>non libre</b>, tenue à jour par l’IGN.</p>\n    <p style=\"margin-top:-6px\"><b>1/1 000 000 France</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte1000\">—</span>.</p>\n    <p>Les deux cartes du SIA sont hébergées à part et lues par plages : seules les tuiles affichées sont téléchargées. Les trois se copient sur l’appareil pour voler sans réseau depuis <b>Profil → Cartes hors-ligne</b>. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.409</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
+  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Cartes OACI — origine et mise à jour</b></p>\n    <p style=\"margin-top:-6px\"><b>1/250 000 Région parisienne</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte250\">—</span>.</p>\n    <p style=\"margin-top:-6px\"><b>1/500 000 France</b> — IGN Géoplateforme (SCAN-OACI). Donnée <b>non libre</b>, tenue à jour par l’IGN.</p>\n    <p style=\"margin-top:-6px\"><b>1/1 000 000 France</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte1000\">—</span>.</p>\n    <p>Les deux cartes du SIA sont hébergées à part et lues par plages : seules les tuiles affichées sont téléchargées. Les trois se copient sur l’appareil pour voler sans réseau depuis <b>Profil → Cartes hors-ligne</b>. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.410</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
   (document.body||document.documentElement).appendChild(host.firstElementChild);
   /* le nom du fichier de la 1/1 000 000 dit son edition : on le lit la ou il
      est vraiment (cartes.json), jamais en dur, sinon il mentirait un jour */
@@ -9179,6 +9179,8 @@ window.__CARTE_ADR=function(j,cle){
   padding:8px 12px;margin:10px auto;max-width:520px;font:700 12.5px "Poppins",sans-serif;text-align:center}
 .wxd-vieille{background:#fff3d6;border:1px solid #d8b25e;color:#7a5a12;border-radius:6px;
   padding:4px 8px;margin-top:4px;font:700 10px "Poppins",sans-serif}
+.wxd-pdfvide{background:#eef2f7;border:1px dashed #9db3cc;color:#41597a;border-radius:6px;
+  padding:9px 11px;margin-top:5px;font:600 10.5px "Poppins",sans-serif}
 .wxc-vlien{display:inline-block;margin-top:2px;padding:8px 14px;border:1px solid #7fb6d9;
   border-radius:9px;color:#bfe3ff;font:700 12.5px "Poppins",sans-serif;text-decoration:none}
 .wxc-vmsg{color:#8fa9cc;font:600 13px/1.7 "Poppins",sans-serif;text-align:center;padding:30px;max-width:440px;margin:0 auto}
@@ -9696,7 +9698,8 @@ window.__pickGpx=function(cb){
       var mD=/^(\d{4})-(\d{2})-(\d{2})/.exec(String(dateVol));
       var dateVolAff=mD?(mD[3]+'/'+mD[2]+'/'+mD[1]):(dateVol||'\u00e0 pr\u00e9ciser');
       var html='<div class="wxd-bar"><button id="wxdImp" type="button" '
-        +'title="Imprimer le dossier, ou l\u2019enregistrer en PDF">Imprimer / PDF</button></div>';
+        +'title="T\u00e9l\u00e9charger le dossier m\u00e9t\u00e9o en PDF A4 portrait">'
+        +'\u2b07\ufe0e T\u00e9l\u00e9charger le PDF</button></div>';
       html+='<div class="wxd-feuille">';
       html+='<div class="wxd-titre">DOSSIER M\u00c9T\u00c9O <span>\u2014 pr\u00e9paration du vol</span></div>';
       /* le commandant de bord : le pilote connecte, comme sur le log papier */
@@ -9772,34 +9775,52 @@ window.__pickGpx=function(cb){
          Le format de page est pose le temps d'imprimer puis retire, pour ne pas
          disputer le paysage a l'export de la carte. */
       dos.querySelector('#wxdImp').onclick=function(){
-        var st=document.createElement('style'); st.id='wxdPage';
-        /* pose en dernier dans le document pour l'emporter sur le @page paysage
-           global (le log), qui est defini plus loin cote React */
-        st.textContent='@media print{@page{size:A4 portrait!important;margin:12mm!important}}';
-        document.body.appendChild(st);
-        document.body.classList.add('wxd-imp');
-        /* ceinture et bretelles : tout ce qui n'est pas le dossier est masque
-           par style direct (priorite maximale, qu'aucune feuille de style ne
-           peut contredire), puis restaure a l'identique apres l'impression */
-        var caches=[];
-        try{
-          var ovImp=document.getElementById('wxOv');
-          var enfants=[].slice.call(document.body.children);
-          for(var ci=0;ci<enfants.length;ci++){ var el2=enfants[ci];
-            if(el2===ovImp) continue;
-            var tg=el2.tagName; if(tg==='STYLE'||tg==='SCRIPT'||tg==='LINK') continue;
-            caches.push([el2,el2.style.getPropertyValue('display'),el2.style.getPropertyPriority('display')]);
-            el2.style.setProperty('display','none','important'); }
-        }catch(e4){}
-        var fini=function(){ document.body.classList.remove('wxd-imp');
-          for(var ri=0;ri<caches.length;ri++){ var c3=caches[ri];
-            try{ if(c3[1]) c3[0].style.setProperty('display',c3[1],c3[2]);
-                 else c3[0].style.removeProperty('display'); }catch(e5){} }
-          caches=[];
-          var e2=document.getElementById('wxdPage'); if(e2) e2.remove();
-          window.removeEventListener('afterprint',fini); };
-        window.addEventListener('afterprint',fini);
-        setTimeout(function(){ try{ window.print(); }catch(e3){} setTimeout(fini,1500); },50);
+        var btn=dos.querySelector('#wxdImp');
+        var feuille=dos.querySelector('.wxd-feuille'); if(!feuille) return;
+        var libInit=btn.textContent; btn.disabled=true; btn.textContent='G\u00e9n\u00e9ration\u2026';
+        /* html2pdf est charge a la demande (comme l'export du log) */
+        var pret=Promise.resolve();
+        if(typeof window.html2pdf!=='function'){
+          pret=new Promise(function(res,rej){ var sc=document.createElement('script');
+            sc.src='https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js';
+            sc.onload=res; sc.onerror=rej; document.head.appendChild(sc); });
+        }
+        pret.then(function(){ if(typeof window.html2pdf!=='function') throw new Error('module non charg\u00e9 (connexion requise la 1re fois)');
+          lancerPdf(); }).catch(function(e){ btn.disabled=false; btn.textContent=libInit;
+          alert('PDF impossible : '+((e&&e.message)||e)); });
+        function lancerPdf(){
+        /* copie detachee : le PDF ne depend ni du @page du log, ni de l'ecran */
+        var clone=feuille.cloneNode(true);
+        clone.style.width='190mm'; clone.style.maxWidth='none';
+        clone.style.height='auto'; clone.style.maxHeight='none';
+        clone.style.overflow='visible'; clone.style.boxShadow='none';
+        clone.style.borderRadius='0'; clone.style.padding='0'; clone.style.margin='0';
+        clone.style.background='#fff';
+        /* les cartes ne peuvent pas entrer dans un PDF genere par le navigateur
+           (image d'un autre domaine, sans autorisation de lecture) : on met a
+           leur place un encart nomme, la carte reste consultable dans l'appli */
+        var figs=clone.querySelectorAll('.wxd-carte');
+        for(var fi=0;fi<figs.length;fi++){ var f=figs[fi];
+          var lbl=f.querySelector('.wxd-clbl'); var nom=lbl?lbl.textContent:'Carte';
+          f.innerHTML=(lbl?lbl.outerHTML:'')
+            +'<div class="wxd-pdfvide">Carte \u00e0 consulter dans l\u2019application '
+            +'(non incluse au PDF) \u2014 onglet WINTEM / TEMSI.</div>'; }
+        var wrap=document.createElement('div');
+        wrap.style.background='#fff'; wrap.style.padding='0'; wrap.appendChild(clone);
+        var stamp=(String(volDate||'').replace(/[^0-9]/g,'')||'').slice(0,8);
+        var nomPdf='Dossier_meteo'+(stamp?'_'+stamp:'')+'.pdf';
+        window.html2pdf().set({
+          margin:[12,12,14,12], filename:nomPdf,
+          image:{type:'jpeg',quality:.96},
+          html2canvas:{scale:2,useCORS:true,backgroundColor:'#fff',windowWidth:820},
+          jsPDF:{unit:'mm',format:'a4',orientation:'portrait'},
+          pagebreak:{mode:['css','legacy']}
+        }).from(wrap).toPdf().get('pdf').then(function(pdf){ return pdf.output('blob'); })
+          .then(function(bl){ try{ __dlFile(nomPdf,bl,'application/pdf'); }catch(e){}
+            btn.disabled=false; btn.textContent=libInit; })
+          .catch(function(e){ btn.disabled=false; btn.textContent=libInit;
+            alert('PDF impossible : '+((e&&e.message)||e)); });
+        }
       };
       /* les cartes en vigueur, integrees a la feuille ; un toucher ouvre la
          visionneuse et son zoom */
