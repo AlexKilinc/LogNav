@@ -17,10 +17,10 @@
  * Déploiement : Supabase > Edge Functions > fonction « cartes », coller ce
  * fichier EN ENTIER (vérifier que la dernière ligne dans l'éditeur est bien
  * « }); »), déployer, et laisser « Enforce JWT verification » DÉSACTIVÉ.
- * Aucun secret requis. Vérification : ouvrir ?version=1 -> doit répondre 7.17.
+ * Aucun secret requis. Vérification : ouvrir ?version=1 -> doit répondre 7.18.
  */
 
-const VERSION = "7.17";
+const VERSION = "7.18";
 const AERO = "https://aviation.meteo.fr";
 const SOFIA = "https://sofia-briefing.aviation-civile.gouv.fr";
 const UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Safari/605.1.15";
@@ -393,19 +393,28 @@ async function notam(q: URLSearchParams): Promise<Response> {
   const cle = ads.slice().sort().join(",");
   const su = memoNotam.get(cle);
   if (su && Date.now() - su.t < 600000) return reponseNotam(su.corps, true);
-  const u = "https://api.autorouter.aero/v1.0/notam?itemas="
-    + encodeURIComponent(JSON.stringify(ads)) + "&offset=0&limit=400";
+  /* autorouter plafonne limit à 100 : on pagine (4 pages au plus, largement
+     assez pour une douzaine de terrains) */
+  const lignes: Record<string, unknown>[] = [];
   try {
-    const r = await fetch(u, { headers: { "User-Agent": UA, "Accept": "application/json" } });
-    const texte = await r.text();
-    if (!r.ok) {
-      return reponseJson({ erreur: "autorouter répond " + r.status, apercu: texte.slice(0, 200) }, 502);
+    let total = Infinity;
+    for (let page = 0; page < 4 && lignes.length < total; page++) {
+      const u = "https://api.autorouter.aero/v1.0/notam?itemas="
+        + encodeURIComponent(JSON.stringify(ads)) + "&offset=" + (page * 100) + "&limit=100";
+      const r = await fetch(u, { headers: { "User-Agent": UA, "Accept": "application/json" } });
+      const texte = await r.text();
+      if (!r.ok) {
+        return reponseJson({ erreur: "autorouter répond " + r.status, apercu: texte.slice(0, 200) }, 502);
+      }
+      let j: { total?: number; rows?: Record<string, unknown>[] };
+      try { j = JSON.parse(texte); } catch {
+        return reponseJson({ erreur: "réponse autorouter illisible", apercu: texte.slice(0, 200) }, 502);
+      }
+      const lot = (j.rows || []) as Record<string, unknown>[];
+      total = (typeof j.total === "number") ? j.total : lot.length;
+      lignes.push(...lot);
+      if (!lot.length) break;
     }
-    let j: { total?: number; rows?: Record<string, unknown>[] };
-    try { j = JSON.parse(texte); } catch {
-      return reponseJson({ erreur: "réponse autorouter illisible", apercu: texte.slice(0, 200) }, 502);
-    }
-    const lignes = (j.rows || []) as Record<string, unknown>[];
     const notams = lignes.filter((n) => n && !n.suppressed).map((n) => ({
       ad: String(n.itema || ""),
       serie: String(n.series || "") + String(n.number ?? "")
@@ -417,7 +426,7 @@ async function notam(q: URLSearchParams): Promise<Response> {
       qcode: String(n.code23 || "") + String(n.code45 || ""),
       portee: n.scope, horaire: n.itemd || undefined, fir: n.fir,
     }));
-    const corps = JSON.stringify({ terrains: ads, total: j.total ?? notams.length, notams });
+    const corps = JSON.stringify({ terrains: ads, total: notams.length, notams });
     memoNotam.set(cle, { t: Date.now(), corps });
     return reponseNotam(corps, false);
   } catch (e) {
