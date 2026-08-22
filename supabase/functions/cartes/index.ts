@@ -17,10 +17,10 @@
  * Déploiement : Supabase > Edge Functions > fonction « cartes », coller ce
  * fichier EN ENTIER (vérifier que la dernière ligne dans l'éditeur est bien
  * « }); »), déployer, et laisser « Enforce JWT verification » DÉSACTIVÉ.
- * Aucun secret requis. Vérification : ouvrir ?version=1 -> doit répondre 7.11.
+ * Aucun secret requis. Vérification : ouvrir ?version=1 -> doit répondre 7.12.
  */
 
-const VERSION = "7.11";
+const VERSION = "7.12";
 const AERO = "https://aviation.meteo.fr";
 const SOFIA = "https://sofia-briefing.aviation-civile.gouv.fr";
 const UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Safari/605.1.15";
@@ -48,6 +48,55 @@ function recolte(texte: string, origine: string): Lien[] {
     if (couche) out.push({ url: u, couche, date });
   }
   return out;
+}
+
+/* La réponse SOFIA est du JSON structuré : status.message contient zones[],
+   et chaque entrée temsi[]/wintem[] porte SES métadonnées (level, zone, date)
+   avec son lien signé. L'étiquette layer du lien, elle, est un gabarit
+   constant (toujours fl020 pour les WINTEM) : elle ment. La vérité vient des
+   métadonnées. */
+function recolteSofia(texte: string): Lien[] {
+  try {
+    const j = JSON.parse(texte);
+    let sm: unknown = j && (j["status.message"]);
+    if (typeof sm === "string") sm = JSON.parse(sm);
+    const zones = ((sm as { zones?: unknown[] }) || {}).zones || [];
+    const out: Lien[] = [];
+    for (const z of zones as Record<string, unknown>[]) {
+      for (const fam of ["temsi", "wintem"]) {
+        for (const it of ((z && z[fam]) || []) as Record<string, unknown>[]) {
+          if (!it || !it.link) continue;
+          let u = String(it.link);
+          if (!/^https?:/.test(u)) { try { u = new URL(u, SOFIA + "/sofia/pages/").href; } catch { continue; } }
+          let couche = "";
+          if (fam === "wintem") {
+            const d = String(it.level || "").replace(/\D/g, "");
+            if (d) couche = "wintemp/fr/france/fl" + d.padStart(3, "0");
+          } else {
+            const zn = /euroc/i.test(String(it.zone || z.id || z.name || "")) ? "euroc" : "france";
+            couche = "sigwx/fr/" + zn;
+          }
+          let date = "";
+          try { const q2 = new URL(u).searchParams;
+            date = q2.get("echeance") || q2.get("date") || ""; } catch { /* rien */ }
+          const md = String(it.date || "").match(/^(\d{2}) (\d{2}) (\d{4}) (\d{2}):(\d{2})/);
+          if (md) date = md[3] + md[2] + md[1] + md[4] + md[5] + "00";
+          if (couche) out.push({ url: u, couche, date });
+        }
+      }
+    }
+    return out;
+  } catch { return []; }
+}
+
+/* remet l'étiquette (layer/type) du lien en accord avec la vraie couche —
+   l'image est choisie par le jeton, pas par cette étiquette */
+function urlAvecCouche(u: string, couche: string): string {
+  try { const x = new URL(u);
+    if (x.searchParams.has("layer")) x.searchParams.set("layer", couche);
+    else if (x.searchParams.has("type")) x.searchParams.set("type", couche);
+    return x.toString();
+  } catch { return u; }
 }
 
 function tronque(u: string): string {
@@ -221,7 +270,8 @@ async function viaSofia(type: string, date: string, journal: Record<string, unkn
       journal.push({ op: jeu.op, champs: jeu.champs, erreur: String(e).slice(0, 100) });
       continue;
     }
-    const liens = recolte(texte, SOFIA + "/sofia/pages/");
+    let liens = recolteSofia(texte);
+    if (!liens.length) liens = recolte(texte, SOFIA + "/sofia/pages/");
     const entree: Record<string, unknown> = { op: jeu.op, champs: jeu.champs, liens: liens.length };
     if (!liens.length) entree.apercu = texte.slice(0, 160);
     journal.push(entree);
@@ -250,7 +300,7 @@ async function viaSofia(type: string, date: string, journal: Record<string, unkn
        c'est le navigateur du pilote qui ira la chercher (redirection), car
        aviation.meteo.fr refuse les adresses IP de centres de données. */
     const chemin = tri[0].url.replace(/^https?:\/\/[^/]+/, "");
-    return { url: AERO + chemin, couche: tri[0].couche, date: tri[0].date };
+    return { url: urlAvecCouche(AERO + chemin, tri[0].couche), couche: tri[0].couche, date: tri[0].date };
   }
   return null;
 }
@@ -336,18 +386,49 @@ async function chasse(q: URLSearchParams): Promise<Response> {
     try { texte = await posteSofia(jeu.op, jeu.champs); } catch (e) {
       rap.push({ champs: jeu.champs, erreur: String(e).slice(0, 80) }); continue;
     }
-    const liens = recolte(texte, SOFIA + "/sofia/pages/");
+    let liens = recolteSofia(texte);
+    if (!liens.length) liens = recolte(texte, SOFIA + "/sofia/pages/");
     const couches = [...new Set(liens.map((l) => l.couche))];
+    const ch0 = liens.length ? liens[0].url.replace(/^https?:\/\/[^/]+/, "") : "";
     rap.push({ champs: jeu.champs, liens: liens.length, couches,
       ok: liens.some((l) => memeCouche(t, l.couche)),
+      exemple: ch0 ? urlAvecCouche(AERO + ch0, liens[0].couche) : undefined,
       apercu: liens.length ? undefined : texte.slice(0, 100) });
   }
   return reponseJson({ demande: t, essais: rap });
 }
 
+/* Sonde de page : ?sonde=<url>&motif=<regex>&portee=200&n=8 — extraits du code
+   d'une page publique autour d'un motif (pour lire comment SOFIA appelle ses
+   services). */
+async function sonde(q: URLSearchParams): Promise<Response> {
+  const cible = q.get("sonde") || "";
+  const motif = q.get("motif") || "postWintem|postTemsi";
+  const portee = Math.min(Number(q.get("portee") || "200"), 500);
+  const nmax = Math.min(Number(q.get("n") || "8"), 30);
+  try {
+    const r = await fetch(cible, { headers: { "User-Agent": UA, "Accept": "*/*" }, redirect: "follow" });
+    const texte = await r.text();
+    const extraits: string[] = [];
+    const re = new RegExp(motif, "gi");
+    const vus = new Set<string>();
+    let m2;
+    while ((m2 = re.exec(texte)) && extraits.length < nmax) {
+      const e = texte.slice(Math.max(0, m2.index - portee), m2.index + m2[0].length + portee);
+      const cle = e.slice(0, 60);
+      if (!vus.has(cle)) { vus.add(cle); extraits.push(e); }
+      re.lastIndex = m2.index + m2[0].length + portee;
+    }
+    return reponseJson({ url: cible, http: r.status, octets: texte.length, extraits });
+  } catch (e) {
+    return reponseJson({ url: cible, erreur: String(e).slice(0, 140) }, 502);
+  }
+}
+
 Deno.serve(async (req: Request) => {
   const q = new URL(req.url).searchParams;
   if (q.get("version") === "1") return reponseJson({ version: VERSION });
+  if (q.get("sonde")) return sonde(q);
   if (q.get("chasse")) return chasse(q);
   if (q.get("sigmet") === "1") return sigmet(q);
   if (q.get("poste") === "1") return poste(q);
@@ -370,7 +451,7 @@ Deno.serve(async (req: Request) => {
       lien: lien ? tronque(lien.url) : null, sofia: journal });
   }
   if (q.get("lien") === "1") {
-    return lien ? reponseJson({ url: lien.url, date: lien.date })
+    return lien ? reponseJson({ url: lien.url, couche: lien.couche, date: lien.date })
       : reponseJson({ erreur: "aucun lien signé obtenu", sofia: journal }, 404);
   }
   /* img=1 : le relais récupère lui-même les octets de l'image et les re-sert
