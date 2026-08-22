@@ -17,10 +17,10 @@
  * Déploiement : Supabase > Edge Functions > fonction « cartes », coller ce
  * fichier EN ENTIER (vérifier que la dernière ligne dans l'éditeur est bien
  * « }); »), déployer, et laisser « Enforce JWT verification » DÉSACTIVÉ.
- * Aucun secret requis. Vérification : ouvrir ?version=1 -> doit répondre 7.10.
+ * Aucun secret requis. Vérification : ouvrir ?version=1 -> doit répondre 7.11.
  */
 
-const VERSION = "7.10";
+const VERSION = "7.11";
 const AERO = "https://aviation.meteo.fr";
 const SOFIA = "https://sofia-briefing.aviation-civile.gouv.fr";
 const UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Safari/605.1.15";
@@ -80,19 +80,34 @@ function opsPour(type: string): { op: string; champs: Record<string, string> }[]
   if (m) {
     const fl = m[1];
     const jeux: { op: string; champs: Record<string, string> }[] = [];
-    /* forme confirmée en vrai le 22/08/2026 : level=020 (sans « FL ») */
-    jeux.push({ op: "postWintem", champs: { zone: "FRANCE", level: fl } });
+    const pousse = (champs: Record<string, string>) => {
+      const k = JSON.stringify(champs);
+      if (!jeux.some((j) => JSON.stringify(j.champs) === k)) jeux.push({ op: "postWintem", champs });
+    };
+    /* la forme gagnante memorisee, puis le niveau exact sous plusieurs ecritures */
     if (wintemGagnant) {
       const c: Record<string, string> = { zone: "FRANCE" };
       for (const k of Object.keys(wintemGagnant)) c[k] = wintemGagnant[k].replace(/\d{2,3}/, fl);
-      jeux.push({ op: "postWintem", champs: c });
+      pousse(c);
     }
+    pousse({ zone: "FRANCE", level: fl });
+    pousse({ zone: "FRANCE", level: String(Number(fl)) });
+    /* recolte croisee : level=020 est la forme PROUVEE — sa reponse contient
+       peut-etre aussi les autres niveaux (le filtre memeCouche fera le tri) */
+    pousse({ zone: "FRANCE", level: "020" });
+    /* listes de niveaux (le formulaire SOFIA est un multi-choix) */
+    pousse({ zone: "FRANCE", level: "020;050;100" });
+    pousse({ zone: "FRANCE", levels: "020;050;100" });
+    pousse({ zone: "FRANCE", wintemLevels: "020;050;100" });
+    pousse({ zone: "FRANCE", "wintemLevels[]": fl });
+    pousse({ zone: "FRANCE", "levels[]": fl });
+    pousse({ zone: "FRANCE" });
     for (const cle of ["levels", "level", "wintemLevels", "flightLevels"]) {
       for (const val of ["FL" + fl, fl, "FL" + String(Number(fl))]) {
-        jeux.push({ op: "postWintem", champs: { zone: "FRANCE", [cle]: val } });
+        pousse({ zone: "FRANCE", [cle]: val });
       }
     }
-    return jeux.slice(0, 13);
+    return jeux.slice(0, 18);
   }
   return [];
 }
@@ -211,7 +226,6 @@ async function viaSofia(type: string, date: string, journal: Record<string, unkn
     if (!liens.length) entree.apercu = texte.slice(0, 160);
     journal.push(entree);
     if (!liens.length) continue;
-    if (jeu.op === "postWintem") wintemGagnant = jeu.champs;
     /* la couche demandée, à la validité la plus proche — jamais un autre type */
     const cible = tempsDe((date || "").padEnd(14, "0"));
     const dispo = liens.filter((l) => memeCouche(type, l.couche));
@@ -219,6 +233,8 @@ async function viaSofia(type: string, date: string, journal: Record<string, unkn
       journal.push({ op: jeu.op, coucheAbsente: type, recu: liens.map((l) => l.couche).slice(0, 6) });
       continue;
     }
+    /* la forme n'est « gagnante » que si elle a livre la bonne couche */
+    if (jeu.op === "postWintem") wintemGagnant = jeu.champs;
     const tri = dispo.sort((a, b) =>
       Math.abs((tempsDe(a.date) || 0) - cible) - Math.abs((tempsDe(b.date) || 0) - cible));
     /* échéance demandée absente du catalogue : on le dit, on ne maquille pas —
@@ -308,9 +324,31 @@ async function sigmet(q: URLSearchParams): Promise<Response> {
   }
 }
 
+/* Chasse aux formes : ?chasse=fl050 (ou un type complet) essaie chaque jeu de
+   champs postWintem/postTemsi et rapporte les couches presentes dans la reponse
+   — pour trouver, en un clic, la forme que SOFIA accepte pour un niveau. */
+async function chasse(q: URLSearchParams): Promise<Response> {
+  let t = (q.get("chasse") || "").toLowerCase();
+  if (/^fl?\d+$/.test(t)) t = "wintemp/fr/france/fl" + t.replace(/\D/g, "").padStart(3, "0");
+  const rap: Record<string, unknown>[] = [];
+  for (const jeu of opsPour(t)) {
+    let texte = "";
+    try { texte = await posteSofia(jeu.op, jeu.champs); } catch (e) {
+      rap.push({ champs: jeu.champs, erreur: String(e).slice(0, 80) }); continue;
+    }
+    const liens = recolte(texte, SOFIA + "/sofia/pages/");
+    const couches = [...new Set(liens.map((l) => l.couche))];
+    rap.push({ champs: jeu.champs, liens: liens.length, couches,
+      ok: liens.some((l) => memeCouche(t, l.couche)),
+      apercu: liens.length ? undefined : texte.slice(0, 100) });
+  }
+  return reponseJson({ demande: t, essais: rap });
+}
+
 Deno.serve(async (req: Request) => {
   const q = new URL(req.url).searchParams;
   if (q.get("version") === "1") return reponseJson({ version: VERSION });
+  if (q.get("chasse")) return chasse(q);
   if (q.get("sigmet") === "1") return sigmet(q);
   if (q.get("poste") === "1") return poste(q);
   const type = (q.get("type") || q.get("layer") || "").toLowerCase();
