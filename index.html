@@ -2900,7 +2900,7 @@ window.__TRACE_MARKUP="\n\n<header>\n  <div class=\"hdr-row1\">\n    <span class
    accessible depuis le bouton ⓘ du bandeau du log, avant toute ouverture de la carte */
 (function(){
   var host=document.createElement('div');
-  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Cartes OACI — origine et mise à jour</b></p>\n    <p style=\"margin-top:-6px\"><b>1/250 000 Région parisienne</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte250\">—</span>.</p>\n    <p style=\"margin-top:-6px\"><b>1/500 000 France</b> — IGN Géoplateforme (SCAN-OACI). Donnée <b>non libre</b>, tenue à jour par l’IGN.</p>\n    <p style=\"margin-top:-6px\"><b>1/1 000 000 France</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte1000\">—</span>.</p>\n    <p>Les deux cartes du SIA sont hébergées à part et lues par plages : seules les tuiles affichées sont téléchargées. Les trois se copient sur l’appareil pour voler sans réseau depuis <b>Profil → Cartes hors-ligne</b>. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.414</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
+  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Cartes OACI — origine et mise à jour</b></p>\n    <p style=\"margin-top:-6px\"><b>1/250 000 Région parisienne</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte250\">—</span>.</p>\n    <p style=\"margin-top:-6px\"><b>1/500 000 France</b> — IGN Géoplateforme (SCAN-OACI). Donnée <b>non libre</b>, tenue à jour par l’IGN.</p>\n    <p style=\"margin-top:-6px\"><b>1/1 000 000 France</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte1000\">—</span>.</p>\n    <p>Les deux cartes du SIA sont hébergées à part et lues par plages : seules les tuiles affichées sont téléchargées. Les trois se copient sur l’appareil pour voler sans réseau depuis <b>Profil → Cartes hors-ligne</b>. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.415</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
   (document.body||document.documentElement).appendChild(host.firstElementChild);
   /* le nom du fichier de la 1/1 000 000 dit son edition : on le lit la ou il
      est vraiment (cartes.json), jamais en dur, sinon il mentirait un jour */
@@ -9268,6 +9268,7 @@ window.__CARTE_ADR=function(j,cle){
 .wxd-sect{font:800 11px "Poppins",sans-serif;color:#2c5282;text-transform:uppercase;letter-spacing:.06em;
   border-top:1px solid #e5e9f0;margin:12px 0 7px;padding-top:9px}
 .wxd-aero{margin:0 0 9px}
+.wxd-sigmet{margin:0 0 6px}
 .wxd-ahd{display:flex;align-items:center;gap:8px;margin-bottom:3px}
 .wxd-ahd b{font:800 13px "JetBrains Mono",monospace}
 .wxd-role{font:700 9.5px "Poppins",sans-serif;padding:2px 8px;border-radius:12px;background:#e2e8f0;
@@ -9825,6 +9826,9 @@ window.__pickGpx=function(cb){
           +(taf?'<div class="wxd-msg">'+wxEchap(taf)+'</div>':'')
           +'</div>';
       }
+      html+='<div class="wxd-sect">SIGMET \u2014 FIR France</div>'
+        +'<div class="wxd-srcl">Source : NOAA \u2014 Aviation Weather Center</div>'
+        +'<div id="wxdSigmet" class="wxd-sigmet">Chargement\u2026</div>';
       html+='<div class="wxd-sect">Cartes TEMSI &amp; WINTEM en vigueur</div>'
         +'<div class="wxd-srcl">Source : M\u00e9t\u00e9o-France \u2014 aviation.meteo.fr (A\u00e9roweb)</div>'
         +'<div id="wxdCartes" class="wxd-cartes">Chargement\u2026</div>';
@@ -9855,6 +9859,27 @@ window.__pickGpx=function(cb){
         +'avant le d\u00e9part.</div>';
       html+='</div>';
       dos.innerHTML=html;
+      /* SIGMET : messages bruts des FIR France (texte -> s'integre au PDF).
+         Memorises dans window.__WX_DOSSIER_SIG pour l'archivage au depart. */
+      (function(){ var el=dos.querySelector('#wxdSigmet'); if(!el) return;
+        var base=String(window.__SB_URL||'').replace(/\/+$/,''), key=String(window.__SB_KEY||'');
+        var hd=key?{apikey:key,Authorization:'Bearer '+key}:undefined;
+        if(!base){ el.innerHTML='<span class="wxd-vide">relais non configur\u00e9.</span>'; return; }
+        fetch(base+'/functions/v1/cartes?sigmet=1&fir=LFFF,LFEE,LFRR,LFBB,LFMM&_='+Date.now(),{cache:'no-store',headers:hd})
+          .then(function(r){ return r.json(); })
+          .then(function(gj){ var fs=(gj&&gj.features)||[];
+            try{ window.__WX_DOSSIER_SIG=fs.map(function(f){ var p=(f&&f.properties)||{};
+              return {haz:p.hazard||p.hazardType||'',fir:p.firId||p.firName||p.fir||'',raw:p.rawSigmet||p.raw||p.rawText||''}; }); }catch(e){}
+            if(!fs.length){ el.innerHTML='<div class="wxd-vide">Aucun SIGMET actif sur les FIR France \u00e0 l\u2019\u00e9tablissement du dossier.</div>'; return; }
+            var h='';
+            for(var i=0;i<fs.length;i++){ var pr=fs[i].properties||{};
+              var haz=pr.hazard||pr.hazardType||'SIGMET', fir=pr.firId||pr.firName||pr.fir||'', raw=pr.rawSigmet||pr.raw||pr.rawText||'';
+              h+='<div class="wxd-aero"><div class="wxd-ahd"><b>'+wxEchap(String(fir||'FIR'))+'</b>'
+                +'<span class="wxd-role deg">'+wxEchap(String(haz))+'</span></div>'
+                +(raw?'<div class="wxd-msg">'+wxEchap(String(raw))+'</div>':'')+'</div>'; }
+            el.innerHTML=h; })
+          .catch(function(){ el.innerHTML='<div class="wxd-vide">SIGMET indisponible (r\u00e9seau).</div>'; });
+      })();
       /* impression : seule la feuille sort, en portrait, noir sur blanc.
          Le format de page est pose le temps d'imprimer puis retire, pour ne pas
          disputer le paysage a l'export de la carte. */
