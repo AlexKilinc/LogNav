@@ -17,10 +17,10 @@
  * Déploiement : Supabase > Edge Functions > fonction « cartes », coller ce
  * fichier EN ENTIER (vérifier que la dernière ligne dans l'éditeur est bien
  * « }); »), déployer, et laisser « Enforce JWT verification » DÉSACTIVÉ.
- * Aucun secret requis. Vérification : ouvrir ?version=1 -> doit répondre 7.14.
+ * Aucun secret requis. Vérification : ouvrir ?version=1 -> doit répondre 7.15.
  */
 
-const VERSION = "7.14";
+const VERSION = "7.15";
 const AERO = "https://aviation.meteo.fr";
 const SOFIA = "https://sofia-briefing.aviation-civile.gouv.fr";
 const UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Safari/605.1.15";
@@ -55,7 +55,7 @@ function recolte(texte: string, origine: string): Lien[] {
    avec son lien signé. L'étiquette layer du lien, elle, est un gabarit
    constant (toujours fl020 pour les WINTEM) : elle ment. La vérité vient des
    métadonnées. */
-function recolteSofia(texte: string, flDemande = ""): Lien[] {
+function recolteSofia(texte: string): Lien[] {
   try {
     const j = JSON.parse(texte);
     let sm: unknown = j && (j["status.message"]);
@@ -74,9 +74,10 @@ function recolteSofia(texte: string, flDemande = ""): Lien[] {
             const grp = brut.match(/\d{1,3}/g) || [];
             let fl = "";
             if (grp.length === 1) fl = grp[0].padStart(3, "0");
-            else if (grp.length > 1 && flDemande) fl = flDemande;
-            else if (!grp.length) {
-              /* pas de métadonnée : l'étiquette du lien est notre seule piste */
+            else {
+              /* métadonnée absente ou MULTIPLE ([20,100]) : vérifié en vivo,
+                 ces liens dessinent la couche de leur étiquette (le fl020 par
+                 défaut) — jamais le niveau posté. L'étiquette fait foi. */
               const um = u.match(/fl0*(\d{1,3})/i);
               if (um) fl = um[1].padStart(3, "0");
             }
@@ -96,17 +97,6 @@ function recolteSofia(texte: string, flDemande = ""): Lien[] {
     }
     return out;
   } catch { return []; }
-}
-
-/* le niveau que ce jeu de champs postWintem réclame à SOFIA (une seule
-   valeur nette — les formes en liste restent ambiguës et rendent "") */
-function flDesChamps(champs: Record<string, string>): string {
-  for (const k of Object.keys(champs)) {
-    if (k === "zone") continue;
-    const m = String(champs[k]).match(/^(?:fl)?0*(\d{1,3})$/i);
-    if (m) return m[1].padStart(3, "0");
-  }
-  return "";
 }
 
 function tronque(u: string): string {
@@ -149,26 +139,21 @@ function opsPour(type: string): { op: string; champs: Record<string, string> }[]
       for (const k of Object.keys(wintemGagnant)) c[k] = wintemGagnant[k].replace(/\d{2,3}/, fl);
       pousse(c);
     }
-    pousse({ zone: "FRANCE", level: fl });
-    pousse({ zone: "FRANCE", level: String(Number(fl)) });
     /* multi-choix en clé répétée : level=020&level=050&level=100 — si SOFIA
        répond par niveau, les métadonnées départageront proprement */
     pousse({ zone: "FRANCE", "level|": "020|050|100" });
-    /* recolte croisee : level=020 est la forme PROUVEE — sa reponse contient
-       peut-etre aussi les autres niveaux (le filtre memeCouche fera le tri) */
+    /* vocabulaire alternatif (français / Aéroweb) */
+    pousse({ zone: "FRANCE", niveau: fl });
+    pousse({ zone: "FRANCE", "niveau|": "020|050|100" });
+    pousse({ zone: "FRANCE", altitude: fl });
+    pousse({ zone: "FRANCE", "altitude|": "020|050|100" });
+    pousse({ zone: "FRANCE", level: "FL" + fl });
+    pousse({ zone: "FRANCE", "level|": "FL020|FL050|FL100" });
+    /* level=NNN simple : PROUVE inoperant (l'image reste le fl020 par defaut),
+       garde en recolte croisee au cas ou la reponse contiendrait un jour tous
+       les niveaux avec leurs metadonnees — le filtre memeCouche fera le tri */
+    pousse({ zone: "FRANCE", level: fl });
     pousse({ zone: "FRANCE", level: "020" });
-    /* listes de niveaux (le formulaire SOFIA est un multi-choix) */
-    pousse({ zone: "FRANCE", level: "020;050;100" });
-    pousse({ zone: "FRANCE", levels: "020;050;100" });
-    pousse({ zone: "FRANCE", wintemLevels: "020;050;100" });
-    pousse({ zone: "FRANCE", "wintemLevels[]": fl });
-    pousse({ zone: "FRANCE", "levels[]": fl });
-    pousse({ zone: "FRANCE" });
-    for (const cle of ["levels", "level", "wintemLevels", "flightLevels"]) {
-      for (const val of ["FL" + fl, fl, "FL" + String(Number(fl))]) {
-        pousse({ zone: "FRANCE", [cle]: val });
-      }
-    }
     return jeux.slice(0, 18);
   }
   return [];
@@ -287,7 +272,7 @@ async function viaSofia(type: string, date: string, journal: Record<string, unkn
       journal.push({ op: jeu.op, champs: jeu.champs, erreur: String(e).slice(0, 100) });
       continue;
     }
-    let liens = recolteSofia(texte, jeu.op === "postWintem" ? flDesChamps(jeu.champs) : "");
+    let liens = recolteSofia(texte);
     if (!liens.length) liens = recolte(texte, SOFIA + "/sofia/pages/");
     const entree: Record<string, unknown> = { op: jeu.op, champs: jeu.champs, liens: liens.length };
     if (!liens.length) entree.apercu = texte.slice(0, 160);
@@ -407,7 +392,7 @@ async function chasse(q: URLSearchParams): Promise<Response> {
     try { texte = await posteSofia(jeu.op, jeu.champs); } catch (e) {
       rap.push({ champs: jeu.champs, erreur: String(e).slice(0, 80) }); continue;
     }
-    let liens = recolteSofia(texte, jeu.op === "postWintem" ? flDesChamps(jeu.champs) : "");
+    let liens = recolteSofia(texte);
     if (!liens.length) liens = recolte(texte, SOFIA + "/sofia/pages/");
     const couches = [...new Set(liens.map((l) => l.couche + (l.brut ? " (level brut : " + l.brut + ")" : "")))];
     const ch0 = liens.length ? liens[0].url.replace(/^https?:\/\/[^/]+/, "") : "";
@@ -440,7 +425,9 @@ async function sonde(q: URLSearchParams): Promise<Response> {
       if (!vus.has(cle)) { vus.add(cle); extraits.push(e); }
       re.lastIndex = m2.index + m2[0].length + portee;
     }
-    return reponseJson({ url: cible, http: r.status, octets: texte.length, extraits });
+    const scripts = [...texte.matchAll(/<script[^>]*\ssrc=["']([^"']+)["']/gi)]
+      .map((m) => { try { return new URL(m[1], cible).href; } catch { return m[1]; } }).slice(0, 20);
+    return reponseJson({ url: cible, http: r.status, octets: texte.length, scripts, extraits });
   } catch (e) {
     return reponseJson({ url: cible, erreur: String(e).slice(0, 140) }, 502);
   }
