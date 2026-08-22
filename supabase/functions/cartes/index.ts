@@ -17,10 +17,10 @@
  * Déploiement : Supabase > Edge Functions > fonction « cartes », coller ce
  * fichier EN ENTIER (vérifier que la dernière ligne dans l'éditeur est bien
  * « }); »), déployer, et laisser « Enforce JWT verification » DÉSACTIVÉ.
- * Aucun secret requis. Vérification : ouvrir ?version=1 -> doit répondre 7.7.
+ * Aucun secret requis. Vérification : ouvrir ?version=1 -> doit répondre 7.8.
  */
 
-const VERSION = "7.7";
+const VERSION = "7.8";
 const AERO = "https://aviation.meteo.fr";
 const SOFIA = "https://sofia-briefing.aviation-civile.gouv.fr";
 const UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Safari/605.1.15";
@@ -270,6 +270,46 @@ Deno.serve(async (req: Request) => {
   if (q.get("lien") === "1") {
     return lien ? reponseJson({ url: lien.url, date: lien.date })
       : reponseJson({ erreur: "aucun lien signé obtenu", sofia: journal }, 404);
+  }
+  /* img=1 : le relais récupère lui-même les octets de l'image et les re-sert
+     AVEC l'autorisation CORS. Si aviation.meteo.fr sert l'image à notre serveur
+     (comme le proxy de loxodrome), le navigateur peut alors l'intégrer au PDF
+     et l'afficher sur Chrome. Sinon, on rapporte l'échec en clair. */
+  if (q.get("img") === "1") {
+    if (!lien) return reponseJson({ erreur: "aucun lien signé obtenu", sofia: journal }, 404);
+    const chemin = lien.url.replace(/^https?:\/\/[^/]+/, "");
+    const essais: Record<string, unknown>[] = [];
+    for (const hote of [AERO, SOFIA]) {
+      try {
+        const ri = await fetch(hote + chemin, {
+          headers: {
+            "User-Agent": UA,
+            "Accept": "image/avif,image/webp,image/apng,image/png,image/*,*/*;q=0.8",
+            "Accept-Language": "fr-FR,fr;q=0.9",
+            "Referer": SOFIA + "/sofia/pages/meteosearchtemsi.html",
+          },
+          redirect: "follow",
+        });
+        const ct = ri.headers.get("Content-Type") || "";
+        if (ri.ok && /^image\//i.test(ct)) {
+          const buf = await ri.arrayBuffer();
+          return new Response(buf, { headers: {
+            "Content-Type": ct,
+            "Cache-Control": "public, max-age=600",
+            "Access-Control-Allow-Origin": "*",
+            "Cross-Origin-Resource-Policy": "cross-origin",
+            "Timing-Allow-Origin": "*",
+            "X-Cartes-Version": VERSION,
+            "X-Cartes-Date": lien.date,
+            "X-Cartes-Hote": hote.replace(/^https?:\/\//, ""),
+          } });
+        }
+        const t = await ri.text();
+        essais.push({ hote, http: ri.status, contenu: ct, apercu: t.slice(0, 160) });
+      } catch (e) { essais.push({ hote, erreur: String(e).slice(0, 120) }); }
+    }
+    return reponseJson({ erreur: "octets d'image non obtenus côté serveur",
+      lien: tronque(lien.url), date: lien.date, essais }, 502);
   }
   if (lien) {
     return new Response(null, { status: 302, headers: {
