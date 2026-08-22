@@ -17,10 +17,10 @@
  * Déploiement : Supabase > Edge Functions > fonction « cartes », coller ce
  * fichier EN ENTIER (vérifier que la dernière ligne dans l'éditeur est bien
  * « }); »), déployer, et laisser « Enforce JWT verification » DÉSACTIVÉ.
- * Aucun secret requis. Vérification : ouvrir ?version=1 -> doit répondre 7.18.
+ * Aucun secret requis. Vérification : ouvrir ?version=1 -> doit répondre 7.19.
  */
 
-const VERSION = "7.18";
+const VERSION = "7.19";
 const AERO = "https://aviation.meteo.fr";
 const SOFIA = "https://sofia-briefing.aviation-civile.gouv.fr";
 const UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Safari/605.1.15";
@@ -375,6 +375,33 @@ async function datesDe(q: URLSearchParams): Promise<Response> {
    ?notam=1&ad=LFPN,LFPO,... -> { terrains, total, notams:[...] } + CORS.
    Mémo 10 minutes par jeu de terrains, pour ménager le service. */
 const memoNotam = new Map<string, { t: number; corps: string }>();
+
+/* Jeton OAuth2 autorouter (client_credentials : l'e-mail et le mot de passe
+   d'un compte gratuit), pose en secrets AUTOROUTER_ID / AUTOROUTER_MDP dans
+   Supabase (Edge Functions > cartes > Secrets) — jamais dans le code ni dans
+   GitHub. Le jeton est memorise et renouvele avant son expiration. */
+let arJeton: { t: string; fin: number } | null = null;
+async function jetonAutorouter(): Promise<string | null> {
+  const id = Deno.env.get("AUTOROUTER_ID") || "";
+  const mdp = Deno.env.get("AUTOROUTER_MDP") || "";
+  if (!id || !mdp) return null;
+  if (arJeton && Date.now() < arJeton.fin - 60000) return arJeton.t;
+  const r = await fetch("https://api.autorouter.aero/v1.0/oauth2/token", {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded",
+      "User-Agent": UA, "Accept": "application/json" },
+    body: new URLSearchParams({ grant_type: "client_credentials",
+      client_id: id, client_secret: mdp }).toString(),
+  });
+  const texte = await r.text();
+  if (!r.ok) throw new Error("jeton autorouter refusé (" + r.status + ") " + texte.slice(0, 120));
+  const j = JSON.parse(texte);
+  const duree = (Number(j.expires_in) || 3600) * 1000;
+  const jt = String(j.access_token || "");
+  if (!jt) throw new Error("jeton autorouter vide");
+  arJeton = { t: jt, fin: Date.now() + duree };
+  return jt;
+}
 function reponseNotam(corps: string, memo: boolean): Response {
   return new Response(corps, { headers: {
     "Content-Type": "application/json; charset=utf-8",
@@ -393,6 +420,17 @@ async function notam(q: URLSearchParams): Promise<Response> {
   const cle = ads.slice().sort().join(",");
   const su = memoNotam.get(cle);
   if (su && Date.now() - su.t < 600000) return reponseNotam(su.corps, true);
+  let jeton: string | null = null;
+  try { jeton = await jetonAutorouter(); } catch (e) {
+    return reponseJson({ erreur: "authentification autorouter impossible",
+      detail: String(e).slice(0, 160) }, 502);
+  }
+  if (!jeton) {
+    return reponseJson({ erreur: "identifiants autorouter absents",
+      aide: "créer un compte gratuit sur autorouter.aero, puis poser AUTOROUTER_ID (e-mail) et "
+        + "AUTOROUTER_MDP (mot de passe) dans Supabase > Edge Functions > cartes > Secrets, "
+        + "et redéployer — jamais dans GitHub." }, 503);
+  }
   /* autorouter plafonne limit à 100 : on pagine (4 pages au plus, largement
      assez pour une douzaine de terrains) */
   const lignes: Record<string, unknown>[] = [];
@@ -401,7 +439,15 @@ async function notam(q: URLSearchParams): Promise<Response> {
     for (let page = 0; page < 4 && lignes.length < total; page++) {
       const u = "https://api.autorouter.aero/v1.0/notam?itemas="
         + encodeURIComponent(JSON.stringify(ads)) + "&offset=" + (page * 100) + "&limit=100";
-      const r = await fetch(u, { headers: { "User-Agent": UA, "Accept": "application/json" } });
+      let r = await fetch(u, { headers: { "User-Agent": UA, "Accept": "application/json",
+        "Authorization": "Bearer " + jeton } });
+      if (r.status === 401 || r.status === 403) {
+        /* jeton use : on en reprend un, une seule fois */
+        arJeton = null;
+        try { jeton = await jetonAutorouter(); } catch { jeton = null; }
+        if (jeton) r = await fetch(u, { headers: { "User-Agent": UA, "Accept": "application/json",
+          "Authorization": "Bearer " + jeton } });
+      }
       const texte = await r.text();
       if (!r.ok) {
         return reponseJson({ erreur: "autorouter répond " + r.status, apercu: texte.slice(0, 200) }, 502);
