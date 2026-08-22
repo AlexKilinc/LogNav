@@ -17,10 +17,10 @@
  * Déploiement : Supabase > Edge Functions > fonction « cartes », coller ce
  * fichier EN ENTIER (vérifier que la dernière ligne dans l'éditeur est bien
  * « }); »), déployer, et laisser « Enforce JWT verification » DÉSACTIVÉ.
- * Aucun secret requis. Vérification : ouvrir ?version=1 -> doit répondre 7.15.
+ * Aucun secret requis. Vérification : ouvrir ?version=1 -> doit répondre 7.16.
  */
 
-const VERSION = "7.15";
+const VERSION = "7.16";
 const AERO = "https://aviation.meteo.fr";
 const SOFIA = "https://sofia-briefing.aviation-civile.gouv.fr";
 const UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Safari/605.1.15";
@@ -345,6 +345,63 @@ async function poste(q: URLSearchParams): Promise<Response> {
   }
 }
 
+/* NOTAM : relais vers autorouter.aero, qui republie les NOTAM de la base
+   EUROCONTROL (EAD) par indicateur OACI (item A), en JSON et sans
+   authentification pour la lecture. autorouter fournit la ligne Q déjà
+   décodée (lat/lon en degrés, rayon en NM, planchers/plafonds en FL).
+   ?notam=1&ad=LFPN,LFPO,... -> { terrains, total, notams:[...] } + CORS.
+   Mémo 10 minutes par jeu de terrains, pour ménager le service. */
+const memoNotam = new Map<string, { t: number; corps: string }>();
+function reponseNotam(corps: string, memo: boolean): Response {
+  return new Response(corps, { headers: {
+    "Content-Type": "application/json; charset=utf-8",
+    "Cache-Control": "public, max-age=600",
+    "Access-Control-Allow-Origin": "*",
+    "X-Cartes-Version": VERSION,
+    "X-Cartes-Notam": memo ? "memo" : "frais",
+  } });
+}
+async function notam(q: URLSearchParams): Promise<Response> {
+  const ads = (q.get("ad") || "").toUpperCase().split(",").map((x) => x.trim())
+    .filter((x) => /^[A-Z]{4}$/.test(x)).slice(0, 16);
+  if (!ads.length) {
+    return reponseJson({ erreur: "paramètre ad attendu : ad=LFPN,LFPO,… (codes OACI, 16 au plus)" }, 400);
+  }
+  const cle = ads.slice().sort().join(",");
+  const su = memoNotam.get(cle);
+  if (su && Date.now() - su.t < 600000) return reponseNotam(su.corps, true);
+  const u = "https://api.autorouter.aero/v1.0/notam?itemas="
+    + encodeURIComponent(JSON.stringify(ads)) + "&offset=0&limit=400";
+  try {
+    const r = await fetch(u, { headers: { "User-Agent": UA, "Accept": "application/json" } });
+    const texte = await r.text();
+    if (!r.ok) {
+      return reponseJson({ erreur: "autorouter répond " + r.status, apercu: texte.slice(0, 200) }, 502);
+    }
+    let j: { total?: number; rows?: Record<string, unknown>[] };
+    try { j = JSON.parse(texte); } catch {
+      return reponseJson({ erreur: "réponse autorouter illisible", apercu: texte.slice(0, 200) }, 502);
+    }
+    const lignes = (j.rows || []) as Record<string, unknown>[];
+    const notams = lignes.filter((n) => n && !n.suppressed).map((n) => ({
+      ad: String(n.itema || ""),
+      serie: String(n.series || "") + String(n.number ?? "")
+        + (n.year != null ? "/" + String(n.year).slice(-2) : ""),
+      texte: String(n.iteme || ""),
+      debut: n.startvalidity, fin: n.endvalidity, estimee: !!n.estimation,
+      lat: n.lat, lon: n.lon, rayon: n.radius,
+      bas: n.lower, haut: n.upper,
+      qcode: String(n.code23 || "") + String(n.code45 || ""),
+      portee: n.scope, horaire: n.itemd || undefined, fir: n.fir,
+    }));
+    const corps = JSON.stringify({ terrains: ads, total: j.total ?? notams.length, notams });
+    memoNotam.set(cle, { t: Date.now(), corps });
+    return reponseNotam(corps, false);
+  } catch (e) {
+    return reponseJson({ erreur: "NOTAM indisponibles", detail: String(e).slice(0, 140) }, 502);
+  }
+}
+
 /* SIGMET : relais vers l'Aviation Weather Center (NOAA), qui sert les SIGMET
    internationaux des FIR (dont les FIR français) en GeoJSON. aviationweather.gov
    n'est pas bloqué pour les IP de datacenter (les METAR de l'appli en viennent
@@ -438,6 +495,7 @@ Deno.serve(async (req: Request) => {
   if (q.get("version") === "1") return reponseJson({ version: VERSION });
   if (q.get("sonde")) return sonde(q);
   if (q.get("chasse")) return chasse(q);
+  if (q.get("notam") === "1") return notam(q);
   if (q.get("sigmet") === "1") return sigmet(q);
   if (q.get("poste") === "1") return poste(q);
   const type = (q.get("type") || q.get("layer") || "").toLowerCase();
