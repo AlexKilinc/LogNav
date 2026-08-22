@@ -2904,7 +2904,7 @@ window.__TRACE_MARKUP="\n\n<header>\n  <div class=\"hdr-row1\">\n    <span class
    accessible depuis le bouton ⓘ du bandeau du log, avant toute ouverture de la carte */
 (function(){
   var host=document.createElement('div');
-  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Cartes OACI — origine et mise à jour</b></p>\n    <p style=\"margin-top:-6px\"><b>1/250 000 Région parisienne</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte250\">—</span>.</p>\n    <p style=\"margin-top:-6px\"><b>1/500 000 France</b> — IGN Géoplateforme (SCAN-OACI). Donnée <b>non libre</b>, tenue à jour par l’IGN.</p>\n    <p style=\"margin-top:-6px\"><b>1/1 000 000 France</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte1000\">—</span>.</p>\n    <p>Les deux cartes du SIA sont hébergées à part et lues par plages : seules les tuiles affichées sont téléchargées. Les trois se copient sur l’appareil pour voler sans réseau depuis <b>Profil → Cartes hors-ligne</b>. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.423</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
+  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Cartes OACI — origine et mise à jour</b></p>\n    <p style=\"margin-top:-6px\"><b>1/250 000 Région parisienne</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte250\">—</span>.</p>\n    <p style=\"margin-top:-6px\"><b>1/500 000 France</b> — IGN Géoplateforme (SCAN-OACI). Donnée <b>non libre</b>, tenue à jour par l’IGN.</p>\n    <p style=\"margin-top:-6px\"><b>1/1 000 000 France</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte1000\">—</span>.</p>\n    <p>Les deux cartes du SIA sont hébergées à part et lues par plages : seules les tuiles affichées sont téléchargées. Les trois se copient sur l’appareil pour voler sans réseau depuis <b>Profil → Cartes hors-ligne</b>. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.424</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
   (document.body||document.documentElement).appendChild(host.firstElementChild);
   /* le nom du fichier de la 1/1 000 000 dit son edition : on le lit la ou il
      est vraiment (cartes.json), jamais en dur, sinon il mentirait un jour */
@@ -2915,7 +2915,7 @@ window.__TRACE_MARKUP="\n\n<header>\n  <div class=\"hdr-row1\">\n    <span class
      cartes.json. Si une copie hors-ligne est en service et vient d'une autre
      edition, c'est elle que la carte montre : le taire serait mentir. */
   function poseNom(el,liste,off){
-    if(!liste||!liste.length){ el.textContent='non renseign\u00e9 dans cartes.json'; return; }
+    if(!liste||!liste.length){ el.textContent='non renseign\u00e9'; return; }
     var n=nomFichier(liste[0]);
     if(liste.length>1) n+=' et '+(liste.length-1)+' autre morceau'+(liste.length>2?'x':'');
     el.textContent=n;
@@ -3571,7 +3571,7 @@ function attachErr(key, layer){
      previent donc au moment ou l'utilisateur la choisit */
   if(String(key)==='oaci1000'&&layer&&layer.__hdr){
     try{ layer.__hdr.then(function(){},function(){
-      showToast('Carte 1/1 000 000 introuvable : v\u00e9rifiez l\u2019adresse inscrite dans cartes.json, et que le fichier .pmtiles y est bien lisible publiquement (acc\u00e8s public et lecture par plages autoris\u00e9e).');
+      showToast('Carte 1/1 000 000 introuvable : v\u00e9rifiez que son fichier est accessible publiquement (acc\u00e8s public et lecture par plages autoris\u00e9e).');
     }); }catch(e){}
     return;
   }
@@ -8654,7 +8654,7 @@ window.__CARTE_ADR=function(j,cle){
     },
     download:function(onProg){
       return urls().then(function(l){
-        if(!l.length) throw new Error('adresse inconnue — vérifiez cartes.json');
+        if(!l.length) throw new Error('adresse de la carte inconnue');
         try{ arret=new AbortController(); }catch(e){ arret=null; }
         var blobs=[], octets=0;
         return l.reduce(function(ch,u,i){
@@ -9893,7 +9893,7 @@ window.__pickGpx=function(cb){
             }
           }
         }
-        html+='<div class="wxc-src">Source : M\u00e9t\u00e9o-France (aviation.meteo.fr) \u2014 adresses g\u00e9r\u00e9es par cartes.json</div>';
+        html+='<div class="wxc-src">Source : M\u00e9t\u00e9o-France (aviation.meteo.fr)</div>';
         so.classList.add('wxc-liste'); so.innerHTML=html;
         var rows=so.querySelectorAll('.wxc-row');
         for(var r=0;r<rows.length;r++) rows[r].onclick=function(){
@@ -10118,7 +10118,7 @@ window.__pickGpx=function(cb){
       if(!arch && typeof window.__CARTES==='function') window.__CARTES().then(function(j){
         var el=dos.querySelector('#wxdCartes'); if(!el) return;
         var mo=(j&&j.meteo&&j.meteo.cartes&&j.meteo.cartes.length)?j.meteo.cartes:null;
-        if(!mo){ el.innerHTML='<span class="wxd-vide">Aucune carte d\u00e9crite dans cartes.json (section meteo).</span>'; return; }
+        if(!mo){ el.innerHTML='<span class="wxd-vide">Aucune carte m\u00e9t\u00e9o configur\u00e9e.</span>'; return; }
         var H=3600e3, now2=Date.now(); el.innerHTML='';
         for(var k=0;k<mo.length;k++)(function(c2){
           var pas=Math.max(1,+c2.pas||3), P=pas*H;
@@ -10147,7 +10147,7 @@ window.__pickGpx=function(cb){
           el.appendChild(fig);
         })(mo[k]);
       },function(){ var el=dos.querySelector('#wxdCartes');
-        if(el) el.innerHTML='<span class="wxd-vide">cartes.json inaccessible.</span>'; });
+        if(el) el.innerHTML='<span class="wxd-vide">catalogue des cartes inaccessible.</span>'; });
     }
     /* ---- Visionneuse plein ecran : pincement, molette, double toucher ---- */
     /* Le relais sait dire, en JSON, le lien le plus recent d'une couche avec
@@ -10221,11 +10221,7 @@ window.__pickGpx=function(cb){
         if(k>=urls.length){
           corps.innerHTML='<div class="wxc-vmsg"><b>Carte indisponible.</b><br><br>'
             +'Une carte \u00e0 venir n\u2019est publi\u00e9e que peu avant sa validit\u00e9 : '
-            +'r\u00e9essayez plus tard.<br><br>'
-            +'Sinon, v\u00e9rifiez la connexion, ou l\u2019adresse de cette carte dans la section '
-            +'<b>meteo</b> de cartes.json : affichez la carte sur loxodrome.fr ou aviation.meteo.fr, '
-            +'copiez l\u2019adresse de l\u2019image (appui long) et remplacez les 14 chiffres de '
-            +'l\u2019\u00e9ch\u00e9ance par {AAAA}{MM}{JJ}{HH}0000.'
+            +'r\u00e9essayez plus tard. Sinon, v\u00e9rifiez la connexion.'
             +(urls[0]?'<br><br><a class="wxc-vlien" href="'+String(urls[0]).replace(/"/g,'&quot;')
               +'" target="_blank" rel="noopener">Ouvrir la carte dans un onglet \u2197</a>':'')
             +'</div>';
@@ -10246,7 +10242,7 @@ window.__pickGpx=function(cb){
         im0.onerror=function(){ k=1; essai(); };
         im0.src=urls[0];
       }
-      else corps.innerHTML='<div class="wxc-vmsg">Aucune adresse d\u00e9finie pour cette carte dans cartes.json.</div>';
+      else corps.innerHTML='<div class="wxc-vmsg">Aucune adresse d\u00e9finie pour cette carte.</div>';
     }
     function wxZoom(zone,img){
       var sc=1,tx=0,ty=0,pts={},nb=0,g=null,dernierTap=0;
