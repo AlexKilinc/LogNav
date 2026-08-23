@@ -17,10 +17,10 @@
  * Déploiement : Supabase > Edge Functions > fonction « cartes », coller ce
  * fichier EN ENTIER (vérifier que la dernière ligne dans l'éditeur est bien
  * « }); »), déployer, et laisser « Enforce JWT verification » DÉSACTIVÉ.
- * Aucun secret requis. Vérification : ouvrir ?version=1 -> doit répondre 7.21.
+ * Aucun secret requis. Vérification : ouvrir ?version=1 -> doit répondre 7.22.
  */
 
-const VERSION = "7.21";
+const VERSION = "7.22";
 const AERO = "https://aviation.meteo.fr";
 const SOFIA = "https://sofia-briefing.aviation-civile.gouv.fr";
 const UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Safari/605.1.15";
@@ -382,8 +382,8 @@ const memoNotam = new Map<string, { t: number; corps: string }>();
    GitHub. Le jeton est memorise et renouvele avant son expiration. */
 let arJeton: { t: string; fin: number } | null = null;
 async function jetonAutorouter(): Promise<string | null> {
-  const id = Deno.env.get("AUTOROUTER_ID") || "";
-  const mdp = Deno.env.get("AUTOROUTER_MDP") || "";
+  const id = (Deno.env.get("AUTOROUTER_ID") || "").trim();
+  const mdp = (Deno.env.get("AUTOROUTER_MDP") || "").trim();
   if (!id || !mdp) return null;
   if (arJeton && Date.now() < arJeton.fin - 60000) return arJeton.t;
   const r = await fetch("https://api.autorouter.aero/v1.0/oauth2/token", {
@@ -649,6 +649,29 @@ Deno.serve(async (req: Request) => {
   if (q.get("sonde")) return sonde(q);
   if (q.get("chasse")) return chasse(q);
   if (q.get("dates") === "1") return datesDe(q);
+  if (q.get("autorouter") === "1") {
+    const idB = Deno.env.get("AUTOROUTER_ID") || "";
+    const mdpB = Deno.env.get("AUTOROUTER_MDP") || "";
+    const etat: Record<string, unknown> = {
+      AUTOROUTER_ID: idB ? {
+        present: true, longueur: idB.length,
+        ressembleEmail: /^\S+@\S+\.\S+$/.test(idB.trim()),
+        espacesParasites: idB !== idB.trim(),
+      } : { present: false },
+      AUTOROUTER_MDP: mdpB ? {
+        present: true, longueur: mdpB.length,
+        espacesParasites: mdpB !== mdpB.trim(),
+      } : { present: false },
+    };
+    if (idB && mdpB) {
+      try {
+        arJeton = null;
+        const jt = await jetonAutorouter();
+        etat.jeton = jt ? "obtenu — l'authentification fonctionne" : "identifiants absents";
+      } catch (e) { etat.jeton = String(e).slice(0, 180); }
+    }
+    return reponseJson(etat);
+  }
   if (q.get("supaip") === "1") return supAip(q);
   if (q.get("notam") === "1") return notam(q);
   if (q.get("sigmet") === "1") return sigmet(q);
