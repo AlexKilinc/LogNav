@@ -17,10 +17,10 @@
  * Déploiement : Supabase > Edge Functions > fonction « cartes », coller ce
  * fichier EN ENTIER (vérifier que la dernière ligne dans l'éditeur est bien
  * « }); »), déployer, et laisser « Enforce JWT verification » DÉSACTIVÉ.
- * Aucun secret requis. Vérification : ouvrir ?version=1 -> doit répondre 7.25.
+ * Aucun secret requis. Vérification : ouvrir ?version=1 -> doit répondre 7.26.
  */
 
-const VERSION = "7.25";
+const VERSION = "7.26";
 const AERO = "https://aviation.meteo.fr";
 const SOFIA = "https://sofia-briefing.aviation-civile.gouv.fr";
 const UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Safari/605.1.15";
@@ -546,109 +546,163 @@ async function supAip(_q: URLSearchParams): Promise<Response> {
 }
 
 /* ================== AZBA / RTBA — activation des zones basse altitude =====
-   Source officielle : https://www.sia.aviation-civile.gouv.fr/schedules
-   L'API JSON interne de cette page n'est pas documentée : on la DÉCOUVRE
-   depuis la page (adresses de scripts et chaînes ressemblant à une API
-   azba/schedule), on essaie chaque candidate, et on normalise seulement si
-   la structure est reconnaissable (>= 5 zones avec nom et créneaux).
-   JAMAIS d'invention : si rien n'est exploitable, ?azba=1 rend un
-   diagnostic complet (essais, extraits) pour affiner à la main.
-   ?azba=1           -> { maj, total, zones:[{nom,bas,haut,creneaux:[{debut,fin}],geometrie?}] }
-   ?azba=1&url=…     -> essaie UNE adresse donnée (mise au point)
-   Mémo 20 min (les créneaux sont transmis au SIA la veille). */
-const SIA_AZBA = "https://www.sia.aviation-civile.gouv.fr/schedules";
+   Source officielle : l'API que consomme l'application AZBA du SIA
+   (https://www.sia.aviation-civile.gouv.fr/azbaEx/, un client Angular/Ionic).
+   Chemins relevés dans son code (26/08/2026) :
+     v3/custom/currentDate                       -> plage publiée
+     v3/r_t_b_as?itemsPerPage=600&debutIntervalTemps=…&finIntervalTemps=…
+     v3/r_t_b_as?network=1                       -> réseau (géométries)
+   Chaque requête porte deux en-têtes :
+     Authorization: Basic base64(<AZBA_BASIC>)
+     AUTH:          base64({"tokenUri": sha512(<AZBA_CLE> + "/api/" + chemin)})
+   Les deux valeurs sont publiques (embarquées dans le paquet JS du SIA) mais
+   restent des identifiants d'un tiers : elles vivent en SECRETS Supabase
+   (AZBA_CLE, AZBA_BASIC), jamais dans le dépôt GitHub.
+   ?azba=1            -> { maj, total, zones:[{nom,bas,haut,creneaux:[{debut,fin}],geometrie?}] }
+   ?azba=1&brut=1     -> réponse brute de l'API (mise au point)
+   ?azba=1&chemin=…   -> interroge un autre chemin de la même API
+   Mémo 20 min. */
+const AZBA_API = "https://bo-prod-sofia-vac.sia-france.fr/api/";
 let memoAzba: { t: number; corps: string } | null = null;
-function azbaPrend(o: Record<string, unknown>, cles: string[]): unknown {
-  for (const k of Object.keys(o)) if (cles.includes(k.toLowerCase())) return o[k];
-  return undefined;
+async function sha512Hex(t: string): Promise<string> {
+  const b = await crypto.subtle.digest("SHA-512", new TextEncoder().encode(t));
+  return [...new Uint8Array(b)].map((x) => x.toString(16).padStart(2, "0")).join("");
+}
+function enB64(t: string): string {
+  let s2 = ""; for (const o of new TextEncoder().encode(t)) s2 += String.fromCharCode(o);
+  return btoa(s2);
 }
 function azbaDate(v: unknown): string {
   if (v == null) return "";
-  if (typeof v === "number") { const ms = v > 4e10 ? v : v * 1000;
-    const d = new Date(ms); return isNaN(+d) ? "" : d.toISOString(); }
-  const t = String(v).trim();
-  const d = new Date(t.match(/^\d{4}-\d{2}-\d{2}[ T]\d{2}:\d{2}/) ? t.replace(" ", "T") : t);
+  if (typeof v === "number") { const d = new Date(v > 4e10 ? v : v * 1000); return isNaN(+d) ? "" : d.toISOString(); }
+  const t = String(v).trim(); if (!t) return "";
+  const d = new Date(/^\d{4}-\d{2}-\d{2} \d{2}:/.test(t) ? t.replace(" ", "T") : t);
   return isNaN(+d) ? "" : d.toISOString();
 }
-function azbaNormalise(j: unknown): { nom: string; bas: string; haut: string;
-  creneaux: { debut: string; fin: string }[]; geometrie?: unknown }[] | null {
-  /* cherche, jusqu'à 4 niveaux de profondeur, un tableau d'objets « zone » */
-  const candidats: unknown[][] = [];
-  const visite = (v: unknown, prof: number) => {
-    if (prof > 4 || v == null) return;
-    if (Array.isArray(v)) { if (v.length >= 5 && typeof v[0] === "object") candidats.push(v);
-      for (const x of v.slice(0, 3)) visite(x, prof + 1); return; }
-    if (typeof v === "object") for (const k of Object.keys(v as Record<string, unknown>))
-      visite((v as Record<string, unknown>)[k], prof + 1);
-  };
-  visite(j, 0);
-  const NOMS = ["nom", "name", "designation", "ident", "identifier", "zone", "codeid", "code", "libelle"];
-  const SLOTS = ["creneaux", "slots", "activations", "periods", "timeslots", "horaires", "schedules", "activites"];
-  const DEBUTS = ["debut", "start", "datedebut", "starttime", "from", "startdate", "date_debut", "begin"];
-  const FINS = ["fin", "end", "datefin", "endtime", "to", "enddate", "date_fin"];
-  const BAS = ["plancher", "floor", "lower", "bas", "lowerlimit", "altmin"];
-  const HAUT = ["plafond", "ceiling", "upper", "haut", "upperlimit", "altmax"];
-  const GEO = ["geometrie", "geometry", "polygon", "polygone", "coordinates", "points", "contour"];
-  for (const tab of candidats) {
-    const zones: { nom: string; bas: string; haut: string;
-      creneaux: { debut: string; fin: string }[]; geometrie?: unknown }[] = [];
-    for (const it of tab) {
-      if (!it || typeof it !== "object") continue;
-      const o = it as Record<string, unknown>;
-      const nom = String(azbaPrend(o, NOMS) ?? "").trim();
-      if (!nom) continue;
-      let creneaux: { debut: string; fin: string }[] = [];
-      const brut = azbaPrend(o, SLOTS);
-      if (Array.isArray(brut)) {
-        for (const c of brut.slice(0, 60)) {
-          if (!c || typeof c !== "object") continue;
-          const co = c as Record<string, unknown>;
-          const debut = azbaDate(azbaPrend(co, DEBUTS)), fin = azbaDate(azbaPrend(co, FINS));
-          if (debut || fin) creneaux.push({ debut, fin });
-        }
-      } else {
-        const debut = azbaDate(azbaPrend(o, DEBUTS)), fin = azbaDate(azbaPrend(o, FINS));
-        if (debut || fin) creneaux = [{ debut, fin }];
-      }
-      const z: { nom: string; bas: string; haut: string;
-        creneaux: { debut: string; fin: string }[]; geometrie?: unknown } =
-        { nom, bas: String(azbaPrend(o, BAS) ?? ""), haut: String(azbaPrend(o, HAUT) ?? ""), creneaux };
-      const geo = azbaPrend(o, GEO);
-      if (geo != null) z.geometrie = geo;
-      zones.push(z);
-    }
-    /* accepté seulement si ça ressemble vraiment aux secteurs : nombreux,
-       nommés, et au moins un créneau daté quelque part */
-    if (zones.length >= 5 && zones.some((z) => z.creneaux.length)) return zones;
+function azbaPrend(o: Record<string, unknown>, cles: string[]): unknown {
+  for (const k of Object.keys(o)) if (cles.includes(k.toLowerCase())) {
+    const v = o[k]; if (v !== null && v !== "" && v !== undefined) return v;
   }
-  return null;
+  return undefined;
+}
+type AzbaZone = { nom: string; bas: string; haut: string;
+  creneaux: { debut: string; fin: string }[]; geometrie?: unknown };
+/* niveau : « 2600 FT AMSL » à partir des champs AIXM (valeur + unité + référence) */
+function azbaNiveau(o: Record<string, unknown>, sens: "bas" | "haut"): string {
+  const V = sens === "bas"
+    ? ["valdistverlower", "lower", "plancher", "floor", "lowerlimit", "altmin"]
+    : ["valdistverupper", "upper", "plafond", "ceiling", "upperlimit", "altmax"];
+  const U = sens === "bas" ? ["uomdistverlower", "uomlower"] : ["uomdistverupper", "uomupper"];
+  const R = sens === "bas" ? ["codedistverlower", "reflower"] : ["codedistverupper", "refupper"];
+  const v = azbaPrend(o, V); if (v == null) return "";
+  const u = azbaPrend(o, U), r = azbaPrend(o, R);
+  return [String(v), u ? String(u) : "", r ? String(r) : ""].filter(Boolean).join(" ");
+}
+function azbaZonesDe(j: unknown): AzbaZone[] | null {
+  const src = j as Record<string, unknown> | null;
+  const brut = Array.isArray(j) ? j
+    : (src && (src["hydra:member"] ?? src["member"] ?? src["data"] ?? src["zones"]));
+  if (!Array.isArray(brut)) return null;
+  const zones: AzbaZone[] = [];
+  for (const it of brut) {
+    if (!it || typeof it !== "object") continue;
+    const o = it as Record<string, unknown>;
+    const nom = String(azbaPrend(o, ["codeid", "txtname", "name", "nom", "designation"]) ?? "")
+      .replace(/^RTBA-/i, "").trim();
+    if (!nom) continue;
+    const slots = azbaPrend(o, ["timeslots", "creneaux", "slots", "activations"]);
+    const creneaux: { debut: string; fin: string }[] = [];
+    if (Array.isArray(slots)) {
+      for (const c of slots.slice(0, 80)) {
+        if (!c || typeof c !== "object") continue;
+        const co = c as Record<string, unknown>;
+        const debut = azbaDate(azbaPrend(co, ["from", "debut", "start", "startdatetime", "starttime"]));
+        const fin = azbaDate(azbaPrend(co, ["to", "fin", "end", "enddatetime", "endtime"]));
+        if (debut || fin) creneaux.push({ debut, fin });
+      }
+    }
+    const z: AzbaZone = { nom, bas: azbaNiveau(o, "bas"), haut: azbaNiveau(o, "haut"), creneaux };
+    const g = azbaPrend(o, ["geometry", "geometrie", "contour", "polygon", "coordinates", "geojson"]);
+    if (g != null) z.geometrie = g;
+    zones.push(z);
+  }
+  return zones.length ? zones : null;
+}
+async function azbaLit(chemin: string, cle: string, basic: string):
+  Promise<{ http: number; j: unknown; apercu: string }> {
+  const tokenUri = await sha512Hex(cle + "/api/" + chemin);
+  const r = await fetch(AZBA_API + chemin, { headers: {
+    "AUTH": enB64(JSON.stringify({ tokenUri })),
+    "Authorization": "Basic " + enB64(basic),
+    "Accept": "application/json",
+    "User-Agent": UA,
+  } });
+  const texte = await r.text();
+  let j: unknown = null; try { j = JSON.parse(texte); } catch { /* pas du JSON */ }
+  return { http: r.status, j, apercu: texte.slice(0, 300) };
+}
+function azbaHorodate(d: Date, forme: number): string {
+  const iso = d.toISOString().replace(/\.\d{3}Z$/, "");
+  if (forme === 0) return iso + "Z";
+  if (forme === 1) return iso + "+00:00";
+  if (forme === 2) return iso;
+  return iso.replace("T", " ");
 }
 async function azba(q: URLSearchParams): Promise<Response> {
-  const urlDonnee = q.get("url") || "";
-  if (!urlDonnee && memoAzba && Date.now() - memoAzba.t < 20 * 60e3) {
-    return new Response(memoAzba.corps, { headers: {
-      "Content-Type": "application/json; charset=utf-8",
-      "Cache-Control": "public, max-age=300",
-      "Access-Control-Allow-Origin": "*",
-      "X-Cartes-Version": VERSION, "X-Cartes-Azba": "memo",
-    } });
+  const cle = (Deno.env.get("AZBA_CLE") || "").trim();
+  const basic = (Deno.env.get("AZBA_BASIC") || "").trim();
+  if (!cle || !basic) {
+    return reponseJson({ erreur: "identifiants AZBA absents",
+      aide: "Ajouter les secrets AZBA_CLE (clé de signature) et AZBA_BASIC (identifiant:motdepasse) "
+        + "dans Supabase > Edge Functions > Secrets. Ces valeurs ne doivent jamais figurer dans GitHub." }, 503);
   }
-  const essais: { url: string; http?: number; type?: string; apercu?: string; note?: string }[] = [];
-  const tente = async (u: string): Promise<Response | null> => {
-    try {
-      const r = await fetch(u, { headers: { "User-Agent": UA,
-        "Accept": "application/json, text/html;q=0.5", "Referer": SIA_AZBA }, redirect: "follow" });
-      const texte = await r.text();
-      const essai: { url: string; http?: number; type?: string; apercu?: string } =
-        { url: u, http: r.status, type: r.headers.get("Content-Type") || "" };
-      essais.push(essai);
-      if (!r.ok) return null;
-      let j: unknown = null;
-      try { j = JSON.parse(texte); } catch { essai.apercu = texte.slice(0, 200); return null; }
-      const zones = azbaNormalise(j);
-      if (!zones) { essai.apercu = texte.slice(0, 300); return null; }
-      const corps = JSON.stringify({ maj: new Date().toISOString(), source: u,
-        total: zones.length, zones });
+  const cheminLibre = q.get("chemin") || "";
+  const brut = q.get("brut") === "1";
+  const essais: { chemin: string; http?: number; membres?: number; apercu?: string; note?: string }[] = [];
+  try {
+    if (cheminLibre) {
+      const r = await azbaLit(cheminLibre, cle, basic);
+      if (brut) return reponseJson({ chemin: cheminLibre, http: r.http, reponse: r.j ?? r.apercu });
+      const z = azbaZonesDe(r.j);
+      return reponseJson({ chemin: cheminLibre, http: r.http, total: z ? z.length : 0,
+        zones: z ?? [], apercu: z ? undefined : r.apercu }, z ? 200 : 502);
+    }
+    if (!brut && memoAzba && Date.now() - memoAzba.t < 20 * 60e3) {
+      return new Response(memoAzba.corps, { headers: {
+        "Content-Type": "application/json; charset=utf-8",
+        "Cache-Control": "public, max-age=300",
+        "Access-Control-Allow-Origin": "*",
+        "X-Cartes-Version": VERSION, "X-Cartes-Azba": "memo",
+      } });
+    }
+    /* la plage publiée, si l'API veut bien la dire (donne aussi le bon format) */
+    let plage: unknown = null;
+    try { const rc = await azbaLit("v3/custom/currentDate", cle, basic);
+      essais.push({ chemin: "v3/custom/currentDate", http: rc.http, apercu: rc.apercu.slice(0, 160) });
+      plage = rc.j; } catch { /* pas bloquant */ }
+    const d0 = new Date(), d1 = new Date(Date.now() + 48 * 3600e3);
+    /* dates de la plage officielle si elle en donne, sinon 48 h glissantes */
+    let deb0 = "", fin0 = "";
+    if (plage && typeof plage === "object") {
+      const po = plage as Record<string, unknown>;
+      deb0 = String(azbaPrend(po, ["debut", "start", "startdate", "from", "debutintervaltemps"]) ?? "");
+      fin0 = String(azbaPrend(po, ["fin", "end", "enddate", "to", "finintervaltemps"]) ?? "");
+    }
+    const jeux: [string, string][] = [];
+    if (deb0 && fin0) jeux.push([deb0, fin0]);
+    for (let f = 0; f < 4; f++) jeux.push([azbaHorodate(d0, f), azbaHorodate(d1, f)]);
+    for (const [a, b] of jeux) {
+      const chemin = "v3/r_t_b_as?itemsPerPage=600"
+        + "&debutIntervalTemps=" + encodeURIComponent(a)
+        + "&finIntervalTemps=" + encodeURIComponent(b);
+      const r = await azbaLit(chemin, cle, basic);
+      const zones = azbaZonesDe(r.j);
+      essais.push({ chemin: chemin.slice(0, 120), http: r.http,
+        membres: zones ? zones.length : 0, apercu: zones ? undefined : r.apercu.slice(0, 160) });
+      if (brut && r.http === 200) return reponseJson({ chemin, http: r.http, reponse: r.j ?? r.apercu });
+      if (!zones) continue;
+      const corps = JSON.stringify({ maj: new Date().toISOString(), source: "SIA — API AZBA v3",
+        intervalle: { debut: a, fin: b }, total: zones.length, zones });
       memoAzba = { t: Date.now(), corps };
       return new Response(corps, { headers: {
         "Content-Type": "application/json; charset=utf-8",
@@ -656,35 +710,8 @@ async function azba(q: URLSearchParams): Promise<Response> {
         "Access-Control-Allow-Origin": "*",
         "X-Cartes-Version": VERSION, "X-Cartes-Azba": "frais",
       } });
-    } catch (e) { essais.push({ url: u, note: String(e).slice(0, 120) }); return null; }
-  };
-  try {
-    if (urlDonnee) {
-      const ok = await tente(urlDonnee);
-      if (ok) return ok;
-      return reponseJson({ erreur: "AZBA : adresse fournie non exploitable", essais }, 502);
     }
-    /* 1. la page officielle, pour découvrir les appels internes */
-    const r0 = await fetch(SIA_AZBA, { headers: { "User-Agent": UA, "Accept": "text/html" }, redirect: "follow" });
-    const page = await r0.text();
-    const scripts: string[] = [];
-    for (const m of page.matchAll(/<script[^>]+src="([^"]+)"/gi)) scripts.push(m[1]);
-    /* adresses candidates : chaînes de la page (et des adresses de script)
-       qui sentent l'API azba / schedule / créneaux */
-    const brutes = new Set<string>();
-    for (const m of page.matchAll(/["']([^"']{4,220})["']/g)) {
-      const c = m[1];
-      if (!/azba|rtba|schedule|creneau|timeslot/i.test(c)) continue;
-      if (!/\.json|api|ajax|data|creneau|timeslot/i.test(c)) continue;
-      if (/\.(png|jpg|css|svg|woff|pdf)(\?|$)/i.test(c)) continue;
-      brutes.add(c);
-    }
-    const absolue = (c: string) => c.startsWith("http") ? c
-      : ("https://www.sia.aviation-civile.gouv.fr" + (c.startsWith("/") ? "" : "/") + c);
-    const candidates = [...brutes].slice(0, 6).map(absolue);
-    for (const u of candidates) { const ok = await tente(u); if (ok) return ok; }
-    return reponseJson({ erreur: "AZBA : API interne non trouvée — coller ce diagnostic pour affiner",
-      pageHttp: r0.status, scripts: scripts.slice(0, 12), candidates, essais }, 502);
+    return reponseJson({ erreur: "AZBA : l'API n'a rien rendu d'exploitable", essais }, 502);
   } catch (e) {
     return reponseJson({ erreur: "AZBA indisponible", detail: String(e).slice(0, 140), essais }, 502);
   }
