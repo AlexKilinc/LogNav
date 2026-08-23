@@ -17,10 +17,10 @@
  * Déploiement : Supabase > Edge Functions > fonction « cartes », coller ce
  * fichier EN ENTIER (vérifier que la dernière ligne dans l'éditeur est bien
  * « }); »), déployer, et laisser « Enforce JWT verification » DÉSACTIVÉ.
- * Aucun secret requis. Vérification : ouvrir ?version=1 -> doit répondre 7.23.
+ * Aucun secret requis. Vérification : ouvrir ?version=1 -> doit répondre 7.24.
  */
 
-const VERSION = "7.23";
+const VERSION = "7.24";
 const AERO = "https://aviation.meteo.fr";
 const SOFIA = "https://sofia-briefing.aviation-civile.gouv.fr";
 const UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Safari/605.1.15";
@@ -545,6 +545,151 @@ async function supAip(_q: URLSearchParams): Promise<Response> {
   }
 }
 
+/* ================== AZBA / RTBA — activation des zones basse altitude =====
+   Source officielle : https://www.sia.aviation-civile.gouv.fr/schedules
+   L'API JSON interne de cette page n'est pas documentée : on la DÉCOUVRE
+   depuis la page (adresses de scripts et chaînes ressemblant à une API
+   azba/schedule), on essaie chaque candidate, et on normalise seulement si
+   la structure est reconnaissable (>= 5 zones avec nom et créneaux).
+   JAMAIS d'invention : si rien n'est exploitable, ?azba=1 rend un
+   diagnostic complet (essais, extraits) pour affiner à la main.
+   ?azba=1           -> { maj, total, zones:[{nom,bas,haut,creneaux:[{debut,fin}],geometrie?}] }
+   ?azba=1&url=…     -> essaie UNE adresse donnée (mise au point)
+   Mémo 20 min (les créneaux sont transmis au SIA la veille). */
+const SIA_AZBA = "https://www.sia.aviation-civile.gouv.fr/schedules";
+let memoAzba: { t: number; corps: string } | null = null;
+function azbaPrend(o: Record<string, unknown>, cles: string[]): unknown {
+  for (const k of Object.keys(o)) if (cles.includes(k.toLowerCase())) return o[k];
+  return undefined;
+}
+function azbaDate(v: unknown): string {
+  if (v == null) return "";
+  if (typeof v === "number") { const ms = v > 4e10 ? v : v * 1000;
+    const d = new Date(ms); return isNaN(+d) ? "" : d.toISOString(); }
+  const t = String(v).trim();
+  const d = new Date(t.match(/^\d{4}-\d{2}-\d{2}[ T]\d{2}:\d{2}/) ? t.replace(" ", "T") : t);
+  return isNaN(+d) ? "" : d.toISOString();
+}
+function azbaNormalise(j: unknown): { nom: string; bas: string; haut: string;
+  creneaux: { debut: string; fin: string }[]; geometrie?: unknown }[] | null {
+  /* cherche, jusqu'à 4 niveaux de profondeur, un tableau d'objets « zone » */
+  const candidats: unknown[][] = [];
+  const visite = (v: unknown, prof: number) => {
+    if (prof > 4 || v == null) return;
+    if (Array.isArray(v)) { if (v.length >= 5 && typeof v[0] === "object") candidats.push(v);
+      for (const x of v.slice(0, 3)) visite(x, prof + 1); return; }
+    if (typeof v === "object") for (const k of Object.keys(v as Record<string, unknown>))
+      visite((v as Record<string, unknown>)[k], prof + 1);
+  };
+  visite(j, 0);
+  const NOMS = ["nom", "name", "designation", "ident", "identifier", "zone", "codeid", "code", "libelle"];
+  const SLOTS = ["creneaux", "slots", "activations", "periods", "timeslots", "horaires", "schedules", "activites"];
+  const DEBUTS = ["debut", "start", "datedebut", "starttime", "from", "startdate", "date_debut", "begin"];
+  const FINS = ["fin", "end", "datefin", "endtime", "to", "enddate", "date_fin"];
+  const BAS = ["plancher", "floor", "lower", "bas", "lowerlimit", "altmin"];
+  const HAUT = ["plafond", "ceiling", "upper", "haut", "upperlimit", "altmax"];
+  const GEO = ["geometrie", "geometry", "polygon", "polygone", "coordinates", "points", "contour"];
+  for (const tab of candidats) {
+    const zones: { nom: string; bas: string; haut: string;
+      creneaux: { debut: string; fin: string }[]; geometrie?: unknown }[] = [];
+    for (const it of tab) {
+      if (!it || typeof it !== "object") continue;
+      const o = it as Record<string, unknown>;
+      const nom = String(azbaPrend(o, NOMS) ?? "").trim();
+      if (!nom) continue;
+      let creneaux: { debut: string; fin: string }[] = [];
+      const brut = azbaPrend(o, SLOTS);
+      if (Array.isArray(brut)) {
+        for (const c of brut.slice(0, 60)) {
+          if (!c || typeof c !== "object") continue;
+          const co = c as Record<string, unknown>;
+          const debut = azbaDate(azbaPrend(co, DEBUTS)), fin = azbaDate(azbaPrend(co, FINS));
+          if (debut || fin) creneaux.push({ debut, fin });
+        }
+      } else {
+        const debut = azbaDate(azbaPrend(o, DEBUTS)), fin = azbaDate(azbaPrend(o, FINS));
+        if (debut || fin) creneaux = [{ debut, fin }];
+      }
+      const z: { nom: string; bas: string; haut: string;
+        creneaux: { debut: string; fin: string }[]; geometrie?: unknown } =
+        { nom, bas: String(azbaPrend(o, BAS) ?? ""), haut: String(azbaPrend(o, HAUT) ?? ""), creneaux };
+      const geo = azbaPrend(o, GEO);
+      if (geo != null) z.geometrie = geo;
+      zones.push(z);
+    }
+    /* accepté seulement si ça ressemble vraiment aux secteurs : nombreux,
+       nommés, et au moins un créneau daté quelque part */
+    if (zones.length >= 5 && zones.some((z) => z.creneaux.length)) return zones;
+  }
+  return null;
+}
+async function azba(q: URLSearchParams): Promise<Response> {
+  const urlDonnee = q.get("url") || "";
+  if (!urlDonnee && memoAzba && Date.now() - memoAzba.t < 20 * 60e3) {
+    return new Response(memoAzba.corps, { headers: {
+      "Content-Type": "application/json; charset=utf-8",
+      "Cache-Control": "public, max-age=300",
+      "Access-Control-Allow-Origin": "*",
+      "X-Cartes-Version": VERSION, "X-Cartes-Azba": "memo",
+    } });
+  }
+  const essais: { url: string; http?: number; type?: string; apercu?: string; note?: string }[] = [];
+  const tente = async (u: string): Promise<Response | null> => {
+    try {
+      const r = await fetch(u, { headers: { "User-Agent": UA,
+        "Accept": "application/json, text/html;q=0.5", "Referer": SIA_AZBA }, redirect: "follow" });
+      const texte = await r.text();
+      const essai: { url: string; http?: number; type?: string; apercu?: string } =
+        { url: u, http: r.status, type: r.headers.get("Content-Type") || "" };
+      essais.push(essai);
+      if (!r.ok) return null;
+      let j: unknown = null;
+      try { j = JSON.parse(texte); } catch { essai.apercu = texte.slice(0, 200); return null; }
+      const zones = azbaNormalise(j);
+      if (!zones) { essai.apercu = texte.slice(0, 300); return null; }
+      const corps = JSON.stringify({ maj: new Date().toISOString(), source: u,
+        total: zones.length, zones });
+      memoAzba = { t: Date.now(), corps };
+      return new Response(corps, { headers: {
+        "Content-Type": "application/json; charset=utf-8",
+        "Cache-Control": "public, max-age=300",
+        "Access-Control-Allow-Origin": "*",
+        "X-Cartes-Version": VERSION, "X-Cartes-Azba": "frais",
+      } });
+    } catch (e) { essais.push({ url: u, note: String(e).slice(0, 120) }); return null; }
+  };
+  try {
+    if (urlDonnee) {
+      const ok = await tente(urlDonnee);
+      if (ok) return ok;
+      return reponseJson({ erreur: "AZBA : adresse fournie non exploitable", essais }, 502);
+    }
+    /* 1. la page officielle, pour découvrir les appels internes */
+    const r0 = await fetch(SIA_AZBA, { headers: { "User-Agent": UA, "Accept": "text/html" }, redirect: "follow" });
+    const page = await r0.text();
+    const scripts: string[] = [];
+    for (const m of page.matchAll(/<script[^>]+src="([^"]+)"/gi)) scripts.push(m[1]);
+    /* adresses candidates : chaînes de la page (et des adresses de script)
+       qui sentent l'API azba / schedule / créneaux */
+    const brutes = new Set<string>();
+    for (const m of page.matchAll(/["']([^"']{4,220})["']/g)) {
+      const c = m[1];
+      if (!/azba|rtba|schedule|creneau|timeslot/i.test(c)) continue;
+      if (!/\.json|api|ajax|data|creneau|timeslot/i.test(c)) continue;
+      if (/\.(png|jpg|css|svg|woff|pdf)(\?|$)/i.test(c)) continue;
+      brutes.add(c);
+    }
+    const absolue = (c: string) => c.startsWith("http") ? c
+      : ("https://www.sia.aviation-civile.gouv.fr" + (c.startsWith("/") ? "" : "/") + c);
+    const candidates = [...brutes].slice(0, 6).map(absolue);
+    for (const u of candidates) { const ok = await tente(u); if (ok) return ok; }
+    return reponseJson({ erreur: "AZBA : API interne non trouvée — coller ce diagnostic pour affiner",
+      pageHttp: r0.status, scripts: scripts.slice(0, 12), candidates, essais }, 502);
+  } catch (e) {
+    return reponseJson({ erreur: "AZBA indisponible", detail: String(e).slice(0, 140), essais }, 502);
+  }
+}
+
 /* SIGMET : relais vers l'Aviation Weather Center (NOAA), qui sert les SIGMET
    internationaux des FIR (dont les FIR français) en GeoJSON. aviationweather.gov
    n'est pas bloqué pour les IP de datacenter (les METAR de l'appli en viennent
@@ -673,6 +818,7 @@ Deno.serve(async (req: Request) => {
     return reponseJson(etat);
   }
   if (q.get("supaip") === "1") return supAip(q);
+  if (q.get("azba") === "1") return azba(q);
   if (q.get("notam") === "1") return notam(q);
   if (q.get("sigmet") === "1") return sigmet(q);
   if (q.get("poste") === "1") return poste(q);
