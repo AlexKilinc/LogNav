@@ -2928,7 +2928,7 @@ window.__TRACE_MARKUP="\n\n<header>\n  <div class=\"hdr-row1\">\n    <span class
    accessible depuis le bouton ⓘ du bandeau du log, avant toute ouverture de la carte */
 (function(){
   var host=document.createElement('div');
-  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Cartes OACI — origine et mise à jour</b></p>\n    <p style=\"margin-top:-6px\"><b>1/250 000 Région parisienne</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte250\">—</span>.</p>\n    <p style=\"margin-top:-6px\"><b>1/500 000 France</b> — IGN Géoplateforme (SCAN-OACI). Donnée <b>non libre</b>, tenue à jour par l’IGN.</p>\n    <p style=\"margin-top:-6px\"><b>1/1 000 000 France</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte1000\">—</span>.</p>\n    <p>Les deux cartes du SIA sont hébergées à part et lues par plages : seules les tuiles affichées sont téléchargées. Les trois se copient sur l’appareil pour voler sans réseau depuis <b>Profil → Cartes hors-ligne</b>. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.444</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
+  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Cartes OACI — origine et mise à jour</b></p>\n    <p style=\"margin-top:-6px\"><b>1/250 000 Région parisienne</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte250\">—</span>.</p>\n    <p style=\"margin-top:-6px\"><b>1/500 000 France</b> — IGN Géoplateforme (SCAN-OACI). Donnée <b>non libre</b>, tenue à jour par l’IGN.</p>\n    <p style=\"margin-top:-6px\"><b>1/1 000 000 France</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte1000\">—</span>.</p>\n    <p>Les deux cartes du SIA sont hébergées à part et lues par plages : seules les tuiles affichées sont téléchargées. Les trois se copient sur l’appareil pour voler sans réseau depuis <b>Profil → Cartes hors-ligne</b>. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.446</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
   (document.body||document.documentElement).appendChild(host.firstElementChild);
   /* le nom du fichier de la 1/1 000 000 dit son edition : on le lit la ou il
      est vraiment (cartes.json), jamais en dur, sinon il mentirait un jour */
@@ -6997,25 +6997,38 @@ function openRelinkChoice(){
   }
   function ddvRendu(d,fige){
     if(!d||!d.terrains) return null;
-    if(!d.terrains.length) return '<div class="wxd-vide">Aucun terrain (d\u00e9part, arriv\u00e9e, survol, d\u00e9gagement) dans la navigation.</div>';
+    if(!d.terrains.length) return '<div class="wxd-sect">NOTAM &amp; SUP AIP</div>'
+      +'<div class="wxd-vide">Aucun terrain (d\u00e9part, arriv\u00e9e, survol, d\u00e9gagement) dans la navigation.</div>';
     var cls={'d\u00e9part':'dep','arriv\u00e9e':'arr','survol\u00e9':'mid','d\u00e9gagement':'deg'};
+    var tete=function(t9){ return '<div class="wxd-ahd">'
+      +'<span class="wxd-role '+(cls[t9.role]||'')+'">'+ntmEsc(t9.role)+'</span>'
+      +'<b>'+ntmEsc(t9.code)+'</b>'
+      +(t9.nom?'<span class="wxd-anom">'+ntmEsc(t9.nom)+'</span>':'')+'</div>'; };
     var h='';
     if(fige){ var dF=new Date(d.t||0);
       h+='<div class="wxd-srcl">\ud83d\udd12 NOTAM et SUP AIP fig\u00e9s au d\u00e9part du vol ('
         +('0'+dF.getDate()).slice(-2)+'/'+('0'+(dF.getMonth()+1)).slice(-2)+'/'+dF.getFullYear()
         +' '+('0'+dF.getHours()).slice(-2)+':'+('0'+dF.getMinutes()).slice(-2)+' locale)</div>'; }
-    if(!d.notamsOk) h+='<div class="wxd-vide">NOTAM indisponibles (autorouter) \u2014 seuls les SUP AIP figurent ci-dessous.</div>';
-    d.terrains.forEach(function(t9){
-      h+='<div class="wxd-aero"><div class="wxd-ahd">'
-        +'<span class="wxd-role '+(cls[t9.role]||'')+'">'+ntmEsc(t9.role)+'</span>'
-        +'<b>'+ntmEsc(t9.code)+'</b>'
-        +(t9.nom?'<span class="wxd-anom">'+ntmEsc(t9.nom)+'</span>':'')+'</div>';
-      if(!(t9.notams||[]).length&&!(t9.sups||[]).length) h+='<div class="wxd-msg">rien \u00e0 signaler</div>';
+    /* --- chapitre NOTAM --- */
+    h+='<div class="wxd-sect">NOTAM \u2014 terrains du vol</div>'
+      +'<div class="wxd-srcl">D\u00e9part, arriv\u00e9e, survol\u00e9s et d\u00e9gagements \u00b7 version courte \u2014 '
+      +'les \u00e9l\u00e9ments mis en lumi\u00e8re au listing (bouton +) sont surlign\u00e9s</div>';
+    if(!d.notamsOk) h+='<div class="wxd-vide">NOTAM indisponibles (autorouter).</div>';
+    else d.terrains.forEach(function(t9){
+      h+='<div class="wxd-aero">'+tete(t9);
+      if(!(t9.notams||[]).length) h+='<div class="wxd-msg">rien \u00e0 signaler</div>';
       (t9.notams||[]).forEach(function(n){ var lum=ddvContient('n',n);
         h+='<div class="wxd-msg'+(lum?' wxd-lum':'')+'">'+(lum?'\u2605 ':'')
           +'<b>'+ntmEsc(n.serie||n.qcode||'NOTAM')+'</b> \u00b7 '
           +ntmDate(n.debut)+' \u2192 '+(n.fin?ntmDate(n.fin)+(n.estimee?' (est.)':''):'PERM')
           +' \u00b7 '+ntmEsc(n.texte||'')+'</div>'; });
+      h+='</div>'; });
+    /* --- chapitre SUP AIP --- */
+    h+='<div class="wxd-sect">SUP AIP \u2014 terrains du vol</div>'
+      +'<div class="wxd-srcl">Suppl\u00e9ments AIP du SIA rattach\u00e9s aux terrains \u00b7 version courte</div>';
+    d.terrains.forEach(function(t9){
+      h+='<div class="wxd-aero">'+tete(t9);
+      if(!(t9.sups||[]).length) h+='<div class="wxd-msg">rien \u00e0 signaler</div>';
       (t9.sups||[]).forEach(function(sp){ var lum=ddvContient('s',sp);
         h+='<div class="wxd-msg'+(lum?' wxd-lum':'')+'">'+(lum?'\u2605 ':'')
           +'<b>SUP '+ntmEsc(sp.num||'')+'</b>'
@@ -9819,7 +9832,7 @@ window.__CARTE_ADR=function(j,cle){
 .wxd-ent td{padding:3px 8px 3px 0;vertical-align:top}
 .wxd-ent td:first-child{color:#64748b;font-weight:600;white-space:nowrap;width:1%}
 .wxd-ent td:last-child{font-weight:700}
-.wxd-sect{font:800 11px "Poppins",sans-serif;color:#2c5282;text-transform:uppercase;letter-spacing:.06em;
+.wxd-sect{font:800 11px "Poppins",sans-serif;color:#e94560;text-transform:uppercase;letter-spacing:.06em;
   border-top:1px solid #e5e9f0;margin:12px 0 7px;padding-top:9px}
 .wxd-aero{margin:0 0 9px}
 .wxd-sigmet{margin:0 0 6px}
@@ -10205,7 +10218,7 @@ window.__pickGpx=function(cb){
       +'<div class="wx-tabs">'
       +'<button class="wx-tab on" data-t="metar" type="button">METAR / TAF</button>'
       +'<button class="wx-tab" data-t="cartes" type="button">WINTEM / TEMSI</button>'
-      +'<button class="wx-tab" data-t="dossier" type="button">Dossier MTO et DDV</button>'
+      +'<button class="wx-tab" data-t="dossier" type="button">Dossier MTO / DDV</button>'
       +'<button id="wxClose" class="wx-x" type="button" title="Fermer" aria-label="Fermer">\u00d7</button>'
       +'</div>'
       +'<div class="wx-src" id="wxSrc">Source : NOAA \u00b7 chargement\u2026</div>'
@@ -10482,10 +10495,8 @@ window.__pickGpx=function(cb){
       /* --- DDV : NOTAM et SUP AIP de TOUS les terrains du vol (version courte),
          rendus par le module Notam/AIP ; les elements mis en lumiere au listing
          (bouton +) ressortent surlignes --- */
-      html+='<div class="wxd-sect">NOTAM &amp; SUP AIP \u2014 terrains du vol</div>'
-        +'<div class="wxd-srcl">D\u00e9part, arriv\u00e9e, survol\u00e9s et d\u00e9gagements \u00b7 version courte \u2014 '
-        +'les \u00e9l\u00e9ments mis en lumi\u00e8re au listing (bouton +) sont surlign\u00e9s</div>'
-        +'<div id="wxdNtm">Chargement\u2026</div>';
+      html+='<div id="wxdNtm"><div class="wxd-sect">NOTAM &amp; SUP AIP</div>'
+        +'<div class="wxd-srcl">Chargement\u2026</div></div>';
       html+='<div class="wxd-note">Dossier \u00e9tabli par LogNavAK \u00e0 partir des messages et cartes '
         +'re\u00e7us \u00e0 la date d\u2019\u00e9tablissement. Il ne remplace pas le dossier de vol officiel '
         +'(SOFIA-Briefing / M\u00e9t\u00e9o-France). Les NOTAM et SUP AIP ci-dessus sont en version '
