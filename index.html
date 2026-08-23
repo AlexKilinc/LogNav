@@ -2938,7 +2938,7 @@ window.__TRACE_MARKUP="\n\n<header>\n  <div class=\"hdr-row1\">\n    <span class
    accessible depuis le bouton ⓘ du bandeau du log, avant toute ouverture de la carte */
 (function(){
   var host=document.createElement('div');
-  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Cartes OACI — origine et mise à jour</b></p>\n    <p style=\"margin-top:-6px\"><b>1/250 000 Région parisienne</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte250\">—</span>.</p>\n    <p style=\"margin-top:-6px\"><b>1/500 000 France</b> — IGN Géoplateforme (SCAN-OACI). Donnée <b>non libre</b>, tenue à jour par l’IGN.</p>\n    <p style=\"margin-top:-6px\"><b>1/1 000 000 France</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte1000\">—</span>.</p>\n    <p>Les deux cartes du SIA sont hébergées à part et lues par plages : seules les tuiles affichées sont téléchargées. Les trois se copient sur l’appareil pour voler sans réseau depuis <b>Profil → Cartes hors-ligne</b>. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.454</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
+  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Cartes OACI — origine et mise à jour</b></p>\n    <p style=\"margin-top:-6px\"><b>1/250 000 Région parisienne</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte250\">—</span>.</p>\n    <p style=\"margin-top:-6px\"><b>1/500 000 France</b> — IGN Géoplateforme (SCAN-OACI). Donnée <b>non libre</b>, tenue à jour par l’IGN.</p>\n    <p style=\"margin-top:-6px\"><b>1/1 000 000 France</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte1000\">—</span>.</p>\n    <p>Les deux cartes du SIA sont hébergées à part et lues par plages : seules les tuiles affichées sont téléchargées. Les trois se copient sur l’appareil pour voler sans réseau depuis <b>Profil → Cartes hors-ligne</b>. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.455</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
   (document.body||document.documentElement).appendChild(host.firstElementChild);
   /* le nom du fichier de la 1/1 000 000 dit son edition : on le lit la ou il
      est vraiment (cartes.json), jamais en dur, sinon il mentirait un jour */
@@ -6523,6 +6523,10 @@ function openRelinkChoice(){
    +'#azbaLeg i{display:inline-block;width:14px;height:9px;border-radius:2px;flex:none}'
    +'#azbaLeg i.act{background:rgba(185,28,28,.35);border:2px solid #B91C1C}'
    +'#azbaLeg i.pre{background:rgba(234,88,12,.20);border:2px dashed #EA580C}'
+   +'.azba-lbl{font:700 10px Poppins,sans-serif;color:#9a3412;white-space:nowrap;'
+   +'text-shadow:0 0 2px #fff,0 0 2px #fff,0 0 2px #fff,0 0 3px #fff;pointer-events:none;'
+   +'transform:translate(-50%,-50%);background:none;border:none}'
+   +'.azba-lbl.act{color:#7f1d1d}'
    +'.ntmd{position:fixed;left:50%;bottom:calc(54px + env(safe-area-inset-bottom,0px));'
    +'transform:translate(-50%,0);width:min(760px,96vw);'
    +'height:min(84vh,820px);max-height:calc(100vh - 66px);'
@@ -6840,6 +6844,8 @@ function openRelinkChoice(){
      fournie (rouge plein = actif maintenant, orange tirete = a venir). */
   var azbaData=null, azbaBusy=false, azbaErr='', azbaOn=false;
   var azbaGroup=L.layerGroup();
+  var azbaLabG=L.layerGroup();
+  try{ map.on('zoomend moveend', function(){ if(azbaOn) azbaLabels(); }); }catch(e){}
   function azbaCharge(cb){
     if(azbaData&&(Date.now()-azbaData.t)<20*60e3){ if(cb)cb(azbaData); return; }
     if(azbaBusy){ var t0=Date.now(); var att=setInterval(function(){
@@ -6878,7 +6884,8 @@ function openRelinkChoice(){
       if(!(lat>=35&&lat<=55)&&(+pp[1]>=35&&+pp[1]<=55)){ lat=+pp[1]; lon=+pp[0]; }
       pts.push([lat,lon]); }
     return pts; }
-  function azbaDraw(){ azbaGroup.clearLayers();
+  var azbaCentres=[];   /* {lat,lon,nom,actif} des zones dessinees */
+  function azbaDraw(){ azbaGroup.clearLayers(); azbaCentres=[];
     if(!azbaOn||!azbaData) return 0;
     var n=0;
     azbaData.zones.forEach(function(z){
@@ -6892,19 +6899,40 @@ function openRelinkChoice(){
         +((z.bas||z.haut)?' \u00b7 '+ntmEsc(z.bas||'?')+' \u2192 '+ntmEsc(z.haut||'?'):'')
         +(actif?' \u00b7 <b style="color:#B91C1C">ACTIVE</b>':'')
         +'<br>'+cr.slice(0,6).map(azbaCren).join('<br>')+'</div>',{maxWidth:300});
-      azbaGroup.addLayer(pg); n++; });
+      azbaGroup.addLayer(pg); n++;
+      var la=0,lo=0; pts.forEach(function(q){ la+=q[0]; lo+=q[1]; });
+      azbaCentres.push({lat:la/pts.length,lon:lo/pts.length,nom:z.nom,actif:actif}); });
+    azbaLabels();
     return n; }
+  /* etiquettes des noms de zone : au centre, en evitant le chevauchement
+     (les actives d'abord) ; recalculees a chaque zoom, car ce qui tient a
+     l'echelle France ne tient pas de pres */
+  function azbaLabels(){
+    azbaLabG.clearLayers();
+    if(!azbaOn||!azbaCentres.length) return;
+    var pris=[];
+    var ordre=azbaCentres.slice().sort(function(a,b){ return (b.actif?1:0)-(a.actif?1:0); });
+    ordre.forEach(function(c){
+      var pt; try{ pt=map.latLngToContainerPoint([c.lat,c.lon]); }catch(e){ return; }
+      var w=c.nom.length*6.0+8, hh=15;
+      var r={x0:pt.x-w/2,x1:pt.x+w/2,y0:pt.y-hh/2,y1:pt.y+hh/2};
+      if(pris.some(function(q){ return !(r.x0>q.x1||r.x1<q.x0||r.y0>q.y1||r.y1<q.y0); })) return;
+      pris.push(r);
+      var ic=L.divIcon({className:'azba-lbl'+(c.actif?' act':''),iconSize:null,html:ntmEsc(c.nom)});
+      L.marker([c.lat,c.lon],{icon:ic,interactive:false,keyboard:false}).addTo(azbaLabG);
+    });
+  }
   function azbaToggle(){
     var zb=document.getElementById('mtoZ');
-    if(azbaOn){ azbaOn=false; azbaGroup.clearLayers();
-      try{ map.removeLayer(azbaGroup); }catch(e){}
+    if(azbaOn){ azbaOn=false; azbaGroup.clearLayers(); azbaLabG.clearLayers();
+      try{ map.removeLayer(azbaGroup); map.removeLayer(azbaLabG); }catch(e){}
       if(zb) zb.classList.remove('on'); ntmOutilsMaj(); return; }
     azbaOn=true; if(zb) zb.classList.add('on'); ntmOutilsMaj();
-    try{ azbaGroup.addTo(map); }catch(e){}
+    try{ azbaGroup.addTo(map); azbaLabG.addTo(map); }catch(e){}
     azbaCharge(function(d){
       if(!azbaOn) return;
       if(!d){ if(typeof showToast==='function') showToast('AZBA indisponibles \u00b7 '+(azbaErr||'?'));
-        azbaOn=false; try{ map.removeLayer(azbaGroup); }catch(e){}
+        azbaOn=false; try{ map.removeLayer(azbaGroup); map.removeLayer(azbaLabG); }catch(e){}
         if(zb) zb.classList.remove('on'); ntmOutilsMaj(); return; }
       var n=azbaDraw();
       var act=d.zones.filter(function(z){ return azbaFen(z,48).length; }).length;
@@ -7201,22 +7229,29 @@ function openRelinkChoice(){
     franceAnneaux().forEach(function(a){
       g+='<polygon points="'+a.map(function(p){ return X(p[1]).toFixed(1)+','+Y(p[0]).toFixed(1); }).join(' ')
         +'" fill="#f1f5f9" stroke="#94a3b8" stroke-width="1" stroke-linejoin="round"/>'; });
+    /* 1re passe : les polygones */
+    var etiq=[];
     vues.forEach(function(z){
       var actif=azbaActifMaintenant(z.creneaux||[]);
       var pts=z.geometrie.map(function(p){ return X(p[1]).toFixed(1)+','+Y(p[0]).toFixed(1); }).join(' ');
       g+='<polygon points="'+pts+'" fill="'+(actif?'#B91C1C':'#EA580C')+'" fill-opacity="'
         +(actif?'0.18':'0.09')+'" stroke="'+(actif?'#B91C1C':'#EA580C')+'" stroke-width="1.6"'
         +(actif?'':' stroke-dasharray="6 4"')+'/>';
-      var cx=0,cy=0,xs=z.geometrie.map(function(p){return X(p[1]);}),
-          ys=z.geometrie.map(function(p){return Y(p[0]);});
-      z.geometrie.forEach(function(p){ cx+=X(p[1]); cy+=Y(p[0]); });
+      var cx=0,cy=0; z.geometrie.forEach(function(p){ cx+=X(p[1]); cy+=Y(p[0]); });
       cx/=z.geometrie.length; cy/=z.geometrie.length;
-      /* nom seulement si la zone est assez grande pour le porter lisiblement */
-      if(Math.max.apply(null,xs)-Math.min.apply(null,xs)>34
-         && Math.max.apply(null,ys)-Math.min.apply(null,ys)>13)
-        g+='<text x="'+cx.toFixed(1)+'" y="'+cy.toFixed(1)+'" text-anchor="middle" '
-          +'font-family="Poppins,sans-serif" font-size="9" font-weight="700" fill="'
-          +(actif?'#7f1d1d':'#9a3412')+'">'+ntmEsc(z.nom)+'</text>';
+      etiq.push({cx:cx,cy:cy,nom:z.nom,actif:actif}); });
+    /* 2e passe : les noms, placement glouton anti-chevauchement (actifs d'abord)
+       -> on n'affiche que ceux qui tiennent sans se recouvrir, jamais illisibles */
+    var pris=[];
+    etiq.sort(function(a,b){ return (b.actif?1:0)-(a.actif?1:0); }).forEach(function(e){
+      var w=e.nom.length*4.9+4, hh=11;
+      var r={x0:e.cx-w/2,x1:e.cx+w/2,y0:e.cy-hh/2,y1:e.cy+hh/2};
+      if(pris.some(function(q){ return !(r.x0>q.x1||r.x1<q.x0||r.y0>q.y1||r.y1<q.y0); })) return;
+      pris.push(r);
+      g+='<text x="'+e.cx.toFixed(1)+'" y="'+(e.cy+3).toFixed(1)+'" text-anchor="middle" '
+        +'font-family="Poppins,sans-serif" font-size="8.5" font-weight="700" '
+        +'paint-order="stroke" stroke="#fff" stroke-width="2.4" stroke-linejoin="round" fill="'
+        +(e.actif?'#7f1d1d':'#9a3412')+'">'+ntmEsc(e.nom)+'</text>';
     });
     trace.forEach(function(t){
       g+='<polyline points="'+t.map(function(p){ return X(p[1]).toFixed(1)+','+Y(p[0]).toFixed(1); }).join(' ')
