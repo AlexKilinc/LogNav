@@ -2914,7 +2914,7 @@ window.__TRACE_MARKUP="\n\n<header>\n  <div class=\"hdr-row1\">\n    <span class
    accessible depuis le bouton ⓘ du bandeau du log, avant toute ouverture de la carte */
 (function(){
   var host=document.createElement('div');
-  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Cartes OACI — origine et mise à jour</b></p>\n    <p style=\"margin-top:-6px\"><b>1/250 000 Région parisienne</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte250\">—</span>.</p>\n    <p style=\"margin-top:-6px\"><b>1/500 000 France</b> — IGN Géoplateforme (SCAN-OACI). Donnée <b>non libre</b>, tenue à jour par l’IGN.</p>\n    <p style=\"margin-top:-6px\"><b>1/1 000 000 France</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte1000\">—</span>.</p>\n    <p>Les deux cartes du SIA sont hébergées à part et lues par plages : seules les tuiles affichées sont téléchargées. Les trois se copient sur l’appareil pour voler sans réseau depuis <b>Profil → Cartes hors-ligne</b>. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.436</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
+  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Cartes OACI — origine et mise à jour</b></p>\n    <p style=\"margin-top:-6px\"><b>1/250 000 Région parisienne</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte250\">—</span>.</p>\n    <p style=\"margin-top:-6px\"><b>1/500 000 France</b> — IGN Géoplateforme (SCAN-OACI). Donnée <b>non libre</b>, tenue à jour par l’IGN.</p>\n    <p style=\"margin-top:-6px\"><b>1/1 000 000 France</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte1000\">—</span>.</p>\n    <p>Les deux cartes du SIA sont hébergées à part et lues par plages : seules les tuiles affichées sont téléchargées. Les trois se copient sur l’appareil pour voler sans réseau depuis <b>Profil → Cartes hors-ligne</b>. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.437</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
   (document.body||document.documentElement).appendChild(host.firstElementChild);
   /* le nom du fichier de la 1/1 000 000 dit son edition : on le lit la ou il
      est vraiment (cartes.json), jamais en dur, sinon il mentirait un jour */
@@ -6483,6 +6483,10 @@ function openRelinkChoice(){
    +'padding:10px 14px;font:800 13px Poppins,sans-serif}'
    +'.ntmd-hd span{flex:1 1 auto;font:600 10.5px Poppins,sans-serif;color:#8fb2ce}'
    +'.ntmd-x{background:none;border:none;color:#fff;font:700 20px/1 sans-serif;cursor:pointer;padding:2px 6px}'
+   +'.ntmd-f{flex:none;border:0;border-radius:999px;background:rgba(255,255,255,.14);color:#a9bdd4;'
+   +'font:700 10px Poppins,sans-serif;padding:4px 10px;cursor:pointer;white-space:nowrap}'
+   +'.ntmd-f.on{background:#1E9FE0;color:#fff}'
+   +'.ntmd-f[data-f=ray].on{background:#7C3AED}'
    +'.ntmd-corps{flex:1 1 auto;overflow:auto;padding:12px 14px;font:600 11px Poppins,sans-serif;'
    +'color:#16213e;-webkit-overflow-scrolling:touch}'
    +'.ntmd-ad{display:flex;align-items:center;gap:8px;margin:14px 0 2px;padding-top:9px;border-top:2px solid #e3e6ee}'
@@ -6680,6 +6684,7 @@ function openRelinkChoice(){
   var notamOn=false, notamData=null, notamBusy=false;
   var PROX_NM=10;   /* rayon de recherche des terrains proches ; 50 NM en mode étendu */
   var notamExtra=[];   /* terrains ajoutés à la main (clic carte ou saisie du listing) */
+  var ntmFiltre={notam:true,sup:true};   /* tri du listing : cases NOTAM / SUP-AIP */
   var ntmMarkers={};   /* badge de chaque terrain, pour rouvrir sa popup */
   function ntmIdx(){ var idx={};
     for(var i=0;i<AERO.length;i++){ var a=AERO[i];
@@ -6829,6 +6834,12 @@ function openRelinkChoice(){
     var html='<div class="ntmd-hd"><b>NOTAM &amp; SUP AIP</b>'
       +'<span>'+codes.length+' terrains \u00b7 rayon '+PROX_NM+' NM'
       +(notamData.notamsOk?'':' \u00b7 NOTAM indisponibles')+'</span>'
+      +'<button type="button" class="ntmd-f'+(PROX_NM===50?' on':'')+'" data-f="ray" '
+      +'title="\u00c9tendre la recherche des terrains \u00e0 50 NM autour de la trace">50 NM</button>'
+      +'<button type="button" class="ntmd-f'+(ntmFiltre.notam?' on':'')+'" data-f="notam" '
+      +'title="Afficher ou masquer les NOTAM">NOTAM</button>'
+      +'<button type="button" class="ntmd-f'+(ntmFiltre.sup?' on':'')+'" data-f="sup" '
+      +'title="Afficher ou masquer les SUP AIP">SUP-AIP</button>'
       +'<button type="button" class="ntmd-x" aria-label="Fermer" title="Fermer">\u00d7</button></div>'
       +'<div class="ntmd-corps">';
     codes.forEach(function(code){
@@ -6838,9 +6849,11 @@ function openRelinkChoice(){
         +ntmEsc(sel.roles[code]||'')+'</span><b>'+code+'</b>'
         +'<span class="ntmd-nom">'+ntmEsc(q.nom||'')+'</span>'
         +'<span class="ntmd-cnt">'+lot.length+' NOTAM \u00b7 '+supsAd.length+' SUP</span></div>';
-      if(!lot.length&&!supsAd.length) html+='<div class="ntm-un">rien \u00e0 signaler</div>';
-      html+=lot.map(ntmLigne).join('');
-      if(supsAd.length) html+='<div class="ntm-ssect">SUP AIP</div>'+supsAd.map(supLigne).join('');
+      var lotVu=ntmFiltre.notam?lot:[], supsVu=ntmFiltre.sup?supsAd:[];
+      if(!lotVu.length&&!supsVu.length) html+='<div class="ntm-un">rien \u00e0 signaler'
+        +((lot.length||supsAd.length)?' (filtres)':'')+'</div>';
+      html+=lotVu.map(ntmLigne).join('');
+      if(supsVu.length) html+='<div class="ntm-ssect">SUP AIP</div>'+supsVu.map(supLigne).join('');
     });
     html+='<div class="ntmd-add">'
       +'<input id="ntmAddInp" maxlength="4" autocapitalize="characters" autocorrect="off" '
@@ -6860,6 +6873,14 @@ function openRelinkChoice(){
     var ferme=function(){ ntmDossierFerme(); document.removeEventListener('keydown',clav); };
     function clav(e){ if(e.key==='Escape') ferme(); }
     v.querySelector('.ntmd-x').onclick=ferme;
+    v.querySelectorAll('.ntmd-f').forEach(function(bf){ bf.onclick=function(){
+      var f=bf.getAttribute('data-f');
+      if(f==='ray'){ PROX_NM=(PROX_NM===10)?50:10;
+        var rb=document.getElementById('ntmRayBtn'); if(rb) rb.classList.toggle('on',PROX_NM===50);
+        ntmCharge(); return; }
+      ntmFiltre[f]=!ntmFiltre[f];
+      ntmDossier();
+    }; });
     document.addEventListener('keydown',clav);
   }
   /* ouverture du listing depuis le bandeau du log : charge si besoin puis
