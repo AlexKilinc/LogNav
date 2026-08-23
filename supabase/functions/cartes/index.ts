@@ -17,10 +17,10 @@
  * Déploiement : Supabase > Edge Functions > fonction « cartes », coller ce
  * fichier EN ENTIER (vérifier que la dernière ligne dans l'éditeur est bien
  * « }); »), déployer, et laisser « Enforce JWT verification » DÉSACTIVÉ.
- * Aucun secret requis. Vérification : ouvrir ?version=1 -> doit répondre 7.24.
+ * Aucun secret requis. Vérification : ouvrir ?version=1 -> doit répondre 7.25.
  */
 
-const VERSION = "7.24";
+const VERSION = "7.25";
 const AERO = "https://aviation.meteo.fr";
 const SOFIA = "https://sofia-briefing.aviation-civile.gouv.fr";
 const UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Safari/605.1.15";
@@ -749,6 +749,48 @@ async function chasse(q: URLSearchParams): Promise<Response> {
   return reponseJson({ demande: t, essais: rap });
 }
 
+/* Enquête SOFIA : ?opsofia=1 — lit les pages de préparation de vol et leurs
+   scripts, et liste TOUTES les opérations Sling (":operation": "postXxx")
+   avec leur contexte. Sert à découvrir l'appel NOTAM anonyme (comme
+   postWintem / postTemsi pour les cartes) sans ping-pong de sondes. */
+async function opSofia(_q: URLSearchParams): Promise<Response> {
+  const BASE = "https://sofia-briefing.aviation-civile.gouv.fr";
+  const cibles = [
+    BASE + "/sofia/pages/prepavol.html",
+    BASE + "/sofia/pages/notamsearch.html",
+    BASE + "/content/sofia/scripts/prepa/sessionManager.js",
+    BASE + "/content/sofia/scripts/prepa/snowtam.js",
+    BASE + "/content/sofia/scripts/prepa/firNotams.js",
+    BASE + "/content/sofia/scripts/tools/tools_aero.js",
+    BASE + "/content/sofia/scripts/navigation.js",
+    BASE + "/content/sofia/scripts/tools/check_user_connection.js",
+  ];
+  const sources: { url: string; http?: number; octets?: number; note?: string;
+    operations: { nom: string; contexte: string }[] }[] = [];
+  for (const u of cibles) {
+    try {
+      const r = await fetch(u, { headers: { "User-Agent": UA, "Accept": "*/*" }, redirect: "follow" });
+      const texte = await r.text();
+      const ops: { nom: string; contexte: string }[] = [];
+      const vus = new Set<string>();
+      for (const m of texte.matchAll(/["']:operation["']\s*:\s*["']([^"']+)["']/g)) {
+        const nom = m[1];
+        if (vus.has(nom)) continue;
+        vus.add(nom);
+        const i = m.index ?? 0;
+        ops.push({ nom, contexte: texte.slice(Math.max(0, i - 350), i + 350)
+          .replace(/\s+/g, " ") });
+        if (ops.length >= 25) break;
+      }
+      sources.push({ url: u, http: r.status, octets: texte.length, operations: ops });
+    } catch (e) {
+      sources.push({ url: u, note: String(e).slice(0, 120), operations: [] });
+    }
+  }
+  return reponseJson({ but: "opérations Sling trouvées sur SOFIA (préparation de vol)",
+    sources });
+}
+
 /* Sonde de page : ?sonde=<url>&motif=<regex>&portee=200&n=8 — extraits du code
    d'une page publique autour d'un motif (pour lire comment SOFIA appelle ses
    services). */
@@ -791,6 +833,7 @@ Deno.serve(async (req: Request) => {
   }
   const q = new URL(req.url).searchParams;
   if (q.get("version") === "1") return reponseJson({ version: VERSION });
+  if (q.get("opsofia") === "1") return opSofia(q);
   if (q.get("sonde")) return sonde(q);
   if (q.get("chasse")) return chasse(q);
   if (q.get("dates") === "1") return datesDe(q);
