@@ -17,10 +17,10 @@
  * Déploiement : Supabase > Edge Functions > fonction « cartes », coller ce
  * fichier EN ENTIER (vérifier que la dernière ligne dans l'éditeur est bien
  * « }); »), déployer, et laisser « Enforce JWT verification » DÉSACTIVÉ.
- * Aucun secret requis. Vérification : ouvrir ?version=1 -> doit répondre 7.22.
+ * Aucun secret requis. Vérification : ouvrir ?version=1 -> doit répondre 7.23.
  */
 
-const VERSION = "7.22";
+const VERSION = "7.23";
 const AERO = "https://aviation.meteo.fr";
 const SOFIA = "https://sofia-briefing.aviation-civile.gouv.fr";
 const UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Safari/605.1.15";
@@ -413,9 +413,9 @@ function reponseNotam(corps: string, memo: boolean): Response {
 }
 async function notam(q: URLSearchParams): Promise<Response> {
   const ads = (q.get("ad") || "").toUpperCase().split(",").map((x) => x.trim())
-    .filter((x) => /^[A-Z]{4}$/.test(x)).slice(0, 16);
+    .filter((x) => /^[A-Z]{4}$/.test(x)).slice(0, 40);
   if (!ads.length) {
-    return reponseJson({ erreur: "paramètre ad attendu : ad=LFPN,LFPO,… (codes OACI, 16 au plus)" }, 400);
+    return reponseJson({ erreur: "paramètre ad attendu : ad=LFPN,LFPO,… (codes OACI, 40 au plus)" }, 400);
   }
   const cle = ads.slice().sort().join(",");
   const su = memoNotam.get(cle);
