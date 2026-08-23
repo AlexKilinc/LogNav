@@ -17,10 +17,10 @@
  * Déploiement : Supabase > Edge Functions > fonction « cartes », coller ce
  * fichier EN ENTIER (vérifier que la dernière ligne dans l'éditeur est bien
  * « }); »), déployer, et laisser « Enforce JWT verification » DÉSACTIVÉ.
- * Aucun secret requis. Vérification : ouvrir ?version=1 -> doit répondre 7.26.
+ * Aucun secret requis. Vérification : ouvrir ?version=1 -> doit répondre 7.27.
  */
 
-const VERSION = "7.26";
+const VERSION = "7.27";
 const AERO = "https://aviation.meteo.fr";
 const SOFIA = "https://sofia-briefing.aviation-civile.gouv.fr";
 const UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Safari/605.1.15";
@@ -551,7 +551,9 @@ async function supAip(_q: URLSearchParams): Promise<Response> {
    Chemins relevés dans son code (26/08/2026) :
      v3/custom/currentDate                       -> plage publiée
      v3/r_t_b_as?itemsPerPage=600&debutIntervalTemps=…&finIntervalTemps=…
-     v3/r_t_b_as?network=1                       -> réseau (géométries)
+     v3/r_t_b_as?network=1     -> réseau : contours AIXM + créneaux (source
+                                  principale ; les contours sont reconstruits
+                                  ici, segments droits et arcs de cercle)
    Chaque requête porte deux en-têtes :
      Authorization: Basic base64(<AZBA_BASIC>)
      AUTH:          base64({"tokenUri": sha512(<AZBA_CLE> + "/api/" + chemin)})
@@ -585,45 +587,117 @@ function azbaPrend(o: Record<string, unknown>, cles: string[]): unknown {
   }
   return undefined;
 }
-type AzbaZone = { nom: string; bas: string; haut: string;
-  creneaux: { debut: string; fin: string }[]; geometrie?: unknown };
-/* niveau : « 2600 FT AMSL » à partir des champs AIXM (valeur + unité + référence) */
+/* --- géométrie AIXM : « 463620N » / « 0022818E » -> degrés décimaux --- */
+function azbaDms(v: unknown): number | null {
+  const m = String(v ?? "").trim().match(/^(\d{2,3})(\d{2})(\d{2}(?:\.\d+)?)([NSEW])$/i);
+  if (!m) return null;
+  let d = Number(m[1]) + Number(m[2]) / 60 + Number(m[3]) / 3600;
+  const h = m[4].toUpperCase();
+  if (h === "S" || h === "W") d = -d;
+  return isFinite(d) ? d : null;
+}
+/* arc de cercle entre deux points, autour d'un centre (rayon en NM) :
+   CWA = sens horaire, CCA = sens anti-horaire (convention AIXM du SIA) */
+function azbaArc(cLat: number, cLon: number, rNm: number,
+  a: [number, number], b: [number, number], horaire: boolean): [number, number][] {
+  const kx = Math.cos(cLat * Math.PI / 180) || 1;
+  const ang = (p: [number, number]) => Math.atan2((p[1] - cLon) * kx, p[0] - cLat);
+  const a0 = ang(a);
+  let delta = ang(b) - a0;
+  const TAU = 2 * Math.PI;
+  if (horaire) { while (delta <= 0) delta += TAU; while (delta > TAU) delta -= TAU; }
+  else { while (delta >= 0) delta -= TAU; while (delta < -TAU) delta += TAU; }
+  const n = Math.max(2, Math.min(72, Math.ceil(Math.abs(delta) / (Math.PI / 36))));
+  const pts: [number, number][] = [];
+  for (let i = 1; i < n; i++) {
+    const t = a0 + delta * i / n;
+    pts.push([cLat + (rNm / 60) * Math.cos(t), cLon + (rNm / 60) * Math.sin(t) / kx]);
+  }
+  return pts;
+}
+/* contour d'une zone : le codeType d'un point décrit le segment qui EN PART
+   (vérifié sur LFR139A/B : les deux extrémités de l'arc sont bien à 19 NM
+   du centre annoncé). GRC/RHL/FNT -> segment droit ; CWA/CCA -> arc. */
+function azbaContour(coords: unknown): [number, number][] | null {
+  if (!Array.isArray(coords) || coords.length < 3) return null;
+  const pts = coords.slice().sort((x, y) =>
+    Number((x as Record<string, unknown>).coordPosition ?? 0) -
+    Number((y as Record<string, unknown>).coordPosition ?? 0));
+  const out: [number, number][] = [];
+  for (let i = 0; i < pts.length; i++) {
+    const p = pts[i] as Record<string, unknown>;
+    const q = pts[(i + 1) % pts.length] as Record<string, unknown>;
+    const lat = azbaDms(p.latitude), lon = azbaDms(p.longitude);
+    if (lat == null || lon == null) return null;
+    out.push([lat, lon]);
+    const t = String(p.codeType ?? "").toUpperCase();
+    const r = Number(p.valRadiusArc ?? 0);
+    if ((t === "CWA" || t === "CCA") && r > 0) {
+      const cLat = azbaDms(p.geoLatArc), cLon = azbaDms(p.geoLongArc);
+      const qLat = azbaDms(q.latitude), qLon = azbaDms(q.longitude);
+      if (cLat != null && cLon != null && qLat != null && qLon != null)
+        out.push(...azbaArc(cLat, cLon, r, [lat, lon], [qLat, qLon], t === "CWA"));
+    }
+  }
+  return out.length >= 3 ? out : null;
+}
+/* niveau lisible : 0 FT HEI -> SFC ; 800 FT HEI -> 800 ft ASFC ;
+   3000 FT ALT -> 3000 ft AMSL ; 65 FL STD -> FL65 */
 function azbaNiveau(o: Record<string, unknown>, sens: "bas" | "haut"): string {
   const V = sens === "bas"
     ? ["valdistverlower", "lower", "plancher", "floor", "lowerlimit", "altmin"]
     : ["valdistverupper", "upper", "plafond", "ceiling", "upperlimit", "altmax"];
   const U = sens === "bas" ? ["uomdistverlower", "uomlower"] : ["uomdistverupper", "uomupper"];
   const R = sens === "bas" ? ["codedistverlower", "reflower"] : ["codedistverupper", "refupper"];
-  const v = azbaPrend(o, V); if (v == null) return "";
-  const u = azbaPrend(o, U), r = azbaPrend(o, R);
-  return [String(v), u ? String(u) : "", r ? String(r) : ""].filter(Boolean).join(" ");
+  const vb = sens === "bas" ? o["valDistVerLower"] : o["valDistVerUpper"];
+  const v = vb !== undefined && vb !== null ? vb : azbaPrend(o, V);
+  if (v == null || v === "") return "";
+  const u = String(azbaPrend(o, U) ?? "").toUpperCase();
+  const r = String(azbaPrend(o, R) ?? "").toUpperCase();
+  if (u === "FL") return "FL" + String(v);
+  const ref = r === "HEI" ? "ASFC" : (r === "ALT" ? "AMSL" : r);
+  if (Number(v) === 0 && (ref === "ASFC" || !ref)) return "SFC";
+  return String(v) + (u ? " " + u.toLowerCase() : "") + (ref ? " " + ref : "");
 }
+type AzbaZone = { nom: string; bas: string; haut: string;
+  creneaux: { debut: string; fin: string }[]; geometrie?: [number, number][] };
 function azbaZonesDe(j: unknown): AzbaZone[] | null {
   const src = j as Record<string, unknown> | null;
   const brut = Array.isArray(j) ? j
     : (src && (src["hydra:member"] ?? src["member"] ?? src["data"] ?? src["zones"]));
   if (!Array.isArray(brut)) return null;
+  const maintenant = Date.now(), horizon = maintenant + 8 * 24 * 3600e3;
   const zones: AzbaZone[] = [];
   for (const it of brut) {
     if (!it || typeof it !== "object") continue;
     const o = it as Record<string, unknown>;
-    const nom = String(azbaPrend(o, ["codeid", "txtname", "name", "nom", "designation"]) ?? "")
+    /* le code officiel prime (LFR139A) ; à défaut le libellé (« 139 A ») */
+    const nom = String(o["codeId"] ?? o["codeid"] ??
+      azbaPrend(o, ["txtname", "name", "nom", "designation"]) ?? "")
       .replace(/^RTBA-/i, "").trim();
     if (!nom) continue;
     const slots = azbaPrend(o, ["timeslots", "creneaux", "slots", "activations"]);
     const creneaux: { debut: string; fin: string }[] = [];
+    const vus = new Set<string>();
     if (Array.isArray(slots)) {
-      for (const c of slots.slice(0, 80)) {
+      for (const c of slots.slice(0, 200)) {
         if (!c || typeof c !== "object") continue;
         const co = c as Record<string, unknown>;
         const debut = azbaDate(azbaPrend(co, ["from", "debut", "start", "startdatetime", "starttime"]));
         const fin = azbaDate(azbaPrend(co, ["to", "fin", "end", "enddatetime", "endtime"]));
-        if (debut || fin) creneaux.push({ debut, fin });
+        if (!debut && !fin) continue;
+        const cle = debut + "|" + fin;
+        if (vus.has(cle)) continue;                 /* l'API renvoie des doublons */
+        const tf = Date.parse(fin || debut) || 0;
+        if (tf && tf < maintenant) continue;         /* déjà terminé */
+        if ((Date.parse(debut) || 0) > horizon) continue;
+        vus.add(cle); creneaux.push({ debut, fin });
       }
     }
+    creneaux.sort((a, b) => (Date.parse(a.debut) || 0) - (Date.parse(b.debut) || 0));
     const z: AzbaZone = { nom, bas: azbaNiveau(o, "bas"), haut: azbaNiveau(o, "haut"), creneaux };
-    const g = azbaPrend(o, ["geometry", "geometrie", "contour", "polygon", "coordinates", "geojson"]);
-    if (g != null) z.geometrie = g;
+    const g = azbaContour(o["coordinates"]);
+    if (g) z.geometrie = g;
     zones.push(z);
   }
   return zones.length ? zones : null;
@@ -675,7 +749,29 @@ async function azba(q: URLSearchParams): Promise<Response> {
         "X-Cartes-Version": VERSION, "X-Cartes-Azba": "memo",
       } });
     }
-    /* la plage publiée, si l'API veut bien la dire (donne aussi le bon format) */
+    /* 1) le réseau complet : contours ET créneaux en un seul appel */
+    {
+      const chemin = "v3/r_t_b_as?network=1";
+      const r = await azbaLit(chemin, cle, basic);
+      const zones = azbaZonesDe(r.j);
+      essais.push({ chemin, http: r.http, membres: zones ? zones.length : 0,
+        apercu: zones ? undefined : r.apercu.slice(0, 160) });
+      if (brut && r.http === 200) return reponseJson({ chemin, http: r.http, reponse: r.j ?? r.apercu });
+      if (zones) {
+        const avecGeo = zones.filter((z) => z.geometrie).length;
+        const corps = JSON.stringify({ maj: new Date().toISOString(),
+          source: "SIA — API AZBA v3 (réseau RTBA)", total: zones.length,
+          avecGeometrie: avecGeo, zones });
+        memoAzba = { t: Date.now(), corps };
+        return new Response(corps, { headers: {
+          "Content-Type": "application/json; charset=utf-8",
+          "Cache-Control": "public, max-age=300",
+          "Access-Control-Allow-Origin": "*",
+          "X-Cartes-Version": VERSION, "X-Cartes-Azba": "frais",
+        } });
+      }
+    }
+    /* 2) secours : la plage publiée, si l'API veut bien la dire */
     let plage: unknown = null;
     try { const rc = await azbaLit("v3/custom/currentDate", cle, basic);
       essais.push({ chemin: "v3/custom/currentDate", http: rc.http, apercu: rc.apercu.slice(0, 160) });
