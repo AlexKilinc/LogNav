@@ -2926,7 +2926,7 @@ window.__TRACE_MARKUP="\n\n<header>\n  <div class=\"hdr-row1\">\n    <span class
    accessible depuis le bouton ⓘ du bandeau du log, avant toute ouverture de la carte */
 (function(){
   var host=document.createElement('div');
-  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Cartes OACI — origine et mise à jour</b></p>\n    <p style=\"margin-top:-6px\"><b>1/250 000 Région parisienne</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte250\">—</span>.</p>\n    <p style=\"margin-top:-6px\"><b>1/500 000 France</b> — IGN Géoplateforme (SCAN-OACI). Donnée <b>non libre</b>, tenue à jour par l’IGN.</p>\n    <p style=\"margin-top:-6px\"><b>1/1 000 000 France</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte1000\">—</span>.</p>\n    <p>Les deux cartes du SIA sont hébergées à part et lues par plages : seules les tuiles affichées sont téléchargées. Les trois se copient sur l’appareil pour voler sans réseau depuis <b>Profil → Cartes hors-ligne</b>. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.438</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
+  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Cartes OACI — origine et mise à jour</b></p>\n    <p style=\"margin-top:-6px\"><b>1/250 000 Région parisienne</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte250\">—</span>.</p>\n    <p style=\"margin-top:-6px\"><b>1/500 000 France</b> — IGN Géoplateforme (SCAN-OACI). Donnée <b>non libre</b>, tenue à jour par l’IGN.</p>\n    <p style=\"margin-top:-6px\"><b>1/1 000 000 France</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte1000\">—</span>.</p>\n    <p>Les deux cartes du SIA sont hébergées à part et lues par plages : seules les tuiles affichées sont téléchargées. Les trois se copient sur l’appareil pour voler sans réseau depuis <b>Profil → Cartes hors-ligne</b>. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.439</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
   (document.body||document.documentElement).appendChild(host.firstElementChild);
   /* le nom du fichier de la 1/1 000 000 dit son edition : on le lit la ou il
      est vraiment (cartes.json), jamais en dur, sinon il mentirait un jour */
@@ -10519,22 +10519,32 @@ window.__pickGpx=function(cb){
       else corps.innerHTML='<div class="wxc-vmsg">Aucune adresse d\u00e9finie pour cette carte.</div>';
     }
     function wxZoom(zone,img){
-      var sc=1,tx=0,ty=0,pts={},nb=0,g=null,dernierTap=0;
-      function pos(){ return {x:img.offsetLeft,y:img.offsetTop}; }
+      /* L'image est posee a sa taille NATIVE (ses vrais pixels) puis reduite
+         pour tenir dans la zone ; le zoom remonte vers le 1:1 sans flou.
+         (Avant : image reduite par le CSS puis agrandie par transform —
+         Safari rasterise a la taille d'affichage, d'ou la perte de nettete.) */
+      var sc=1,tx=0,ty=0,fit=1,nw=1,nh=1,scMax=4,pts={},nb=0,g=null,dernierTap=0;
       function appli(){ img.style.transform='translate('+tx+'px,'+ty+'px) scale('+sc+')'; }
+      function centre(){ tx=(zone.clientWidth-nw*sc)/2; ty=(zone.clientHeight-nh*sc)/2; }
+      (function prep(){ nw=img.naturalWidth||img.clientWidth||1; nh=img.naturalHeight||img.clientHeight||1;
+        img.style.maxWidth='none'; img.style.maxHeight='none';
+        img.style.width=nw+'px'; img.style.height=nh+'px';
+        img.style.position='absolute'; img.style.left='0'; img.style.top='0';
+        fit=Math.min(zone.clientWidth/nw, zone.clientHeight/nh, 1);
+        scMax=Math.max(4,fit*8);
+        sc=fit; centre(); appli(); })();
       function borne(){
-        if(sc<=1.001){ sc=1; tx=0; ty=0; return; }
-        var o=pos(), w=img.clientWidth*sc, h=img.clientHeight*sc;
-        var zw=zone.clientWidth, zh=zone.clientHeight, m=60;
-        if(o.x+tx>zw-m) tx=zw-m-o.x;
-        if(o.x+tx+w<m)  tx=m-w-o.x;
-        if(o.y+ty>zh-m) ty=zh-m-o.y;
-        if(o.y+ty+h<m)  ty=m-h-o.y;
+        if(sc<=fit*1.001){ sc=fit; centre(); return; }
+        var w=nw*sc,h=nh*sc, zw=zone.clientWidth, zh=zone.clientHeight, m=60;
+        if(tx>zw-m) tx=zw-m;
+        if(tx+w<m)  tx=m-w;
+        if(ty>zh-m) ty=zh-m;
+        if(ty+h<m)  ty=m-h;
       }
       function vers(nsc,px,py){
-        nsc=Math.max(1,Math.min(8,nsc));
-        var o=pos(); var cx=(px-o.x-tx)/sc, cy=(py-o.y-ty)/sc;
-        tx=px-o.x-nsc*cx; ty=py-o.y-nsc*cy; sc=nsc; borne(); appli();
+        nsc=Math.max(fit,Math.min(scMax,nsc));
+        var cx=(px-tx)/sc, cy=(py-ty)/sc;
+        tx=px-nsc*cx; ty=py-nsc*cy; sc=nsc; borne(); appli();
       }
       zone.addEventListener('wheel',function(e){ e.preventDefault();
         var r=zone.getBoundingClientRect();
@@ -10546,13 +10556,14 @@ window.__pickGpx=function(cb){
         var ks=Object.keys(pts);
         if(nb===2){ var a=pts[ks[0]], b=pts[ks[1]];
           var mid={x:(a.x+b.x)/2,y:(a.y+b.y)/2};
-          var r=zone.getBoundingClientRect(), o=pos();
+          var r=zone.getBoundingClientRect();
           g={d0:Math.hypot(a.x-b.x,a.y-b.y)||1, s0:sc,
-             c0:{x:((mid.x-r.left)-o.x-tx)/sc, y:((mid.y-r.top)-o.y-ty)/sc}};
+             c0:{x:((mid.x-r.left)-tx)/sc, y:((mid.y-r.top)-ty)/sc}};
         }else if(nb===1){
           var t=Date.now();
           if(t-dernierTap<300){ var r2=zone.getBoundingClientRect();
-            vers(sc>1.3?1:2.5, e.clientX-r2.left, e.clientY-r2.top); }
+            /* double toucher : plein cadre <-> pixels reels (1:1) */
+            vers(sc>fit*1.2?fit:Math.max(1,fit*2.5), e.clientX-r2.left, e.clientY-r2.top); }
           dernierTap=t;
         }
       });
@@ -10563,9 +10574,9 @@ window.__pickGpx=function(cb){
         if(nb>=2&&g){ var ks=Object.keys(pts); var a=pts[ks[0]], b=pts[ks[1]];
           var d=Math.hypot(a.x-b.x,a.y-b.y)||1;
           var mid={x:(a.x+b.x)/2,y:(a.y+b.y)/2};
-          var r=zone.getBoundingClientRect(), o=pos();
-          var nsc=Math.max(1,Math.min(8,g.s0*d/g.d0));
-          tx=(mid.x-r.left)-o.x-nsc*g.c0.x; ty=(mid.y-r.top)-o.y-nsc*g.c0.y;
+          var r=zone.getBoundingClientRect();
+          var nsc=Math.max(fit,Math.min(scMax,g.s0*d/g.d0));
+          tx=(mid.x-r.left)-nsc*g.c0.x; ty=(mid.y-r.top)-nsc*g.c0.y;
           sc=nsc; borne(); appli();
         }
       });
