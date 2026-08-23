@@ -2928,7 +2928,7 @@ window.__TRACE_MARKUP="\n\n<header>\n  <div class=\"hdr-row1\">\n    <span class
    accessible depuis le bouton ⓘ du bandeau du log, avant toute ouverture de la carte */
 (function(){
   var host=document.createElement('div');
-  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Cartes OACI — origine et mise à jour</b></p>\n    <p style=\"margin-top:-6px\"><b>1/250 000 Région parisienne</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte250\">—</span>.</p>\n    <p style=\"margin-top:-6px\"><b>1/500 000 France</b> — IGN Géoplateforme (SCAN-OACI). Donnée <b>non libre</b>, tenue à jour par l’IGN.</p>\n    <p style=\"margin-top:-6px\"><b>1/1 000 000 France</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte1000\">—</span>.</p>\n    <p>Les deux cartes du SIA sont hébergées à part et lues par plages : seules les tuiles affichées sont téléchargées. Les trois se copient sur l’appareil pour voler sans réseau depuis <b>Profil → Cartes hors-ligne</b>. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.446</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
+  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Cartes OACI — origine et mise à jour</b></p>\n    <p style=\"margin-top:-6px\"><b>1/250 000 Région parisienne</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte250\">—</span>.</p>\n    <p style=\"margin-top:-6px\"><b>1/500 000 France</b> — IGN Géoplateforme (SCAN-OACI). Donnée <b>non libre</b>, tenue à jour par l’IGN.</p>\n    <p style=\"margin-top:-6px\"><b>1/1 000 000 France</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte1000\">—</span>.</p>\n    <p>Les deux cartes du SIA sont hébergées à part et lues par plages : seules les tuiles affichées sont téléchargées. Les trois se copient sur l’appareil pour voler sans réseau depuis <b>Profil → Cartes hors-ligne</b>. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.447</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
   (document.body||document.documentElement).appendChild(host.firstElementChild);
   /* le nom du fichier de la 1/1 000 000 dit son edition : on le lit la ou il
      est vraiment (cartes.json), jamais en dur, sinon il mentirait un jour */
@@ -6460,10 +6460,12 @@ function openRelinkChoice(){
    +'box-shadow:0 3px 10px rgba(0,0,0,.25);-webkit-tap-highlight-color:transparent}'
    +'#wndBtn.on{background:#1E9FE0;border-color:#1E9FE0}'
    +'#wndBtn{padding:0;overflow:hidden;gap:0}'
-   +'#wndBtn .mto-g,#wndBtn .mto-d{display:inline-flex;align-items:center;gap:5px;padding:5px 10px;cursor:pointer}'
+   +'#wndBtn .mto-g,#wndBtn .mto-d,#wndBtn .mto-z{display:inline-flex;align-items:center;gap:5px;padding:5px 10px;cursor:pointer}'
    +'#wndBtn .mto-g.on{background:#1E9FE0}'
    +'#wndBtn .mto-d{border-left:1px solid rgba(255,255,255,.28);color:#bcd6ec}'
    +'#wndBtn .mto-d.on{background:#e0532e;color:#fff}'
+   +'#wndBtn .mto-z{border-left:1px solid rgba(255,255,255,.28);color:#bcd6ec}'
+   +'#wndBtn .mto-z.on{background:#B91C1C;color:#fff}'
    +'#wndPanel .sig-row{display:flex;align-items:center;gap:7px;background:rgba(255,255,255,.08);'
    +'border:1px solid rgba(255,255,255,.2);border-radius:8px;padding:6px 9px;cursor:pointer;color:#dce8fa;'
    +'font:700 11px Poppins,sans-serif}'
@@ -6502,8 +6504,9 @@ function openRelinkChoice(){
    +'.ntmd-hd b{white-space:nowrap;flex:1 1 auto}'
    +'.ntmd-st{flex:1 0 100%;min-width:0;white-space:nowrap;overflow:hidden;'
    +'font:600 10.5px Poppins,sans-serif;color:#8fb2ce}'
-   +'@media (max-width:480px){.ntmd-hd{gap:6px 7px;padding:9px 12px}'
-   +'.ntmd-hd b{font-size:12px}.ntmd-hd .ntmd-f{padding:4px 8px}}'
+   +'@media (max-width:480px){.ntmd-hd{gap:4px 5px;padding:8px 8px}'
+   +'.ntmd-hd b{font-size:10.5px}.ntmd-hd .ntmd-f{font-size:8.5px;padding:3px 5px}'
+   +'.ntmd-hd .ntmd-x{padding:2px 4px}}'
    +'.ntmd-x{background:none;border:none;color:#fff;font:700 20px/1 sans-serif;cursor:pointer;padding:2px 6px}'
    +'.ntmd-f{flex:none;border:0;border-radius:999px;background:rgba(255,255,255,.14);color:#a9bdd4;'
    +'font:700 10px Poppins,sans-serif;padding:4px 10px;cursor:pointer;white-space:nowrap}'
@@ -6516,6 +6519,7 @@ function openRelinkChoice(){
    +'.ntmd-rol{flex:none;font:700 9.5px Poppins,sans-serif;padding:2px 8px;border-radius:12px;background:#64748b;color:#fff}'
    +'.ntmd-rol.dep{background:#16a34a}.ntmd-rol.arr{background:#e94560}.ntmd-rol.mid{background:#2c5282}'
    +'.ntmd-rol.deg{background:#b45309}.ntmd-rol.sel{background:#7C3AED}.ntmd-rol.prox{background:#64748b}'
+   +'.ntmd-rol.azba{background:#B91C1C}'
    +'.ntmd-nom{flex:1 1 auto;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;'
    +'color:#5b6b82;font:600 10.5px Poppins,sans-serif}'
    +'.ntmd-cnt{flex:none;color:#5B21B6;font:800 10.5px Poppins,sans-serif}'
@@ -6555,7 +6559,8 @@ function openRelinkChoice(){
   btn.innerHTML='<span class="mto-g" id="mtoG" title="Vent et SIGMET">'
     +'<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><path d="M3 8h11a3 3 0 1 0-3-3M3 13h15a3 3 0 1 1-3 3M3 18h8"/></svg>'
     +'<span id="wndLab">Météo</span></span>'
-    +'<span class="mto-d" id="mtoD" title="NOTAM et SUP AIP des terrains du vol">Notam/AIP</span>';
+    +'<span class="mto-d" id="mtoD" title="NOTAM et SUP AIP des terrains du vol">Notam/AIP</span>'
+    +'<span class="mto-z" id="mtoZ" title="AZBA / RTBA \u2014 activation des zones basse altitude (SIA)">AZBA</span>';
   wrap.appendChild(panel); wrap.appendChild(btn); th.appendChild(wrap);
   /* outils NOTAM/SUP AIP : pile de fiches (listing complet) + rayon 50 NM —
      visibles seulement quand la couche est allumée */
@@ -6590,6 +6595,7 @@ function openRelinkChoice(){
   try{ map.on('resize',place); map.whenReady(function(){ setTimeout(place,300); setTimeout(place,1200); }); }catch(e){}
   btn.addEventListener('click',function(e){ e.stopPropagation();
     if(e.target.closest && e.target.closest('#mtoD')){ ntmToggle(); return; }
+    if(e.target.closest && e.target.closest('#mtoZ')){ azbaToggle(); return; }
     panel.hidden=!panel.hidden; place(); });
   try{ map.on('zoomend',function(){ draw(); }); }catch(e){}
   function samples(){
@@ -6711,7 +6717,7 @@ function openRelinkChoice(){
   var notamOn=false, notamData=null, notamBusy=false;
   var PROX_NM=10;   /* rayon de recherche des terrains proches ; 50 NM en mode étendu */
   var notamExtra=[];   /* terrains ajoutés à la main (clic carte ou saisie du listing) */
-  var ntmFiltre={notam:true,sup:true};   /* tri du listing : cases NOTAM / SUP-AIP */
+  var ntmFiltre={notam:true,sup:true,azba:true};   /* tri du listing : cases NOTAM / SUP-AIP */
   var ntmMarkers={};   /* badge de chaque terrain, pour rouvrir sa popup */
   function ntmIdx(){ var idx={};
     for(var i=0;i<AERO.length;i++){ var a=AERO[i];
@@ -6789,6 +6795,86 @@ function openRelinkChoice(){
   }
   function supDate(d){ var m=/^(\d{4})-(\d{2})-(\d{2})/.exec(String(d||''));
     return m?(m[3]+'/'+m[2]):''; }
+  /* ============== AZBA / RTBA — activation des zones basse altitude ========
+     Source : relais ?azba=1 (SIA /schedules). Zones retenues : celles ayant
+     au moins un creneau dans les 48 h. Carte : polygones si la geometrie est
+     fournie (rouge plein = actif maintenant, orange tirete = a venir). */
+  var azbaData=null, azbaBusy=false, azbaErr='', azbaOn=false;
+  var azbaGroup=L.layerGroup();
+  function azbaCharge(cb){
+    if(azbaData&&(Date.now()-azbaData.t)<20*60e3){ if(cb)cb(azbaData); return; }
+    if(azbaBusy){ var t0=Date.now(); var att=setInterval(function(){
+        if(!azbaBusy||Date.now()-t0>25000){ clearInterval(att); if(cb)cb(azbaData); } },300);
+      return; }
+    var base=String(window.__SB_URL||'').replace(/\/+$/,'');
+    if(!base){ azbaErr='relais non configur\u00e9'; if(cb)cb(null); return; }
+    azbaBusy=true;
+    fetch(base+'/functions/v1/cartes?azba=1&_='+Date.now(),{cache:'no-store'})
+      .then(function(r){ return r.json().then(function(j){ if(!r.ok) throw (j&&j.erreur)||('http '+r.status); return j; }); })
+      .then(function(j){ azbaBusy=false; azbaErr='';
+        azbaData={t:Date.now(),maj:j.maj||'',zones:j.zones||[]};
+        if(cb)cb(azbaData); })
+      .catch(function(e){ azbaBusy=false; azbaData=null; azbaErr=String(e).slice(0,90); if(cb)cb(null); });
+  }
+  function azbaFen(z,heures){ var now=Date.now(), lim=now+(heures||48)*3600e3;
+    return (z.creneaux||[]).filter(function(c){
+      var d=Date.parse(c.debut||'')||0, f=Date.parse(c.fin||'')||0, fin=f||d;
+      return fin>=now && (d||0)<=lim; }); }
+  function azbaHeure(iso){ var d=new Date(iso); if(isNaN(+d)) return '?';
+    return ('0'+d.getUTCDate()).slice(-2)+'/'+('0'+(d.getUTCMonth()+1)).slice(-2)
+      +' '+('0'+d.getUTCHours()).slice(-2)+':'+('0'+d.getUTCMinutes()).slice(-2); }
+  function azbaCren(c){ var a=azbaHeure(c.debut), b=azbaHeure(c.fin);
+    return a+' \u2192 '+(b.slice(0,5)===a.slice(0,5)?b.slice(6):b)+' UTC'; }
+  function azbaActifMaintenant(cr){ var now=Date.now();
+    return cr.some(function(c){ var d=Date.parse(c.debut||'')||0, f=Date.parse(c.fin||'')||0;
+      return d<=now&&(f||d)>=now; }); }
+  function azbaPoly(g){
+    if(!g) return null;
+    if(g.type&&g.coordinates) g=g.coordinates;
+    while(Array.isArray(g)&&Array.isArray(g[0])&&Array.isArray(g[0][0])) g=g[0];
+    if(!Array.isArray(g)||g.length<3) return null;
+    var pts=[]; for(var i=0;i<g.length;i++){ var pp=g[i];
+      if(!Array.isArray(pp)||pp.length<2||!isFinite(pp[0])||!isFinite(pp[1])) return null;
+      var lat=+pp[0], lon=+pp[1];
+      if(!(lat>=35&&lat<=55)&&(+pp[1]>=35&&+pp[1]<=55)){ lat=+pp[1]; lon=+pp[0]; }
+      pts.push([lat,lon]); }
+    return pts; }
+  function azbaDraw(){ azbaGroup.clearLayers();
+    if(!azbaOn||!azbaData) return 0;
+    var n=0;
+    azbaData.zones.forEach(function(z){
+      var cr=azbaFen(z,48); if(!cr.length) return;
+      var pts=azbaPoly(z.geometrie); if(!pts) return;
+      var actif=azbaActifMaintenant(cr);
+      var pg=L.polygon(pts,{color:actif?'#B91C1C':'#EA580C',weight:2,
+        dashArray:actif?null:'6 4',fillColor:actif?'#B91C1C':'#EA580C',
+        fillOpacity:actif?.18:.08});
+      pg.bindPopup('<div class="ntm-pop"><b>'+ntmEsc(z.nom)+'</b>'
+        +((z.bas||z.haut)?' \u00b7 '+ntmEsc(z.bas||'?')+' \u2192 '+ntmEsc(z.haut||'?'):'')
+        +(actif?' \u00b7 <b style="color:#B91C1C">ACTIVE</b>':'')
+        +'<br>'+cr.slice(0,6).map(azbaCren).join('<br>')+'</div>',{maxWidth:300});
+      azbaGroup.addLayer(pg); n++; });
+    return n; }
+  function azbaToggle(){
+    var zb=document.getElementById('mtoZ');
+    if(azbaOn){ azbaOn=false; azbaGroup.clearLayers();
+      try{ map.removeLayer(azbaGroup); }catch(e){}
+      if(zb) zb.classList.remove('on'); return; }
+    azbaOn=true; if(zb) zb.classList.add('on');
+    try{ azbaGroup.addTo(map); }catch(e){}
+    azbaCharge(function(d){
+      if(!azbaOn) return;
+      if(!d){ if(typeof showToast==='function') showToast('AZBA indisponibles \u00b7 '+(azbaErr||'?'));
+        azbaOn=false; try{ map.removeLayer(azbaGroup); }catch(e){}
+        if(zb) zb.classList.remove('on'); return; }
+      var n=azbaDraw();
+      var act=d.zones.filter(function(z){ return azbaFen(z,48).length; }).length;
+      if(typeof showToast==='function')
+        showToast('AZBA : '+act+' zone(s) avec cr\u00e9neaux sous 48 h'
+          +(n?'':' \u2014 g\u00e9om\u00e9trie non fournie par le SIA : voir le listing'));
+      if(document.getElementById('ntmDos')) ntmDossier();
+    });
+  }
   /* --- Dossier de vol (DDV) : selection des NOTAM / SUP AIP importants.
      La cle identifie un element de facon stable ; la selection vit dans la
      navigation (nav.ddv) via le pont React __DDV_LIRE / __DDV_ECRIRE. --- */
@@ -6894,6 +6980,8 @@ function openRelinkChoice(){
       +'title="Afficher ou masquer les NOTAM">NOTAM</button>'
       +'<button type="button" class="ntmd-f'+(ntmFiltre.sup?' on':'')+'" data-f="sup" '
       +'title="Afficher ou masquer les SUP AIP">SUP-AIP</button>'
+      +'<button type="button" class="ntmd-f'+(ntmFiltre.azba?' on':'')+'" data-f="azba" '
+      +'title="Afficher ou masquer l\u2019activation des zones basse altitude (RTBA)">AZBA/RTBA</button>'
       +'<button type="button" class="ntmd-x" aria-label="Fermer" title="Fermer">\u00d7</button>'
       +'<span class="ntmd-st">'+codes.length+' terrains \u00b7 rayon '+PROX_NM+' NM'
       +(notamData.notamsOk?'':' \u00b7 NOTAM indisponibles')+'</span></div>'
@@ -6915,6 +7003,19 @@ function openRelinkChoice(){
           var i2=ddvRefS.push(o2)-1;
           return ddvBouton(supLigne(sp),'s',i2,ddvContient('s',o2)); }).join('');
     });
+    if(ntmFiltre.azba){
+      var azZ=azbaData?azbaData.zones.filter(function(z){ return azbaFen(z,48).length; }):null;
+      html+='<div class="ntmd-ad"><span class="ntmd-rol azba">RTBA</span><b>AZBA</b>'
+        +'<span class="ntmd-nom">activation basse altitude \u2014 cr\u00e9neaux sous 48 h (SIA)</span>'
+        +'<span class="ntmd-cnt">'+(azZ?azZ.length+' zones':'\u2026')+'</span></div>';
+      if(!azbaData) html+='<div class="ntm-un">'+(azbaErr?('AZBA indisponibles \u00b7 '+ntmEsc(azbaErr)):'chargement\u2026')+'</div>';
+      else if(!azZ.length) html+='<div class="ntm-un">aucun cr\u00e9neau dans les 48 prochaines heures</div>';
+      else azZ.forEach(function(z){ var cr=azbaFen(z,48);
+        html+='<div class="ntm-un"><b>'+ntmEsc(z.nom)+'</b>'
+          +((z.bas||z.haut)?' \u00b7 '+ntmEsc(z.bas||'?')+' \u2192 '+ntmEsc(z.haut||'?'):'')
+          +(azbaActifMaintenant(cr)?' \u00b7 <b style="color:#B91C1C">ACTIVE</b>':'')
+          +'<br>'+cr.slice(0,8).map(azbaCren).join(' \u00b7 ')+'</div>'; });
+    }
     html+='<div class="ntmd-add">'
       +'<input id="ntmAddInp" maxlength="4" autocapitalize="characters" autocorrect="off" '
       +'spellcheck="false" placeholder="OACI (ex. LFPO)" aria-label="Code OACI \u00e0 ajouter">'
@@ -6961,6 +7062,8 @@ function openRelinkChoice(){
       ntmDossier();
     }; });
     document.addEventListener('keydown',clav);
+    if(ntmFiltre.azba&&!azbaData&&!azbaErr){
+      azbaCharge(function(){ if(document.getElementById('ntmDos')) ntmDossier(); }); }
   }
   /* --- section « NOTAM & SUP AIP — terrains du vol » du dossier de vol :
      TOUS les elements des terrains depart / arrivee / survoles / degagements,
@@ -6993,7 +7096,11 @@ function openRelinkChoice(){
         sups:(supsParAd[code]||[]).map(function(sp){ return {ad:code,num:sp.num||'',
           du:sp.du||'',au:sp.au||'',titre:ddvCourt(sp.titre),pdf:sp.pdf||''}; })};
     });
-    return {v:1,t:Date.now(),notamsOk:!!notamData.notamsOk,terrains:terrains};
+    var azb=null;
+    if(azbaData){ azb=azbaData.zones.map(function(z){ var cr=azbaFen(z,48);
+        return cr.length?{nom:z.nom,bas:z.bas||'',haut:z.haut||'',creneaux:cr}:null; })
+      .filter(function(x){ return !!x; }); }
+    return {v:2,t:Date.now(),notamsOk:!!notamData.notamsOk,terrains:terrains,azba:azb};
   }
   function ddvRendu(d,fige){
     if(!d||!d.terrains) return null;
@@ -7038,6 +7145,15 @@ function openRelinkChoice(){
             +'" target="_blank" rel="noopener">PDF \u2197</a>':'')
           +'</div>'; });
       h+='</div>'; });
+    /* --- chapitre AZBA / RTBA --- */
+    h+='<div class="wxd-sect">AZBA / RTBA \u2014 r\u00e9seau tr\u00e8s basse altitude</div>'
+      +'<div class="wxd-srcl">Cr\u00e9neaux d\u2019activation transmis au SIA \u00b7 48 h \u00e0 venir \u00b7 version courte</div>';
+    if(d.azba==null) h+='<div class="wxd-vide">AZBA '+(fige?'non fig\u00e9s pour ce vol':'indisponibles')+'.</div>';
+    else if(!d.azba.length) h+='<div class="wxd-msg">aucun cr\u00e9neau dans les 48 prochaines heures</div>';
+    else d.azba.forEach(function(z){
+      h+='<div class="wxd-msg"><b>'+ntmEsc(z.nom)+'</b>'
+        +((z.bas||z.haut)?' \u00b7 '+ntmEsc(z.bas||'?')+' \u2192 '+ntmEsc(z.haut||'?'):'')
+        +' \u00b7 '+(z.creneaux||[]).slice(0,6).map(azbaCren).join(' \u00b7 ')+'</div>'; });
     return h;
   }
   function ddvSectionHtml(){
@@ -7050,8 +7166,9 @@ function openRelinkChoice(){
   /* instantane pour l'archivage au depart du vol : charge si besoin, puis rend
      les donnees (jamais bloquant : rend null si indisponible) */
   window.__DDV_FIGE=function(cb){
-    var fini=function(){ var d=null; try{ d=ddvDonnees(); }catch(e){}
-      try{ cb(d); }catch(e2){} };
+    var fini=function(){ azbaCharge(function(){
+      var d=null; try{ d=ddvDonnees(); }catch(e){}
+      try{ cb(d); }catch(e2){} }); };
     var sel=terrainsNotam(); var sig=sel.codes.join(',');
     if(notamData&&notamData.complet&&notamData.sig===sig&&(Date.now()-notamData.t)<600000){ fini(); return; }
     ntmCharge();
@@ -7062,8 +7179,9 @@ function openRelinkChoice(){
     },400);
   };
   window.__DDV_SECTION=function(cb){
-    var fini=function(){ var h=null; try{ h=ddvSectionHtml(); }catch(e){}
-      try{ cb(h); }catch(e2){} };
+    var fini=function(){ azbaCharge(function(){
+      var h=null; try{ h=ddvSectionHtml(); }catch(e){}
+      try{ cb(h); }catch(e2){} }); };
     var sel=terrainsNotam(); var sig=sel.codes.join(',');
     if(notamData&&notamData.complet&&notamData.sig===sig&&(Date.now()-notamData.t)<600000){ fini(); return; }
     ntmCharge();
