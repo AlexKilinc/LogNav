@@ -20,7 +20,7 @@
  * Aucun secret requis. Vérification : ouvrir ?version=1 -> doit répondre 7.29.
  */
 
-const VERSION = "7.29";
+const VERSION = "7.30";
 const AERO = "https://aviation.meteo.fr";
 const SOFIA = "https://sofia-briefing.aviation-civile.gouv.fr";
 const UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Safari/605.1.15";
@@ -456,15 +456,18 @@ async function jetonAutorouter(neuf = false): Promise<string | null> {
   });
   const texte = await r.text();
   if (!r.ok) {
-    /* plafond de jetons actifs : le dire en clair, c'est la seule erreur qui
-       se repare toute seule (les jetons expirent) et qu'un changement de mot
-       de passe ne corrigerait pas */
-    if (/toomanytokens/i.test(texte)) {
-      throw new Error("plafond de jetons autorouter atteint (20 actifs). "
+    /* garder trace du refus dans la base : les instances passent, le journal
+       reste, et la sonde peut dire si le plafond est encore plein MAINTENANT
+       ou si l'on regarde une vieille erreur */
+    const motif = /toomanytokens/i.test(texte)
+      ? "plafond de jetons autorouter atteint (20 actifs). "
         + "Les jetons expirent d'eux-memes ; le relais n'en fabrique plus qu'un, "
-        + "partage entre toutes ses instances.");
-    }
-    throw new Error("jeton autorouter refusé (" + r.status + ") " + texte.slice(0, 120));
+        + "partage entre toutes ses instances."
+      : "jeton autorouter refusé (" + r.status + ") " + texte.slice(0, 120);
+    await memoEcrit("autorouter_journal",
+      JSON.stringify({ quand: new Date().toISOString(), evt: "refus", motif }),
+      Date.now() + 7 * 24 * 3600e3);
+    throw new Error(motif);
   }
   const j = JSON.parse(texte);
   const duree = (Number(j.expires_in) || 3600) * 1000;
@@ -473,6 +476,10 @@ async function jetonAutorouter(neuf = false): Promise<string | null> {
   const fin = Date.now() + duree;
   arJeton = { t: jt, fin };
   await memoEcrit("autorouter", jt, fin);
+  await memoEcrit("autorouter_journal",
+    JSON.stringify({ quand: new Date().toISOString(), evt: "succes",
+      motif: "jeton obtenu, partage entre les instances" }),
+    Date.now() + 7 * 24 * 3600e3);
   return jt;
 }
 function reponseNotam(corps: string, memo: boolean): Response {
@@ -1066,6 +1073,18 @@ Deno.serve(async (req: Request) => {
           : { table: false, present: false,
               aide: "table relais_memo absente : jouer relais_memo.sql, sinon le relais "
                 + "fabrique un jeton par instance et epuise le quota autorouter" };
+      /* la derniere tentative de jeton, TOUTES instances confondues : dit si
+         le plafond autorouter est encore plein a l'instant, ou depuis quand
+         le jeton se renouvelle normalement */
+      const jl = await memoLit("autorouter_journal");
+      if (jl) {
+        try {
+          const t = JSON.parse(jl.valeur) as { quand?: string; evt?: string; motif?: string };
+          const min = Math.max(0, Math.round((Date.now() - Date.parse(t.quand || "")) / 60000));
+          etat.derniereTentative = { quand: "il y a " + min + " min",
+            evt: t.evt || "?", motif: (t.motif || "").slice(0, 180) };
+        } catch { /* journal illisible : tant pis */ }
+      }
     }
     return reponseJson(etat);
   }
