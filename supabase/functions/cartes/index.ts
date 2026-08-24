@@ -20,7 +20,7 @@
  * Aucun secret requis. Vérification : ouvrir ?version=1 -> doit répondre 7.29.
  */
 
-const VERSION = "7.32";
+const VERSION = "7.33";
 const AERO = "https://aviation.meteo.fr";
 const SOFIA = "https://sofia-briefing.aviation-civile.gouv.fr";
 const UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Safari/605.1.15";
@@ -434,16 +434,25 @@ async function memoEcrit(cle: string, valeur: string, fin: number):
     return { ok: r.ok, status: r.status, corps: r.ok ? "" : (await r.text()).slice(0, 140) };
   } catch (e) { return { ok: false, status: 0, corps: String(e).slice(0, 140) }; }
 }
+/* Constat du 24 aout : le dernier jeton delivre datait de 06:53 UTC et, eleven
+   heures plus tard, autorouter refusait toujours (« toomanytokens »). Un jeton
+   reste donc COMPTE COMME ACTIF bien au-dela de l'heure annoncee par
+   expires_in — vraisemblablement jusqu'a 24 h, ou jusqu'a revocation.
+   Consequence : jeter un jeton parce que son expires_in est passe, c'est en
+   fabriquer un de plus tout en gardant l'ancien sur le dos. On garde donc le
+   jeton range TANT QU'AUTOROUTER L'ACCEPTE, et on n'en redemande un que
+   lorsqu'il est reellement refuse (401). C'est le seul reglage qui borne le
+   nombre de jetons crees par jour. */
 async function jetonAutorouter(neuf = false): Promise<string | null> {
   const id = (Deno.env.get("AUTOROUTER_ID") || "").trim();
   const mdp = (Deno.env.get("AUTOROUTER_MDP") || "").trim();
   if (!id || !mdp) return null;
   /* 1. memoire d'instance */
-  if (!neuf && arJeton && Date.now() < arJeton.fin - 60000) return arJeton.t;
+  if (!neuf && arJeton) return arJeton.t;
   /* 2. jeton partage, range en base : evite d'en fabriquer un par instance */
   if (!neuf) {
     const p = await memoLit("autorouter");
-    if (p && Date.now() < p.fin - 60000) {
+    if (p && p.valeur) {
       arJeton = { t: p.valeur, fin: p.fin };
       return p.valeur;
     }
@@ -530,7 +539,10 @@ async function notam(q: URLSearchParams): Promise<Response> {
          REFUSE (401). Un 403 est un droit manquant — en reclamer un neuf
          ne le corrigerait pas et gaspillerait une place du plafond. */
       if (r.status === 401) {
+        /* le jeton partage est mort : l'effacer, sinon l'instance suivante
+           le relira et refera ce meme aller-retour inutile */
         arJeton = null;
+        await memoEcrit("autorouter", "", Date.now());
         try { jeton = await jetonAutorouter(true); } catch { jeton = null; }
         if (jeton) r = await fetch(u, { headers: { "User-Agent": UA, "Accept": "application/json",
           "Authorization": "Bearer " + jeton } });
@@ -1072,7 +1084,10 @@ Deno.serve(async (req: Request) => {
       const e = await memoEtat("autorouter");
       etat.jetonPartage = e.ligne
         ? { table: true, present: true,
-            expireDans: Math.round((e.ligne.fin - Date.now()) / 60000) + " min" }
+            /* garde tant qu'autorouter l'accepte : l'echeance annoncee ne dit
+               pas quand la place se libere chez eux */
+            expireDans: Math.round((e.ligne.fin - Date.now()) / 60000) + " min"
+              + " (gardé tant qu'il est accepté)" }
         : e.table
           ? { table: true, present: false,
               aide: "table prete : elle attend le premier jeton, qui sera cree des "
