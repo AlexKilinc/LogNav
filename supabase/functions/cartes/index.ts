@@ -17,10 +17,10 @@
  * Déploiement : Supabase > Edge Functions > fonction « cartes », coller ce
  * fichier EN ENTIER (vérifier que la dernière ligne dans l'éditeur est bien
  * « }); »), déployer, et laisser « Enforce JWT verification » DÉSACTIVÉ.
- * Aucun secret requis. Vérification : ouvrir ?version=1 -> doit répondre 7.27.
+ * Aucun secret requis. Vérification : ouvrir ?version=1 -> doit répondre 7.28.
  */
 
-const VERSION = "7.27";
+const VERSION = "7.28";
 const AERO = "https://aviation.meteo.fr";
 const SOFIA = "https://sofia-briefing.aviation-civile.gouv.fr";
 const UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Safari/605.1.15";
@@ -381,11 +381,64 @@ const memoNotam = new Map<string, { t: number; corps: string }>();
    Supabase (Edge Functions > cartes > Secrets) — jamais dans le code ni dans
    GitHub. Le jeton est memorise et renouvele avant son expiration. */
 let arJeton: { t: string; fin: number } | null = null;
-async function jetonAutorouter(): Promise<string | null> {
+/* ===== Jeton autorouter : UN SEUL pour tout le relais =====
+   autorouter plafonne les jetons d'acces actifs (20) et refuse ensuite avec
+   « toomanytokens ». Or une fonction Edge est recreee sans cesse : une memoire
+   d'instance fabrique un jeton neuf a chaque demarrage a froid, et le quota se
+   remplit en une journee. On range donc le jeton dans la base du projet, que
+   toutes les instances partagent ; la memoire d'instance ne sert plus que de
+   cache de premier niveau.
+   Mise en place (une seule fois, Supabase > SQL Editor) :
+     create table if not exists relais_memo (
+       cle text primary key, valeur text not null, expire timestamptz);
+     alter table relais_memo enable row level security;
+   Aucune policy : seule la cle de service, qui contourne RLS, y accede.
+   Si la table n'existe pas, le relais retombe sur l'ancien comportement. */
+function memoUrl(): string {
+  const b = (Deno.env.get("SUPABASE_URL") || "").replace(/\/+$/, "");
+  return b ? b + "/rest/v1/relais_memo" : "";
+}
+function memoEntetes(): Record<string, string> {
+  const k = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
+  return { "apikey": k, "Authorization": "Bearer " + k,
+           "Content-Type": "application/json" };
+}
+async function memoLit(cle: string): Promise<{ valeur: string; fin: number } | null> {
+  const u = memoUrl(); if (!u) return null;
+  try {
+    const r = await fetch(u + "?cle=eq." + encodeURIComponent(cle) + "&select=valeur,expire",
+      { headers: memoEntetes() });
+    if (!r.ok) return null;
+    const j = await r.json();
+    const l = Array.isArray(j) ? j[0] : null;
+    if (!l || !l.valeur) return null;
+    const fin = l.expire ? Date.parse(l.expire) : 0;
+    return { valeur: String(l.valeur), fin: isFinite(fin) ? fin : 0 };
+  } catch { return null; }
+}
+async function memoEcrit(cle: string, valeur: string, fin: number): Promise<void> {
+  const u = memoUrl(); if (!u) return;
+  try {
+    await fetch(u, { method: "POST",
+      headers: { ...memoEntetes(), "Prefer": "resolution=merge-duplicates" },
+      body: JSON.stringify([{ cle, valeur, expire: new Date(fin).toISOString() }]) });
+  } catch { /* la table peut manquer : on continue sans partage */ }
+}
+async function jetonAutorouter(neuf = false): Promise<string | null> {
   const id = (Deno.env.get("AUTOROUTER_ID") || "").trim();
   const mdp = (Deno.env.get("AUTOROUTER_MDP") || "").trim();
   if (!id || !mdp) return null;
-  if (arJeton && Date.now() < arJeton.fin - 60000) return arJeton.t;
+  /* 1. memoire d'instance */
+  if (!neuf && arJeton && Date.now() < arJeton.fin - 60000) return arJeton.t;
+  /* 2. jeton partage, range en base : evite d'en fabriquer un par instance */
+  if (!neuf) {
+    const p = await memoLit("autorouter");
+    if (p && Date.now() < p.fin - 60000) {
+      arJeton = { t: p.valeur, fin: p.fin };
+      return p.valeur;
+    }
+  }
+  /* 3. seulement alors, en demander un nouveau */
   const r = await fetch("https://api.autorouter.aero/v1.0/oauth2/token", {
     method: "POST",
     headers: { "Content-Type": "application/x-www-form-urlencoded",
@@ -394,12 +447,24 @@ async function jetonAutorouter(): Promise<string | null> {
       client_id: id, client_secret: mdp }).toString(),
   });
   const texte = await r.text();
-  if (!r.ok) throw new Error("jeton autorouter refusé (" + r.status + ") " + texte.slice(0, 120));
+  if (!r.ok) {
+    /* plafond de jetons actifs : le dire en clair, c'est la seule erreur qui
+       se repare toute seule (les jetons expirent) et qu'un changement de mot
+       de passe ne corrigerait pas */
+    if (/toomanytokens/i.test(texte)) {
+      throw new Error("plafond de jetons autorouter atteint (20 actifs). "
+        + "Les jetons expirent d'eux-memes ; le relais n'en fabrique plus qu'un, "
+        + "partage entre toutes ses instances.");
+    }
+    throw new Error("jeton autorouter refusé (" + r.status + ") " + texte.slice(0, 120));
+  }
   const j = JSON.parse(texte);
   const duree = (Number(j.expires_in) || 3600) * 1000;
   const jt = String(j.access_token || "");
   if (!jt) throw new Error("jeton autorouter vide");
-  arJeton = { t: jt, fin: Date.now() + duree };
+  const fin = Date.now() + duree;
+  arJeton = { t: jt, fin };
+  await memoEcrit("autorouter", jt, fin);
   return jt;
 }
 function reponseNotam(corps: string, memo: boolean): Response {
@@ -444,7 +509,7 @@ async function notam(q: URLSearchParams): Promise<Response> {
       if (r.status === 401 || r.status === 403) {
         /* jeton use : on en reprend un, une seule fois */
         arJeton = null;
-        try { jeton = await jetonAutorouter(); } catch { jeton = null; }
+        try { jeton = await jetonAutorouter(true); } catch { jeton = null; }
         if (jeton) r = await fetch(u, { headers: { "User-Agent": UA, "Accept": "application/json",
           "Authorization": "Bearer " + jeton } });
       }
@@ -975,11 +1040,18 @@ Deno.serve(async (req: Request) => {
       } : { present: false },
     };
     if (idB && mdpB) {
+      /* NE PAS forcer un jeton neuf ici : chaque appel en consommerait un du
+         quota autorouter (20 actifs), ce qui finit par tout bloquer. On se
+         contente de reutiliser celui du relais. */
       try {
-        arJeton = null;
         const jt = await jetonAutorouter();
         etat.jeton = jt ? "obtenu — l'authentification fonctionne" : "identifiants absents";
-      } catch (e) { etat.jeton = String(e).slice(0, 180); }
+      } catch (e) { etat.jeton = String(e).slice(0, 220); }
+      const p = await memoLit("autorouter");
+      etat.jetonPartage = p
+        ? { present: true, expireDans: Math.round((p.fin - Date.now()) / 60000) + " min" }
+        : { present: false, aide: "table relais_memo absente ou vide : le relais "
+            + "fabrique un jeton par instance, ce qui epuise le quota autorouter" };
     }
     return reponseJson(etat);
   }
