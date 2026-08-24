@@ -2938,7 +2938,7 @@ window.__TRACE_MARKUP="\n\n<header>\n  <div class=\"hdr-row1\">\n    <span class
    accessible depuis le bouton ⓘ du bandeau du log, avant toute ouverture de la carte */
 (function(){
   var host=document.createElement('div');
-  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Cartes OACI — origine et mise à jour</b></p>\n    <p style=\"margin-top:-6px\"><b>1/250 000 Région parisienne</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte250\">—</span>.</p>\n    <p style=\"margin-top:-6px\"><b>1/500 000 France</b> — IGN Géoplateforme (SCAN-OACI). Donnée <b>non libre</b>, tenue à jour par l’IGN.</p>\n    <p style=\"margin-top:-6px\"><b>1/1 000 000 France</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte1000\">—</span>.</p>\n    <p>Les deux cartes du SIA sont hébergées à part et lues par plages : seules les tuiles affichées sont téléchargées. Les trois se copient sur l’appareil pour voler sans réseau depuis <b>Profil → Cartes hors-ligne</b>. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.484</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
+  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Cartes OACI — origine et mise à jour</b></p>\n    <p style=\"margin-top:-6px\"><b>1/250 000 Région parisienne</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte250\">—</span>.</p>\n    <p style=\"margin-top:-6px\"><b>1/500 000 France</b> — IGN Géoplateforme (SCAN-OACI). Donnée <b>non libre</b>, tenue à jour par l’IGN.</p>\n    <p style=\"margin-top:-6px\"><b>1/1 000 000 France</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte1000\">—</span>.</p>\n    <p>Les deux cartes du SIA sont hébergées à part et lues par plages : seules les tuiles affichées sont téléchargées. Les trois se copient sur l’appareil pour voler sans réseau depuis <b>Profil → Cartes hors-ligne</b>. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.485</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
   (document.body||document.documentElement).appendChild(host.firstElementChild);
   /* le nom du fichier de la 1/1 000 000 dit son edition : on le lit la ou il
      est vraiment (cartes.json), jamais en dur, sinon il mentirait un jour */
@@ -10405,13 +10405,21 @@ window.__CARTE_ADR=function(j,cle){
      carte n'est JAMAIS coupee, le WINTEM occupe sa propre page avec son
      titre, les deux TEMSI (EUROC et France) partagent la precedente. */
   body.wxd-imp .wxd-sect-cartes{break-before:page;page-break-before:always;
-    margin:0 0 2mm!important}
-  body.wxd-imp .wxd-sect-cartes+.wxd-srcl{margin:0 0 3mm!important}
+    break-after:avoid;page-break-after:avoid;margin:0 0 2mm!important}
+  body.wxd-imp .wxd-sect-cartes+.wxd-srcl{margin:0 0 3mm!important;
+    break-after:avoid;page-break-after:avoid}
   body.wxd-imp .wxd-cartes{display:block!important;gap:0!important}
   body.wxd-imp .wxd-carte{break-inside:avoid;page-break-inside:avoid;
     margin:0 0 4mm!important}
   body.wxd-imp .wxd-carte img{max-width:100%!important;width:auto!important;
     height:auto!important;display:block;margin:0 auto}
+  /* Constate sur le papier (24 aout) : les cartes sortaient a leur taille
+     NATURELLE — 1340x962 px, soit 347x249 mm sur une page de 210x297. D'ou
+     les trois symptomes a la fois : carte tronquee, page blanche apres
+     chaque carte (le debordement pagine), et titre de section orphelin.
+     max-width/max-height laissent une porte ouverte a la taille naturelle ;
+     une boite EXPLICITE en millimetres, avec object-fit, n'en laisse aucune :
+     l'image ne peut plus depasser, quelle que soit sa definition. */
   /* Budget d'une page A4 portrait : 297 - 12 - 14 = 271 mm utiles EN THEORIE.
      Mais le navigateur reserve en plus, selon ses reglages, un en-tete et un
      pied de page (Safari les imprime par defaut) : la hauteur reellement
@@ -10424,20 +10432,30 @@ window.__CARTE_ADR=function(j,cle){
      portrait entiere — c'est la seule disposition qui les agrandit vraiment
      (deux TEMSI pivotees cote a cote sortiraient PLUS PETITES que droites). */
   body.wxd-imp .wxd-carte.wxd-t{break-before:page;page-break-before:always;
-    height:215mm!important;position:relative;overflow:hidden}
-  body.wxd-imp .wxd-carte.wxd-t img{
-    position:absolute;top:calc(50% + 3mm);left:50%;
-    max-width:205mm!important;max-height:170mm!important;
-    transform-origin:center center;
-    transform:translate(-50%,-50%) rotate(-90deg)}
+    height:200mm!important;position:relative;overflow:hidden}
+  /* la PREMIERE carte reste avec le titre de section : sans cela le titre
+     « CARTES TEMSI & WINTEM » restait seul en haut d'une page */
+  body.wxd-imp .wxd-carte.wxd-t:first-of-type{break-before:avoid;
+    page-break-before:avoid}
+  /* pivotee : 160 mm de large (page : 186) et 190 mm de haut (boite : 200) */
+  body.wxd-imp .wxd-carte.wxd-t img,
   body.wxd-imp .wxd-carte.wxd-t .wxd-cadre{
     position:absolute;top:calc(50% + 3mm);left:50%;
-    width:205mm!important;height:170mm!important;max-height:none!important;
+    width:190mm!important;height:160mm!important;
+    max-width:none!important;max-height:none!important;
+    object-fit:contain!important;
     transform-origin:center center;
     transform:translate(-50%,-50%) rotate(-90deg)}
   /* le WINTEM part sur une page neuve et s'y deploie, titre compris */
-  body.wxd-imp .wxd-carte.wxd-w{break-before:page;page-break-before:always}
-  body.wxd-imp .wxd-carte.wxd-w img{max-height:205mm!important}
+  body.wxd-imp .wxd-carte.wxd-w{break-before:page;page-break-before:always;
+    height:200mm!important;position:relative;overflow:hidden}
+  body.wxd-imp .wxd-carte.wxd-w img,
+  body.wxd-imp .wxd-carte.wxd-w .wxd-cadre{
+    position:absolute;top:calc(50% + 4mm);left:50%;
+    width:186mm!important;height:188mm!important;
+    max-width:none!important;max-height:none!important;
+    object-fit:contain!important;
+    transform:translate(-50%,-50%)}
   body.wxd-imp .wxd-clbl{break-after:avoid;page-break-after:avoid}
   body.wxd-imp .ntm-un,body.wxd-imp .wxd-msg{break-inside:avoid;page-break-inside:avoid}
   body.wxd-imp .wxd-sect{break-after:avoid;page-break-after:avoid}
@@ -10447,9 +10465,7 @@ window.__CARTE_ADR=function(j,cle){
      Cross-Origin-Resource-Policy) : masquer les cadres a l'impression rendait
      un dossier sans cartes. Un cadre est une navigation, le navigateur sait
      l'imprimer : on le garde, aux memes gabarits que les images. */
-  body.wxd-imp .wxd-cadre{display:block!important;border:none!important;
-    height:100mm!important;max-height:100mm!important}
-  body.wxd-imp .wxd-carte.wxd-w .wxd-cadre{height:205mm!important;max-height:205mm!important}
+  body.wxd-imp .wxd-cadre{display:block!important;border:none!important}
   body.wxd-imp .wxd-carte .wxd-vide{display:none!important}
 }
 @keyframes wxspin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
