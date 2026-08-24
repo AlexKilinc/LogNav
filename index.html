@@ -2938,7 +2938,7 @@ window.__TRACE_MARKUP="\n\n<header>\n  <div class=\"hdr-row1\">\n    <span class
    accessible depuis le bouton ⓘ du bandeau du log, avant toute ouverture de la carte */
 (function(){
   var host=document.createElement('div');
-  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Cartes OACI — origine et mise à jour</b></p>\n    <p style=\"margin-top:-6px\"><b>1/250 000 Région parisienne</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte250\">—</span>.</p>\n    <p style=\"margin-top:-6px\"><b>1/500 000 France</b> — IGN Géoplateforme (SCAN-OACI). Donnée <b>non libre</b>, tenue à jour par l’IGN.</p>\n    <p style=\"margin-top:-6px\"><b>1/1 000 000 France</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte1000\">—</span>.</p>\n    <p>Les deux cartes du SIA sont hébergées à part et lues par plages : seules les tuiles affichées sont téléchargées. Les trois se copient sur l’appareil pour voler sans réseau depuis <b>Profil → Cartes hors-ligne</b>. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.479</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
+  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Cartes OACI — origine et mise à jour</b></p>\n    <p style=\"margin-top:-6px\"><b>1/250 000 Région parisienne</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte250\">—</span>.</p>\n    <p style=\"margin-top:-6px\"><b>1/500 000 France</b> — IGN Géoplateforme (SCAN-OACI). Donnée <b>non libre</b>, tenue à jour par l’IGN.</p>\n    <p style=\"margin-top:-6px\"><b>1/1 000 000 France</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte1000\">—</span>.</p>\n    <p>Les deux cartes du SIA sont hébergées à part et lues par plages : seules les tuiles affichées sont téléchargées. Les trois se copient sur l’appareil pour voler sans réseau depuis <b>Profil → Cartes hors-ligne</b>. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.477</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
   (document.body||document.documentElement).appendChild(host.firstElementChild);
   /* le nom du fichier de la 1/1 000 000 dit son edition : on le lit la ou il
      est vraiment (cartes.json), jamais en dur, sinon il mentirait un jour */
@@ -7109,21 +7109,6 @@ function openRelinkChoice(){
       var ra=(ORDRE_ROLE[sel.roles[a]]!=null)?ORDRE_ROLE[sel.roles[a]]:9;
       var rb=(ORDRE_ROLE[sel.roles[b]]!=null)?ORDRE_ROLE[sel.roles[b]]:9;
       return ra-rb||a.localeCompare(b); });
-    /* Un filtre sert a MASQUER, pas a signaler qu'il a filtre : un terrain dont
-       tout le contenu est ecarte disparait de la liste, pour ne laisser sous
-       les yeux que ce qu'on cherche. Un terrain reellement vide, lui, reste
-       affiche : « rien a signaler » est une information, pas du bruit. */
-    /* un terrain ajoute a la main a ete demande nommement : il reste affiche
-       meme vide, sinon le bouton « Ajouter » semble ne rien faire */
-    function ntmdTenu(code){ return sel.roles[code]==='s\u00e9lectionn\u00e9'; }
-    var ntmdMasques=0;
-    codes.forEach(function(code){
-      if(ntmdTenu(code)) return;
-      var lv=ntmFiltre.notam?(parAd[code]||[]).length:0;
-      var sv=ntmFiltre.sup?(supsParAd[code]||[]).length:0;
-      if(!lv&&!sv) ntmdMasques++; });
-    /* pourquoi un terrain est-il absent ? un filtre decoche, ou rien de publie */
-    var ntmdFiltre=!ntmFiltre.notam||!ntmFiltre.sup;
     /* fond cliquable : un toucher hors de la fenetre (menu inferieur compris) la ferme */
     var fond=document.createElement('div'); fond.id='ntmDosFond'; fond.className='ntmd-fond no-print';
     document.body.appendChild(fond);
@@ -7141,28 +7126,20 @@ function openRelinkChoice(){
       +'<button type="button" class="ntmd-x" aria-label="Fermer" title="Fermer">\u00d7</button>'
       +'<span class="ntmd-st">'
       +(dispo?(codes.length+' terrains \u00b7 rayon '+PROX_NM+' NM'
-        +(ntmdMasques?' \u00b7 '+ntmdMasques+(ntmdFiltre
-            ?' masqu\u00e9'+(ntmdMasques>1?'s':'')+' par les filtres'
-            :' sans rien \u00e0 signaler'):'')
         +(notamData.notamsOk?'':' \u00b7 NOTAM indisponibles'
           +(notamData.motif?' ('+notamData.motif+')':'')))
         :'couche Notam/SupAIP \u00e9teinte \u00b7 AZBA/RTBA seuls')+'</span></div>'
       +'<div class="ntmd-corps">';
     codes.forEach(function(code){
       var lot=parAd[code]||[], supsAd=supsParAd[code]||[];
-      var lotVu0=ntmFiltre.notam?lot:[], supsVu0=ntmFiltre.sup?supsAd:[];
-      /* rien a montrer pour ce terrain — filtre, ou rien de publie : on retire
-         le chapitre entier, en-tete comprise, pour que la liste ne contienne
-         que ce qui se lit. Seul survit le terrain ajoute a la main. */
-      if(!lotVu0.length&&!supsVu0.length&&!ntmdTenu(code)) return;
       var q=sel.idx[code]||{};
       html+='<div class="ntmd-ad" data-ad="'+code+'"><span class="ntmd-rol '+(CL_ROLE[sel.roles[code]]||'')+'">'
         +ntmEsc(sel.roles[code]||'')+'</span><b>'+code+'</b>'
         +'<span class="ntmd-nom">'+ntmEsc(q.nom||'')+'</span>'
         +'<span class="ntmd-cnt">'+lot.length+' NOTAM \u00b7 '+supsAd.length+' SUP</span></div>';
-      var lotVu=lotVu0, supsVu=supsVu0;
-      if(!lotVu.length&&!supsVu.length)
-        html+='<div class="ntm-un">rien \u00e0 signaler</div>';
+      var lotVu=ntmFiltre.notam?lot:[], supsVu=ntmFiltre.sup?supsAd:[];
+      if(!lotVu.length&&!supsVu.length) html+='<div class="ntm-un">rien \u00e0 signaler'
+        +((lot.length||supsAd.length)?' (filtres)':'')+'</div>';
       html+=lotVu.map(function(n){ var i2=ddvRefN.push(n)-1;
         return ddvBouton(ntmLigne(n),'n',i2,ddvContient('n',n)); }).join('');
       if(supsVu.length) html+='<div class="ntm-ssect">SUP AIP</div>'
@@ -7174,11 +7151,6 @@ function openRelinkChoice(){
       html+='<div class="ntm-un ntmd-panne">Aucun NOTAM re\u00e7u'
         +(notamData.motif?' \u2014 '+ntmEsc(notamData.motif):'')
         +' <button type="button" id="ntmDiagBtn" class="wxd-diag">Pourquoi ?</button></div>';
-    if(dispo&&ntmdMasques===codes.length&&codes.length)
-      html+='<div class="ntm-un">'+(ntmdFiltre
-        ?'Rien \u00e0 afficher avec ces filtres \u2014 recocher NOTAM ou SUP-AIP.'
-        :'Aucun NOTAM ni SUP AIP publi\u00e9 sur les '+codes.length+' terrains du vol.')
-        +'</div>';
     if(!dispo) html+='<div class="ntm-un">Couche Notam/SupAIP \u00e9teinte \u2014 l\u2019allumer '
       +'(bouton Notam/SupAIP de la carte, ou badge du bandeau) pour lister les NOTAM '
       +'et SUP AIP des terrains du vol.</div>';
