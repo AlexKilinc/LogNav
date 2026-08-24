@@ -20,7 +20,7 @@
  * Aucun secret requis. Vérification : ouvrir ?version=1 -> doit répondre 7.29.
  */
 
-const VERSION = "7.33";
+const VERSION = "7.34";
 const AERO = "https://aviation.meteo.fr";
 const SOFIA = "https://sofia-briefing.aviation-civile.gouv.fr";
 const UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Safari/605.1.15";
@@ -381,6 +381,10 @@ const memoNotam = new Map<string, { t: number; corps: string }>();
    Supabase (Edge Functions > cartes > Secrets) — jamais dans le code ni dans
    GitHub. Le jeton est memorise et renouvele avant son expiration. */
 let arJeton: { t: string; fin: number } | null = null;
+/* Plus d'un jeton par jour est deja anormal ; six est une marge confortable
+   pour un incident isole, et reste tres loin des 20 jetons actifs
+   qu'autorouter tolere. */
+const JETONS_PAR_JOUR = 6;
 /* ===== Jeton autorouter : UN SEUL pour tout le relais =====
    autorouter plafonne les jetons d'acces actifs (20) et refuse ensuite avec
    « toomanytokens ». Or une fonction Edge est recreee sans cesse : une memoire
@@ -457,7 +461,37 @@ async function jetonAutorouter(neuf = false): Promise<string | null> {
       return p.valeur;
     }
   }
-  /* 3. seulement alors, en demander un nouveau */
+  /* 3. GARDE-FOU : jamais plus de JETONS_PAR_JOUR jetons dans la journee.
+     Le 24 aout, un defaut du relais a fabrique un jeton par instance jusqu'a
+     saturer le plafond des 20 jetons actifs ; il a fallu ecrire au support
+     d'autorouter pour debloquer le compte. En usage normal le relais en
+     fabrique UN par jour, au plus : au-dela, c'est forcement un defaut, et
+     mieux vaut perdre les NOTAM une journee que le compte pour plusieurs.
+     Le garde-fou s'efface si la base est muette (il ne doit jamais devenir
+     lui-meme une panne). */
+  const jour = new Date().toISOString().slice(0, 10);
+  const cpt = await memoLit("autorouter_jour");
+  let n = 0;
+  if (cpt && cpt.valeur) {
+    try {
+      const c = JSON.parse(cpt.valeur) as { jour?: string; n?: number };
+      if (c.jour === jour) n = Number(c.n) || 0;
+    } catch { /* compteur illisible : on laisse passer */ }
+  }
+  if (n >= JETONS_PAR_JOUR) {
+    const motif = "garde-fou du relais : " + n + " jetons deja demandes "
+      + "aujourd'hui (plafond interne " + JETONS_PAR_JOUR + "). En usage normal "
+      + "il en faut UN par jour — au-dela, c'est un defaut. Le relais s'arrete "
+      + "de lui-meme pour ne pas saturer le compte autorouter (20 jetons "
+      + "actifs). Le compteur repart demain.";
+    await memoEcrit("autorouter_journal",
+      JSON.stringify({ quand: new Date().toISOString(), evt: "garde-fou", motif }),
+      Date.now() + 7 * 24 * 3600e3);
+    throw new Error(motif);
+  }
+  await memoEcrit("autorouter_jour", JSON.stringify({ jour, n: n + 1 }),
+    Date.now() + 2 * 24 * 3600e3);
+  /* 4. seulement alors, en demander un nouveau */
   const r = await fetch("https://api.autorouter.aero/v1.0/oauth2/token", {
     method: "POST",
     headers: { "Content-Type": "application/x-www-form-urlencoded",
@@ -1095,6 +1129,18 @@ Deno.serve(async (req: Request) => {
           : { table: false, present: false,
               aide: "table relais_memo absente : jouer relais_memo.sql, sinon le relais "
                 + "fabrique un jeton par instance et epuise le quota autorouter" };
+      /* combien de jetons demandes aujourd'hui : c'est ce chiffre qui a
+         derape le 24 aout, il doit rester visible */
+      const cj = await memoLit("autorouter_jour");
+      let nj = 0;
+      if (cj && cj.valeur) {
+        try {
+          const c = JSON.parse(cj.valeur) as { jour?: string; n?: number };
+          if (c.jour === new Date().toISOString().slice(0, 10)) nj = Number(c.n) || 0;
+        } catch { /* illisible */ }
+      }
+      etat.jetonsDuJour = nj + " / " + JETONS_PAR_JOUR
+        + (nj <= 1 ? " (normal)" : nj < JETONS_PAR_JOUR ? " (à surveiller)" : " (plafond interne atteint)");
       /* le partage repose sur l'ECRITURE en base — or elle echouait en
          silence. On ecrit une ligne d'essai et on la relit : verdict net. */
       const ess = await memoEcrit("essai_ecriture",
