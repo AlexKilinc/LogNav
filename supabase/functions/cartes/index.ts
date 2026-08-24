@@ -20,7 +20,7 @@
  * Aucun secret requis. Vérification : ouvrir ?version=1 -> doit répondre 7.29.
  */
 
-const VERSION = "7.30";
+const VERSION = "7.31";
 const AERO = "https://aviation.meteo.fr";
 const SOFIA = "https://sofia-briefing.aviation-civile.gouv.fr";
 const UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Safari/605.1.15";
@@ -424,13 +424,15 @@ async function memoEtat(cle: string):
 async function memoLit(cle: string): Promise<{ valeur: string; fin: number } | null> {
   return (await memoEtat(cle)).ligne;
 }
-async function memoEcrit(cle: string, valeur: string, fin: number): Promise<void> {
-  const u = memoUrl(); if (!u) return;
+async function memoEcrit(cle: string, valeur: string, fin: number):
+    Promise<{ ok: boolean; status: number; corps: string }> {
+  const u = memoUrl(); if (!u) return { ok: false, status: 0, corps: "SUPABASE_URL absente" };
   try {
-    await fetch(u, { method: "POST",
+    const r = await fetch(u, { method: "POST",
       headers: { ...memoEntetes(), "Prefer": "resolution=merge-duplicates" },
       body: JSON.stringify([{ cle, valeur, expire: new Date(fin).toISOString() }]) });
-  } catch { /* la table peut manquer : on continue sans partage */ }
+    return { ok: r.ok, status: r.status, corps: r.ok ? "" : (await r.text()).slice(0, 140) };
+  } catch (e) { return { ok: false, status: 0, corps: String(e).slice(0, 140) }; }
 }
 async function jetonAutorouter(neuf = false): Promise<string | null> {
   const id = (Deno.env.get("AUTOROUTER_ID") || "").trim();
@@ -478,7 +480,7 @@ async function jetonAutorouter(neuf = false): Promise<string | null> {
   await memoEcrit("autorouter", jt, fin);
   await memoEcrit("autorouter_journal",
     JSON.stringify({ quand: new Date().toISOString(), evt: "succes",
-      motif: "jeton obtenu, partage entre les instances" }),
+      motif: "jeton obtenu (duree " + Math.round(duree / 60000) + " min), partage entre les instances" }),
     Date.now() + 7 * 24 * 3600e3);
   return jt;
 }
@@ -1073,6 +1075,16 @@ Deno.serve(async (req: Request) => {
           : { table: false, present: false,
               aide: "table relais_memo absente : jouer relais_memo.sql, sinon le relais "
                 + "fabrique un jeton par instance et epuise le quota autorouter" };
+      /* le partage repose sur l'ECRITURE en base — or elle echouait en
+         silence. On ecrit une ligne d'essai et on la relit : verdict net. */
+      const ess = await memoEcrit("essai_ecriture",
+        new Date().toISOString(), Date.now() + 3600e3);
+      const relu = await memoLit("essai_ecriture");
+      etat.ecriture = ess.ok && relu
+        ? "OK — le relais peut ranger son jeton pour les autres instances"
+        : (!ess.ok
+          ? "ECHEC http " + ess.status + (ess.corps ? " · " + ess.corps : "")
+          : "ecrite mais relue VIDE — RLS ? cle de service ?");
       /* la derniere tentative de jeton, TOUTES instances confondues : dit si
          le plafond autorouter est encore plein a l'instant, ou depuis quand
          le jeton se renouvelle normalement */
