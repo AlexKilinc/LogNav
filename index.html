@@ -2938,7 +2938,7 @@ window.__TRACE_MARKUP="\n\n<header>\n  <div class=\"hdr-row1\">\n    <span class
    accessible depuis le bouton ⓘ du bandeau du log, avant toute ouverture de la carte */
 (function(){
   var host=document.createElement('div');
-  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Cartes OACI — origine et mise à jour</b></p>\n    <p style=\"margin-top:-6px\"><b>1/250 000 Région parisienne</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte250\">—</span>.</p>\n    <p style=\"margin-top:-6px\"><b>1/500 000 France</b> — IGN Géoplateforme (SCAN-OACI). Donnée <b>non libre</b>, tenue à jour par l’IGN.</p>\n    <p style=\"margin-top:-6px\"><b>1/1 000 000 France</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte1000\">—</span>.</p>\n    <p>Les deux cartes du SIA sont hébergées à part et lues par plages : seules les tuiles affichées sont téléchargées. Les trois se copient sur l’appareil pour voler sans réseau depuis <b>Profil → Cartes hors-ligne</b>. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.466</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
+  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Cartes OACI — origine et mise à jour</b></p>\n    <p style=\"margin-top:-6px\"><b>1/250 000 Région parisienne</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte250\">—</span>.</p>\n    <p style=\"margin-top:-6px\"><b>1/500 000 France</b> — IGN Géoplateforme (SCAN-OACI). Donnée <b>non libre</b>, tenue à jour par l’IGN.</p>\n    <p style=\"margin-top:-6px\"><b>1/1 000 000 France</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte1000\">—</span>.</p>\n    <p>Les deux cartes du SIA sont hébergées à part et lues par plages : seules les tuiles affichées sont téléchargées. Les trois se copient sur l’appareil pour voler sans réseau depuis <b>Profil → Cartes hors-ligne</b>. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.468</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
   (document.body||document.documentElement).appendChild(host.firstElementChild);
   /* le nom du fichier de la 1/1 000 000 dit son edition : on le lit la ou il
      est vraiment (cartes.json), jamais en dur, sinon il mentirait un jour */
@@ -7013,6 +7013,45 @@ function openRelinkChoice(){
       notamGroup.addLayer(m);
     });
   }
+  /* Pourquoi les NOTAM manquent-ils ? Le relais sait repondre precisement :
+     ?autorouter=1 dit si les identifiants sont poses et si le jeton s'obtient
+     encore ; ?notam=1 rend l'erreur exacte d'autorouter. Un acces au SITE
+     autorouter ne prouve rien sur l'API : le jeton est delivre a part et peut
+     etre refuse ou plafonne independamment. */
+  function ntmDiag(cb){
+    var base=String(window.__SB_URL||'').replace(/\/+$/,'');
+    if(!base){ cb('Relais non configuré dans l’application.'); return; }
+    var L=[];
+    fetch(base+'/functions/v1/cartes?autorouter=1&_='+Date.now(),{cache:'no-store'})
+      .then(function(r){ return r.json(); })
+      .then(function(j){
+        var id=j&&j.AUTOROUTER_ID, mp=j&&j.AUTOROUTER_MDP;
+        L.push('Identifiant : '+(id&&id.present
+          ?('posé, '+id.longueur+' car.'+(id.espacesParasites?' — ESPACES PARASITES':'')
+            +(id.ressembleEmail?' (forme e-mail)':''))
+          :'ABSENT'));
+        L.push('Mot de passe : '+(mp&&mp.present
+          ?('posé, '+mp.longueur+' car.'+(mp.espacesParasites?' — ESPACES PARASITES':''))
+          :'ABSENT'));
+        L.push('Jeton : '+(j&&j.jeton?j.jeton:'non testé'));
+      })
+      .catch(function(){ L.push('Relais injoignable (réseau ?).'); })
+      .then(function(){
+        return fetch(base+'/functions/v1/cartes?notam=1&ad=LFPN&_='+Date.now(),{cache:'no-store'})
+          .then(function(r){ return r.json().then(function(j){ return {s:r.status,j:j}; }); })
+          .then(function(o){
+            if(o.s===200){ L.push('Appel d’essai (LFPN) : '+((o.j&&o.j.total)||0)+' NOTAM — '
+              +'l’API répond, la panne est passée.'); return; }
+            L.push('Appel d’essai (LFPN) : HTTP '+o.s);
+            L.push((o.j&&o.j.erreur)||'erreur inconnue');
+            if(o.j&&o.j.detail) L.push(String(o.j.detail).slice(0,200));
+            if(o.j&&o.j.apercu) L.push('réponse d’autorouter : '+String(o.j.apercu).slice(0,200));
+          })
+          .catch(function(){ L.push('Appel d’essai : relais injoignable.'); });
+      })
+      .then(function(){ cb(L.join('\n')); });
+  }
+  window.__DIAG_NOTAM=ntmDiag;
   var ORDRE_ROLE={'d\u00e9part':0,'arriv\u00e9e':1,'survol\u00e9':2,'d\u00e9gagement':3,'s\u00e9lectionn\u00e9':4,'\u00e0 proximit\u00e9':5};
   var CL_ROLE={'d\u00e9part':'dep','arriv\u00e9e':'arr','survol\u00e9':'mid','d\u00e9gagement':'deg','s\u00e9lectionn\u00e9':'sel','\u00e0 proximit\u00e9':'prox'};
   function ntmDossierFerme(){ var v=document.getElementById('ntmDos');
@@ -7075,6 +7114,10 @@ function openRelinkChoice(){
           var i2=ddvRefS.push(o2)-1;
           return ddvBouton(supLigne(sp),'s',i2,ddvContient('s',o2)); }).join('');
     });
+    if(dispo&&!notamData.notamsOk)
+      html+='<div class="ntm-un ntmd-panne">Aucun NOTAM re\u00e7u'
+        +(notamData.motif?' \u2014 '+ntmEsc(notamData.motif):'')
+        +' <button type="button" id="ntmDiagBtn" class="wxd-diag">Pourquoi ?</button></div>';
     if(!dispo) html+='<div class="ntm-un">Couche Notam/SupAIP \u00e9teinte \u2014 l\u2019allumer '
       +'(bouton Notam/SupAIP de la carte, ou badge du bandeau) pour lister les NOTAM '
       +'et SUP AIP des terrains du vol.</div>';
@@ -7136,6 +7179,11 @@ function openRelinkChoice(){
       ntmFiltre[f]=!ntmFiltre[f];
       ntmDossier();
     }; });
+    (function(){ var db=v.querySelector('#ntmDiagBtn'); if(!db) return;
+      db.onclick=function(){ db.disabled=true; db.textContent='Sondage\u2026';
+        ntmDiag(function(txt){ var pre=document.createElement('pre');
+          pre.className='wxd-diagr'; pre.textContent=txt;
+          db.parentNode.appendChild(pre); db.remove(); }); }; })();
     document.addEventListener('keydown',clav);
     /* si on vient d'un badge : on amene ce terrain en vue et on le surligne */
     if(focus){ var cible=v.querySelector('.ntmd-ad[data-ad="'+focus+'"]');
@@ -10381,22 +10429,51 @@ window.__pickGpx=function(cb){
       .replace(/\{HH\}/g,('0'+d.getUTCHours()).slice(-2)); }
   function wxImgOctets(u){ u=String(u||'');
     return /\/functions\/v1\/cartes\?/.test(u)?(u+'&img=1'):''; }
-  /* essaie chaque adresse : voie « octets » d'abord (lisible donc imprimable),
-     adresse directe ensuite (affichage seul). ok(image, lisible). */
+  /* La voie « octets » oblige le relais a refaire tout son dialogue avec
+     Meteo-France : quand elle echoue, elle echoue LENTEMENT. La mettre en
+     premier retardait donc l'affichage et pouvait le faire abandonner, alors
+     que l'adresse directe repond tout de suite (constate : cartes visibles
+     dans l'onglet WINTEM/TEMSI mais « non disponibles » dans le dossier).
+     On affiche donc d'abord, et on tente l'amelioration ensuite. */
+  var wxOctetsKO=false;   /* la voie octets a deja echoue : on n'attend plus */
   function wxChargeCarte(urls,ok,ko){
-    var cand=[];
-    (urls||[]).forEach(function(u){ var p=wxImgOctets(u);
-      if(p) cand.push({u:p,cors:true});
-      cand.push({u:u,cors:false}); });
     var i=0;
     (function suiv(){
-      if(i>=cand.length){ if(ko) ko(); return; }
-      var c=cand[i++], im=new Image();
+      if(i>=(urls||[]).length){ if(ko) ko(); return; }
+      var u=urls[i++], im=new Image();
       im.referrerPolicy='no-referrer';
-      if(c.cors) im.crossOrigin='anonymous';
-      im.onload=function(){ ok(im,c.cors); };
+      im.onload=function(){ ok(im,false); wxTenteOctets(u,im); };
       im.onerror=suiv;
-      im.src=c.u;
+      im.src=u;
+    })();
+  }
+  /* amelioration en tache de fond : si le relais sait rendre les octets, la
+     carte deja affichee devient imprimable, sans avoir fait attendre. */
+  function wxTenteOctets(u,im){
+    if(wxOctetsKO) return;
+    var p=wxImgOctets(u); if(!p) return;
+    var essai=new Image(); essai.crossOrigin='anonymous'; essai.referrerPolicy='no-referrer';
+    var fini=false;
+    var t=setTimeout(function(){ if(fini) return; fini=true;
+      essai.onload=essai.onerror=null; wxOctetsKO=true; },12000);
+    essai.onload=function(){ if(fini) return; fini=true; clearTimeout(t);
+      try{ im.crossOrigin='anonymous'; }catch(e){}
+      im.setAttribute('data-imprimable','1');
+      im.src=p; };
+    essai.onerror=function(){ if(fini) return; fini=true; clearTimeout(t);
+      wxOctetsKO=true; };
+    essai.src=p;
+  }
+  /* la voie octets seule : rend l'image AVEC ses pixels lisibles, ou rien */
+  function wxOctetsSeul(urls,cb){
+    var cand=[]; (urls||[]).forEach(function(u){ var p=wxImgOctets(u); if(p) cand.push(p); });
+    var i=0;
+    (function suiv(){
+      if(i>=cand.length){ wxOctetsKO=true; cb(null); return; }
+      var im=new Image(); im.crossOrigin='anonymous'; im.referrerPolicy='no-referrer';
+      im.onload=function(){ cb(im); };
+      im.onerror=suiv;
+      im.src=cand[i++];
     })();
   }
   /* cartes en vigueur a l'instant T, dans l'ordre de l'analyse en entonnoir :
@@ -10480,10 +10557,13 @@ window.__pickGpx=function(cb){
       var lst=wxCartesVigueur(j); if(!lst.length) return [];
       return Promise.all(lst.map(function(c){
         return new Promise(function(res){
-          var fini=false, t=setTimeout(function(){ if(!fini){ fini=true; res(null); } },20000);
-          wxChargeCarte(c.urls,function(im,lisible){
+          if(wxOctetsKO){ res(null); return; }   /* voie morte : on ne fige rien */
+          var fini=false, t=setTimeout(function(){ if(!fini){ fini=true; res(null); } },10000);
+          /* ici on a besoin des PIXELS : on demande directement la voie octets
+             (une carte affichee ne suffit pas, ses pixels sont illisibles) */
+          wxOctetsSeul(c.urls,function(im){
             if(fini) return; fini=true; clearTimeout(t);
-            if(!lisible){ res(null); return; }   /* pixels illisibles : rien a graver */
+            if(!im){ res(null); return; }
             try{
               var MAX=1500, w=im.naturalWidth||1, h=im.naturalHeight||1;
               var s=Math.min(1,MAX/w), cw=Math.round(w*s)||1, ch=Math.round(h*s)||1;
@@ -10494,7 +10574,7 @@ window.__pickGpx=function(cb){
               if(data.indexOf('data:image/webp')!==0) data=cv.toDataURL('image/jpeg',0.88);
               res({nom:c.nom,hh:c.hh,data:data});
             }catch(e){ res(null); }
-          },function(){ if(fini) return; fini=true; clearTimeout(t); res(null); });
+          });
         }); })).then(function(a){ return a.filter(Boolean); });
     }).catch(function(){ return []; });
   }
@@ -11245,7 +11325,18 @@ window.__pickGpx=function(cb){
         var repondues=0;
         function bilan(){ repondues++;
           if(repondues<lst.length) return;
+          /* l'amelioration « octets » tourne en tache de fond : on lui laisse
+             le temps de conclure avant de declarer les cartes non imprimables */
+          var t0=Date.now();
+          (function attends(){
+            if(el.querySelector('img[data-imprimable="1"]')) return;   /* gagne */
+            if(!wxOctetsKO&&Date.now()-t0<14000){ setTimeout(attends,400); return; }
+            annonce();
+          })();
+        }
+        function annonce(){
           if(el.querySelector('img[data-imprimable="1"]')) return;
+          if(el.querySelector('.wxd-diagr')) return;   /* deja annonce */
           var av=document.createElement('div'); av.className='wxd-vide';
           av.textContent='Ces cartes ne pourront pas entrer dans le PDF '
             +'(le relais ne les fournit pas en lecture directe) — sondage en cours…';
