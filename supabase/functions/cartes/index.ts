@@ -17,10 +17,10 @@
  * Déploiement : Supabase > Edge Functions > fonction « cartes », coller ce
  * fichier EN ENTIER (vérifier que la dernière ligne dans l'éditeur est bien
  * « }); »), déployer, et laisser « Enforce JWT verification » DÉSACTIVÉ.
- * Aucun secret requis. Vérification : ouvrir ?version=1 -> doit répondre 7.28.
+ * Aucun secret requis. Vérification : ouvrir ?version=1 -> doit répondre 7.29.
  */
 
-const VERSION = "7.28";
+const VERSION = "7.29";
 const AERO = "https://aviation.meteo.fr";
 const SOFIA = "https://sofia-briefing.aviation-civile.gouv.fr";
 const UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Safari/605.1.15";
@@ -403,18 +403,26 @@ function memoEntetes(): Record<string, string> {
   return { "apikey": k, "Authorization": "Bearer " + k,
            "Content-Type": "application/json" };
 }
-async function memoLit(cle: string): Promise<{ valeur: string; fin: number } | null> {
-  const u = memoUrl(); if (!u) return null;
+/* Etat complet : la TABLE existe-t-elle, et porte-t-elle une ligne ?
+   Les deux cas sont differents et appellent des remedes opposes — une table
+   absente se cree, une table vide attend simplement son premier jeton. Les
+   confondre envoie sur une fausse piste. */
+async function memoEtat(cle: string):
+    Promise<{ table: boolean; ligne: { valeur: string; fin: number } | null }> {
+  const u = memoUrl(); if (!u) return { table: false, ligne: null };
   try {
     const r = await fetch(u + "?cle=eq." + encodeURIComponent(cle) + "&select=valeur,expire",
       { headers: memoEntetes() });
-    if (!r.ok) return null;
+    if (!r.ok) return { table: false, ligne: null };
     const j = await r.json();
     const l = Array.isArray(j) ? j[0] : null;
-    if (!l || !l.valeur) return null;
+    if (!l || !l.valeur) return { table: true, ligne: null };   /* table prete, vide */
     const fin = l.expire ? Date.parse(l.expire) : 0;
-    return { valeur: String(l.valeur), fin: isFinite(fin) ? fin : 0 };
-  } catch { return null; }
+    return { table: true, ligne: { valeur: String(l.valeur), fin: isFinite(fin) ? fin : 0 } };
+  } catch { return { table: false, ligne: null }; }
+}
+async function memoLit(cle: string): Promise<{ valeur: string; fin: number } | null> {
+  return (await memoEtat(cle)).ligne;
 }
 async function memoEcrit(cle: string, valeur: string, fin: number): Promise<void> {
   const u = memoUrl(); if (!u) return;
@@ -1047,11 +1055,17 @@ Deno.serve(async (req: Request) => {
         const jt = await jetonAutorouter();
         etat.jeton = jt ? "obtenu — l'authentification fonctionne" : "identifiants absents";
       } catch (e) { etat.jeton = String(e).slice(0, 220); }
-      const p = await memoLit("autorouter");
-      etat.jetonPartage = p
-        ? { present: true, expireDans: Math.round((p.fin - Date.now()) / 60000) + " min" }
-        : { present: false, aide: "table relais_memo absente ou vide : le relais "
-            + "fabrique un jeton par instance, ce qui epuise le quota autorouter" };
+      const e = await memoEtat("autorouter");
+      etat.jetonPartage = e.ligne
+        ? { table: true, present: true,
+            expireDans: Math.round((e.ligne.fin - Date.now()) / 60000) + " min" }
+        : e.table
+          ? { table: true, present: false,
+              aide: "table prete : elle attend le premier jeton, qui sera cree des "
+                + "qu'une place se liberera chez autorouter" }
+          : { table: false, present: false,
+              aide: "table relais_memo absente : jouer relais_memo.sql, sinon le relais "
+                + "fabrique un jeton par instance et epuise le quota autorouter" };
     }
     return reponseJson(etat);
   }
