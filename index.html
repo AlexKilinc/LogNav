@@ -2938,7 +2938,7 @@ window.__TRACE_MARKUP="\n\n<header>\n  <div class=\"hdr-row1\">\n    <span class
    accessible depuis le bouton ⓘ du bandeau du log, avant toute ouverture de la carte */
 (function(){
   var host=document.createElement('div');
-  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Cartes OACI — origine et mise à jour</b></p>\n    <p style=\"margin-top:-6px\"><b>1/250 000 Région parisienne</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte250\">—</span>.</p>\n    <p style=\"margin-top:-6px\"><b>1/500 000 France</b> — IGN Géoplateforme (SCAN-OACI). Donnée <b>non libre</b>, tenue à jour par l’IGN.</p>\n    <p style=\"margin-top:-6px\"><b>1/1 000 000 France</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte1000\">—</span>.</p>\n    <p>Les deux cartes du SIA sont hébergées à part et lues par plages : seules les tuiles affichées sont téléchargées. Les trois se copient sur l’appareil pour voler sans réseau depuis <b>Profil → Cartes hors-ligne</b>. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.461</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
+  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Cartes OACI — origine et mise à jour</b></p>\n    <p style=\"margin-top:-6px\"><b>1/250 000 Région parisienne</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte250\">—</span>.</p>\n    <p style=\"margin-top:-6px\"><b>1/500 000 France</b> — IGN Géoplateforme (SCAN-OACI). Donnée <b>non libre</b>, tenue à jour par l’IGN.</p>\n    <p style=\"margin-top:-6px\"><b>1/1 000 000 France</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte1000\">—</span>.</p>\n    <p>Les deux cartes du SIA sont hébergées à part et lues par plages : seules les tuiles affichées sont téléchargées. Les trois se copient sur l’appareil pour voler sans réseau depuis <b>Profil → Cartes hors-ligne</b>. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.462</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
   (document.body||document.documentElement).appendChild(host.firstElementChild);
   /* le nom du fichier de la 1/1 000 000 dit son edition : on le lit la ou il
      est vraiment (cartes.json), jamais en dur, sinon il mentirait un jour */
@@ -10251,6 +10251,8 @@ window.__CARTE_ADR=function(j,cle){
 .wxd-carte{margin:0}
 .wxd-clbl{font:700 11.5px "Poppins",sans-serif;color:#16213e;margin-bottom:4px}
 .wxd-carte img{width:100%;height:auto;border:1px solid #e2e8f0;border-radius:8px;cursor:zoom-in;background:#fff}
+.wxd-diag{background:#1E9FE0;border:none;border-radius:7px;color:#fff;font:700 11px Poppins,sans-serif;padding:4px 10px;cursor:pointer;margin-left:4px}
+.wxd-diagr{white-space:pre-wrap;font:600 10.5px ui-monospace,Menlo,monospace;color:#334155;background:#f1f5f9;border:1px solid #cbd5e1;border-radius:8px;padding:8px;margin:8px 0 0;overflow-wrap:anywhere}
 .wxd-note{margin-top:12px;border-top:1px solid #e5e9f0;padding-top:8px;
   font:600 10.5px/1.6 "Poppins",sans-serif;color:#64748b}
 /* a l'impression : seule la feuille sort, noir sur blanc */
@@ -10399,6 +10401,48 @@ window.__pickGpx=function(cb){
         hh:('0'+d.getUTCHours()).slice(-2)+':00 UTC',
         urls:src.map(function(u){ return wxAdrDate(u,vig); })}; });
   }
+  /* Pourquoi une carte n'est-elle pas imprimable ? Trois causes possibles, que
+     ce sondage distingue en un appel :
+       - le relais deployé est anterieur a 7.27 : il ignore img=1 et REDIRIGE
+         vers Meteo-France, dont la reponse n'autorise pas la lecture -> le
+         fetch echoue net (TypeError). Remede : deployer le relais a jour.
+       - le relais est a jour mais Meteo-France lui refuse l'image : il rend
+         son propre message d'erreur, lisible. Remede : machine relais tierce.
+       - tout marche : on le dit aussi. */
+  function wxDiagCartes(cb){
+    var base=String(window.__SB_URL||'').replace(/\/+$/,'');
+    if(!base){ cb('Relais non configuré dans l’application.'); return; }
+    var lignes=[];
+    fetch(base+'/functions/v1/cartes?version=1&_='+Date.now(),{cache:'no-store'})
+      .then(function(r){ return r.json(); })
+      .then(function(j){ lignes.push('Relais : version '+((j&&j.version)||'?')); })
+      .catch(function(){ lignes.push('Relais : injoignable (réseau ?)'); })
+      .then(function(){
+        if(typeof window.__CARTES!=='function') return null;
+        return window.__CARTES().then(function(j){
+          var l=wxCartesVigueur(j); return (l[0]&&l[0].urls[0])||null; }).catch(function(){ return null; });
+      })
+      .then(function(u){
+        if(!u){ lignes.push('Aucune adresse de carte à tester.'); cb(lignes.join('\n')); return; }
+        var p=wxImgOctets(u);
+        return fetch(p,{cache:'no-store'}).then(function(r){
+          var ct=r.headers.get('Content-Type')||'';
+          if(r.ok&&/^image\//i.test(ct)){
+            lignes.push('Voie octets : OK ('+ct+') — les cartes devraient s’imprimer.');
+            cb(lignes.join('\n')); return; }
+          return r.text().then(function(t){
+            lignes.push('Voie octets : refusée par le relais (HTTP '+r.status+').');
+            lignes.push('Le relais est à jour mais Météo-France ne lui sert pas l’image.');
+            lignes.push(String(t).slice(0,220));
+            cb(lignes.join('\n')); });
+        }).catch(function(){
+          lignes.push('Voie octets : pas de lecture autorisée — le relais a redirigé');
+          lignes.push('au lieu de renvoyer l’image. Le relais déployé est antérieur');
+          lignes.push('à la version 7.27 : le déployer à jour suffit à débloquer.');
+          cb(lignes.join('\n')); });
+      });
+  }
+  window.__DIAG_CARTES=wxDiagCartes;
   /* grave les cartes en vigueur dans le dossier fige : un vol relu dans six
      mois reimprime les memes cartes, alors que les liens signes ont expire.
      Reduites a 1500 px de large pour rester transportables en base. */
@@ -11053,8 +11097,14 @@ window.__pickGpx=function(cb){
           alert('PDF impossible : '+((e&&e.message)||e)); });
         function lancerPdf(){
         /* copie detachee : le PDF ne depend ni du @page du log, ni de l'ecran */
+        /* Largeur unique de bout en bout : A4 210 mm moins 12 mm de marge de
+           chaque cote = 186 mm utiles, soit 703 px. La feuille, le cadre et la
+           zone capturee font tous cette largeur — sinon le generateur cadre sur
+           la feuille et laisse tomber la difference hors page (bord droit
+           tronque, constate sur un export reel). */
+        var LARG_MM=186, LARG_PX=Math.round(LARG_MM*96/25.4);
         var clone=feuille.cloneNode(true);
-        clone.style.width='190mm'; clone.style.maxWidth='none';
+        clone.style.width=LARG_MM+'mm'; clone.style.maxWidth='none';
         clone.style.height='auto'; clone.style.maxHeight='none';
         clone.style.overflow='visible'; clone.style.boxShadow='none';
         clone.style.borderRadius='0'; clone.style.padding='0'; clone.style.margin='0';
@@ -11075,13 +11125,28 @@ window.__pickGpx=function(cb){
             +'l’image en lecture directe'+(im2?'':' (carte non chargée)')
             +' — à consulter dans l’application, onglet WINTEM / TEMSI.</div>'; }
         var wrap=document.createElement('div');
-        wrap.style.background='#fff'; wrap.style.padding='0'; wrap.appendChild(clone);
+        wrap.style.background='#fff'; wrap.style.padding='0';
+        wrap.style.width=LARG_MM+'mm'; wrap.style.boxSizing='border-box';
+        /* rien ne doit depasser la largeur utile : les NOTAM bruts contiennent
+           de longues suites sans espace, et un enfant de boite flexible ne se
+           retrecit pas sous sa taille naturelle sans min-width:0 */
+        var cale=document.createElement('style');
+        /* on ne touche PAS aux tableaux : l'en-tete s'appuie sur la largeur
+           automatique de sa premiere colonne, qu'une mise en page fixe
+           ecraserait. On ne calme que les blocs de texte brut et les images. */
+        cale.textContent='.wxd-feuille{overflow:hidden!important}'
+          +'.wxd-feuille .ntm-un,.wxd-feuille .wxd-msg,.wxd-feuille pre,'
+          +'.wxd-feuille .wxd-pdfvide{white-space:pre-wrap!important;'
+          +'overflow-wrap:anywhere!important;word-break:break-word!important}'
+          +'.wxd-feuille .wxd-cartes>*{min-width:0!important}'
+          +'.wxd-feuille img{max-width:100%!important;height:auto!important}';
+        wrap.appendChild(cale); wrap.appendChild(clone);
         var stamp=(String(volDate||'').replace(/[^0-9]/g,'')||'').slice(0,8);
         var nomPdf='Dossier_meteo'+(stamp?'_'+stamp:'')+'.pdf';
         window.html2pdf().set({
           margin:[12,12,14,12], filename:nomPdf,
           image:{type:'jpeg',quality:.96},
-          html2canvas:{scale:2,useCORS:true,backgroundColor:'#fff',windowWidth:820},
+          html2canvas:{scale:2,useCORS:true,backgroundColor:'#fff',windowWidth:LARG_PX,width:LARG_PX},
           jsPDF:{unit:'mm',format:'a4',orientation:'portrait'},
           pagebreak:{mode:['css','legacy']}
         }).from(wrap).toPdf().get('pdf').then(function(pdf){ return pdf.output('blob'); })
@@ -11112,9 +11177,28 @@ window.__pickGpx=function(cb){
             if(lisible) im.setAttribute('data-imprimable','1');
             im.onclick=function(){ wxOuvrirCarte(c2.nom,'Validité '+c2.hh,c2.urls,wxDate14(c2.vig)); };
             fig.appendChild(im);
+            bilan();
           },function(){ fig.insertAdjacentHTML('beforeend',
-            '<div class="wxd-vide">Carte non intégrée ou non disponible.</div>'); });
+            '<div class="wxd-vide">Carte non intégrée ou non disponible.</div>');
+            bilan(); });
         });
+        /* quand tout est arrive : si AUCUNE carte n'est imprimable, on le dit
+           franchement et on propose le sondage qui en donne la raison */
+        var repondues=0;
+        function bilan(){ repondues++;
+          if(repondues<lst.length) return;
+          if(el.querySelector('img[data-imprimable="1"]')) return;
+          var av=document.createElement('div'); av.className='wxd-vide';
+          av.innerHTML='Ces cartes ne pourront pas entrer dans le PDF '
+            +'(le relais ne les fournit pas en lecture directe). '
+            +'<button type="button" id="wxdDiag" class="wxd-diag">Pourquoi ?</button>';
+          el.appendChild(av);
+          av.querySelector('#wxdDiag').onclick=function(){
+            var b=av.querySelector('#wxdDiag'); b.disabled=true; b.textContent='Sondage…';
+            wxDiagCartes(function(txt){
+              var pre=document.createElement('pre'); pre.className='wxd-diagr';
+              pre.textContent=txt; av.appendChild(pre); b.remove(); }); };
+        }
       },function(){ var el=dos.querySelector('#wxdCartes');
         if(el) el.innerHTML='<span class="wxd-vide">catalogue des cartes inaccessible.</span>'; });
     }
