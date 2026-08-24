@@ -20,7 +20,7 @@
  * Aucun secret requis. Vérification : ouvrir ?version=1 -> doit répondre 7.29.
  */
 
-const VERSION = "7.31";
+const VERSION = "7.32";
 const AERO = "https://aviation.meteo.fr";
 const SOFIA = "https://sofia-briefing.aviation-civile.gouv.fr";
 const UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Safari/605.1.15";
@@ -461,11 +461,13 @@ async function jetonAutorouter(neuf = false): Promise<string | null> {
     /* garder trace du refus dans la base : les instances passent, le journal
        reste, et la sonde peut dire si le plafond est encore plein MAINTENANT
        ou si l'on regarde une vieille erreur */
+    /* NE PAS masquer la reponse d'autorouter derriere un message maison :
+       elle seule peut dire combien de temps un jeton reste « actif », ou
+       comment en liberer. C'est ce texte qu'il faut lire. */
+    const brut = texte.replace(/\s+/g, " ").trim().slice(0, 400);
     const motif = /toomanytokens/i.test(texte)
-      ? "plafond de jetons autorouter atteint (20 actifs). "
-        + "Les jetons expirent d'eux-memes ; le relais n'en fabrique plus qu'un, "
-        + "partage entre toutes ses instances."
-      : "jeton autorouter refusé (" + r.status + ") " + texte.slice(0, 120);
+      ? "plafond de jetons autorouter atteint (20 actifs) \u2014 reponse : " + brut
+      : "jeton autorouter refusé (" + r.status + ") " + brut;
     await memoEcrit("autorouter_journal",
       JSON.stringify({ quand: new Date().toISOString(), evt: "refus", motif }),
       Date.now() + 7 * 24 * 3600e3);
@@ -504,8 +506,9 @@ async function notam(q: URLSearchParams): Promise<Response> {
   if (su && Date.now() - su.t < 600000) return reponseNotam(su.corps, true);
   let jeton: string | null = null;
   try { jeton = await jetonAutorouter(); } catch (e) {
+    /* large : c'est le texte d'autorouter qu'on veut lire en entier */
     return reponseJson({ erreur: "authentification autorouter impossible",
-      detail: String(e).slice(0, 160) }, 502);
+      detail: String(e).slice(0, 500) }, 502);
   }
   if (!jeton) {
     return reponseJson({ erreur: "identifiants autorouter absents",
@@ -523,8 +526,10 @@ async function notam(q: URLSearchParams): Promise<Response> {
         + encodeURIComponent(JSON.stringify(ads)) + "&offset=" + (page * 100) + "&limit=100";
       let r = await fetch(u, { headers: { "User-Agent": UA, "Accept": "application/json",
         "Authorization": "Bearer " + jeton } });
-      if (r.status === 401 || r.status === 403) {
-        /* jeton use : on en reprend un, une seule fois */
+      /* Un seul motif justifie de fabriquer un jeton de plus : le notre est
+         REFUSE (401). Un 403 est un droit manquant — en reclamer un neuf
+         ne le corrigerait pas et gaspillerait une place du plafond. */
+      if (r.status === 401) {
         arJeton = null;
         try { jeton = await jetonAutorouter(true); } catch { jeton = null; }
         if (jeton) r = await fetch(u, { headers: { "User-Agent": UA, "Accept": "application/json",
@@ -1094,7 +1099,7 @@ Deno.serve(async (req: Request) => {
           const t = JSON.parse(jl.valeur) as { quand?: string; evt?: string; motif?: string };
           const min = Math.max(0, Math.round((Date.now() - Date.parse(t.quand || "")) / 60000));
           etat.derniereTentative = { quand: "il y a " + min + " min",
-            evt: t.evt || "?", motif: (t.motif || "").slice(0, 180) };
+            evt: t.evt || "?", motif: (t.motif || "").slice(0, 400) };
         } catch { /* journal illisible : tant pis */ }
       }
     }
