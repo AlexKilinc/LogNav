@@ -20,7 +20,7 @@
  * Aucun secret requis. Vérification : ouvrir ?version=1 -> doit répondre 7.29.
  */
 
-const VERSION = "7.34";
+const VERSION = "7.35";
 const AERO = "https://aviation.meteo.fr";
 const SOFIA = "https://sofia-briefing.aviation-civile.gouv.fr";
 const UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Safari/605.1.15";
@@ -1199,11 +1199,33 @@ Deno.serve(async (req: Request) => {
      et l'afficher sur Chrome. Sinon, on rapporte l'échec en clair. */
   if (q.get("img") === "1") {
     if (!lien) return reponseJson({ erreur: "aucun lien signé obtenu", sofia: journal }, 404);
+    /* Constate en production (25 aout) : le lien resolu vient d'AEROWEB, et
+       aviation.meteo.fr refuse les serveurs (403). L'ancien code essayait
+       alors CE MEME CHEMIN sur l'hote SOFIA — qui repondait 404, car les
+       adresses n'ont rien de commun. Or SOFIA est justement l'hote qui parle
+       aux serveurs (les cartes du dossier en viennent). On resout donc AUSSI
+       le lien SOFIA, et on l'essaie en premier, sur sa propre adresse. */
+    const aEssayer: string[] = [];
+    /* le lien de viaSofia est reecrit sur l'hote AERO (le navigateur du
+       pilote y a droit, pas nous) : on reprend son CHEMIN sur l'hote SOFIA,
+       qui est le seul a repondre aux serveurs */
+    try {
+      const ls = await viaSofia(type, date, journal, souple);
+      if (ls) {
+        const ch = ls.url.replace(/^https?:\/\/[^/]+/, "");
+        aEssayer.push(SOFIA + ch);
+        aEssayer.push(AERO + ch);
+      }
+    } catch (e) { journal.push({ erreur: "viaSofia: " + String(e).slice(0, 120) }); }
     const chemin = lien.url.replace(/^https?:\/\/[^/]+/, "");
+    for (const hote of [AERO, SOFIA]) aEssayer.push(hote + chemin);
     const essais: Record<string, unknown>[] = [];
-    for (const hote of [AERO, SOFIA]) {
+    const dejaVu = new Set<string>();
+    for (const cible of aEssayer) {
+      if (dejaVu.has(cible)) continue;
+      dejaVu.add(cible);
       try {
-        const ri = await fetch(hote + chemin, {
+        const ri = await fetch(cible, {
           headers: {
             "User-Agent": UA,
             "Accept": "image/avif,image/webp,image/apng,image/png,image/*,*/*;q=0.8",
@@ -1223,12 +1245,12 @@ Deno.serve(async (req: Request) => {
             "Timing-Allow-Origin": "*",
             "X-Cartes-Version": VERSION,
             "X-Cartes-Date": lien.date,
-            "X-Cartes-Hote": hote.replace(/^https?:\/\//, ""),
+            "X-Cartes-Hote": cible.replace(/^https?:\/\//, "").split("/")[0],
           } });
         }
         const t = await ri.text();
-        essais.push({ hote, http: ri.status, contenu: ct, apercu: t.slice(0, 160) });
-      } catch (e) { essais.push({ hote, erreur: String(e).slice(0, 120) }); }
+        essais.push({ cible: cible.slice(0, 120), http: ri.status, contenu: ct, apercu: t.slice(0, 160) });
+      } catch (e) { essais.push({ cible: cible.slice(0, 120), erreur: String(e).slice(0, 120) }); }
     }
     return reponseJson({ erreur: "octets d'image non obtenus côté serveur",
       lien: tronque(lien.url), date: lien.date, essais }, 502);
