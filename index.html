@@ -1944,6 +1944,17 @@ html.xtra-on .mtoolbar .tb-info{display:none!important}
     var KEY='lognav_app_v7', MT='lognav_local_mt', ST='lognav_sync_t';
     var TR='lognav_tracks_v1', TRS='lognav_tr_synced';
     var pushT=null, lastSent={}, trSent={}, syncBooted=false;
+    /* cartes VAC : une planche pese de 0,3 a 1 Mo. On garde deux empreintes
+       par carte — le calage et l'image — pour n'envoyer que ce qui a bouge :
+       deplacer un coin ne doit pas renvoyer la planche entiere. */
+    var VACS='lognav_vac_synced';
+    var vacSent={};
+    function vacSyncedSet(){ try{ return new Set(JSON.parse(localStorage.getItem(VACS)||'[]')||[]); }catch(e){ return new Set(); } }
+    function vacMark(ids){ try{ var t=vacSyncedSet(); ids.forEach(function(i){ t.add(i); }); localStorage.setItem(VACS,JSON.stringify(Array.from(t))); }catch(e){} }
+    function vacUnmark(ids){ try{ var t=vacSyncedSet(); ids.forEach(function(i){ t.delete(i); }); localStorage.setItem(VACS,JSON.stringify(Array.from(t))); }catch(e){} }
+    function vacLocales(){ try{ return (window.__VAC_POUR_NUAGE&&window.__VAC_POUR_NUAGE())||[]; }catch(e){ return []; } }
+    function sigCalage(v){ return JSON.stringify([v.name,v.aero,v.corners,v.orig,v.w,v.h,v.opacity]); }
+    function sigImage(v){ var i=v.img||''; return i.length+':'+i.slice(-24); }
     function getTracks(){ try{ return JSON.parse(localStorage.getItem(TR)||'[]')||[]; }catch(e){ return []; } }
     function setTracks(l){ try{ localStorage.setItem(TR,JSON.stringify(l)); }catch(e){} }
     function trSyncedSet(){ try{ return new Set(JSON.parse(localStorage.getItem(TRS)||'[]')||[]); }catch(e){ return new Set(); } }
@@ -1984,6 +1995,30 @@ html.xtra-on .mtoolbar .tb-info{display:none!important}
               });
               trMark(cloud.map(function(t){ return t.id; }));
               if(changed){ out.sort(function(a,b){ return String(b.date||'').localeCompare(String(a.date||'')); }); setTracks(out); }
+            },function(){});
+          }catch(e){}
+          /* cartes VAC : on lit d'abord le CALAGE seul (quelques octets par
+             carte), et l'on ne retelecharge la planche que pour celles qui
+             manquent ici ou dont l'image a change au nuage. */
+          try{
+            sb.from('vac_cartes').select('id,name,aero,corners,orig,w,h,opacity,maj')
+              .eq('user_id',user.id).then(function(vq){
+              if(!vq||vq.error||!Array.isArray(vq.data)) return;
+              var loc={}; vacLocales().forEach(function(v){ if(v&&v.id) loc[v.id]=v; });
+              var aLire=[];
+              vq.data.forEach(function(r){
+                if(!loc[r.id]) aLire.push(r.id);            /* pas ici : planche a prendre */
+                vacMark([r.id]);
+              });
+              var pose=function(rows){ try{ if(window.__VAC_DU_NUAGE) window.__VAC_DU_NUAGE(rows,function(){}); }catch(e){}
+                rows.forEach(function(r){ var v=loc[r.id]||r;
+                  vacSent[r.id]={c:sigCalage(r),i:sigImage(r.img!=null?r:(v||{}))}; }); };
+              if(!aLire.length){ pose(vq.data); return; }
+              sb.from('vac_cartes').select('id,img').in('id',aLire).then(function(iq){
+                var img={}; (((iq&&iq.data)||[])).forEach(function(r){ img[r.id]=r.img||''; });
+                pose(vq.data.map(function(r){ var o=Object.assign({},r);
+                  if(img[r.id]!=null) o.img=img[r.id]; return o; }));
+              },function(){ pose(vq.data); });
             },function(){});
           }catch(e){}
           Promise.all([
@@ -2072,6 +2107,31 @@ html.xtra-on .mtoolbar .tb-info{display:none!important}
           ((q&&q.data)||[]).forEach(function(r2){ if(!loc[r2.id]&&syn.has(r2.id)) del.push(r2.id); });
           if(del.length) return sb.from('traces').delete().in('id',del)
             .then(function(){ trUnmark(del); del.forEach(function(d){ delete trSent[d]; }); },function(){});
+        },function(){}));
+        /* cartes VAC : le calage seul si la planche n'a pas change ; la ligne
+           entiere la premiere fois. Un envoi partiel ne touche que les
+           colonnes fournies, l'image rangee au nuage reste donc en place. */
+        var vl=vacLocales();
+        vl.forEach(function(v){
+          if(!v||!v.id) return;
+          var sc=sigCalage(v), si=sigImage(v), su=vacSent[v.id];
+          if(su&&su.c===sc&&su.i===si) return;
+          var row={id:v.id,user_id:user.id,name:v.name||'',aero:v.aero||'',
+            corners:v.corners||null,orig:v.orig||null,w:v.w||0,h:v.h||0,
+            opacity:(v.opacity!=null?v.opacity:1),maj:new Date().toISOString()};
+          if(!su||su.i!==si) row.img=v.img||'';   /* nouvelle, ou planche changee */
+          jobs.push(sb.from('vac_cartes').upsert(row).then(function(r2){
+            if(r2&&!r2.error){ vacSent[v.id]={c:sc,i:si}; vacMark([v.id]); } },function(){}));
+        });
+        /* suppression au nuage : uniquement pour les cartes que CET appareil
+           avait deja synchronisees — une carte calee ailleurs et pas encore
+           recuperee ici n'est jamais effacee */
+        jobs.push(sb.from('vac_cartes').select('id').eq('user_id',user.id).then(function(q){
+          var loc={}; vl.forEach(function(v){ if(v&&v.id) loc[v.id]=1; });
+          var syn=vacSyncedSet(), del=[];
+          ((q&&q.data)||[]).forEach(function(r2){ if(!loc[r2.id]&&syn.has(r2.id)) del.push(r2.id); });
+          if(del.length) return sb.from('vac_cartes').delete().in('id',del)
+            .then(function(){ vacUnmark(del); del.forEach(function(d){ delete vacSent[d]; }); },function(){});
         },function(){}));
         jobs.push(sb.from('favorites').delete().eq('user_id',user.id).then(function(){
           var favL=(typeof __dedupeFavs==='function')?__dedupeFavs(app.favorites):(app.favorites||[]);
@@ -2938,7 +2998,7 @@ window.__TRACE_MARKUP="\n\n<header>\n  <div class=\"hdr-row1\">\n    <span class
    accessible depuis le bouton ⓘ du bandeau du log, avant toute ouverture de la carte */
 (function(){
   var host=document.createElement('div');
-  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Cartes OACI — origine et mise à jour</b></p>\n    <p style=\"margin-top:-6px\"><b>1/250 000 Région parisienne</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte250\">—</span>.</p>\n    <p style=\"margin-top:-6px\"><b>1/500 000 France</b> — IGN Géoplateforme (SCAN-OACI). Donnée <b>non libre</b>, tenue à jour par l’IGN.</p>\n    <p style=\"margin-top:-6px\"><b>1/1 000 000 France</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte1000\">—</span>.</p>\n    <p>Les deux cartes du SIA sont hébergées à part et lues par plages : seules les tuiles affichées sont téléchargées. Les trois se copient sur l’appareil pour voler sans réseau depuis <b>Profil → Cartes hors-ligne</b>. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.509</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
+  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Cartes OACI — origine et mise à jour</b></p>\n    <p style=\"margin-top:-6px\"><b>1/250 000 Région parisienne</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte250\">—</span>.</p>\n    <p style=\"margin-top:-6px\"><b>1/500 000 France</b> — IGN Géoplateforme (SCAN-OACI). Donnée <b>non libre</b>, tenue à jour par l’IGN.</p>\n    <p style=\"margin-top:-6px\"><b>1/1 000 000 France</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte1000\">—</span>.</p>\n    <p>Les deux cartes du SIA sont hébergées à part et lues par plages : seules les tuiles affichées sont téléchargées. Les trois se copient sur l’appareil pour voler sans réseau depuis <b>Profil → Cartes hors-ligne</b>. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.510</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
   (document.body||document.documentElement).appendChild(host.firstElementChild);
   /* le nom du fichier de la 1/1 000 000 dit son edition : on le lit la ou il
      est vraiment (cartes.json), jamais en dur, sinon il mentirait un jour */
@@ -5426,8 +5486,58 @@ function openRelinkChoice(){
   function idbDel(k){ idbOpen(function(db){ if(!db) return;
     try{ var tx=db.transaction('kv','readwrite'); tx.objectStore('kv').delete(k); tx.oncomplete=function(){ db.close(); }; }catch(e){} }); }
   function metaOf(v){ return {id:v.id,aero:v.aero,name:v.name,corners:v.corners,orig:v.orig,w:v.w,h:v.h,opacity:v.opacity}; }
-  function persist(){ idbSet('meta', vacs.map(metaOf)); }
+  /* Les cartes VAC vivaient UNIQUEMENT sur l'appareil (IndexedDB) : caler une
+     planche sur l'ordinateur ne la donnait pas au telephone, et un effacement
+     du stockage par le navigateur les perdait sans retour. Elles rejoignent
+     donc le compte, comme les navigations et les traces.
+     enImport : pendant une reprise depuis le nuage, persist() ne doit PAS
+     redemander un envoi — sinon chaque reception declencherait une emission. */
+  var enImport=false;
+  function nuage(){ if(enImport) return;
+    try{ if(window.__SYNC_PUSH_SOON) window.__SYNC_PUSH_SOON(); }catch(e){} }
+  function persist(){ idbSet('meta', vacs.map(metaOf)); nuage(); }
   function saveImg(v){ idbSet('img:'+v.id, v.img); }
+  /* ce que le nuage doit recevoir : le calage ET la planche */
+  window.__VAC_POUR_NUAGE=function(){ return vacs.map(function(v){
+    var o=metaOf(v); o.img=v.img||''; return o; }); };
+  /* ce que le nuage rend : on fusionne par identifiant. Une carte arrivee
+     d'un autre appareil est ajoutee ; une carte deja connue est mise a jour
+     sans perdre son image si le nuage ne l'a pas renvoyee (elle n'est
+     retelechargee que lorsqu'elle a change). */
+  window.__VAC_DU_NUAGE=function(rows,cb){
+    rows=rows||[]; if(!rows.length){ if(cb)cb(0); return; }
+    enImport=true;
+    var n=0;
+    rows.forEach(function(r){
+      if(!r||!r.id) return;
+      var v=null; for(var i=0;i<vacs.length;i++) if(vacs[i].id===r.id){ v=vacs[i]; break; }
+      var img=r.img||(v&&v.img)||null;
+      if(!img) return;                     /* ni ici ni la-bas : rien a poser */
+      if(v){
+        v.name=r.name||v.name; v.aero=r.aero||v.aero;
+        if(r.corners) v.corners=r.corners;
+        if(r.orig) v.orig=r.orig;
+        if(r.w) v.w=r.w; if(r.h) v.h=r.h;
+        if(r.opacity!=null) v.opacity=r.opacity;
+        if(r.img&&r.img!==v.img){ v.img=r.img; idbSet('img:'+v.id,v.img); }
+        try{ vacLayer.removeLayer(v.ovl); }catch(e){}
+        addOverlay(v); n++;
+      }else{
+        var nv={id:r.id,aero:r.aero||'',name:r.name||'',corners:r.corners,
+          orig:r.orig,w:r.w,h:r.h,img:img,opacity:(r.opacity!=null?r.opacity:1)};
+        if(!nv.corners||nv.corners.length<4) return;
+        vacs.push(nv); addOverlay(nv); idbSet('img:'+nv.id,nv.img); n++;
+      }
+    });
+    persist();
+    if(n&&vacState===0) vacState=1;
+    applyVacState();
+    try{ if(panel) renderPanel(); }catch(e){}
+    enImport=false;
+    if(cb) cb(n);
+  };
+  /* effacer ici doit effacer partout : le nuage a besoin de le savoir */
+  window.__VAC_IDS=function(){ return vacs.map(function(v){ return v.id; }); };
   /* --- pack VAC : fichier JSON transportable entre appareils (AirDrop, Fichiers…) --- */
   function importPack(f){
     var fr=new FileReader();
