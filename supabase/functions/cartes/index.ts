@@ -20,7 +20,7 @@
  * Aucun secret requis. Vérification : ouvrir ?version=1 -> doit répondre 7.29.
  */
 
-const VERSION = "7.36";
+const VERSION = "7.37";
 const AERO = "https://aviation.meteo.fr";
 const SOFIA = "https://sofia-briefing.aviation-civile.gouv.fr";
 const UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Safari/605.1.15";
@@ -453,6 +453,30 @@ async function memoEtat(cle: string):
 async function memoLit(cle: string): Promise<{ valeur: string; fin: number } | null> {
   return (await memoEtat(cle)).ligne;
 }
+/* Les memoires de contenu (NOTAM, SUP AIP, cartes) vivent dans l'INSTANCE.
+   Or une fonction Edge est recreee sans cesse, et chaque deploiement les
+   efface toutes : une instance neuve refait alors tout le chemin vers la
+   source, d'ou l'attente ressentie apres chaque mise a jour du relais.
+   On double donc la memoire d'instance d'une memoire PARTAGEE, rangee dans
+   la meme table que le jeton : n'importe quelle instance peut servir une
+   reponse recente sans rien redemander a autorouter ni au SIA.
+   Regle absolue, la meme que pour le garde-fou : si la base est muette, on
+   n'en tient aucun compte — elle ne doit jamais devenir une panne de plus. */
+async function memoFrais(cle: string): Promise<{ valeur: string; reste: number } | null> {
+  try {
+    const l = await memoLit(cle);
+    if (!l || !l.valeur) return null;
+    const reste = (l.fin || 0) - Date.now();
+    if (reste <= 0) return null;              /* perimee : on ira a la source */
+    return { valeur: l.valeur, reste };
+  } catch { return null; }
+}
+/* au-dela, l'ecriture couterait plus de temps qu'elle n'en fera gagner */
+const PARTAGE_MAX = 400_000;
+async function memoRange(cle: string, corps: string, duree: number): Promise<void> {
+  if (corps.length > PARTAGE_MAX) return;
+  try { await memoEcrit(cle, corps, Date.now() + duree); } catch { /* muette : tant pis */ }
+}
 async function memoEcrit(cle: string, valeur: string, fin: number):
     Promise<{ ok: boolean; status: number; corps: string }> {
   const u = memoUrl(); if (!u) return { ok: false, status: 0, corps: "SUPABASE_URL absente" };
@@ -554,13 +578,14 @@ async function jetonAutorouter(neuf = false): Promise<string | null> {
     Date.now() + 7 * 24 * 3600e3);
   return jt;
 }
-function reponseNotam(corps: string, memo: boolean): Response {
+const NOTAM_DUREE = 600000;   /* 10 min : la fraicheur attendue d'un NOTAM */
+function reponseNotam(corps: string, voie: "memo" | "base" | "frais"): Response {
   return new Response(corps, { headers: {
     "Content-Type": "application/json; charset=utf-8",
     "Cache-Control": "public, max-age=600",
     "Access-Control-Allow-Origin": "*",
     "X-Cartes-Version": VERSION,
-    "X-Cartes-Notam": memo ? "memo" : "frais",
+    "X-Cartes-Notam": voie,
   } });
 }
 async function notam(q: URLSearchParams): Promise<Response> {
@@ -571,7 +596,16 @@ async function notam(q: URLSearchParams): Promise<Response> {
   }
   const cle = ads.slice().sort().join(",");
   const su = memoNotam.get(cle);
-  if (su && Date.now() - su.t < 600000) return reponseNotam(su.corps, true);
+  if (su && Date.now() - su.t < NOTAM_DUREE) return reponseNotam(su.corps, "memo");
+  /* instance neuve : la reponse est peut-etre deja en base, posee par une
+     autre instance il y a moins de dix minutes. Une lecture en base coute
+     une fraction de l'aller-retour vers autorouter — et n'use pas le quota. */
+  const pt = await memoFrais("notam:" + cle);
+  if (pt) {
+    /* on garde l'AGE d'origine : passer par la base ne rajeunit rien */
+    memoNotam.set(cle, { t: Date.now() - (NOTAM_DUREE - pt.reste), corps: pt.valeur });
+    return reponseNotam(pt.valeur, "base");
+  }
   let jeton: string | null = null;
   try { jeton = await jetonAutorouter(); } catch (e) {
     /* large : c'est le texte d'autorouter qu'on veut lire en entier */
@@ -632,7 +666,8 @@ async function notam(q: URLSearchParams): Promise<Response> {
     }));
     const corps = JSON.stringify({ terrains: ads, total: notams.length, notams });
     memoNotam.set(cle, { t: Date.now(), corps });
-    return reponseNotam(corps, false);
+    await memoRange("notam:" + cle, corps, NOTAM_DUREE);
+    return reponseNotam(corps, "frais");
   } catch (e) {
     return reponseJson({ erreur: "NOTAM indisponibles", detail: String(e).slice(0, 140) }, 502);
   }
@@ -655,14 +690,24 @@ function nettoieTitre(t: string): string {
     .replace(/&quot;/g, '"').replace(/&eacute;/gi, "é").replace(/&egrave;/gi, "è")
     .replace(/\s+/g, " ").trim();
 }
+const SUP_DUREE = 12 * 3600e3;
+function reponseSup(corps: string, voie: "memo" | "base" | "frais"): Response {
+  return new Response(corps, { headers: {
+    "Content-Type": "application/json; charset=utf-8",
+    "Cache-Control": "public, max-age=3600",
+    "Access-Control-Allow-Origin": "*",
+    "X-Cartes-Version": VERSION, "X-Cartes-Supaip": voie,
+  } });
+}
 async function supAip(_q: URLSearchParams): Promise<Response> {
-  if (memoSup && Date.now() - memoSup.t < 12 * 3600e3) {
-    return new Response(memoSup.corps, { headers: {
-      "Content-Type": "application/json; charset=utf-8",
-      "Cache-Control": "public, max-age=3600",
-      "Access-Control-Allow-Origin": "*",
-      "X-Cartes-Version": VERSION, "X-Cartes-Supaip": "memo",
-    } });
+  if (memoSup && Date.now() - memoSup.t < SUP_DUREE) return reponseSup(memoSup.corps, "memo");
+  /* l'index du SIA fait ~230 Ko a depouiller : c'est l'autre moitie de
+     l'attente au listing. Une instance neuve le reprend en base plutot que
+     de le redemander au SIA. */
+  const pt = await memoFrais("supaip");
+  if (pt) {
+    memoSup = { t: Date.now() - (SUP_DUREE - pt.reste), corps: pt.valeur };
+    return reponseSup(pt.valeur, "base");
   }
   try {
     const r = await fetch(SIA_SUP, { headers: { "User-Agent": UA, "Accept": "text/html" }, redirect: "follow" });
@@ -692,12 +737,8 @@ async function supAip(_q: URLSearchParams): Promise<Response> {
     }
     const corps = JSON.stringify({ maj, total: sups.length, sups });
     memoSup = { t: Date.now(), corps };
-    return new Response(corps, { headers: {
-      "Content-Type": "application/json; charset=utf-8",
-      "Cache-Control": "public, max-age=3600",
-      "Access-Control-Allow-Origin": "*",
-      "X-Cartes-Version": VERSION, "X-Cartes-Supaip": "frais",
-    } });
+    await memoRange("supaip", corps, SUP_DUREE);
+    return reponseSup(corps, "frais");
   } catch (e) {
     return reponseJson({ erreur: "SUP AIP indisponibles", detail: String(e).slice(0, 140) }, 502);
   }
