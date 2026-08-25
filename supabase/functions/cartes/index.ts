@@ -20,7 +20,7 @@
  * Aucun secret requis. Vérification : ouvrir ?version=1 -> doit répondre 7.29.
  */
 
-const VERSION = "7.40";
+const VERSION = "7.41";
 const AERO = "https://aviation.meteo.fr";
 const SOFIA = "https://sofia-briefing.aviation-civile.gouv.fr";
 const UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Safari/605.1.15";
@@ -1328,7 +1328,12 @@ Deno.serve(async (req: Request) => {
         if (biscuits && cible.indexOf(SOFIA) === 0) enTetes["Cookie"] = biscuits;
         const ri = await fetch(cible, { headers: enTetes, redirect: "follow" });
         const ct = ri.headers.get("Content-Type") || "";
-        if (ri.ok && /^image\//i.test(ct)) {
+        /* CONSTAT du 26 aout : SOFIA repond 200 — et le relais refusait quand
+           meme. Il n'acceptait que « image/… », or Meteo-France sert les TEMSI
+           et les WINTEM en PDF. La planche etait donc obtenue puis jetee.
+           On accepte desormais l'image ET le PDF ; l'application sait rendre
+           un PDF en toile (pdf.js, deja employe pour les cartes VAC). */
+        if (ri.ok && /^(image\/|application\/pdf)/i.test(ct)) {
           const buf = await ri.arrayBuffer();
           return new Response(buf, { headers: {
             "Content-Type": ct,
