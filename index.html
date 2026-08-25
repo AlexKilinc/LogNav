@@ -2998,7 +2998,7 @@ window.__TRACE_MARKUP="\n\n<header>\n  <div class=\"hdr-row1\">\n    <span class
    accessible depuis le bouton ⓘ du bandeau du log, avant toute ouverture de la carte */
 (function(){
   var host=document.createElement('div');
-  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Cartes OACI — origine et mise à jour</b></p>\n    <p style=\"margin-top:-6px\"><b>1/250 000 Région parisienne</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte250\">—</span>.</p>\n    <p style=\"margin-top:-6px\"><b>1/500 000 France</b> — IGN Géoplateforme (SCAN-OACI). Donnée <b>non libre</b>, tenue à jour par l’IGN.</p>\n    <p style=\"margin-top:-6px\"><b>1/1 000 000 France</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte1000\">—</span>.</p>\n    <p>Les deux cartes du SIA sont hébergées à part et lues par plages : seules les tuiles affichées sont téléchargées. Les trois se copient sur l’appareil pour voler sans réseau depuis <b>Profil → Cartes hors-ligne</b>. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.511</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
+  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Cartes OACI — origine et mise à jour</b></p>\n    <p style=\"margin-top:-6px\"><b>1/250 000 Région parisienne</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte250\">—</span>.</p>\n    <p style=\"margin-top:-6px\"><b>1/500 000 France</b> — IGN Géoplateforme (SCAN-OACI). Donnée <b>non libre</b>, tenue à jour par l’IGN.</p>\n    <p style=\"margin-top:-6px\"><b>1/1 000 000 France</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte1000\">—</span>.</p>\n    <p>Les deux cartes du SIA sont hébergées à part et lues par plages : seules les tuiles affichées sont téléchargées. Les trois se copient sur l’appareil pour voler sans réseau depuis <b>Profil → Cartes hors-ligne</b>. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.512</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
   (document.body||document.documentElement).appendChild(host.firstElementChild);
   /* le nom du fichier de la 1/1 000 000 dit son edition : on le lit la ou il
      est vraiment (cartes.json), jamais en dur, sinon il mentirait un jour */
@@ -6663,6 +6663,11 @@ function openRelinkChoice(){
    +'background:#fff;border-radius:14px;box-shadow:0 18px 60px rgba(0,0,0,.5);'
    +'z-index:6000;display:flex;flex-direction:column;overflow:hidden;resize:both}'
    +'.ntmd-fond{position:fixed;inset:0;z-index:5990;background:rgba(8,16,32,.28)}'
+   /* heberge dans un onglet : le listing remplit son hote, sans ombre ni
+      poignee ni croix — il n'y a pas de fenetre a fermer */
+   +'.ntmd.ntmd-in{position:static;transform:none;width:100%;height:100%;'
+   +'max-height:none;border-radius:0;box-shadow:none;resize:none;z-index:auto}'
+   +'.ntmd.ntmd-in .ntmd-x{display:none}'
    +'.ntmd-hd{flex:none;display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;background:#0F274C;color:#fff;'
    +'padding:10px 14px;font:800 13px Poppins,sans-serif}'
    +'.ntmd-hd b{white-space:nowrap;flex:1 1 auto}'
@@ -7396,6 +7401,14 @@ function openRelinkChoice(){
   window.__DIAG_NOTAM=ntmDiag;
   var ORDRE_ROLE={'d\u00e9part':0,'arriv\u00e9e':1,'survol\u00e9':2,'d\u00e9gagement':3,'s\u00e9lectionn\u00e9':4,'\u00e0 proximit\u00e9':5};
   var CL_ROLE={'d\u00e9part':'dep','arriv\u00e9e':'arr','survol\u00e9':'mid','d\u00e9gagement':'deg','s\u00e9lectionn\u00e9':'sel','\u00e0 proximit\u00e9':'prox'};
+  /* Le listing peut etre AFFICHE AILLEURS que par-dessus la carte : l'onglet
+     « NOTAM / SUP-AIP / AZBA » de la fenetre meteo l'accueille tel quel.
+     On ne duplique pas sa composition — deux endroits a tenir, c'est deux
+     endroits qui divergent : on lui donne simplement un hote. */
+  var ntmHote=null;
+  window.__NTM_HEBERGE=function(el){ ntmHote=el||null;
+    if(ntmHote) ntmDossier(); };
+  window.__NTM_LIBERE=function(){ ntmHote=null; ntmDossierFerme(); };
   function ntmDossierFerme(){ var v=document.getElementById('ntmDos');
     if(v){ try{ v.remove(); }catch(e){} }
     var f=document.getElementById('ntmDosFond');
@@ -7429,10 +7442,14 @@ function openRelinkChoice(){
     codes.forEach(function(code){ totalN+=(parAd[code]||[]).length;
       totalS+=(supsParAd[code]||[]).length; });
     /* fond cliquable : un toucher hors de la fenetre (menu inferieur compris) la ferme */
-    var fond=document.createElement('div'); fond.id='ntmDosFond'; fond.className='ntmd-fond no-print';
-    document.body.appendChild(fond);
+    /* en surimpression : un fond cliquable ferme la fenetre. Heberge dans un
+       onglet, il n'y a rien a fermer et rien a assombrir. */
+    if(!ntmHote){
+      var fond=document.createElement('div'); fond.id='ntmDosFond'; fond.className='ntmd-fond no-print';
+      document.body.appendChild(fond); }
     var ddvRefN=[], ddvRefS=[];
-    var v=document.createElement('div'); v.id='ntmDos'; v.className='ntmd no-print';
+    var v=document.createElement('div'); v.id='ntmDos';
+    v.className='ntmd no-print'+(ntmHote?' ntmd-in':'');
     var html='<div class="ntmd-hd"><b>NOTAM &amp; SUP AIP</b>'
       +'<button type="button" class="ntmd-f'+(PROX_NM===50?' on':'')+'" data-f="ray" '
       +'title="\u00c9tendre la recherche des terrains \u00e0 50 NM autour de la trace">50 NM</button>'
@@ -7544,7 +7561,7 @@ function openRelinkChoice(){
       +'<span class="ntmd-addh">consulter un terrain hors liste</span></div>';
     html+='</div>';
     v.innerHTML=html;
-    document.body.appendChild(v);
+    (ntmHote||document.body).appendChild(v);
     /* la ligne d'etat tient toujours sur UNE ligne : la police se reduit au besoin */
     (function(){ var st2=v.querySelector('.ntmd-st'); if(!st2) return;
       var fs=10.5; st2.style.fontSize=fs+'px';
@@ -10945,11 +10962,14 @@ window.__CARTE_ADR=function(j,cle){
     max-width:none!important;max-height:none!important;
     object-fit:contain!important;
     transform:translate(-50%,-50%)}
-  /* meme correction pour le WINTEM : toile a la taille de la planche
-     (636x912), echelle portee de 0,75 a 0,95 — de 126 x 181 a 160 x 229 mm */
+  /* WINTEM : ce n'est pas une image, c'est UNE PAGE A4 portant trois cartes.
+     La toile doit donc avoir les proportions d'une A4 (794x1123 px a 96 ppp),
+     et non celles d'une planche : taillee pour une image, elle laissait la
+     visionneuse caler la page de travers, avec son fond sombre a cote.
+     A 0,78 la page occupe 164 x 232 mm — la hauteur du bloc, exactement. */
   body.wxd-imp .wxd-carte.wxd-w .wxd-cadre{
-    width:636px!important;height:912px!important;    /* WINTEM : portrait */
-    transform:scale(.95) translate(-50%,-50%)}
+    width:794px!important;height:1123px!important;   /* WINTEM : page A4 */
+    transform:scale(.78) translate(-50%,-50%)}
   body.wxd-imp .wxd-clbl{break-after:avoid;page-break-after:avoid}
   body.wxd-imp .ntm-un,body.wxd-imp .wxd-msg{break-inside:avoid;page-break-inside:avoid}
   /* chaque chapitre (METAR/TAF, cartes, NOTAM, SUP AIP, AZBA...) commence en
@@ -10971,6 +10991,9 @@ window.__CARTE_ADR=function(j,cle){
   font:700 12px "Poppins",sans-serif;padding:7px 11px;cursor:pointer}
 .wx-src{flex:none;font:600 10.5px "Poppins",sans-serif;color:#8fa9cc;padding:7px 14px;border-bottom:1px solid #16305c}
 .wx-list{flex:1 1 auto;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:10px 12px calc(20px + env(safe-area-inset-bottom,0px))}
+/* l'onglet NOTAM : le listing s'y deploie en entier */
+.wx-ntm{flex:1 1 auto;min-height:0;display:flex;overflow:hidden;background:#fff}
+.wx-ntm[hidden]{display:none}
 .wx-row{background:#102A52;border:1px solid #24406f;border-radius:12px;padding:10px 12px;margin-bottom:10px}
 .wx-row .top{display:flex;align-items:center;gap:8px;margin-bottom:6px}
 .wx-role{flex:none;font:800 9px "Poppins",sans-serif;text-transform:uppercase;letter-spacing:.08em;
@@ -11529,10 +11552,14 @@ window.__pickGpx=function(cb){
       +'<div class="wx-tabs">'
       +'<button class="wx-tab on" data-t="metar" type="button">METAR / TAF</button>'
       +'<button class="wx-tab" data-t="cartes" type="button">WINTEM / TEMSI</button>'
+      +'<button class="wx-tab" data-t="notam" type="button">NOTAM / SUP-AIP / AZBA</button>'
       +'<button class="wx-tab" data-t="dossier" type="button">DOSSIER VOL</button>'
       +'<button id="wxClose" class="wx-x" type="button" title="Fermer" aria-label="Fermer">\u00d7</button>'
       +'</div>'
       +'<div class="wx-src" id="wxSrc">Source : NOAA \u00b7 chargement\u2026</div>'
+      /* l'onglet NOTAM accueille le listing LUI-MEME : meme composition, meme
+         code, aucune copie a tenir a jour */
+      +'<div class="wx-ntm" id="wxNtm" hidden></div>'
       +'<div class="wx-list">'
       +'<div class="wx-addrow"><input id="wxFavIn" placeholder="OACI ou nom" autocapitalize="characters" autocomplete="off">'
       +'<span class="wx-acts">'
@@ -11590,6 +11617,7 @@ window.__pickGpx=function(cb){
        impression ULTERIEURE (le log de nav, par exemple) sortirait avec les
        regles du dossier */
     ov.querySelector('#wxClose').onclick=function(){
+      try{ if(window.__NTM_LIBERE) window.__NTM_LIBERE(); }catch(e){}
       try{ document.body.classList.remove('wxd-saf');
         document.body.classList.remove('wxd-imp');
         var q=document.getElementById('wxdPage'); if(q) q.remove(); }catch(e){}
@@ -11606,14 +11634,21 @@ window.__pickGpx=function(cb){
       var onglets=ov.querySelectorAll('.wx-tab');
       var maj=function(t){
         for(var i=0;i<onglets.length;i++) onglets[i].classList.toggle('on',onglets[i].getAttribute('data-t')===t);
-        var cartes=(t==='cartes'), dossier=(t==='dossier');
+        var cartes=(t==='cartes'), dossier=(t==='dossier'), notam=(t==='notam');
         var l=ov.querySelector('.wx-list'), s=ov.querySelector('#wxSrc'), so=ov.querySelector('#wxSoon');
-        var dosB=ov.querySelector('#wxDossier');
-        if(l) l.hidden=cartes||dossier; if(s) s.hidden=cartes||dossier;
+        var dosB=ov.querySelector('#wxDossier'), ntmB=ov.querySelector('#wxNtm');
+        if(l) l.hidden=cartes||dossier||notam; if(s) s.hidden=cartes||dossier||notam;
         if(so) so.hidden=!cartes; if(dosB) dosB.hidden=!dossier;
+        if(ntmB) ntmB.hidden=!notam;
         /* liste et dossier se reconstruisent a chaque ouverture : tout date */
         if(cartes){ try{ wxCartesMaj(ov); }catch(e){} }
         if(dossier){ try{ wxDossierMaj(ov); }catch(e){} }
+        /* le listing est HEBERGE ici, pas recopie : il se compose lui-meme.
+           En quittant l'onglet on le libere, sinon il resterait accroche a un
+           panneau cache et une actualisation le ferait reapparaitre. */
+        if(notam){ try{ ntmB.innerHTML='';
+            if(window.__NTM_HEBERGE) window.__NTM_HEBERGE(ntmB); }catch(e){} }
+        else { try{ if(window.__NTM_LIBERE) window.__NTM_LIBERE(); }catch(e){} }
       };
       for(var i=0;i<onglets.length;i++) onglets[i].onclick=function(){ maj(this.getAttribute('data-t')); };
       maj((pl&&pl.onglet)==='dossier'?'dossier':'metar');
@@ -11733,9 +11768,10 @@ window.__pickGpx=function(cb){
         utc=p2(ad.getUTCHours())+':'+p2(ad.getUTCMinutes())+' UTC'; }
       var mD=/^(\d{4})-(\d{2})-(\d{2})/.exec(String(dateVol));
       var dateVolAff=mD?(mD[3]+'/'+mD[2]+'/'+mD[1]):(dateVol||'\u00e0 pr\u00e9ciser');
-      var html='<div class="wxd-bar"><button id="wxdImp" type="button" '
-        +'title="T\u00e9l\u00e9charger le dossier m\u00e9t\u00e9o en PDF A4 portrait">'
-        +'\u2b07\ufe0e T\u00e9l\u00e9charger le PDF</button>'
+      /* « Télécharger le PDF » (sans les cartes) est retiré : entre lui et
+         « Télécharger PDF + Cartes », le choix n'apportait rien — un dossier
+         sans ses cartes n'a pas d'usage propre. */
+      var html='<div class="wxd-bar">'
         /* l'impression du navigateur est la seule voie qui embarque les cartes
            quand Meteo-France refuse de les servir au relais : le moteur
            d'impression redessine les images lui-meme, sans lire leurs pixels */
@@ -12182,7 +12218,6 @@ window.__pickGpx=function(cb){
                 alert('PDF impossible : '+((e&&e.message)||e)); });
           };
         }
-        brancher('#wxdImp',false);
         brancher('#wxdPdfC',true);
       })();
       /* les cartes en vigueur, integrees a la feuille ; un toucher ouvre la
