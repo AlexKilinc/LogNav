@@ -20,7 +20,7 @@
  * Aucun secret requis. Vérification : ouvrir ?version=1 -> doit répondre 7.29.
  */
 
-const VERSION = "7.38";
+const VERSION = "7.39";
 const AERO = "https://aviation.meteo.fr";
 const SOFIA = "https://sofia-briefing.aviation-civile.gouv.fr";
 const UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Safari/605.1.15";
@@ -667,7 +667,13 @@ async function notam(q: URLSearchParams): Promise<Response> {
       serie: String(n.series || "") + String(n.number ?? "")
         + (n.year != null ? "/" + String(n.year).slice(-2) : ""),
       texte: String(n.iteme || ""),
-      debut: n.startvalidity, fin: n.endvalidity, estimee: !!n.estimation,
+      /* autorouter code « PERM » par la borne des entiers 32 bits
+         (2147483647 = 19/01/2038 03:14:07). La rendre telle quelle faisait
+         afficher une echeance au lieu de « permanent » : on la ramene a 0,
+         seule valeur que toute la chaine lit deja comme PERM. */
+      debut: n.startvalidity,
+      fin: (Number(n.endvalidity) >= 2147483647 ? 0 : n.endvalidity),
+      estimee: !!n.estimation,
       lat: n.lat, lon: n.lon, rayon: n.radius,
       bas: n.lower, haut: n.upper,
       qcode: String(n.code23 || "") + String(n.code45 || ""),
