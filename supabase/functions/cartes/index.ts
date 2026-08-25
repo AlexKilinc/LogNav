@@ -20,7 +20,7 @@
  * Aucun secret requis. Vérification : ouvrir ?version=1 -> doit répondre 7.29.
  */
 
-const VERSION = "7.37";
+const VERSION = "7.38";
 const AERO = "https://aviation.meteo.fr";
 const SOFIA = "https://sofia-briefing.aviation-civile.gouv.fr";
 const UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Safari/605.1.15";
@@ -653,6 +653,15 @@ async function notam(q: URLSearchParams): Promise<Response> {
       lignes.push(...lot);
       if (!lot.length) break;
     }
+    /* autorouter marque « suppressed » les NOTAM qu'il considere annules ou
+       remplaces. On les ecarte — mais SANS LE DIRE, un NOTAM manquant devient
+       indiscernable d'un NOTAM qu'autorouter n'aurait pas du tout. On rend
+       donc le compte brut et le nom de chaque ecarte : c'est la seule facon
+       de trancher entre « la source ne l'a pas » et « nous l'avons filtre ». */
+    const nomDe = (n: Record<string, unknown>) =>
+      String(n.series || "") + String(n.number ?? "")
+      + (n.year != null ? "/" + String(n.year).slice(-2) : "");
+    const supprimes = lignes.filter((n) => n && n.suppressed).map(nomDe).slice(0, 40);
     const notams = lignes.filter((n) => n && !n.suppressed).map((n) => ({
       ad: String(n.itema || ""),
       serie: String(n.series || "") + String(n.number ?? "")
@@ -664,7 +673,8 @@ async function notam(q: URLSearchParams): Promise<Response> {
       qcode: String(n.code23 || "") + String(n.code45 || ""),
       portee: n.scope, horaire: n.itemd || undefined, fir: n.fir,
     }));
-    const corps = JSON.stringify({ terrains: ads, total: notams.length, notams });
+    const corps = JSON.stringify({ terrains: ads, total: notams.length,
+      bruts: lignes.length, supprimes, notams });
     memoNotam.set(cle, { t: Date.now(), corps });
     await memoRange("notam:" + cle, corps, NOTAM_DUREE);
     return reponseNotam(corps, "frais");
