@@ -20,13 +20,13 @@
  * Aucun secret requis. Vérification : ouvrir ?version=1 -> doit répondre 7.29.
  */
 
-const VERSION = "7.35";
+const VERSION = "7.36";
 const AERO = "https://aviation.meteo.fr";
 const SOFIA = "https://sofia-briefing.aviation-civile.gouv.fr";
 const UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Safari/605.1.15";
 
 /* Un lien d'image : couche, validité, adresse complète. */
-type Lien = { url: string; couche: string; date: string; brut?: string };
+type Lien = { url: string; couche: string; date: string; brut?: string; urlOrigine?: string };
 
 /* Déterre les adresses affiche_image.php d'un texte, quelles que soient les
    échappures (\/ des JSON, &amp; du HTML) et la forme des paramètres. */
@@ -159,6 +159,26 @@ function opsPour(type: string): { op: string; champs: Record<string, string> }[]
   return [];
 }
 
+/* SOFIA pose des témoins de session (pare-feu applicatif, équilibreur) : un
+   GET d'image sans eux peut être refusé alors que le POST du catalogue passe.
+   On garde donc les témoins reçus, et on les présente en allant chercher
+   l'image sur le même hôte. */
+const temoinsSofia = new Map<string, string>();
+function gardeTemoins(r: Response): void {
+  try {
+    const brut: string[] = typeof (r.headers as unknown as { getSetCookie?: () => string[] }).getSetCookie === "function"
+      ? (r.headers as unknown as { getSetCookie: () => string[] }).getSetCookie()
+      : (r.headers.get("set-cookie") ? [r.headers.get("set-cookie") as string] : []);
+    for (const l of brut) {
+      const m = /^\s*([^=;,\s]+)=([^;]*)/.exec(l);
+      if (m) temoinsSofia.set(m[1], m[2]);
+    }
+  } catch { /* témoins illisibles : tant pis */ }
+}
+function presenteTemoins(): string {
+  return Array.from(temoinsSofia).map(([k, v]) => k + "=" + v).join("; ");
+}
+
 /* POST vers /sofia, mémorisé 2 minutes pour ne pas marteler le service quand
    le dossier météo charge cinq cartes d'un coup. */
 const memoPoste = new Map<string, { t: number; texte: string }>();
@@ -186,6 +206,7 @@ async function posteSofia(op: string, champs: Record<string, string>): Promise<s
     body: cle,
     redirect: "follow",
   });
+  gardeTemoins(r);
   const texte = await r.text();
   if (r.ok) memoPoste.set(cle, { t: Date.now(), texte });
   return texte;
@@ -306,7 +327,11 @@ async function viaSofia(type: string, date: string, journal: Record<string, unkn
        layer, toute retouche provoque un « internal error » chez Météo-France.
        La couche vraie voyage à côté (JSON et en-tête), jamais dans le lien. */
     const chemin = tri[0].url.replace(/^https?:\/\/[^/]+/, "");
-    return { url: AERO + chemin, couche: tri[0].couche, date: tri[0].date };
+    /* urlOrigine : l'adresse TELLE QUE SOFIA l'a donnée. Le lien rendu est
+       réécrit sur l'hôte AERO pour le navigateur du pilote, mais c'est sur
+       son hôte d'origine que le relais, lui, peut aller chercher les octets. */
+    return { url: AERO + chemin, couche: tri[0].couche, date: tri[0].date,
+      urlOrigine: tri[0].url };
   }
   return null;
 }
@@ -1206,12 +1231,16 @@ Deno.serve(async (req: Request) => {
        aux serveurs (les cartes du dossier en viennent). On resout donc AUSSI
        le lien SOFIA, et on l'essaie en premier, sur sa propre adresse. */
     const aEssayer: string[] = [];
-    /* le lien de viaSofia est reecrit sur l'hote AERO (le navigateur du
-       pilote y a droit, pas nous) : on reprend son CHEMIN sur l'hote SOFIA,
-       qui est le seul a repondre aux serveurs */
+    /* 7.36 : l'adresse d'origine EN ENTIER d'abord. Le lien signé de SOFIA
+       peut vivre sur un troisième hôte (ni AERO ni SOFIA) ; le réécrire
+       perdait cet hôte-là, seul à servir l'image. On essaie donc, dans
+       l'ordre : l'adresse telle que donnée, puis son chemin sur SOFIA, puis
+       sur AERO. */
+    if (lien.urlOrigine) aEssayer.push(lien.urlOrigine);
     try {
       const ls = await viaSofia(type, date, journal, souple);
       if (ls) {
+        if (ls.urlOrigine) aEssayer.push(ls.urlOrigine);
         const ch = ls.url.replace(/^https?:\/\/[^/]+/, "");
         aEssayer.push(SOFIA + ch);
         aEssayer.push(AERO + ch);
@@ -1225,15 +1254,16 @@ Deno.serve(async (req: Request) => {
       if (dejaVu.has(cible)) continue;
       dejaVu.add(cible);
       try {
-        const ri = await fetch(cible, {
-          headers: {
-            "User-Agent": UA,
-            "Accept": "image/avif,image/webp,image/apng,image/png,image/*,*/*;q=0.8",
-            "Accept-Language": "fr-FR,fr;q=0.9",
-            "Referer": SOFIA + "/sofia/pages/meteosearchtemsi.html",
-          },
-          redirect: "follow",
-        });
+        /* les témoins de session ne se présentent qu'à l'hôte qui les a posés */
+        const enTetes: Record<string, string> = {
+          "User-Agent": UA,
+          "Accept": "image/avif,image/webp,image/apng,image/png,image/*,*/*;q=0.8",
+          "Accept-Language": "fr-FR,fr;q=0.9",
+          "Referer": SOFIA + "/sofia/pages/meteosearchtemsi.html",
+        };
+        const biscuits = presenteTemoins();
+        if (biscuits && cible.indexOf(SOFIA) === 0) enTetes["Cookie"] = biscuits;
+        const ri = await fetch(cible, { headers: enTetes, redirect: "follow" });
         const ct = ri.headers.get("Content-Type") || "";
         if (ri.ok && /^image\//i.test(ct)) {
           const buf = await ri.arrayBuffer();
@@ -1253,7 +1283,7 @@ Deno.serve(async (req: Request) => {
       } catch (e) { essais.push({ cible: cible.slice(0, 120), erreur: String(e).slice(0, 120) }); }
     }
     return reponseJson({ erreur: "octets d'image non obtenus côté serveur",
-      lien: tronque(lien.url), date: lien.date, essais }, 502);
+      version: VERSION, lien: tronque(lien.url), date: lien.date, essais }, 502);
   }
   if (lien) {
     return new Response(null, { status: 302, headers: {
