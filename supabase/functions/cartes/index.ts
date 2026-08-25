@@ -20,7 +20,7 @@
  * Aucun secret requis. Vérification : ouvrir ?version=1 -> doit répondre 7.29.
  */
 
-const VERSION = "7.39";
+const VERSION = "7.40";
 const AERO = "https://aviation.meteo.fr";
 const SOFIA = "https://sofia-briefing.aviation-civile.gouv.fr";
 const UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Safari/605.1.15";
@@ -678,6 +678,12 @@ async function notam(q: URLSearchParams): Promise<Response> {
       bas: n.lower, haut: n.upper,
       qcode: String(n.code23 || "") + String(n.code45 || ""),
       portee: n.scope, horaire: n.itemd || undefined, fir: n.fir,
+      /* les deux champs qui manquaient a la ligne Q) officielle : le trafic
+         (I / V / IV) et l'objet (NBO / BO / M). Les noms exacts varient selon
+         les moissonneurs : on prend le premier qui repond, et l'affichage se
+         passe de la ligne Q plutot que d'en montrer une incomplete. */
+      trafic: String(n.traffic ?? n.trafficType ?? n.qtraffic ?? ""),
+      objet: String(n.purpose ?? n.qpurpose ?? ""),
     }));
     const corps = JSON.stringify({ terrains: ads, total: notams.length,
       bruts: lignes.length, supprimes, notams });
