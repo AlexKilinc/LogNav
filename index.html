@@ -2998,7 +2998,7 @@ window.__TRACE_MARKUP="\n\n<header>\n  <div class=\"hdr-row1\">\n    <span class
    accessible depuis le bouton ⓘ du bandeau du log, avant toute ouverture de la carte */
 (function(){
   var host=document.createElement('div');
-  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Cartes OACI — origine et mise à jour</b></p>\n    <p style=\"margin-top:-6px\"><b>1/250 000 Région parisienne</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte250\">—</span>.</p>\n    <p style=\"margin-top:-6px\"><b>1/500 000 France</b> — IGN Géoplateforme (SCAN-OACI). Donnée <b>non libre</b>, tenue à jour par l’IGN.</p>\n    <p style=\"margin-top:-6px\"><b>1/1 000 000 France</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte1000\">—</span>.</p>\n    <p>Les deux cartes du SIA sont hébergées à part et lues par plages : seules les tuiles affichées sont téléchargées. Les trois se copient sur l’appareil pour voler sans réseau depuis <b>Profil → Cartes hors-ligne</b>. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.540</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
+  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Cartes OACI — origine et mise à jour</b></p>\n    <p style=\"margin-top:-6px\"><b>1/250 000 Région parisienne</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte250\">—</span>.</p>\n    <p style=\"margin-top:-6px\"><b>1/500 000 France</b> — IGN Géoplateforme (SCAN-OACI). Donnée <b>non libre</b>, tenue à jour par l’IGN.</p>\n    <p style=\"margin-top:-6px\"><b>1/1 000 000 France</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte1000\">—</span>.</p>\n    <p>Les deux cartes du SIA sont hébergées à part et lues par plages : seules les tuiles affichées sont téléchargées. Les trois se copient sur l’appareil pour voler sans réseau depuis <b>Profil → Cartes hors-ligne</b>. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.541</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
   (document.body||document.documentElement).appendChild(host.firstElementChild);
   /* le nom du fichier de la 1/1 000 000 dit son edition : on le lit la ou il
      est vraiment (cartes.json), jamais en dur, sinon il mentirait un jour */
@@ -6708,12 +6708,16 @@ function openRelinkChoice(){
       filet rouge-rose, puis la ligne d etat sur le bleu nuit #0A1A33.
       Les trois fenetres — meteo, NOTAM, dossier — se lisent ainsi comme
       une meme famille. */
-   +'border-bottom:2px solid #e94560}'
+   +'}'
    +'.ntmd-hd b{white-space:nowrap;flex:1 1 auto}'
    /* la ligne d'etat occupe toute la largeur, et porte la croix a son bout :
       elle n'a plus besoin d'une ligne a elle en haut a gauche */
    +'.ntmd-bas{flex:1 0 100%;display:flex;align-items:center;gap:8px;min-width:0;'
-   +'background:#0A1A33;margin:8px -14px -10px;padding:7px 14px}'
+   /* le filet rouge-rose separe le bandeau bleu de la ligne d'etat, sur le
+      bleu nuit — comme dans la fenetre meteo, ou il court entre les
+      onglets et le corps. */
+   +'background:#0A1A33;border-top:2px solid #e94560;'
+   +'margin:8px -14px -10px;padding:7px 14px}'
    +'.ntmd-st{flex:1 1 auto;min-width:0;white-space:nowrap;overflow:hidden;'
    +'text-overflow:ellipsis;font:600 10.5px Poppins,sans-serif;color:#8fb2ce}'
    +'.ntmd-bas .ntmd-x{flex:none;margin-left:auto}'
@@ -8499,21 +8503,63 @@ if(carteFeuille&&window.__traceMap){
   carteFeuille.style.height="209mm"; carteFeuille.style.aspectRatio="auto";
   carteFeuille.style.minHeight="0";
   try{ window.__traceMap.invalidateSize({animate:false}); }catch(e){}
-  /* on attend que plus aucune tuile ne soit en cours de chargement, deux fois
-     de suite pour ne pas partir sur un instant creux — et jamais au-delà de
-     huit secondes : mieux vaut un fond incomplet qu'un export qui ne vient pas. */
+  /* ATTENDRE LES TUILES — ET NE PAS SE CONTENTER DE COMPTER CELLES QUI SONT
+     DEJA LA. Compter « les tuiles du document qui ne sont pas encore
+     chargees » ne dit rien quand les tuiles n'ont PAS ENCORE ETE CREEES :
+     la couche du fond sert les siennes depuis IndexedDB, l'element n'existe
+     qu'apres une promesse. Mesure faite : sur un reseau a 320 ms la tuile,
+     cette attente rendait la main en 437 ms en croyant tout charge, et la
+     carte sortait vide a 95 %. C'est le cas de celui qui DEPLACE sa carte
+     juste avant d'exporter : de nouvelles tuiles sont a chercher.
+     On interroge donc Leaflet lui-meme — chaque couche sait si elle charge —
+     et l'on s'accorde d'abord un temps de pose pour qu'elle ait eu le loisir
+     de demander ce qui manque. */
   await new Promise(res=>{
     const t0=Date.now(); let net=0;
+    const chargeEncore=()=>{
+      let n=0;
+      try{ window.__traceMap.eachLayer(function(l){ if(l&&l._loading) n++; }); }catch(e){}
+      n+=document.querySelectorAll(".leaflet-tile:not(.leaflet-tile-loaded)").length;
+      return n;
+    };
     const voir=()=>{
-      const reste=document.querySelectorAll(".leaflet-tile:not(.leaflet-tile-loaded)").length;
+      const reste=chargeEncore();
       if(reste===0) net++; else net=0;
-      if(net>=2||Date.now()-t0>8000) return res();
+      /* trois releves nets d'affilee : une couche qui vient de finir peut en
+         reclamer d'autres dans la foulee */
+      if(net>=3||Date.now()-t0>15000) return res();
       setTimeout(voir,140);
     };
-    setTimeout(voir,140);
+    /* le temps de pose : sans lui, on mesure un silence qui n'est que le
+       delai entre la demande et sa mise en oeuvre */
+    setTimeout(voir,450);
   });
 }
-const wrap=document.createElement("div");sheets.forEach((s,i)=>{const c=s.cloneNode(true);c.querySelectorAll(".no-print").forEach(n=>n.remove());c.style.margin="0";c.style.boxShadow="none";c.style.border="none";c.style.width="297mm";c.style.maxWidth="none";c.style.height="209mm";c.style.minHeight="0";c.style.aspectRatio="auto";c.style.overflow="hidden";if(i<sheets.length-1)c.style.pageBreakAfter="always";wrap.appendChild(c)});const name=(nav.name||"lognav").replace(/[^\w\-]+/g,"_");await window.html2pdf().set({margin:0,filename:`${name}.pdf`,image:{type:"jpeg",quality:.96},html2canvas:{scale:2,useCORS:true,backgroundColor:"#fff",windowWidth:1122},jsPDF:{unit:"mm",format:"a4",orientation:"landscape"},pagebreak:{mode:["css","legacy"]}}).from(wrap).toPdf().get("pdf").then(p=>p.output("blob")).then(bl=>{__dlFile(`${name}.pdf`,bl,"application/pdf");alert("Log de nav enregistr\xE9 : "+name+".pdf")})}catch(e){alert("Enregistrement PDF impossible : "+(e&&e.message?e.message:e))}finally{try{rendreCarte()}catch(_){}setPdfBusy(false)}};const importMapImg=file=>{if(!file)return;const fr=new FileReader;fr.onload=()=>{const im=new Image;im.onload=()=>{const MAX=2400,sc=Math.min(1,MAX/im.width);const cv=document.createElement("canvas");cv.width=Math.round(im.width*sc);cv.height=Math.round(im.height*sc);cv.getContext("2d").drawImage(im,0,0,cv.width,cv.height);let data=cv.toDataURL("image/webp",.8);if(data.indexOf("data:image/webp")!==0)data=cv.toDataURL("image/jpeg",.85);setNav({mapPage:{...nav.mapPage||{},on:true,img:data,fit:nav.mapPage&&nav.mapPage.fit||"contain"}})};im.src=fr.result};fr.readAsDataURL(file)};useEffect(()=>{window.__SET_APP_FROM_STORAGE=()=>{try{const s=load();if(s)setApp(s)}catch(e){}};return()=>{window.__SET_APP_FROM_STORAGE=null}},[]);useEffect(()=>{if(typeof window==="undefined")return;window.__ARCHIVE_DOSSIER=function(){try{var cur=app.currentId?app.navs[app.currentId]:null;if(!cur)return;if(cur.flight&&cur.flight.dossierMTO)return;var arrL=cur.aller||[],cs=[],seen={};var addc=function(pos,role){var c=String(pos||"").trim().toUpperCase();if(c.length===4&&AERO_POS[c]&&!seen[c]){seen[c]=1;cs.push({code:c,role:role})}};arrL.forEach(function(l,i){addc(l.position,i===0?"dep":(i===arrL.length-1?"arr":"mid"))});if(cur.type==="ar")(cur.retour||[]).forEach(function(l){addc(l.position,"mid")});((cur.meta&&cur.meta.degag)||[]).forEach(function(c){addc(c,"deg")});var vent={dir:cur.meta&&cur.meta.ventDir,kt:cur.meta&&cur.meta.ventKt};if(!window.__WX_SNAPSHOT)return;window.__WX_SNAPSHOT(cs,(cur.meta&&cur.meta.date)||"",vent).then(function(snap){setApp(function(a){var id=a.currentId;var c2=a.navs[id]||{};var fl=c2.flight||{};if(fl.dossierMTO)return a;var nn={};nn[id]=Object.assign({},c2,{flight:Object.assign({},fl,{dossierMTO:snap})});return Object.assign({},a,{navs:Object.assign({},a.navs,nn)})})}).catch(function(){})}catch(e){}};return function(){try{window.__ARCHIVE_DOSSIER=null}catch(e){}}},[app]);useEffect(()=>{if(typeof window==="undefined")return;window.__DDV_LIRE=function(){try{var cur=app.currentId?app.navs[app.currentId]:null;return (cur&&cur.ddv)||{notams:[],sups:[]}}catch(e){return {notams:[],sups:[]}}};window.__DDV_ECRIRE=function(d){try{setApp(function(a){var id=a.currentId;if(!id||!a.navs[id])return a;var nn={};nn[id]=Object.assign({},a.navs[id],{ddv:{notams:(d&&d.notams)||[],sups:(d&&d.sups)||[]}});return Object.assign({},a,{navs:Object.assign({},a.navs,nn)})})}catch(e){}};return ()=>{window.__DDV_LIRE=null;window.__DDV_ECRIRE=null}},[app]);const[impMsg,setImpMsg]=useState("");const tavOf=l=>{const W=legWind(l);const c=tavCalc(l.dist,l.rm,W);if(c!=null)return c;const w=!!(num(W.vitesse)&&W.ventKt&&W.ventDir!==""&&W.ventDir!=null);if(!w)return null;return l.tVent!==""&&l.tVent!=null?l.tVent:null};const capOf=(rm,l)=>capFrom(rm,l?legWind(l):(nav&&nav.meta));const legTime=l=>{const av=tavOf(l);return num(av!=null?av:tsvOf(l))};const tot=arr=>({dist:arr.reduce((s,l)=>s+num(l.dist),0),temps:arr.reduce((s,l)=>s+legTime(l),0)+(arr.length>1?num((arr[arr.length-1]||{}).arrTint):0),tempsSv:arr.reduce((s,l)=>s+num(tsvOf(l)),0)+(arr.length>1?num((arr[arr.length-1]||{}).arrTint):0)});const tAller=useMemo(()=>tot(nav?.aller||[]),[nav?.aller,nav?.meta]);const tRetour=useMemo(()=>tot(nav?.retour||[]),[nav?.retour,nav?.meta]);const hasRetour=nav&&nav.type!=="aller";const[syncArmed,setSyncArmed]=useState(false);const stripLegs=arr=>(arr||[]).map(l=>[l.position,l.rm,l.dist,l.tSansVent,l.tVent,l.altVol,l.altMin,l.altMax,l.radio,l.radioNav,l.obs]);const inverseDesync=hasRetour&&JSON.stringify(stripLegs(buildInverse(nav.aller)))!==JSON.stringify(stripLegs(nav.retour));if(!nav)return null;const grandDist=tAller.dist+tRetour.dist,grandTemps=tAller.temps+tRetour.temps,grandTempsSv=(tAller.tempsSv||0)+(tRetour.tempsSv||0);const fp=app.fuel||{regl:"30",club:"30"};const fuelInfo=mins=>{if(!mins)return"";const c=num(nav?.meta.conso);if(!c)return"Essence mini : renseigner la conso de l'avion";const extra=num(fp.regl)+num(fp.club);const tot2=mins+extra,litres=Math.ceil(c*tot2/60);return`Ess. mini ${litres} L \u2014 ${hm(tot2)} \xD7 ${c} L/h (vol + ${num(fp.regl)}' + ${num(fp.club)}')`};const oriIcao=oriOf(nav),destIcao=destOf(nav);const __ret=nav.retour||[];const retOriIcao=String((__ret[0]&&__ret[0].position)||"").trim(),retDestIcao=(__ret.length>1?String((__ret[__ret.length-1].position)||"").trim():"");/* parcours complet : cha\xEEn\xE9 si le retour part de l\u2019arriv\xE9e aller, sinon 2 branches */const trajet=(function(){var s=(oriIcao||"")+(destIcao?" \u2192 "+destIcao:"");if(__ret.length<2||!(retOriIcao||retDestIcao))return s;if(!retOriIcao||(destIcao&&_norm(retOriIcao)===_norm(destIcao)))return s+(retDestIcao?" \u2192 "+retDestIcao:"");return s+" / "+retOriIcao+(retDestIcao?" \u2192 "+retDestIcao:"");})();return React.createElement("div",{className:"approot",style:{background:"#eef0f3",minHeight:"100vh",padding:"16px 12px 60px"}},React.createElement("style",null,`
+const wrap=document.createElement("div");sheets.forEach((s,i)=>{const c=s.cloneNode(true);c.querySelectorAll(".no-print").forEach(n=>n.remove());c.style.margin="0";c.style.boxShadow="none";c.style.border="none";c.style.width="297mm";c.style.maxWidth="none";c.style.height="209mm";c.style.minHeight="0";c.style.aspectRatio="auto";c.style.overflow="hidden";if(i<sheets.length-1)c.style.pageBreakAfter="always";wrap.appendChild(c)});/* LES IMAGES DU CLONE SONT RE-DEMANDEES ET RE-DECODEES. Que la carte
+   vivante soit complete ne suffit pas : cloneNode copie les adresses, et le
+   navigateur recharge chaque tuile pour la COPIE. Mesure faite sur un reseau
+   a 320 ms la tuile : sans cette attente la carte du clone sortait vide a
+   95 % ; avec elle — 344 ms — elle est complete. C'est le cas de celui qui
+   DEPLACE sa carte avant d'exporter : les tuiles fraiches ne sont pas encore
+   dans le cache du navigateur, et leur copie part donc sur le reseau.
+   On accroche le conteneur hors de l'ecran le temps que les images viennent,
+   puis on le detache : html2pdf le posera lui-meme, et les images seront
+   alors dans le cache. */
+wrap.style.cssText="position:fixed;left:-10000px;top:0";
+document.body.appendChild(wrap);
+await new Promise(res=>{
+  const ims=[...wrap.querySelectorAll("img")];
+  if(!ims.length) return res();
+  let reste=ims.filter(i=>!i.complete).length;
+  if(!reste) return res();
+  const fin=()=>{ if(--reste<=0) res(); };
+  ims.forEach(i=>{ if(i.complete) return;
+    i.addEventListener("load",fin,{once:true});
+    i.addEventListener("error",fin,{once:true}); });
+  setTimeout(res,10000);   /* jamais d'export bloque derriere une tuile absente */
+});
+wrap.remove(); wrap.style.cssText="";
+const name=(nav.name||"lognav").replace(/[^\w\-]+/g,"_");await window.html2pdf().set({margin:0,filename:`${name}.pdf`,image:{type:"jpeg",quality:.96},html2canvas:{scale:2,useCORS:true,backgroundColor:"#fff",windowWidth:1122},jsPDF:{unit:"mm",format:"a4",orientation:"landscape"},pagebreak:{mode:["css","legacy"]}}).from(wrap).toPdf().get("pdf").then(p=>p.output("blob")).then(bl=>{__dlFile(`${name}.pdf`,bl,"application/pdf");alert("Log de nav enregistr\xE9 : "+name+".pdf")})}catch(e){alert("Enregistrement PDF impossible : "+(e&&e.message?e.message:e))}finally{try{rendreCarte()}catch(_){}setPdfBusy(false)}};const importMapImg=file=>{if(!file)return;const fr=new FileReader;fr.onload=()=>{const im=new Image;im.onload=()=>{const MAX=2400,sc=Math.min(1,MAX/im.width);const cv=document.createElement("canvas");cv.width=Math.round(im.width*sc);cv.height=Math.round(im.height*sc);cv.getContext("2d").drawImage(im,0,0,cv.width,cv.height);let data=cv.toDataURL("image/webp",.8);if(data.indexOf("data:image/webp")!==0)data=cv.toDataURL("image/jpeg",.85);setNav({mapPage:{...nav.mapPage||{},on:true,img:data,fit:nav.mapPage&&nav.mapPage.fit||"contain"}})};im.src=fr.result};fr.readAsDataURL(file)};useEffect(()=>{window.__SET_APP_FROM_STORAGE=()=>{try{const s=load();if(s)setApp(s)}catch(e){}};return()=>{window.__SET_APP_FROM_STORAGE=null}},[]);useEffect(()=>{if(typeof window==="undefined")return;window.__ARCHIVE_DOSSIER=function(){try{var cur=app.currentId?app.navs[app.currentId]:null;if(!cur)return;if(cur.flight&&cur.flight.dossierMTO)return;var arrL=cur.aller||[],cs=[],seen={};var addc=function(pos,role){var c=String(pos||"").trim().toUpperCase();if(c.length===4&&AERO_POS[c]&&!seen[c]){seen[c]=1;cs.push({code:c,role:role})}};arrL.forEach(function(l,i){addc(l.position,i===0?"dep":(i===arrL.length-1?"arr":"mid"))});if(cur.type==="ar")(cur.retour||[]).forEach(function(l){addc(l.position,"mid")});((cur.meta&&cur.meta.degag)||[]).forEach(function(c){addc(c,"deg")});var vent={dir:cur.meta&&cur.meta.ventDir,kt:cur.meta&&cur.meta.ventKt};if(!window.__WX_SNAPSHOT)return;window.__WX_SNAPSHOT(cs,(cur.meta&&cur.meta.date)||"",vent).then(function(snap){setApp(function(a){var id=a.currentId;var c2=a.navs[id]||{};var fl=c2.flight||{};if(fl.dossierMTO)return a;var nn={};nn[id]=Object.assign({},c2,{flight:Object.assign({},fl,{dossierMTO:snap})});return Object.assign({},a,{navs:Object.assign({},a.navs,nn)})})}).catch(function(){})}catch(e){}};return function(){try{window.__ARCHIVE_DOSSIER=null}catch(e){}}},[app]);useEffect(()=>{if(typeof window==="undefined")return;window.__DDV_LIRE=function(){try{var cur=app.currentId?app.navs[app.currentId]:null;return (cur&&cur.ddv)||{notams:[],sups:[]}}catch(e){return {notams:[],sups:[]}}};window.__DDV_ECRIRE=function(d){try{setApp(function(a){var id=a.currentId;if(!id||!a.navs[id])return a;var nn={};nn[id]=Object.assign({},a.navs[id],{ddv:{notams:(d&&d.notams)||[],sups:(d&&d.sups)||[]}});return Object.assign({},a,{navs:Object.assign({},a.navs,nn)})})}catch(e){}};return ()=>{window.__DDV_LIRE=null;window.__DDV_ECRIRE=null}},[app]);const[impMsg,setImpMsg]=useState("");const tavOf=l=>{const W=legWind(l);const c=tavCalc(l.dist,l.rm,W);if(c!=null)return c;const w=!!(num(W.vitesse)&&W.ventKt&&W.ventDir!==""&&W.ventDir!=null);if(!w)return null;return l.tVent!==""&&l.tVent!=null?l.tVent:null};const capOf=(rm,l)=>capFrom(rm,l?legWind(l):(nav&&nav.meta));const legTime=l=>{const av=tavOf(l);return num(av!=null?av:tsvOf(l))};const tot=arr=>({dist:arr.reduce((s,l)=>s+num(l.dist),0),temps:arr.reduce((s,l)=>s+legTime(l),0)+(arr.length>1?num((arr[arr.length-1]||{}).arrTint):0),tempsSv:arr.reduce((s,l)=>s+num(tsvOf(l)),0)+(arr.length>1?num((arr[arr.length-1]||{}).arrTint):0)});const tAller=useMemo(()=>tot(nav?.aller||[]),[nav?.aller,nav?.meta]);const tRetour=useMemo(()=>tot(nav?.retour||[]),[nav?.retour,nav?.meta]);const hasRetour=nav&&nav.type!=="aller";const[syncArmed,setSyncArmed]=useState(false);const stripLegs=arr=>(arr||[]).map(l=>[l.position,l.rm,l.dist,l.tSansVent,l.tVent,l.altVol,l.altMin,l.altMax,l.radio,l.radioNav,l.obs]);const inverseDesync=hasRetour&&JSON.stringify(stripLegs(buildInverse(nav.aller)))!==JSON.stringify(stripLegs(nav.retour));if(!nav)return null;const grandDist=tAller.dist+tRetour.dist,grandTemps=tAller.temps+tRetour.temps,grandTempsSv=(tAller.tempsSv||0)+(tRetour.tempsSv||0);const fp=app.fuel||{regl:"30",club:"30"};const fuelInfo=mins=>{if(!mins)return"";const c=num(nav?.meta.conso);if(!c)return"Essence mini : renseigner la conso de l'avion";const extra=num(fp.regl)+num(fp.club);const tot2=mins+extra,litres=Math.ceil(c*tot2/60);return`Ess. mini ${litres} L \u2014 ${hm(tot2)} \xD7 ${c} L/h (vol + ${num(fp.regl)}' + ${num(fp.club)}')`};const oriIcao=oriOf(nav),destIcao=destOf(nav);const __ret=nav.retour||[];const retOriIcao=String((__ret[0]&&__ret[0].position)||"").trim(),retDestIcao=(__ret.length>1?String((__ret[__ret.length-1].position)||"").trim():"");/* parcours complet : cha\xEEn\xE9 si le retour part de l\u2019arriv\xE9e aller, sinon 2 branches */const trajet=(function(){var s=(oriIcao||"")+(destIcao?" \u2192 "+destIcao:"");if(__ret.length<2||!(retOriIcao||retDestIcao))return s;if(!retOriIcao||(destIcao&&_norm(retOriIcao)===_norm(destIcao)))return s+(retDestIcao?" \u2192 "+retDestIcao:"");return s+" / "+retOriIcao+(retDestIcao?" \u2192 "+retDestIcao:"");})();return React.createElement("div",{className:"approot",style:{background:"#eef0f3",minHeight:"100vh",padding:"16px 12px 60px"}},React.createElement("style",null,`
         /* pop-up s\xE9curit\xE9 : police uniforme sur TOUT le corps du message (texte nu, gras, tout descendant) */
         .vg-body{font-size:16.5px!important;line-height:1.6!important;}
         .vg-body *, .vg-body .vg-p{font-size:16.5px!important;line-height:1.6!important;}
@@ -11178,15 +11224,12 @@ window.__CARTE_ADR=function(j,cle){
   /* le bloc doit contenir la carte : a 210 mm il en bornait une plus grande,
      qui debordait sur la page suivante. 232 mm + le titre tiennent meme
      lorsque le navigateur rabote la page pour son en-tete et son pied. */
-  /* LA TEMSI A SA PAGE, EN PAYSAGE. Pivotee d'un quart de tour, elle butait
-     aussitot sur la laize d'une page portrait : mesure faite, 184 x 130 mm
-     pour 167 mm de blanc au-dessus et au-dessous. En travers, la meme planche
-     tient 269 x 190 — deux fois la surface.
-     Cette regle vit ICI, dans la feuille permanente, et non dans le style
-     pose au vol a l'impression : sans elle la planche agrandie deborderait
-     d'une page portrait, et ce style-la n'est pas toujours pose. */
-  body.wxd-imp .wxd-carte.wxd-t{height:194mm!important;
-    page:paysage;   /* la regle @page paysage est posee avec le @page par defaut */
+  /* LA PLANCHE TEMSI EST EN PAYSAGE ; la page, elle, reste PORTRAIT comme
+     tout le dossier. On la tourne donc d'un quart de tour anti-horaire, et
+     dans ce sens elle remplit la page : 186 mm de large sur 263 de haut.
+     C'est la hauteur, ici, qui commande — d'ou une capsule a la hauteur
+     utile de la page. */
+  body.wxd-imp .wxd-carte.wxd-t{height:256mm!important;
     position:relative;overflow:hidden}
   body.wxd-imp .wxd-carte.wxd-t:not(:first-of-type){
     break-before:page;page-break-before:always}
@@ -11200,7 +11243,7 @@ window.__CARTE_ADR=function(j,cle){
      de haut. La carte occupe ainsi toute la laize disponible. */
   body.wxd-imp .wxd-carte.wxd-t img{
     position:absolute;top:50%;left:50%;
-    width:190mm!important;height:269mm!important;
+    width:252mm!important;height:178mm!important;
     max-width:none!important;max-height:none!important;
     object-fit:contain!important;
     transform-origin:center center;
@@ -11263,10 +11306,12 @@ window.__CARTE_ADR=function(j,cle){
      bonne. Une fois pivotée, la toile occupe 1123 px de large : à 0,62 elle
      fait 184 mm, pour 186 mm de largeur utile, et 130 mm de haut. */
   body.wxd-imp .wxd-carte.wxd-t .wxd-cadre{
-    width:794px!important;height:1123px!important;   /* TEMSI : page A4 portrait */
-    /* 794 px valent 210 mm ; 190/210 = 0,904 : la planche fait 190 mm sur
-       son axe propre, donc 269 x 190 mm posee en travers de la page. */
-    transform:rotate(-90deg) scale(.904) translate(-50%,-50%)}
+    width:1123px!important;height:794px!important;  /* TEMSI : planche A4 PAYSAGE */
+    /* 1123 px valent 297 mm ; a 0,848 la planche pivotee fait 178 mm de
+       large et 252 de haut. Elle remplit la page portrait sans risquer d'en
+       sortir : a 263 mm de haut, mesure faite, la SECONDE planche debordait
+       de sa page. */
+    transform:rotate(-90deg) scale(.848) translate(-50%,-50%)}
 
   /* le WINTEM part sur une page neuve et s'y deploie, titre compris */
   /* le WINTEM part sur une page neuve, au meme gabarit sur : 232 mm */
@@ -11282,14 +11327,14 @@ window.__CARTE_ADR=function(j,cle){
      EN ENTIER, toile comprise : la règle Chrome ne posait que la toile et
      celle de Safari que l'échelle, si bien que changer l'une déplaçait
      l'autre par la bande. */
-  body.wxd-imp.wxd-saf .wxd-carte.wxd-t{height:186mm!important}
+  body.wxd-imp.wxd-saf .wxd-carte.wxd-t{height:248mm!important}
   /* boîte avant rotation : 122 x 172 mm donnent 172 mm de large sur 122 de
      haut, sous les 185 mm du bloc raccourci de Safari */
   body.wxd-imp.wxd-saf .wxd-carte.wxd-t img{
-    width:182mm!important;height:257mm!important}
+    width:244mm!important;height:172mm!important}
   body.wxd-imp.wxd-saf .wxd-carte.wxd-t .wxd-cadre{
-    width:794px!important;height:1123px!important;
-    transform:rotate(-90deg) scale(.866) translate(-50%,-50%)}
+    width:1123px!important;height:794px!important;
+    transform:rotate(-90deg) scale(.820) translate(-50%,-50%)}
   body.wxd-imp.wxd-saf .wxd-carte.wxd-w{height:195mm!important}
   /* WINTEM : portrait, au rapport de sa page (0,707), dans le bloc de 195 mm */
   body.wxd-imp.wxd-saf .wxd-carte.wxd-w img{
@@ -12453,14 +12498,7 @@ window.__pickGpx=function(cb){
           if(!dossierAffiche()) return;
           if(!document.getElementById('wxdPage')){
             var st=document.createElement('style'); st.id='wxdPage';
-            /* LA PAGE NOMMEE VOYAGE AVEC LA PAGE PAR DEFAUT. Mesure faite :
-               un « @page » par defaut injecte APRES une regle « @page nom »
-               annule celle-ci — les deux doivent donc etre posees ensemble,
-               et la nommee en second. La TEMSI, pivotee, butait sinon sur la
-               laize d'une page portrait : 184 x 130 mm, contre 269 x 190 en
-               travers. */
-            st.textContent='@page{size:A4 portrait;margin:12mm}'
-              +'@page paysage{size:A4 landscape;margin:8mm}';
+            st.textContent='@page{size:A4 portrait;margin:12mm}';
             document.body.appendChild(st); }
           /* le premier chapitre reste avec le titre du dossier : les autres
              commencent en haut d'une page. On le marque ici, car on ne sait
@@ -12545,13 +12583,18 @@ window.__pickGpx=function(cb){
           var cadresPrets=function(suite){
             var cs=[].slice.call(dos.querySelectorAll('#wxdCartes .wxd-cadre'));
             if(!cs.length) return suite();
-            var reste=0, fini=false;
+            var reste=0, fini=false, froid=false;
             var fin=function(){ if(fini) return; fini=true;
-              /* le lecteur PDF pose sa page APRES l'evenement : sans ce
-                 temps de pose, la planche sortait parfois de travers */
-              setTimeout(suite,260); };
+              /* LE LECTEUR PDF POSE SA PAGE APRES L'EVENEMENT « load ». Le
+                 temps qu'il lui faut n'est pas le meme selon que la planche
+                 arrive du reseau ou du cache : c'est la cause du « la WINTEM
+                 est excentree au premier essai, bien placee au second ». On
+                 distingue donc les deux — un cadre qui a du charger pendant
+                 cette attente est FROID et merite qu'on le laisse se poser ;
+                 un cadre deja pret est chaud et ne retarde personne. */
+              setTimeout(suite, froid?900:260); };
             cs.forEach(function(c){ if(c.getAttribute('data-pret')==='1') return;
-              reste++;
+              reste++; froid=true;
               var vu=function(){ c.removeEventListener('load',vu);
                 if(--reste<=0) fin(); };
               c.addEventListener('load',vu); });
