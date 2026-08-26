@@ -2998,7 +2998,7 @@ window.__TRACE_MARKUP="\n\n<header>\n  <div class=\"hdr-row1\">\n    <span class
    accessible depuis le bouton ⓘ du bandeau du log, avant toute ouverture de la carte */
 (function(){
   var host=document.createElement('div');
-  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Cartes OACI — origine et mise à jour</b></p>\n    <p style=\"margin-top:-6px\"><b>1/250 000 Région parisienne</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte250\">—</span>.</p>\n    <p style=\"margin-top:-6px\"><b>1/500 000 France</b> — IGN Géoplateforme (SCAN-OACI). Donnée <b>non libre</b>, tenue à jour par l’IGN.</p>\n    <p style=\"margin-top:-6px\"><b>1/1 000 000 France</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte1000\">—</span>.</p>\n    <p>Les deux cartes du SIA sont hébergées à part et lues par plages : seules les tuiles affichées sont téléchargées. Les trois se copient sur l’appareil pour voler sans réseau depuis <b>Profil → Cartes hors-ligne</b>. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.515</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
+  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Cartes OACI — origine et mise à jour</b></p>\n    <p style=\"margin-top:-6px\"><b>1/250 000 Région parisienne</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte250\">—</span>.</p>\n    <p style=\"margin-top:-6px\"><b>1/500 000 France</b> — IGN Géoplateforme (SCAN-OACI). Donnée <b>non libre</b>, tenue à jour par l’IGN.</p>\n    <p style=\"margin-top:-6px\"><b>1/1 000 000 France</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte1000\">—</span>.</p>\n    <p>Les deux cartes du SIA sont hébergées à part et lues par plages : seules les tuiles affichées sont téléchargées. Les trois se copient sur l’appareil pour voler sans réseau depuis <b>Profil → Cartes hors-ligne</b>. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.517</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
   (document.body||document.documentElement).appendChild(host.firstElementChild);
   /* le nom du fichier de la 1/1 000 000 dit son edition : on le lit la ou il
      est vraiment (cartes.json), jamais en dur, sinon il mentirait un jour */
@@ -10734,11 +10734,41 @@ window.__CARTE_ADR=function(j,cle){
 .wx-addrow button#wxRefresh.busy svg{animation:wxspin .85s linear infinite}
 /* Onglets du panneau météo, séparés de l'affichage par le filet rouge du thème */
 .wx-tabs{flex:none;display:flex;align-items:stretch;gap:6px;padding:8px 12px 9px;background:#0E2348;border-bottom:2px solid #e94560}
-.wx-tabs .wx-tab{flex:1 1 0;width:0;min-width:0;background:rgba(255,255,255,.06);border:1px solid #2a4372;border-radius:10px;
-  color:#8fa9cc;font:800 10.5px "Poppins",sans-serif;letter-spacing:0;padding:8px 3px;cursor:pointer;white-space:nowrap}
+/* Les libellés se replient sur deux lignes plutôt que de déborder sur le
+   voisin : sur un téléphone, « NOTAM / SUP-AIP / AZBA » ne tient pas sur une
+   ligne dans un quart de l'écran. Chaque mot est un jeton insécable (span),
+   si bien que la coupure tombe toujours à un « / » et jamais au milieu d'un
+   sigle : on ne verra pas « SUP- » au-dessus de « AIP ». */
+.wx-tabs .wx-tab{flex:1 1 0;width:0;min-width:0;display:flex;flex-wrap:wrap;align-items:center;
+  justify-content:center;gap:0 4px;text-align:center;background:rgba(255,255,255,.06);
+  border:1px solid #2a4372;border-radius:10px;
+  color:#8fa9cc;font:800 10.5px/1.2 "Poppins",sans-serif;letter-spacing:0;padding:7px 3px;cursor:pointer;
+  white-space:normal;overflow:hidden}
+.wx-tabs .wx-tab>span{white-space:nowrap}
+/* la coupure choisie : invisible sur grand écran, elle prend toute la largeur
+   sur téléphone et renvoie la suite du libellé à la ligne suivante */
+.wx-tabs .wx-tab>span.wx-br{display:none}
 /* fermeture : une croix à droite des onglets, le bandeau titre ayant disparu */
 .wx-tabs .wx-x{flex:0 0 auto;width:38px;background:rgba(255,255,255,.06);border:1px solid #2a4372;border-radius:10px;
   color:#cfe0f5;font:700 21px/1 ui-sans-serif;padding:0;cursor:pointer}
+/* Étroit : on resserre l'écart et la fonte, la croix garde une cible touchable */
+@media (max-width:560px){
+  .wx-tabs{gap:4px;padding:7px 8px 8px}
+  .wx-tabs .wx-tab{font-size:9.5px;padding:6px 2px;gap:0 3px}
+  /* ici la coupure agit : les quatre libellés passent sur deux lignes */
+  .wx-tabs .wx-tab>span.wx-br{display:block;flex:0 0 100%;width:100%;height:0}
+  /* les libellés les plus longs reçoivent un peu plus de place que leurs
+     voisins : à parts égales, « SUP-AIP / AZBA » retombait sur une troisième
+     ligne là où « DE VOL » laissait du vide */
+  .wx-tabs .wx-tab[data-t="notam"]{flex-grow:1.3}
+  .wx-tabs .wx-tab[data-t="metar"]{flex-grow:1.15}
+  .wx-tabs .wx-x{width:34px;font-size:19px}
+}
+@media (max-width:390px){
+  .wx-tabs{gap:3px;padding:7px 6px 8px}
+  .wx-tabs .wx-tab{font-size:8.5px;letter-spacing:-.2px;padding:6px 1px}
+  .wx-tabs .wx-x{width:30px;font-size:18px}
+}
 .wx-tabs .wx-tab.on{background:rgba(30,159,224,.18);border-color:#1E9FE0;color:#7fd1ff}
 /* Page des cartes, encore en chantier */
 .wx-soon{flex:1 1 auto;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;
@@ -11612,10 +11642,17 @@ window.__pickGpx=function(cb){
     var favRows=codes.filter(function(c){return c.role==='fav'}).map(rowHtml).join('');
     ov.innerHTML='<div class="wx-box">'
       +'<div class="wx-tabs">'
-      +'<button class="wx-tab on" data-t="metar" type="button">METAR / TAF</button>'
-      +'<button class="wx-tab" data-t="cartes" type="button">WINTEM / TEMSI</button>'
-      +'<button class="wx-tab" data-t="notam" type="button">NOTAM / SUP-AIP / AZBA</button>'
-      +'<button class="wx-tab" data-t="dossier" type="button">DOSSIER VOL</button>'
+      /* chaque mot dans son jeton : le libellé se replie aux « / », jamais au
+         milieu d'un sigle. Le <span class="wx-br"> marque OU la coupure doit
+         tomber : sur téléphone il occupe toute la largeur et renvoie la suite
+         à la ligne, si bien que les quatre onglets tiennent le meme rythme sur
+         deux lignes au lieu de se couper chacun au petit bonheur de sa
+         largeur. Sur grand écran il s'efface et tout revient sur une ligne.
+         Voir .wx-tabs .wx-tab dans la feuille de style. */
+      +'<button class="wx-tab on" data-t="metar" type="button"><span>METAR /</span><span class="wx-br"></span> <span>TAF /</span> <span>SIGMET</span></button>'
+      +'<button class="wx-tab" data-t="cartes" type="button"><span>WINTEM /</span><span class="wx-br"></span> <span>TEMSI</span></button>'
+      +'<button class="wx-tab" data-t="notam" type="button"><span>NOTAM /</span><span class="wx-br"></span> <span>SUP-AIP /</span> <span>AZBA</span></button>'
+      +'<button class="wx-tab" data-t="dossier" type="button"><span>DOSSIER</span><span class="wx-br"></span> <span>DE VOL</span></button>'
       +'<button id="wxClose" class="wx-x" type="button" title="Fermer" aria-label="Fermer">\u00d7</button>'
       +'</div>'
       +'<div class="wx-src" id="wxSrc">Source : NOAA \u00b7 chargement\u2026</div>'
