@@ -2998,7 +2998,7 @@ window.__TRACE_MARKUP="\n\n<header>\n  <div class=\"hdr-row1\">\n    <span class
    accessible depuis le bouton ⓘ du bandeau du log, avant toute ouverture de la carte */
 (function(){
   var host=document.createElement('div');
-  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Cartes OACI — origine et mise à jour</b></p>\n    <p style=\"margin-top:-6px\"><b>1/250 000 Région parisienne</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte250\">—</span>.</p>\n    <p style=\"margin-top:-6px\"><b>1/500 000 France</b> — IGN Géoplateforme (SCAN-OACI). Donnée <b>non libre</b>, tenue à jour par l’IGN.</p>\n    <p style=\"margin-top:-6px\"><b>1/1 000 000 France</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte1000\">—</span>.</p>\n    <p>Les deux cartes du SIA sont hébergées à part et lues par plages : seules les tuiles affichées sont téléchargées. Les trois se copient sur l’appareil pour voler sans réseau depuis <b>Profil → Cartes hors-ligne</b>. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.539</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
+  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Cartes OACI — origine et mise à jour</b></p>\n    <p style=\"margin-top:-6px\"><b>1/250 000 Région parisienne</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte250\">—</span>.</p>\n    <p style=\"margin-top:-6px\"><b>1/500 000 France</b> — IGN Géoplateforme (SCAN-OACI). Donnée <b>non libre</b>, tenue à jour par l’IGN.</p>\n    <p style=\"margin-top:-6px\"><b>1/1 000 000 France</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte1000\">—</span>.</p>\n    <p>Les deux cartes du SIA sont hébergées à part et lues par plages : seules les tuiles affichées sont téléchargées. Les trois se copient sur l’appareil pour voler sans réseau depuis <b>Profil → Cartes hors-ligne</b>. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.540</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
   (document.body||document.documentElement).appendChild(host.firstElementChild);
   /* le nom du fichier de la 1/1 000 000 dit son edition : on le lit la ou il
      est vraiment (cartes.json), jamais en dur, sinon il mentirait un jour */
@@ -6702,12 +6702,18 @@ function openRelinkChoice(){
    +'color:#475569;font:600 13px/1.6 Poppins,sans-serif}'
    +'.ntmd-att button{background:#1E9FE0;border:none;border-radius:9px;color:#fff;'
    +'font:800 12px Poppins,sans-serif;padding:8px 16px;cursor:pointer}'
-   +'.ntmd-hd{flex:none;display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;background:#0F274C;color:#fff;'
-   +'padding:10px 14px;font:800 13px Poppins,sans-serif}'
+   +'.ntmd-hd{flex:none;display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;background:#0E2348;color:#fff;'
+   +'padding:10px 14px;font:800 13px Poppins,sans-serif;'
+   /* MEME EN-TETE QUE LA FENETRE METEO : bandeau bleu marine #0E2348,
+      filet rouge-rose, puis la ligne d etat sur le bleu nuit #0A1A33.
+      Les trois fenetres — meteo, NOTAM, dossier — se lisent ainsi comme
+      une meme famille. */
+   +'border-bottom:2px solid #e94560}'
    +'.ntmd-hd b{white-space:nowrap;flex:1 1 auto}'
    /* la ligne d'etat occupe toute la largeur, et porte la croix a son bout :
       elle n'a plus besoin d'une ligne a elle en haut a gauche */
-   +'.ntmd-bas{flex:1 0 100%;display:flex;align-items:center;gap:8px;min-width:0}'
+   +'.ntmd-bas{flex:1 0 100%;display:flex;align-items:center;gap:8px;min-width:0;'
+   +'background:#0A1A33;margin:8px -14px -10px;padding:7px 14px}'
    +'.ntmd-st{flex:1 1 auto;min-width:0;white-space:nowrap;overflow:hidden;'
    +'text-overflow:ellipsis;font:600 10.5px Poppins,sans-serif;color:#8fb2ce}'
    +'.ntmd-bas .ntmd-x{flex:none;margin-left:auto}'
@@ -11172,7 +11178,15 @@ window.__CARTE_ADR=function(j,cle){
   /* le bloc doit contenir la carte : a 210 mm il en bornait une plus grande,
      qui debordait sur la page suivante. 232 mm + le titre tiennent meme
      lorsque le navigateur rabote la page pour son en-tete et son pied. */
-  body.wxd-imp .wxd-carte.wxd-t{height:232mm!important;
+  /* LA TEMSI A SA PAGE, EN PAYSAGE. Pivotee d'un quart de tour, elle butait
+     aussitot sur la laize d'une page portrait : mesure faite, 184 x 130 mm
+     pour 167 mm de blanc au-dessus et au-dessous. En travers, la meme planche
+     tient 269 x 190 — deux fois la surface.
+     Cette regle vit ICI, dans la feuille permanente, et non dans le style
+     pose au vol a l'impression : sans elle la planche agrandie deborderait
+     d'une page portrait, et ce style-la n'est pas toujours pose. */
+  body.wxd-imp .wxd-carte.wxd-t{height:194mm!important;
+    page:paysage;   /* la regle @page paysage est posee avec le @page par defaut */
     position:relative;overflow:hidden}
   body.wxd-imp .wxd-carte.wxd-t:not(:first-of-type){
     break-before:page;page-break-before:always}
@@ -11185,8 +11199,8 @@ window.__CARTE_ADR=function(j,cle){
      fois pivotés, 184 mm de large — la largeur utile est de 186 — sur 130 mm
      de haut. La carte occupe ainsi toute la laize disponible. */
   body.wxd-imp .wxd-carte.wxd-t img{
-    position:absolute;top:calc(50% + 3mm);left:50%;
-    width:130mm!important;height:184mm!important;
+    position:absolute;top:50%;left:50%;
+    width:190mm!important;height:269mm!important;
     max-width:none!important;max-height:none!important;
     object-fit:contain!important;
     transform-origin:center center;
@@ -11250,7 +11264,9 @@ window.__CARTE_ADR=function(j,cle){
      fait 184 mm, pour 186 mm de largeur utile, et 130 mm de haut. */
   body.wxd-imp .wxd-carte.wxd-t .wxd-cadre{
     width:794px!important;height:1123px!important;   /* TEMSI : page A4 portrait */
-    transform:rotate(-90deg) scale(.62) translate(-50%,-50%)}
+    /* 794 px valent 210 mm ; 190/210 = 0,904 : la planche fait 190 mm sur
+       son axe propre, donc 269 x 190 mm posee en travers de la page. */
+    transform:rotate(-90deg) scale(.904) translate(-50%,-50%)}
 
   /* le WINTEM part sur une page neuve et s'y deploie, titre compris */
   /* le WINTEM part sur une page neuve, au meme gabarit sur : 232 mm */
@@ -11266,14 +11282,14 @@ window.__CARTE_ADR=function(j,cle){
      EN ENTIER, toile comprise : la règle Chrome ne posait que la toile et
      celle de Safari que l'échelle, si bien que changer l'une déplaçait
      l'autre par la bande. */
-  body.wxd-imp.wxd-saf .wxd-carte.wxd-t{height:185mm!important}
+  body.wxd-imp.wxd-saf .wxd-carte.wxd-t{height:186mm!important}
   /* boîte avant rotation : 122 x 172 mm donnent 172 mm de large sur 122 de
      haut, sous les 185 mm du bloc raccourci de Safari */
   body.wxd-imp.wxd-saf .wxd-carte.wxd-t img{
-    width:122mm!important;height:172mm!important}
+    width:182mm!important;height:257mm!important}
   body.wxd-imp.wxd-saf .wxd-carte.wxd-t .wxd-cadre{
     width:794px!important;height:1123px!important;
-    transform:rotate(-90deg) scale(.58) translate(-50%,-50%)}
+    transform:rotate(-90deg) scale(.866) translate(-50%,-50%)}
   body.wxd-imp.wxd-saf .wxd-carte.wxd-w{height:195mm!important}
   /* WINTEM : portrait, au rapport de sa page (0,707), dans le bloc de 195 mm */
   body.wxd-imp.wxd-saf .wxd-carte.wxd-w img{
@@ -11345,6 +11361,16 @@ window.__CARTE_ADR=function(j,cle){
   border-radius:9px;padding:7px 11px;font:700 12px "Poppins",sans-serif;cursor:pointer}
 .wx-apply.done{background:rgba(22,163,74,.18);border-color:#16a34a;color:#48d597}
 .wx-empty{padding:26px 18px;text-align:center;font:600 13px "Poppins",sans-serif;color:#8fa9cc}
+  .wx-sig{margin:0 2px 18px}
+  .wx-sig-non{padding:12px 14px;border-radius:10px;background:#0E2348;border:1px solid #1d3a68;
+    font:600 12px "Poppins",sans-serif;color:#8fa9cc}
+  .wx-sig-un{margin:0 0 8px;padding:10px 12px;border-radius:10px;background:#122a52;
+    border:1px solid #24447a}
+  .wx-sig-t{display:flex;align-items:center;gap:8px;font:800 11.5px "Poppins",sans-serif;
+    color:#ffd7a8;text-transform:uppercase;letter-spacing:.05em}
+  .wx-sig-t span{font-weight:600;color:#8fa9cc;letter-spacing:0}
+  .wx-sig-un pre{margin:6px 0 0;white-space:pre-wrap;word-break:break-word;
+    font:600 11px ui-monospace,SFMono-Regular,Menlo,monospace;color:#EAF1FB}
 .wx-sect{margin:14px 2px 8px;display:flex;align-items:center;gap:8px}
 .wx-sect h4{margin:0;font:800 11px "Poppins",sans-serif;color:#8fa9cc;text-transform:uppercase;letter-spacing:.08em;flex:1}
 .wx-addrow{display:flex;flex-wrap:nowrap;gap:6px;margin:0 2px 10px}
@@ -12013,6 +12039,13 @@ window.__pickGpx=function(cb){
       +(favRows||'')
       +'<div class="wx-sect"><h4>\u00c0 proximit\u00e9</h4><button id="wxProxBtn" type="button" title="Rechercher les a\u00e9rodromes les plus proches de ma position (GPS \u2014 sinon autour du d\u00e9part)">\ud83d\udccd Autour de moi</button></div>'
       +(codes.filter(function(c){return c.role==='prox'}).map(rowHtml).join('')||'<div class="wx-empty" style="margin:0 2px">Appuyez sur \u00ab Autour de moi \u00bb pour lister les terrains les plus proches.</div>')
+      /* L\'onglet s\'appelle « METAR / TAF / SIGMET » : les SIGMET doivent donc
+         y etre, et leur ABSENCE doit se dire. Sans cette ligne, un ciel sans
+         SIGMET et un SIGMET qu\'on n\'a pas su chercher se ressemblent — et
+         c\'est la seconde qu\'il faut pouvoir distinguer avant de partir. */
+      +'<div class="wx-sect"><h4>SIGMET \u00b7 FIR France</h4>'
+      +'<span class="wx-hint">source NOAA</span></div>'
+      +'<div id="wxSigmet" class="wx-sig">Chargement\u2026</div>'
       +'</div>'
       +'<div class="wx-soon" id="wxSoon" hidden>'
       +'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
@@ -12420,7 +12453,14 @@ window.__pickGpx=function(cb){
           if(!dossierAffiche()) return;
           if(!document.getElementById('wxdPage')){
             var st=document.createElement('style'); st.id='wxdPage';
-            st.textContent='@page{size:A4 portrait;margin:12mm}';
+            /* LA PAGE NOMMEE VOYAGE AVEC LA PAGE PAR DEFAUT. Mesure faite :
+               un « @page » par defaut injecte APRES une regle « @page nom »
+               annule celle-ci — les deux doivent donc etre posees ensemble,
+               et la nommee en second. La TEMSI, pivotee, butait sinon sur la
+               laize d'une page portrait : 184 x 130 mm, contre 269 x 190 en
+               travers. */
+            st.textContent='@page{size:A4 portrait;margin:12mm}'
+              +'@page paysage{size:A4 landscape;margin:8mm}';
             document.body.appendChild(st); }
           /* le premier chapitre reste avec le titre du dossier : les autres
              commencent en haut d'une page. On le marque ici, car on ne sait
@@ -12842,6 +12882,33 @@ window.__pickGpx=function(cb){
         else setFavs(favs().filter(function(c){return c!==b.getAttribute('data-c')}));
         window.__WX_OPEN(pl); };
     });
+    /* SIGMET de l'onglet : meme source que le dossier de vol (le relais, qui
+       interroge le NOAA pour les cinq FIR de France metropolitaine). On dit
+       toujours quelque chose : la liste, « aucun SIGMET actif », ou la panne.
+       Le silence serait le pire des trois — il se lit comme « rien a signaler ». */
+    (function(){
+      var el=ov.querySelector('#wxSigmet'); if(!el) return;
+      var esc=(typeof wxEchap==='function')?wxEchap:function(t){ var d=document.createElement('div'); d.textContent=String(t==null?'':t); return d.innerHTML; };
+      var rend=function(fs){
+        if(!fs||!fs.length){ el.innerHTML='<div class="wx-sig-non">Aucun SIGMET actif sur les FIR France.</div>'; return; }
+        var h='';
+        for(var i=0;i<fs.length;i++){ var o=fs[i]||{};
+          var haz=o.haz||o.hazard||'SIGMET', fir=o.fir||o.firId||'', raw=o.raw||o.rawSigmet||'';
+          h+='<div class="wx-sig-un"><div class="wx-sig-t"><b>'+esc(String(haz).toUpperCase())+'</b>'
+            +(fir?'<span>'+esc(fir)+'</span>':'')+'</div>'
+            +(raw?'<pre>'+esc(raw)+'</pre>':'')+'</div>'; }
+        el.innerHTML=h; };
+      var base=String(window.__SB_URL||'').replace(/\/+$/,'');
+      if(!base){ el.innerHTML='<div class="wx-sig-non">SIGMET : relais non configur\u00e9.</div>'; return; }
+      fetch(base+'/functions/v1/cartes?sigmet=1&fir=LFFF,LFEE,LFRR,LFBB,LFMM&_='+Date.now(),{cache:'no-store'})
+        .then(function(r){ return r.json(); })
+        .then(function(gj){
+          var fs=((gj&&gj.features)||[]).map(function(f){ var p=(f&&f.properties)||{};
+            return {haz:p.hazard||p.hazardType||'',fir:p.firId||p.firName||p.fir||'',
+              raw:p.rawSigmet||p.raw||p.rawText||''}; });
+          rend(fs); })
+        .catch(function(){ el.innerHTML='<div class="wx-sig-non">SIGMET indisponibles (r\u00e9seau ou relais).</div>'; });
+    })();
     var proxBtn=ov.querySelector('#wxProxBtn');
     var distNm=function(la1,lo1,la2,lo2){ var toR=Math.PI/180,R=3440.065;
       var dLa=(la2-la1)*toR,dLo=(lo2-lo1)*toR;
