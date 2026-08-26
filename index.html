@@ -2998,7 +2998,7 @@ window.__TRACE_MARKUP="\n\n<header>\n  <div class=\"hdr-row1\">\n    <span class
    accessible depuis le bouton ⓘ du bandeau du log, avant toute ouverture de la carte */
 (function(){
   var host=document.createElement('div');
-  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Cartes OACI — origine et mise à jour</b></p>\n    <p style=\"margin-top:-6px\"><b>1/250 000 Région parisienne</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte250\">—</span>.</p>\n    <p style=\"margin-top:-6px\"><b>1/500 000 France</b> — IGN Géoplateforme (SCAN-OACI). Donnée <b>non libre</b>, tenue à jour par l’IGN.</p>\n    <p style=\"margin-top:-6px\"><b>1/1 000 000 France</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte1000\">—</span>.</p>\n    <p>Les deux cartes du SIA sont hébergées à part et lues par plages : seules les tuiles affichées sont téléchargées. Les trois se copient sur l’appareil pour voler sans réseau depuis <b>Profil → Cartes hors-ligne</b>. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.519</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
+  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Cartes OACI — origine et mise à jour</b></p>\n    <p style=\"margin-top:-6px\"><b>1/250 000 Région parisienne</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte250\">—</span>.</p>\n    <p style=\"margin-top:-6px\"><b>1/500 000 France</b> — IGN Géoplateforme (SCAN-OACI). Donnée <b>non libre</b>, tenue à jour par l’IGN.</p>\n    <p style=\"margin-top:-6px\"><b>1/1 000 000 France</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte1000\">—</span>.</p>\n    <p>Les deux cartes du SIA sont hébergées à part et lues par plages : seules les tuiles affichées sont téléchargées. Les trois se copient sur l’appareil pour voler sans réseau depuis <b>Profil → Cartes hors-ligne</b>. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.520</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
   (document.body||document.documentElement).appendChild(host.firstElementChild);
   /* le nom du fichier de la 1/1 000 000 dit son edition : on le lit la ou il
      est vraiment (cartes.json), jamais en dur, sinon il mentirait un jour */
@@ -11283,6 +11283,27 @@ window.__pickGpx=function(cb){
      TEMSI EUROC (vision large), TEMSI France, puis WINTEM (les vents) */
   /* WINTEM ou TEMSI ? l'impression leur reserve des pages differentes */
   function wxFamCarte(nom){ return /wintem/i.test(String(nom||''))?'wxd-w':'wxd-t'; }
+  /* NOM DU FICHIER ENREGISTRE. Quand on imprime, le navigateur propose aussi
+     « Enregistrer au format PDF » — et il tire le nom du fichier du TITRE de
+     la page. Sans rien faire, tous les dossiers de tous les vols arrivent
+     dans le dossier de telechargement sous le meme nom. On pose donc, le
+     temps du tirage, un titre qui porte le vol et sa date, puis on rend le
+     titre d'origine. */
+  function wxNomFichier(s){
+    return String(s||'')
+      /* la fleche de la route devient un trait SANS espaces : \u00ab LFPN-LFOX \u00bb
+         se lit, \u00ab LFPN - LFOX - 2026-08-26 \u00bb se confond avec les separateurs */
+      .replace(/\s*[\u2192\u2013\u2014]\s*/g,'-')
+      .replace(/[\\\/:*?"<>|]/g,' ')          /* interdits par les systemes */
+      .replace(/[\u0000-\u001f]/g,' ')         /* caracteres de controle */
+      .replace(/\s+/g,' ').replace(/^[\s.\-]+|[\s.\-]+$/g,'').slice(0,60);
+  }
+  var wxTitreAvant=null;
+  function wxTitrePose(t){ try{ t=String(t||'').trim(); if(!t) return;
+    if(wxTitreAvant===null) wxTitreAvant=document.title;
+    document.title=t; }catch(e){} }
+  function wxTitreRend(){ try{ if(wxTitreAvant!==null){
+    document.title=wxTitreAvant; wxTitreAvant=null; } }catch(e){} }
   function wxCartesVigueur(j){
     var mo=(j&&j.meteo&&j.meteo.cartes&&j.meteo.cartes.length)?j.meteo.cartes:null;
     if(!mo) return [];
@@ -11626,6 +11647,9 @@ window.__pickGpx=function(cb){
       .map(function(c){return {code:c,role:'fav'}}));
     codes=codes.concat(wxProx.filter(function(p){return !codes.some(function(c){return c.code===p.code})})
       .map(function(p){return {code:p.code,role:'prox',nm:p.nm}}));
+    /* filet : si « afterprint » n'est jamais venu (Safari iOS ne le tire pas
+       toujours), le titre de l'onglet serait resté celui du tirage */
+    wxTitreRend();
     var old=document.getElementById('wxOv'); if(old) old.remove();
     var ov=document.createElement('div'); ov.className='wx-ov no-print wx-'+mode; ov.id='wxOv';
     /* clic sur le voile, autour du cadre : on referme comme par la croix */
@@ -11884,6 +11908,10 @@ window.__pickGpx=function(cb){
       var sansDate=!mD&&!String(dateVol||'').trim();
       var dateVolAff=mD?(mD[3]+'/'+mD[2]+'/'+mD[1]):(String(dateVol||'').trim()||dateRepli);
       var dateNote=sansDate?(arch?'date du dossier':'date d\u2019impression'):'';
+      /* pour le NOM DU FICHIER : la date en ordre ann\u00e9e-mois-jour, afin que
+         les dossiers se rangent d'eux-m\u00eames dans l'ordre des vols */
+      var dateFic=mD?(mD[1]+'-'+mD[2]+'-'+mD[3])
+        :(dRepli.getFullYear()+'-'+p2(dRepli.getMonth()+1)+'-'+p2(dRepli.getDate()));
       /* le nom du vol : celui de la navigation ; \u00e0 d\u00e9faut la route elle-m\u00eame,
          qui identifie le vol mieux qu'un tiret */
       if(!nomNav){ var cDep='',cArr='';
@@ -12092,9 +12120,15 @@ window.__pickGpx=function(cb){
           try{ var ua=navigator.userAgent||'';
             if(/safari/i.test(ua)&&!/chrome|chromium|crios|android|edg/i.test(ua))
               document.body.classList.add('wxd-saf'); }catch(e){}
+          /* le nom sous lequel le navigateur proposera d'enregistrer le PDF :
+             il le tire du titre de la page. Posé à chaque armement, donc juste
+             avant le tirage, et rendu ensuite. */
+          wxTitrePose(wxNomFichier('Dossier de vol - '
+            +(nomNav||'sans nom')+' - '+dateFic));
           document.body.classList.add('wxd-imp'); };
         var desarme=function(){ document.body.classList.remove('wxd-imp');
           document.body.classList.remove('wxd-saf');
+          wxTitreRend();
           var q=document.getElementById('wxdPage'); if(q) q.remove(); };
         /* CAUSE DU 24 AOUT : la mise en page d'impression etait retiree 1,5 s
            apres l'appel (repli pour Safari iOS, qui ne declenche pas toujours
