@@ -2998,7 +2998,7 @@ window.__TRACE_MARKUP="\n\n<header>\n  <div class=\"hdr-row1\">\n    <span class
    accessible depuis le bouton ⓘ du bandeau du log, avant toute ouverture de la carte */
 (function(){
   var host=document.createElement('div');
-  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Cartes OACI — origine et mise à jour</b></p>\n    <p style=\"margin-top:-6px\"><b>1/250 000 Région parisienne</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte250\">—</span>.</p>\n    <p style=\"margin-top:-6px\"><b>1/500 000 France</b> — IGN Géoplateforme (SCAN-OACI). Donnée <b>non libre</b>, tenue à jour par l’IGN.</p>\n    <p style=\"margin-top:-6px\"><b>1/1 000 000 France</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte1000\">—</span>.</p>\n    <p>Les deux cartes du SIA sont hébergées à part et lues par plages : seules les tuiles affichées sont téléchargées. Les trois se copient sur l’appareil pour voler sans réseau depuis <b>Profil → Cartes hors-ligne</b>. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.525</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
+  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Cartes OACI — origine et mise à jour</b></p>\n    <p style=\"margin-top:-6px\"><b>1/250 000 Région parisienne</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte250\">—</span>.</p>\n    <p style=\"margin-top:-6px\"><b>1/500 000 France</b> — IGN Géoplateforme (SCAN-OACI). Donnée <b>non libre</b>, tenue à jour par l’IGN.</p>\n    <p style=\"margin-top:-6px\"><b>1/1 000 000 France</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte1000\">—</span>.</p>\n    <p>Les deux cartes du SIA sont hébergées à part et lues par plages : seules les tuiles affichées sont téléchargées. Les trois se copient sur l’appareil pour voler sans réseau depuis <b>Profil → Cartes hors-ligne</b>. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.526</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
   (document.body||document.documentElement).appendChild(host.firstElementChild);
   /* le nom du fichier de la 1/1 000 000 dit son edition : on le lit la ou il
      est vraiment (cartes.json), jamais en dur, sinon il mentirait un jour */
@@ -11745,9 +11745,6 @@ window.__pickGpx=function(cb){
        occupent l'écran entier, comme avant. */
     var mode=((pl&&pl.mode)||window.__WX_MODE)==='page'?'page':'pop';
     var volDate=(pl&&pl.date)||'';
-    /* NOTAM et SUP AIP reclames a la main dans un dossier restreint a la
-       meteo ; remis a zero a chaque ouverture */
-    var wxVeutNtm=false;
     try{ window.__WX_MODE=null; }catch(e){}
     /* départ puis arrivée d'abord, survols ensuite, favoris toujours en dessous */
     var base=((pl&&pl.codes)||[]).slice().sort(function(a,b){
@@ -11980,11 +11977,15 @@ window.__pickGpx=function(cb){
     function wxDossierMaj(ov){
       var dos=ov.querySelector('#wxDossier'); if(!dos) return;
       var arch=(pl&&pl.archive)||null;
-      /* Dossier restreint a la meteo par defaut (bouton Meteo) : NOTAM, SUP AIP
-         et AZBA ne sont ni demandes ni affiches tant qu'on ne les reclame pas.
-         Le DDV du bandeau du log et un vol archive restent complets : un
-         dossier fige sans ses NOTAM perdrait sa valeur de preparation. */
-      var complet=!!(arch||(pl&&pl.complet)||wxVeutNtm);
+      /* IL N'Y A PLUS QU'UN SEUL DOSSIER DE VOL. Ouvert par le bouton Météo du
+         menu du bas, il était auparavant restreint à la météo : les NOTAM, les
+         SUP AIP et les AZBA n'y étaient ni demandés ni affichés, un bouton
+         proposait de les ajouter. Ouvert par le DDV du bandeau du log, il
+         était complet. Deux dossiers portant le même nom, dont l'un pouvait
+         partir à l'impression sans ses NOTAM : c'est une complication, et un
+         risque. Le voici complet par tous les chemins.
+         Le coût est nul en pratique : cette section n'est composée que si l'on
+         ouvre l'onglet « Dossier de vol ». */
       var c=cget(); c.metar=c.metar||{}; c.taf=c.taf||{};
       if(arch){ c={metar:{},taf:{},t:(arch.tMsg||arch.t||0),src:arch.src||''};
         (arch.terrains||[]).forEach(function(x){ if(x.metar)c.metar[x.code]=x.metar; if(x.taf)c.taf[x.code]=x.taf; }); }
@@ -12136,22 +12137,14 @@ window.__pickGpx=function(cb){
       /* --- DDV : NOTAM et SUP AIP de TOUS les terrains du vol (version courte),
          rendus par le module Notam/AIP ; les elements mis en lumiere au listing
          (bouton +) ressortent surlignes --- */
-      html+='<div id="wxdNtm">'+(complet
-        ?('<div class="wxd-sect">NOTAM &amp; SUP AIP</div>'
-          +'<div class="wxd-srcl">Chargement\u2026</div>')
-        :('<div class="wxd-sect">NOTAM &amp; SUP AIP</div>'
-          +'<div class="wxd-srcl">Non demand\u00e9s : ce dossier est restreint \u00e0 la m\u00e9t\u00e9o. '
-          +'\u00c0 consulter au dernier moment avant le d\u00e9part.</div>'
-          +'<div class="wxd-vide"><button type="button" id="wxdNtmPlus" class="wxd-diag">'
-          +'Ajouter NOTAM &amp; SUP AIP</button></div>'))+'</div>';
+      html+='<div id="wxdNtm">'
+        +'<div class="wxd-sect">NOTAM &amp; SUP AIP</div>'
+        +'<div class="wxd-srcl">Chargement\u2026</div></div>';
       html+='<div class="wxd-note">Dossier \u00e9tabli par LogNavAK \u00e0 partir des messages et cartes '
         +'re\u00e7us \u00e0 la date d\u2019\u00e9tablissement. Il ne remplace pas le dossier de vol officiel '
         +'(SOFIA-Briefing / M\u00e9t\u00e9o-France). '
-        +(complet
-          ?'Les NOTAM et SUP AIP ci-dessus sont en version courte : texte int\u00e9gral au '
-           +'listing Notam/AIP. '
-          :'<b>Dossier restreint \u00e0 la m\u00e9t\u00e9o : il ne contient NI NOTAM NI SUP AIP.</b> '
-           +'Les consulter avant le d\u00e9part (bouton ci-dessus, ou DDV du bandeau du log). ')
+        +'Les NOTAM et SUP AIP ci-dessus sont en version courte : texte int\u00e9gral au '
+        +'listing Notam/AIP. '
         +'V\u00e9rifier le dossier officiel avant le d\u00e9part.</div>';
       html+='</div>';
       dos.innerHTML=html;
@@ -12165,10 +12158,6 @@ window.__pickGpx=function(cb){
       /* NOTAM & SUP AIP des terrains du vol : rendus par le module Notam/AIP
          (donnees et mise en lumiere vivent la-bas) */
       (function(){ var el=dos.querySelector('#wxdNtm'); if(!el) return;
-        var plus=el.querySelector('#wxdNtmPlus');
-        if(plus){ plus.onclick=function(){ plus.disabled=true;
-          plus.textContent='Chargement\u2026'; wxVeutNtm=true; wxDossierMaj(ov); };
-          return; }
         if(arch&&arch.ntm&&typeof window.__DDV_SECTION_DE==='function'){
           var hA=window.__DDV_SECTION_DE(arch.ntm,dateVol);
           el.innerHTML=hA||'<div class="wxd-vide">Instantan\u00e9 NOTAM illisible.</div>'; return; }
