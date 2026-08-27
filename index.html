@@ -11231,25 +11231,8 @@ window.__CARTE_ADR=function(j,cle){
      utile de la page. */
   body.wxd-imp .wxd-carte.wxd-t{height:256mm!important;
     position:relative;overflow:hidden}
-  /* LES DEUX PLANCHES ONT LA MEME FORME et gardent le MEME REGLAGE — celui
-     de l'EUROC. Ce qui les separait n'etait pas leur taille mais leur
-     PLACEMENT : la premiere partage sa page avec le titre de section, les
-     suivantes commencent une page nue et se posaient donc 14 mm plus haut —
-     mesure faite, 17 mm du bord contre 31, d'ou le centimetre de rognage
-     signale en haut de la TEMSI FRANCE. Ni marge ni rembourrage ne rattrapent
-     cet ecart : le rembourrage ne deplace un contenu centre que de sa moitie,
-     et une marge en tete de page est supprimee par le navigateur — les deux
-     ont ete mesures. On descend donc la planche DANS sa capsule, en lui
-     rendant le debord : sa page a de la place libre en dessous. */
   body.wxd-imp .wxd-carte.wxd-t:not(:first-of-type){
-    break-before:page;page-break-before:always;
-    /* on lui rend le debord : sa page a 29 mm de libre sous sa capsule, et
-       c'est la seule facon de la descendre — ni marge ni rembourrage n'y
-       parviennent (mesures ci-dessus). */
-    overflow:visible!important}
-  body.wxd-imp .wxd-carte.wxd-t:not(:first-of-type) img,
-  body.wxd-imp .wxd-carte.wxd-t:not(:first-of-type) .wxd-cadre{
-    top:calc(50% + 17mm)!important}
+    break-before:page;page-break-before:always}
   /* LA TEMSI EST UNE PAGE A4 PORTRAIT, PIVOTÉE D'UN QUART DE TOUR ANTI-HORAIRE.
      La forme de la planche est établie par la mesure (v.524, aperçu Chrome :
      rapport 0,708) ; le quart de tour est la mise en page voulue — le contenu
@@ -11358,7 +11341,13 @@ window.__CARTE_ADR=function(j,cle){
     width:138mm!important;height:195mm!important}
   body.wxd-imp.wxd-saf .wxd-carte.wxd-w .wxd-cadre{
     width:794px!important;height:1123px!important;
-    transform:scale(.68) translate(-50%,-50%)}
+    /* Safari : capsule de 195 mm. A 0,68 le cadre en faisait 202 et sortait
+       de 6,5 mm — c'est le debordement du WINTEM sur la page suivante,
+       mesure faite. A 0,64 il affleurait encore (0,6 mm dehors, le cadre
+       etant pose 3 mm sous le centre) ; a 0,62 il fait 184 mm et garde
+       2,5 mm de marge. La hauteur utile de Safari varie avec ses reglages
+       d'en-tete : mieux vaut de l'air. */
+    transform:scale(.62) translate(-50%,-50%)}
   /* WINTEM : il RESTE EN PORTRAIT — sa page se lit dans le sens où elle est
      servie — et sa taille est celle qui tient dans une page avec son titre :
      164 x 232 mm, le rapport de la planche (0,707) et la hauteur du bloc,
@@ -11379,7 +11368,10 @@ window.__CARTE_ADR=function(j,cle){
      A 0,78 la page occupe 164 x 232 mm — la hauteur du bloc, exactement. */
   body.wxd-imp .wxd-carte.wxd-w .wxd-cadre{
     width:794px!important;height:1123px!important;   /* WINTEM : page A4 */
-    transform:scale(.78) translate(-50%,-50%)}
+    /* 794x1123 px valent 210x297 mm ; a 0,76 le cadre fait 226 mm de haut,
+       et tient donc dans la capsule de 232 meme decale de 3 mm vers le bas.
+       A 0,78 il en faisait 231,8 et sortait de 2,9 mm — mesure faite. */
+    transform:scale(.76) translate(-50%,-50%)}
   body.wxd-imp .wxd-clbl{break-after:avoid;page-break-after:avoid}
   body.wxd-imp .ntm-un,body.wxd-imp .wxd-msg{break-inside:avoid;page-break-inside:avoid}
   /* chaque chapitre (METAR/TAF, cartes, NOTAM, SUP AIP, AZBA...) commence en
@@ -12609,12 +12601,7 @@ window.__pickGpx=function(cb){
                  distingue donc les deux — un cadre qui a du charger pendant
                  cette attente est FROID et merite qu'on le laisse se poser ;
                  un cadre deja pret est chaud et ne retarde personne. */
-              /* 900 ms ne suffisaient pas : signale le 27 aout, la WINTEM
-                 sort encore mal centree dans son lecteur au PREMIER tirage,
-                 puis parfaitement au second. Le lecteur PDF de Chrome met
-                 plus longtemps que cela a poser sa page quand la planche
-                 arrive du reseau. Ce delai ne se paie qu'une fois. */
-              setTimeout(suite, froid?2200:260); };
+              setTimeout(suite, froid?900:260); };
             cs.forEach(function(c){ if(c.getAttribute('data-pret')==='1') return;
               reste++; froid=true;
               var vu=function(){ c.removeEventListener('load',vu);
