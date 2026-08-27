@@ -12,7 +12,7 @@ la moitié de ce que la note décrit, en production, depuis des semaines. Ce qui
 manque n'est pas l'accès aux cartes : c'est la **validité**.
 
 ```
-node test_meteo.js    →  68 OK / 0 ÉCHEC
+node test_meteo.js    →  73 OK / 0 ÉCHEC
 ```
 
 ---
@@ -141,13 +141,36 @@ Météo-France, l'ordre mérite d'être rediscuté : AEROWEB est la voie
 
 ---
 
-## 6. Ce que le POC ne prouve pas
+## 6. Le test réel — 27/08/2026, depuis un Mac
 
-Les vrais serveurs. L'accès sortant vers `sofia-briefing.aviation-civile.gouv.fr`
-et `aviation.meteo.fr` est refusé par la politique réseau de cette session, et
-votre relais Supabase ne m'est pas accessible non plus. **Mais votre relais leur
-parle tous les jours** : c'est par lui que vos TEMSI et WINTEM arrivent. Le
-risque « SOFIA filtre les datacenters » est donc retiré par votre production.
+**La chaîne fonctionne de bout en bout.** Trois PDF officiels descendus :
+
+```
+TEMSI France   18:00Z   160 251 o   application/pdf
+TEMSI EUROC    18:00Z   279 376 o   application/pdf
+WINTEM France  18:00Z   115 020 o   application/pdf
+```
+
+Deux enseignements d'exploitation, invisibles sur la doublure :
+
+**L'horizon de publication n'est pas le même selon le produit.** À 19:08Z, le
+TEMSI France et le TEMSI EUROC n'offraient que **deux** échéances — celle en
+cours et 21:00Z — quand le WINTEM en offrait **quatre**, jusqu'à 03:00Z le
+lendemain. Conséquence directe pour le dossier de vol : **les cartes d'un vol du
+lendemain matin ne sont pas récupérables la veille au soir.** Il faut revenir
+dans les heures qui précèdent — environ 2 h avant l'échéance pour le TEMSI
+France, 4 h pour l'EUROC.
+
+**Un défaut du POC est apparu là, et pas ailleurs.** Demandé pour un vol du
+lendemain, il annonçait « aucune carte ne couvre cette fenêtre » — puis
+téléchargeait quand même celle **en vigueur**. Une carte du jour déposée dans le
+dossier d'un vol de demain, sans rien qui dise qu'elle ne le concerne pas.
+Corrigé : **une fenêtre de vol demandée fait loi** — ce qui la couvre, ou rien,
+avec le motif du refus et le délai auquel revenir. Le banc tient désormais ce
+point.
+
+Ce qui reste non prouvé : rien d'essentiel. Le risque « SOFIA filtre les
+datacenters » était déjà retiré par votre relais, qui leur parle tous les jours.
 
 ---
 
@@ -194,7 +217,7 @@ désormais la seule qui existe pour la France.
 | `meteo_client.js` | le client : catalogue, classification, fenêtre de vol, PDF vérifié |
 | `poc_meteo.js` | le POC en ligne de commande |
 | `faux_meteo.js` | la doublure SOFIA + Météo-France, stricte sur tous les pièges |
-| `test_meteo.js` | 68 assertions — le § 15 au complet, les pièges du § 13, et mes ajouts |
+| `test_meteo.js` | 73 assertions — le § 15 au complet, les pièges du § 13, et mes ajouts |
 
 ---
 

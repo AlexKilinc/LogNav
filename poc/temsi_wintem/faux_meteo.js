@@ -45,14 +45,19 @@ function fabriquePdf(titre) {
   let pdf = "%PDF-1.4\n";
   const pos = [];
   objets.forEach((o, i) => { pos.push(pdf.length); pdf += (i + 1) + " 0 obj\n" + o + "\nendobj\n"; });
+  /* Rembourrage : le client refuse un PDF de moins de 1 ko, et un vrai TEMSI
+     en fait des centaines. Il se pose ICI, en commentaire, AVANT la table de
+     références — et surtout pas après « %%EOF », qui doit rester le dernier
+     mot du fichier. Le mettre en queue produisait un PDF qu'aucun lecteur
+     strict n'aurait accepté : une doublure doit être fidèle jusque dans sa
+     ponctuation, sinon elle valide des choses qui échoueront en vrai. */
+  pdf += "%" + "x".repeat(1400) + "\n";
   const xref = pdf.length;
   pdf += "xref\n0 " + (objets.length + 1) + "\n0000000000 65535 f \n"
     + pos.map((p) => String(p).padStart(10, "0") + " 00000 n \n").join("");
   pdf += "trailer\n<< /Size " + (objets.length + 1) + " /Root 1 0 R >>\nstartxref\n"
     + xref + "\n%%EOF\n";
-  /* du rembourrage en commentaire : le client refuse un PDF de moins de 1 ko,
-     et un vrai TEMSI en fait des centaines */
-  return Buffer.from(pdf + "%" + "x".repeat(1400) + "\n", "latin1");
+  return Buffer.from(pdf, "latin1");
 }
 
 /* ---- le catalogue, bâti autour d'une référence ---- */

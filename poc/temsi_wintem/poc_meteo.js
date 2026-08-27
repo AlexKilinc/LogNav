@@ -96,16 +96,40 @@ const hhmm = (iso) => String(iso).slice(0, 16).replace("T", " ") + "Z";
     c.perimees.forEach((f) => console.log("  périmée     " + hhmm(f.validAt)));
 
     if (pourVol) {
-      console.log("  pour le vol : " + (pourVol.length
-        ? pourVol.map((x) => hhmm(x.validAt)).join("  ·  ")
-        : "aucune carte ne couvre cette fenêtre"));
+      if (pourVol.length) {
+        console.log("  pour le vol : " + pourVol.map((x) => hhmm(x.validAt)
+          + (x.prolongee ? " (prolongée)" : "")).join("  ·  "));
+      } else {
+        /* Le cas vu en vrai : un vol demandé pour demain matin, alors que
+           SOFIA ne publie qu'une échéance d'avance sur le TEMSI. */
+        const der = cat.items.length ? cat.items[cat.items.length - 1].validAt : null;
+        console.log("  pour le vol : AUCUNE carte ne couvre cette fenêtre"
+          + (der ? " — la dernière publiée s’arrête à " + hhmm(der) : ""));
+        console.log("                " + (P.avanceH
+          ? P.nom + " paraît environ " + P.avanceH + " h avant son échéance : "
+            + "revenez dans ce délai."
+          : "revenez plus près de l’heure du vol : le catalogue n’est pas encore ouvert."));
+      }
     }
 
     if (drapeau("pdf")) {
       const dossier = arg("dossier", "cartes");
       fs.mkdirSync(dossier, { recursive: true });
-      const aPrendre = pourVol && pourVol.length ? pourVol : (c.courante ? [c.courante] : []);
-      if (!aPrendre.length) console.log("  PDF : rien à télécharger");
+      /* DÉFAUT CORRIGÉ, vu sur un tirage réel : quand aucune carte ne couvrait
+         la fenêtre du vol, le POC annonçait « aucune carte » puis téléchargeait
+         quand même celle EN VIGUEUR — une carte d'aujourd'hui pour un vol de
+         demain. Le pilote se retrouvait avec un PDF dans son dossier, sans
+         rien qui dise qu'il ne concerne pas son vol. C'est précisément le
+         genre de silence qui rend un dossier dangereux.
+         Quand une fenêtre de vol est demandée, elle FAIT LOI : on ne prend que
+         ce qui la couvre, ou rien. */
+      const aPrendre = pourVol ? pourVol : (c.courante ? [c.courante] : []);
+      if (!aPrendre.length) {
+        console.log("  PDF : rien à télécharger — " + (pourVol
+          ? "aucune carte ne couvre le vol, et on ne met pas dans un dossier "
+            + "une carte qui ne le concerne pas"
+          : "aucune carte de référence"));
+      }
       for (const it of aPrendre) {
         try {
           const d = await M.pdf(id, it.validAt, Object.assign({ catalogue: cat }, o));

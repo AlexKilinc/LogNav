@@ -185,15 +185,32 @@ async function echoue(fn, motif, titre) {
   dit(String.fromCharCode.apply(null, Array.from(d.donnees.slice(0, 5))) === "%PDF-",
       "et les cinq premiers octets sont bien « %PDF- » — la seule preuve qui vaille");
   dit(/login=……/.test(d.lienMasque), "le lien rendu est masqué · " + d.lienMasque.slice(-46));
-  /* preuve indépendante : un vrai lecteur de PDF l'ouvre */
+  /* PREUVE DE STRUCTURE, sans rien installer.
+     Ce banc appelait pypdf. C'était une dépendance cachée à MA machine : chez
+     l'utilisateur, python3 est là mais pas pypdf, et le banc échouait sur un
+     point qui n'a rien à voir avec le POC. Un banc qui ne tourne que chez son
+     auteur ne prouve rien à personne.
+     On vérifie donc la structure du PDF avec ce qu'on a : l'en-tête, la table
+     de références croisées, la fin de fichier, et le compte de pages — en
+     prenant garde que « /Type /Pages », le nœud d'arbre, contient « /Type
+     /Page » comme sous-chaîne. */
+  const doc = Buffer.from(d.donnees).toString("latin1");
+  const pages = (doc.match(/\/Type\s*\/Page(?![s\w])/g) || []).length;
+  dit(/^%PDF-\d\.\d/.test(doc), "PDF : en-tête de version · " + doc.slice(0, 8));
+  dit(/\bstartxref\b/.test(doc) && /%%EOF\s*$/.test(doc.trimEnd() + "\n"),
+      "table de références croisées et fin de fichier présentes");
+  dit(pages === 1, "et une page, comptée dans sa structure · " + pages);
+  /* pypdf s'il est là : un second avis vaut mieux qu'un seul, mais il ne
+     conditionne rien */
   fs.writeFileSync("/tmp/poc_temsi.pdf", Buffer.from(d.donnees));
-  let pages = 0;
+  let avis = "absent";
   try {
-    pages = Number(execFileSync("python3", ["-c",
+    avis = execFileSync("python3", ["-c",
       "from pypdf import PdfReader;print(len(PdfReader('/tmp/poc_temsi.pdf').pages))"],
-      { encoding: "utf8" }).trim());
-  } catch (e) { pages = -1; }
-  dit(pages === 1, "un vrai lecteur de PDF l’ouvre et y trouve 1 page · " + pages);
+      { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }).trim();
+  } catch (e) { avis = "absent"; }
+  console.log("      (second avis pypdf : " + (avis === "absent"
+    ? "pypdf non installé — sans importance" : avis + " page(s)") + ")");
 
   /* échéance inconnue : erreur explicite, jamais un PDF au hasard */
   await echoue(() => M.pdf("temsi-france", "2030-01-01T00:00:00Z", Object.assign({ catalogue: tf }, o)),
@@ -290,6 +307,18 @@ async function echoue(fn, motif, titre) {
   dit(court.length === 1, "un vol court n’en demande qu’une · " + court.length);
   dit(M.cartesPourVol(tf.items, "2026-08-30T09:00:00Z", "2026-08-30T10:00:00Z").length === 0,
       "un vol hors de toute échéance publiée n’en reçoit aucune — et le dit");
+  /* DÉFAUT VU SUR UN TIRAGE RÉEL : demandé pour un vol du lendemain, le POC
+     annonçait « aucune carte ne couvre cette fenêtre » puis téléchargeait
+     quand même celle EN VIGUEUR — une carte du jour pour un vol de demain,
+     déposée dans le dossier sans rien qui dise qu'elle ne le concerne pas.
+     Une fenêtre de vol demandée FAIT LOI : ce qui la couvre, ou rien. */
+  const cliTexte = fs.readFileSync("poc_meteo.js", "utf8");
+  dit(/const aPrendre = pourVol \? pourVol :/.test(cliTexte),
+      "quand une fenêtre de vol est donnée, elle fait loi : aucun repli sur la carte du jour");
+  dit(!/pourVol && pourVol\.length \? pourVol :/.test(cliTexte),
+      "l’ancien repli — « si le vol ne donne rien, prends celle en vigueur » — a bien disparu");
+  dit(/on ne met pas dans un dossier/.test(cliTexte),
+      "et le refus s’explique au lieu de laisser un dossier vide sans raison");
   try { M.cartesPourVol(tf.items, "2026-08-28T13:00:00Z", "2026-08-28T09:00:00Z");
     dit(false, "une arrivée avant le départ est refusée"); }
   catch (er) { dit(/précède/.test(er.message), "une arrivée avant le départ est refusée · « " + er.message + " »"); }
