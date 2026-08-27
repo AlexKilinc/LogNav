@@ -1,15 +1,14 @@
 /* test_poc.js — banc du POC SOFIA.
 
-   Ce banc ne prouve PAS que le vrai SOFIA répond : l'accès sortant vers
-   sofia-briefing.aviation-civile.gouv.fr est refusé par la politique réseau
-   de cette session (403 au CONNECT). Il prouve autre chose, et c'est la
-   moitié qui est démontrable ici : que le client parle EXACTEMENT le
-   protocole décrit dans le document, et qu'il tombe juste sur chacun des
-   pièges du § 7 — dont chacun est armé dans la doublure.
+   Le vrai SOFIA a répondu le 27/08/2026 depuis un Mac : LFPN → LFPZ, trois
+   étapes en 200, 84 NOTAM. Ce banc fait le reste du travail — vérifier que le
+   client parle EXACTEMENT le protocole, qu'il tombe juste sur chacun des
+   pièges du § 7, et qu'il lit correctement la structure RÉELLE du PIB, dont la
+   doublure est désormais la copie champ pour champ.
 
    node test_poc.js
 */
-const { recuperePib, corpsBrut, isoUtcSecondes, valideRoute, aplatis } = require("./sofia_client");
+const { recuperePib, corpsBrut, isoUtcSecondes, valideRoute, aplatis, filtreVfr } = require("./sofia_client");
 const faux = require("./faux_sofia");
 
 let ok = 0, ko = 0;
@@ -53,7 +52,7 @@ async function echoue(fn, motif, titre) {
       "la première étape reçoit bien un JSESSIONID");
 
   /* ===== 3. LE RÉSULTAT EST CELUI DU § 6 DU DOCUMENT ================= */
-  dit(r.pib.pibUid === "NW432608262157", "pibUid · " + r.pib.pibUid);
+  dit(r.pib.pibUid === "LFYN2608272364", "pibUid · " + r.pib.pibUid);
   dit(r.pib.validFrom === "2026-08-26T14:13:56.000Z", "validFrom · " + r.pib.validFrom);
   dit(r.pib.validTo === "2026-08-27T02:13:00.000Z", "validTo · " + r.pib.validTo);
   dit(r.pib.listnotams.ADDep.code === "LFPN" && /PARIS SACLAY/.test(r.pib.listnotams.ADDep.name),
@@ -118,17 +117,50 @@ async function echoue(fn, motif, titre) {
   dit(!/"Cookie"/.test(j), "ni aucun en-tête Cookie");
   dit(r.trace.every((t) => !("cookieValeur" in t)), "la trace ne journalise que les NOMS de cookies");
 
-  /* ===== 7. L'APLATISSAGE, TOLÉRANT À LA FORME RÉELLE =============== */
-  dit(r.notams.length === 5, "les 5 NOTAM du § 6 sont extraits · " + r.notams.length);
-  dit(r.notams.some((n) => n.id === "E 3550/26" && /NIGHT VFR PROHIBITED/.test(n.texte)),
-      "dont E 3550/26 « RWY 07R/25L NIGHT VFR PROHIBITED. »");
+  /* ===== 7. L'APLATISSAGE, CALÉ SUR LA STRUCTURE RÉELLE ============= */
+  dit(r.notams.length === 7 && r.nbNotams === 7,
+      "les 7 NOTAM sont extraits, et le compte annoncé par SOFIA concorde · "
+      + r.notams.length + " / " + r.nbNotams);
+  const vfrNuit = r.notams.find((n) => n.numero === "E 3550/26");
+  dit(!!vfrNuit, "le VRAI numéro est reconstitué depuis series/number/year · E 3550/26");
+  dit(vfrNuit && vfrNuit.id === "400000051804734" && vfrNuit.id !== vfrNuit.numero,
+      "et l'identifiant interne reste à part, sans être pris pour le numéro · " + (vfrNuit && vfrNuit.id));
+  dit(vfrNuit && vfrNuit.texte === "PISTE 07R/25L VFR DE NUIT INTERDIT.",
+      "le texte est rendu EN FRANÇAIS depuis multiLanguage.itemE · « " + (vfrNuit && vfrNuit.texte) + " »");
+  dit(vfrNuit && vfrNuit.texteEn === "RWY 07R/25L NIGHT VFR PROHIBITED." && vfrNuit.traduit === true,
+      "l'anglais reste disponible à côté, et la traduction est signalée");
+  const sansTrad = r.notams.find((n) => n.numero === "E 2457/26");
+  dit(sansTrad && sansTrad.traduit === false && sansTrad.texte === "TAXIWAY C CLOSED.",
+      "un NOTAM non traduit retombe sur l'anglais plutôt que de rester vide");
   dit(r.notams.filter((n) => n.terrain === "LFPZ").length === 4,
-      "et les 4 NOTAM LFPZ sont rattachés au bon terrain");
-  /* forme différente : l'aplatissage ne doit pas s'effondrer */
-  const autre = aplatis({ ADDep: { code: "LFXX", zones: { autre_cat: [{ id: "A 0001/26", text: "TEST." }] } } });
-  dit(autre.length === 1 && autre[0].terrain === "LFXX",
-      "l'aplatissage tient sur une arborescence différente (la forme réelle n'est pas documentée)");
-  dit(JSON.stringify(r.pib).length > 0, "et le JSON brut du PIB est conservé à côté");
+      "les 4 NOTAM LFPZ sont rattachés au bon terrain · "
+      + r.notams.filter((n) => n.terrain === "LFPZ").length);
+  dit(r.notams.some((n) => n.categorie === "aerodromes_services")
+      && r.notams.some((n) => n.categorie === "installations_com_surveillance"),
+      "les catégories réelles sont conservées, terrains comme FIR");
+  dit(vfrNuit && vfrNuit.debut === "19 08 2026 08:09" && vfrNuit.fin === "28 08 2026 20:00",
+      "les bornes de validité lisibles suivent · " + (vfrNuit && vfrNuit.debut));
+  dit(vfrNuit && vfrNuit.type === "N" && vfrNuit.codeQ === "MRLC",
+      "le type N/R/C et le code Q sont conservés · type " + (vfrNuit && vfrNuit.type)
+      + ", Q " + (vfrNuit && vfrNuit.codeQ));
+  dit(vfrNuit && vfrNuit.brut && vfrNuit.brut.itemE, "et le JSON brut de chaque NOTAM reste attaché");
+
+  /* le filtre VFR */
+  const vfr = filtreVfr(r.notams);
+  dit(vfr.length === 6 && !vfr.some((n) => n.trafic === "I"),
+      "le filtre VFR écarte le NOTAM en-route réservé à l'IFR · " + r.notams.length + " → " + vfr.length);
+  dit(r.notams.some((n) => n.trafic === "I"),
+      "mais il est bien présent dans la liste complète, sans filtre");
+
+  /* langue anglaise à la demande */
+  const rEn = await recuperePib({ route: ["LFPN", "LFPZ"], origin, lang: "en" });
+  dit(rEn.notams.find((n) => n.numero === "E 3550/26").texte === "RWY 07R/25L NIGHT VFR PROHIBITED.",
+      "lang=en rend bien l'anglais");
+
+  /* structure inconnue : ne jamais rendre une liste vide */
+  const autre = aplatis({ Inconnu: { code: "LFXX", zones: [{ itemE: "TEST DE FORME INCONNUE." }] } });
+  dit(autre.length === 1 && /FORME INCONNUE/.test(autre[0].texte),
+      "une structure inattendue retombe sur un parcours tolérant, pas sur une liste vide");
 
   /* ===== 8. CONTRÔLE DE COHÉRENCE ================================== */
   const r2 = await recuperePib({ route: ["LFPT", "LFOZ"], origin });

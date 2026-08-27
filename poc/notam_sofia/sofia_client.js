@@ -274,55 +274,113 @@ async function recuperePib(p = {}) {
     retrievedAt: new Date().toISOString(),
     demande: { route, validFrom, duration: String(p.duration ?? "1200"), traffic: String(p.traffic ?? "VI") },
     pib,
-    notams: aplatis(pib.listnotams),
+    nbNotams: pib.nbNotams,                    // le compte annoncé par SOFIA
+    notams: aplatis(pib.listnotams, { langue: p.lang === "en" ? "en" : "fr" }),
     trace: client.trace,          // aucun JSESSIONID à l'intérieur
   };
 }
 
 /* --------------------------------------------------------------- aplatissage
-   La forme interne de listnotams AU-DELÀ de ADDep.code / ADDes.code n'est pas
-   décrite par le document : il n'en cite que des textes de NOTAM. Ce parcours
-   est donc VOLONTAIREMENT tolérant — il descend tout l'arbre et retient tout
-   objet qui ressemble à un NOTAM — et le JSON brut est conservé à côté. */
 
-const RE_ID = /^[A-Z]{1,2}\s?\d{3,4}\/\d{2}$/;
+   CALÉ SUR LA STRUCTURE RÉELLE, relevée sur un PIB LFPN → LFPZ du 27/08/2026.
+   Le document n'en citait que ADDep.code / ADDes.code ; voici ce qu'il y a
+   vraiment :
 
-function aplatis(listnotams) {
+     listnotams
+       ADDep, ADDes   { code, name, + 12 tableaux de catégorie }
+       ADDeg, ADSur   tableaux (dégagements, terrains survolés)
+       FIR            { 8 tableaux de catégorie, noms différents }
+       Other          tableau
+
+   et un NOTAM porte :
+
+     series/number/year  →  le VRAI numéro : « E 3970/26 »
+     id                     identifiant interne (400000052237901), PAS le numéro
+     type                   N nouveau · R remplace · C annule
+     itemE                  le texte, en anglais
+     multiLanguage.itemE    LE MÊME TEXTE EN FRANÇAIS, quand il existe
+     qLine.traffic          « I », « V » ou « IV » — de quoi filtrer le VFR
+     qLine.code23/code45    le code Q OACI
+     startValidity/endValidity  + leurs variantes …Format, lisibles
+     itemA, coordinates, radius
+
+   Le JSON brut de chaque NOTAM reste attaché sous « brut ». */
+
+function aplatis(listnotams, opts = {}) {
+  const langue = opts.langue === "en" ? "en" : "fr";
   const sortie = [];
   const vu = new Set();
-  (function marche(noeud, chemin) {
-    if (!noeud || typeof noeud !== "object") return;
-    if (Array.isArray(noeud)) { noeud.forEach((x) => marche(x, chemin)); return; }
 
-    const id = premierChamp(noeud, ["id", "numero", "number", "notamId", "cle", "key"]);
-    const texte = premierChamp(noeud, ["text", "texte", "message", "e", "itemE", "content"]);
-    if ((id && RE_ID.test(String(id).trim())) || (texte && String(texte).length > 8 && id)) {
-      const cle = chemin.join("/") + "|" + id;
-      if (!vu.has(cle)) {
-        vu.add(cle);
-        sortie.push({
-          terrain: chemin.find((c) => /^[A-Z]{4}$/.test(c)) || chemin[0] || "",
-          categorie: chemin[chemin.length - 1] || "",
-          id: String(id).trim(),
-          texte: String(texte || "").trim(),
-        });
+  const pousse = (n, groupe, categorie) => {
+    if (!n || typeof n !== "object") return;
+    const numero = (n.series && n.number)
+      ? String(n.series) + " " + n.number + "/" + (n.year ?? "")
+      : String(n.id ?? "");
+    /* § 13 : dédupliquer par série/numéro/année */
+    const cle = numero || JSON.stringify(n).slice(0, 60);
+    if (vu.has(cle)) return;
+    vu.add(cle);
+
+    const fr = n.multiLanguage && typeof n.multiLanguage.itemE === "string"
+      ? n.multiLanguage.itemE.trim() : "";
+    const en = typeof n.itemE === "string" ? n.itemE.trim() : "";
+
+    sortie.push({
+      groupe,                                   // ADDep · ADDes · FIR · …
+      categorie,                                // aire_mouvement, obstacles, …
+      terrain: n.itemA || n.sectionCode || groupe,
+      numero,                                   // « E 3970/26 »
+      type: n.type || "",                       // N · R · C
+      texte: (langue === "fr" && fr) || en,     // français si disponible
+      texteEn: en,
+      traduit: !!fr,
+      trafic: (n.qLine && n.qLine.traffic) || "",   // I · V · IV
+      codeQ: n.qLine ? [n.qLine.code23, n.qLine.code45].filter(Boolean).join("") : "",
+      debut: n.startValidityFormat || n.startValidity || "",
+      fin: n.endValidityFormat || n.endValidity || "",
+      id: String(n.id ?? ""),
+      brut: n,
+    });
+  };
+
+  /* Un groupe est soit un objet { code, name, catégories… }, soit un tableau. */
+  const traite = (nom, groupe) => {
+    if (!groupe) return;
+    if (Array.isArray(groupe)) { groupe.forEach((n) => pousse(n, nom, "")); return; }
+    for (const [k, v] of Object.entries(groupe)) {
+      if (Array.isArray(v)) v.forEach((n) => pousse(n, groupe.code || nom, k));
+      else if (v && typeof v === "object") traite(v.code || k, v);
+    }
+  };
+
+  const connus = ["ADDep", "ADDeg", "ADSur", "ADDes", "FIR", "Other"];
+  const reconnu = connus.some((k) => k in (listnotams || {}));
+  if (reconnu) {
+    for (const k of connus) traite(k, listnotams[k]);
+    /* tout groupe supplémentaire qu'une évolution de SOFIA ajouterait */
+    for (const k of Object.keys(listnotams)) if (!connus.includes(k)) traite(k, listnotams[k]);
+  } else {
+    /* structure inconnue : on retombe sur un parcours tolérant plutôt que de
+       rendre une liste vide, qui passerait pour « aucun NOTAM » */
+    (function marche(n, ch) {
+      if (!n || typeof n !== "object") return;
+      if (Array.isArray(n)) return n.forEach((x) => marche(x, ch));
+      if (typeof n.itemE === "string" || typeof n.text === "string") {
+        return pousse(n, ch[0] || "", ch[ch.length - 1] || "");
       }
-      return;
-    }
-    for (const [k, v] of Object.entries(noeud)) {
-      if (typeof v !== "object" || v === null) continue;
-      const suite = chemin.slice();
-      if (v && typeof v === "object" && !Array.isArray(v) && typeof v.code === "string") suite.push(v.code);
-      suite.push(k);
-      marche(v, suite);
-    }
-  })(listnotams, []);
+      for (const [k, v] of Object.entries(n)) marche(v, ch.concat(v && v.code ? v.code : k));
+    })(listnotams, []);
+  }
   return sortie;
 }
 
-function premierChamp(o, noms) {
-  for (const n of noms) if (typeof o[n] === "string" && o[n]) return o[n];
-  return null;
+/* Ne garder que ce qui concerne un vol VFR : le champ traffic de la ligne Q
+   porte « V » quand le NOTAM vise la circulation à vue. Les NOTAM sans ligne Q
+   exploitable sont CONSERVÉS — mieux vaut un NOTAM de trop qu'un de moins. */
+function filtreVfr(notams) {
+  return notams.filter((n) => !n.trafic || /V/i.test(n.trafic));
 }
 
-module.exports = { recuperePib, valideRoute, corpsBrut, isoUtcSecondes, aplatis, SOFIA_ORIGIN_DEFAUT };
+module.exports.filtreVfr = filtreVfr;
+
+module.exports = { recuperePib, valideRoute, corpsBrut, isoUtcSecondes, aplatis, filtreVfr, SOFIA_ORIGIN_DEFAUT };

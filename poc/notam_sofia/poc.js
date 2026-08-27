@@ -72,9 +72,24 @@ const drapeau = (n) => process.argv.includes("--" + n);
   console.log("  ADDep     : " + (L.ADDep && L.ADDep.code) + " — " + (L.ADDep && L.ADDep.name));
   console.log("  ADDes     : " + (L.ADDes && L.ADDes.code) + " — " + (L.ADDes && L.ADDes.name));
 
-  console.log("\nNOTAM extraits : " + r.notams.length);
-  for (const n of r.notams) {
-    console.log("  [" + (n.terrain || "?") + " / " + n.categorie + "] " + n.id + "  " + n.texte);
+  const { filtreVfr } = require("./sofia_client");
+  const liste = drapeau("vfr") ? filtreVfr(r.notams) : r.notams;
+  const traduits = r.notams.filter((n) => n.traduit).length;
+
+  console.log("\nNOTAM : " + r.notams.length + " extraits"
+    + (r.nbNotams !== undefined ? " (SOFIA en annonce " + r.nbNotams + ")" : "")
+    + " · " + traduits + " traduits en français"
+    + (drapeau("vfr") ? " · filtre VFR : " + liste.length + " retenus" : ""));
+
+  let groupe = "";
+  for (const n of liste) {
+    const g = n.groupe + " / " + n.categorie;
+    if (g !== groupe) { groupe = g; console.log("\n  ── " + g + " ──"); }
+    console.log("  " + (n.numero || n.id).padEnd(12) + (n.type ? "[" + n.type + "] " : "")
+      + (n.trafic ? "(" + n.trafic + ") " : "")
+      + (n.traduit ? "" : "(en) ")
+      + n.texte.replace(/\s*\n\s*/g, " ⏎ "));
+    if (n.debut) console.log("               " + n.debut + " → " + n.fin);
   }
   console.log("\nrécupéré à " + r.retrievedAt + " · " + (Date.now() - t0) + " ms au total");
   console.log("source : SOFIA-Briefing (DGAC)");

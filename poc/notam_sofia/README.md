@@ -26,22 +26,58 @@ IP de datacenter** (Supabase), ce que seul le déploiement dira.
 Côté banc, 57 assertions passent, et trois défauts réels ont été trouvés dans le
 Worker v1 du document, chacun mesuré, chacun corrigé.
 
-### Ce que le test réel a appris, et que le document ne disait pas
+### La structure réelle du PIB, relevée sur pièce
 
-1. **`duration=1200` vaut bien 12 heures.** `validFrom 14:13:11Z` →
-   `validTo 02:13:00Z` le lendemain. Le format HHMM est confirmé sur pièce.
-2. **Le champ `id` n'est PAS le numéro de NOTAM.** Le PIB porte un identifiant
-   interne (`400000051804734`) là où le document citait `E 3550/26` — pour le même
-   NOTAM, « RWY 07R/25L NIGHT VFR PROHIBITED. ». Le vrai numéro est ailleurs dans
-   la structure. L'aplatisseur doit être recalé sur une capture réelle.
-3. **Les catégories réelles sont bien plus riches** que les deux du document :
-   `aerodromes_services`, `aire_mouvement`, `balisage`,
-   `aides_atter_instal_radionav_GNSS`, `procedures`,
-   `organisation_espace_services_circulation`, `obstacles`, plus un bloc FIR entier.
-4. **Le volume est un sujet produit.** 84 NOTAM et 108 ko pour un vol de 12 NM.
+Le document n'en citait que `ADDep.code` / `ADDes.code`. Voici ce qu'il y a
+vraiment — c'est là-dessus que l'extraction est désormais calée :
+
+```
+listnotams
+  ADDep, ADDes   { code, name, + 12 tableaux de catégorie }
+  ADDeg, ADSur   tableaux (dégagements, terrains survolés)
+  FIR            { 8 tableaux de catégorie, aux noms différents }
+  Other          tableau
+```
+
+Catégories terrain : `aerodromes_services`, `aire_mouvement`, `aire_trafic`,
+`balisage`, `aides_atter_instal_radionav_GNSS`, `procedures`,
+`organisation_espace_services_circulation`, `meteorologie_equipements`,
+`reglementation_espace_aerien`, `avertissements_navigation`, `obstacles`,
+`autres_info`.
+
+Et un NOTAM porte :
+
+| Champ | Ce que c'est |
+|---|---|
+| `series` + `number` + `year` | **le vrai numéro** : `E 3970/26` |
+| `id` | identifiant interne (`400000052237901`) — **pas** le numéro |
+| `type` | `N` nouveau · `R` remplace · `C` annule |
+| `itemE` | le texte, en anglais |
+| `multiLanguage.itemE` | **le même texte en français**, quand il existe |
+| `qLine.traffic` | `I` · `V` · `IV` — de quoi filtrer le VFR |
+| `qLine.code23/code45` | le code Q OACI |
+| `startValidity`/`endValidity` + `…Format` | les bornes, brutes et lisibles |
+| `itemA`, `coordinates`, `radius` | le terrain et la zone |
+
+Le PIB porte aussi `nbNotams`, `authorityName`, `organisationName`, `issued`,
+`waypoints` et `snowtams`.
+
+### Trois enseignements du test réel
+
+1. **Le français est déjà dans la charge.** `multiLanguage.itemE` :
+   « SMA UL AERO SUPER+ INDISPONIBLE » à côté de « 'SMA UL AERO SUPER+' NOT AVBL ».
+   Aucun paramètre supplémentaire n'est nécessaire — `lang=fr` ne pilote que la
+   langue de l'interface. **Tous les NOTAM ne sont pas traduits** : sur le relevé,
+   `itemE` apparaît 155 fois pour 84 NOTAM, soit environ 71 traduits et 13 sans.
+   Le repli sur l'anglais est donc obligatoire.
+2. **`duration=1200` vaut bien 12 heures.** `validFrom 14:18:28Z` →
+   `validTo 02:18:00Z`, et SOFIA renvoie `duration: 1159`. Le format HHMM du § 7
+   est confirmé sur pièce.
+3. **Le volume est un sujet produit.** 84 NOTAM et 93 ko pour un vol de 12 NM.
    Le bloc FIR contient beaucoup de choses sans objet en VFR local — CPDLC
    Eurocontrol, restrictions Iran/Irak/Qatar pour transporteurs français, DME
-   en-route. Un filtrage sera nécessaire, sinon le badge NOTAM sera illisible.
+   en-route. D'où `filtreVfr()`, qui s'appuie sur `qLine.traffic` et garde les
+   NOTAM sans ligne Q exploitable : mieux vaut un NOTAM de trop qu'un de moins.
 
 ---
 
@@ -125,14 +161,12 @@ nouveau à mettre en secret, rien qui puisse fuir dans GitHub.
    depuis une IP résidentielle. Supabase sort d'un datacenter, et un service
    `.gouv.fr` peut l'y filtrer ou le ralentir. Seul le déploiement le dira, et si
    ça coince, c'est là que ça coincera.
-2. **Le nommage exact des NOTAM dans `listnotams`** — voir le point 2 du § 1.
-   L'aplatisseur est tolérant et conserve le JSON brut à côté, mais il faut le
-   recaler sur une capture réelle.
-3. **Le filtrage produit** : 84 NOTAM pour LFPN → LFPZ, dont un gros bloc FIR sans
-   objet en VFR local. Quoi montrer, quoi replier, quoi écarter.
-4. **Les quotas et le comportement en rafale.** Une requête isolée passe en 4 s ;
+2. **Le filtrage produit.** `filtreVfr()` écarte ce qui est marqué IFR seul, mais
+   quoi montrer, quoi replier, quoi écarter dans le badge NOTAM reste une décision
+   d'ergonomie, pas de code.
+3. **Les quotas et le comportement en rafale.** Une requête isolée passe en 4 s ;
    rien ne dit ce qui arrive à la vingtième dans la minute.
-5. **Si `postsaveinsessionprepa` est superflu** (§ 11.9 : ne pas le retirer avant
+4. **Si `postsaveinsessionprepa` est superflu** (§ 11.9 : ne pas le retirer avant
    preuve — le POC le garde).
 
 ---
@@ -191,8 +225,9 @@ node poc.js --route LFPN,XXXX                       # erreur contrôlée attendu
 |---|---|
 | `sofia_client.js` | l'adaptateur, sans dépendance — Node / Deno / Workers |
 | `poc.js` | le POC en ligne de commande |
-| `faux_sofia.js` | la doublure SOFIA, stricte sur tous les pièges |
-| `test_poc.js` | 35 assertions — le client |
+| `faux_sofia.js` | la doublure SOFIA, copie champ pour champ du PIB réel |
+| `structure.js` | radiographie d'un PIB capturé — catégories, champs, français |
+| `test_poc.js` | 45 assertions — le client et la lecture du PIB |
 | `test_worker.mjs` | 22 assertions — l'artefact déployable et les corrections |
 | `supabase_notam_sofia.ts` | **la cible recommandée** — Edge Function Supabase |
 | `worker_v1_corrige.js` | la variante Cloudflare, si vous y tenez |

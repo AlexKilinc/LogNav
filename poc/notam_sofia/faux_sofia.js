@@ -30,28 +30,64 @@ const { randomUUID } = require("crypto");
 
 const sessions = new Map();   // JSESSIONID -> { prepa: bool }
 
+/* Structure calquée sur un PIB SOFIA réel (LFPN → LFPZ, 27/08/2026), champ
+   pour champ : series/number/year, id interne distinct, itemE anglais,
+   multiLanguage.itemE français, qLine, validités. Un NOTAM est volontairement
+   laissé SANS traduction, pour éprouver le repli sur l'anglais. */
+const notam = (o) => Object.assign({
+  sectionCode: o.itemA, pibSection: "AD", nof: "LFFA", series: "E", year: 26,
+  type: "N", qLine: { fir: "LFFF", code23: "MR", code45: "LC", traffic: "IV" },
+  coordinates: "4845N00207E", radius: 5,
+  startValidity: "2026-08-19T08:09:00Z", endValidity: "2026-08-28T20:00:00Z",
+  startValidityFormat: "19 08 2026 08:09", endValidityFormat: "28 08 2026 20:00",
+  marker: "+", valid: "",
+}, o);
+
 const PIB_REEL = {
-  pibUid: "NW432608262157",
+  pibUid: "LFYN2608272364",
+  authorityName: "FRANCE",
+  organisationName: "SIA FRANCE",
   validFrom: "2026-08-26T14:13:56.000Z",
   validTo: "2026-08-27T02:13:00.000Z",
+  traffic: "IV", duration: 1159, lowerFl: 0, upperFl: 999, radius: 30, routeWidth: 30,
+  nbNotams: 7,
   listnotams: {
     ADDep: {
-      code: "LFPN",
-      name: "PARIS SACLAY VERSAILLES",
-      aire_mouvement: [
-        { id: "E 3550/26", text: "RWY 07R/25L NIGHT VFR PROHIBITED." },
-      ],
+      code: "LFPN", name: "PARIS SACLAY VERSAILLES",
+      aerodromes_services: [notam({ id: "400000052237901", number: 3970, itemA: "LFPN",
+        qLine: { fir: "LFFF", code23: "FU", code45: "AU", traffic: "IV" },
+        itemE: "'SMA UL AERO SUPER+' NOT AVBL",
+        multiLanguage: { itemE: "SMA UL AERO SUPER+ INDISPONIBLE" } })],
+      aire_mouvement: [notam({ id: "400000051804734", number: 3550, itemA: "LFPN",
+        itemE: "RWY 07R/25L NIGHT VFR PROHIBITED.",
+        multiLanguage: { itemE: "PISTE 07R/25L VFR DE NUIT INTERDIT." } })],
+      aire_trafic: [], balisage: [], procedures: [], obstacles: [], autres_info: [],
     },
+    ADDeg: [], ADSur: [],
     ADDes: {
-      code: "LFPZ",
-      name: "SAINT CYR L'ECOLE",
+      code: "LFPZ", name: "SAINT CYR L'ECOLE",
       aire_mouvement: [
-        { id: "E 2455/26", text: "RWY 11L/29R CLOSED." },
-        { id: "E 2454/26", text: "FATO CLOSED." },
-        { id: "E 2456/26", text: "TAXIWAY B CLOSED." },
-        { id: "E 2457/26", text: "TAXIWAY C CLOSED." },
+        notam({ id: "400000051012141", number: 2455, itemA: "LFPZ",
+          itemE: "RWY 11L/29R CLOSED.", multiLanguage: { itemE: "PISTE 11L/29R FERMEE." } }),
+        notam({ id: "400000051012048", number: 2454, itemA: "LFPZ",
+          itemE: "FATO CLOSED.", multiLanguage: { itemE: "FATO FERMEE." } }),
+        notam({ id: "400000051012153", number: 2456, itemA: "LFPZ",
+          itemE: "TAXIWAY B CLOSED.", multiLanguage: { itemE: "TAXIWAY B FERME." } }),
+        /* celui-ci n'a PAS de traduction : repli sur l'anglais attendu */
+        notam({ id: "400000051012181", number: 2457, itemA: "LFPZ",
+          itemE: "TAXIWAY C CLOSED." }),
       ],
+      obstacles: [], autres_info: [],
     },
+    FIR: {
+      /* un NOTAM en-route, trafic IFR seulement : doit tomber au filtre VFR */
+      installations_com_surveillance: [notam({ id: "400000047879352", number: 1210, itemA: "LFFF",
+        sectionCode: "LFFF",
+        qLine: { fir: "LFFF", code23: "CS", code45: "AU", traffic: "I" },
+        itemE: "EUROCONTROL LOGON LIST FUNCTIONALITY SET UP FOR THE EN-ROUTE CENTRES." })],
+      avertissements_navigation: [], obstacles: [], autres_info: [],
+    },
+    Other: [],
   },
 };
 
@@ -80,9 +116,12 @@ function pibPour(route) {
     pibUid: "NW" + Math.abs(hash(route.join(""))).toString().padStart(12, "0").slice(0, 12),
     validFrom: PIB_REEL.validFrom,
     validTo: PIB_REEL.validTo,
+    nbNotams: 0,
     listnotams: {
       ADDep: { code: route[0], name: "TERRAIN " + route[0], aire_mouvement: [] },
+      ADDeg: [], ADSur: [],
       ADDes: { code: route[route.length - 1], name: "TERRAIN " + route[route.length - 1], aire_mouvement: [] },
+      FIR: { autres_info: [] }, Other: [],
     },
   };
 }

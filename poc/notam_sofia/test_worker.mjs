@@ -34,7 +34,7 @@ dit(pre.status === 204 && pre.headers.get("access-control-allow-origin") === "ht
 const rep = await poste({ route: ["LFPN", "LFPZ"] });
 const j = await rep.json();
 dit(rep.status === 200 && j.ok === true, "POST /api/notams/route répond 200 · " + rep.status);
-dit(j.pib.pibUid === "NW432608262157", "pibUid · " + j.pib.pibUid);
+dit(j.pib.pibUid === "LFYN2608272364", "pibUid · " + j.pib.pibUid);
 dit(j.pib.listnotams.ADDep.code === "LFPN" && j.pib.listnotams.ADDes.code === "LFPZ",
     "ADDep/ADDes · " + j.pib.listnotams.ADDep.code + " → " + j.pib.listnotams.ADDes.code);
 dit(j.trace.map((t) => t.etape).join(",") === "session,preparation,pib",
