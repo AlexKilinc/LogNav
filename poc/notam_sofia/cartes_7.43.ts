@@ -18,10 +18,10 @@
  * Déploiement : Supabase > Edge Functions > fonction « cartes », coller ce
  * fichier EN ENTIER (vérifier que la dernière ligne dans l'éditeur est bien
  * « }); »), déployer, et laisser « Enforce JWT verification » DÉSACTIVÉ.
- * Aucun secret requis. Vérification : ouvrir ?version=1 -> doit répondre 7.42.
+ * Aucun secret requis. Vérification : ouvrir ?version=1 -> doit répondre 7.43.
  */
 
-const VERSION = "7.42";
+const VERSION = "7.43";
 const AERO = "https://aviation.meteo.fr";
 const SOFIA = "https://sofia-briefing.aviation-civile.gouv.fr";
 const UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Safari/605.1.15";
@@ -1143,19 +1143,40 @@ function sofiaVersApp(n: Record<string, any>, groupe: string, categorie: string)
 }
 
 /* La structure réelle, relevée le 27/08/2026 :
+
      listnotams
-       ADDep, ADDes   { code, name, + 12 tableaux de catégorie }
-       ADDeg, ADSur   tableaux (dégagements, terrains survolés)
+       ADDep, ADDes   { code, name, + 12 tableaux de catégorie }   -> OBJET terrain
+       ADDeg, ADSur   TABLEAUX DE TERRAINS de la même forme         -> dégagements,
+                      (chacun : code, name, + ses catégories)          survolés
        FIR            { 8 tableaux de catégorie, aux noms différents }
-       Other          tableau                                            */
+       Other          tableau
+
+   ATTENTION, c'est le piège qui a coûté le plus cher ici : ADDeg et ADSur ne
+   sont PAS des tableaux de NOTAM, ce sont des tableaux de TERRAINS. Les
+   parcourir comme s'ils contenaient des NOTAM broyait tout leur contenu —
+   autrement dit les terrains survolés et les dégagements disparaissaient, et
+   c'est précisément ce que SOFIA rendait de moins qu'autorouter.
+
+   Le parcours ne se fie donc plus au NOM du groupe mais à la FORME : un objet
+   est un NOTAM s'il porte itemE, ou series+number. Tout le reste est un
+   conteneur dans lequel on descend. Une évolution de SOFIA qui ajouterait un
+   niveau ou renommerait un groupe passera sans rien perdre. */
 const SOFIA_GROUPES = ["ADDep", "ADDeg", "ADSur", "ADDes", "FIR", "Other"];
 
 function sofiaAplatis(listnotams: Record<string, any>) {
   const sortie: Record<string, unknown>[] = [];
   const vus = new Set<string>();
-  const pousse = (n: unknown, groupe: string, categorie: string) => {
-    if (!n || typeof n !== "object") return;
-    const o = sofiaVersApp(n as Record<string, any>, groupe, categorie);
+  /* les terrains que SOFIA a réellement examinés : sans cette liste,
+     « aucun NOTAM sur ce terrain » et « SOFIA n'a pas regardé ce terrain »
+     s'affichent pareil — et le second est un mensonge dangereux */
+  const couverts = new Set<string>();
+
+  const estNotam = (o: Record<string, unknown>) =>
+    typeof o.itemE === "string" || (o.series != null && o.number != null);
+
+  const pousse = (n: Record<string, any>, groupe: string, categorie: string) => {
+    const o = sofiaVersApp(n, groupe, categorie);
+    if (o.ad && /^[A-Z]{4}$/.test(o.ad)) couverts.add(o.ad);
     /* dédupliquer par numéro et terrain : un même NOTAM peut figurer sous
        deux catégories */
     const cle = o.serie + "|" + o.ad;
@@ -1163,31 +1184,25 @@ function sofiaAplatis(listnotams: Record<string, any>) {
     vus.add(cle);
     sortie.push(o);
   };
-  const traite = (nom: string, g: unknown) => {
-    if (!g) return;
-    if (Array.isArray(g)) { g.forEach((n) => pousse(n, nom, "")); return; }
-    for (const [k, v] of Object.entries(g as Record<string, unknown>)) {
-      if (Array.isArray(v)) v.forEach((n) => pousse(n, nom, k));
-      else if (v && typeof v === "object") traite(nom, v);
+
+  const marche = (n: unknown, groupe: string, categorie: string) => {
+    if (!n || typeof n !== "object") return;
+    if (Array.isArray(n)) { n.forEach((x) => marche(x, groupe, categorie)); return; }
+    const o = n as Record<string, any>;
+    if (estNotam(o)) { pousse(o, groupe, categorie); return; }
+    /* conteneur : s'il porte un code OACI, c'est un terrain que SOFIA a
+       examiné — même s'il n'a aucun NOTAM à signaler */
+    if (typeof o.code === "string" && /^[A-Z]{4}$/.test(o.code)) couverts.add(o.code);
+    for (const [k, v] of Object.entries(o)) {
+      if (v && typeof v === "object") marche(v, groupe, k);
     }
   };
-  const connu = SOFIA_GROUPES.some((k) => k in (listnotams || {}));
-  if (connu) {
-    for (const k of SOFIA_GROUPES) traite(k, listnotams[k]);
-    /* tout groupe qu'une évolution de SOFIA ajouterait : on le prend quand même */
-    for (const k of Object.keys(listnotams)) if (!SOFIA_GROUPES.includes(k)) traite(k, listnotams[k]);
-  } else {
-    /* structure inattendue : parcours tolérant plutôt qu'une liste vide, qui
-       passerait pour « aucun NOTAM » */
-    (function marche(n: unknown, ch: string[]) {
-      if (!n || typeof n !== "object") return;
-      if (Array.isArray(n)) { n.forEach((x) => marche(x, ch)); return; }
-      const o = n as Record<string, unknown>;
-      if (typeof o.itemE === "string") { pousse(o, ch[0] || "", ch[ch.length - 1] || ""); return; }
-      for (const [k, v] of Object.entries(o)) marche(v, ch.concat(k));
-    })(listnotams, []);
-  }
-  return sortie;
+
+  const l = listnotams || {};
+  for (const k of SOFIA_GROUPES) if (k in l) marche(l[k], k, "");
+  /* tout groupe qu'une évolution de SOFIA ajouterait : on le prend quand même */
+  for (const k of Object.keys(l)) if (!SOFIA_GROUPES.includes(k)) marche(l[k], k, "");
+  return { notams: sortie, couverts: Array.from(couverts).sort() };
 }
 
 /* La séquence complète. Le bocal à témoins est PROPRE À CET APPEL : le bocal
@@ -1355,11 +1370,16 @@ async function notamSofia(q: URLSearchParams): Promise<Response> {
   }
   try {
     const { pib, trace } = await sofiaPib(route, opts);
-    const notams = sofiaAplatis(pib.listnotams);
+    const { notams, couverts } = sofiaAplatis(pib.listnotams);
     const corps = JSON.stringify({
       ok: true,
       source: "SOFIA-Briefing",
       route,
+      /* les terrains que SOFIA a examinés — départ, arrivée, survolés,
+         dégagements, et tout terrain tombé dans le rayon radiusAD. L'appli
+         s'en sert pour ne jamais écrire « rien à signaler » sur un terrain
+         que SOFIA n'a pas regardé. */
+      couverts,
       pibUid: pib.pibUid,
       validFrom: pib.validFrom,
       validTo: pib.validTo,

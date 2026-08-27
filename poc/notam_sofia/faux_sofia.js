@@ -50,7 +50,7 @@ const PIB_REEL = {
   validFrom: "2026-08-26T14:13:56.000Z",
   validTo: "2026-08-27T02:13:00.000Z",
   traffic: "IV", duration: 1159, lowerFl: 0, upperFl: 999, radius: 30, routeWidth: 30,
-  nbNotams: 7,
+  nbNotams: 9,
   listnotams: {
     ADDep: {
       code: "LFPN", name: "PARIS SACLAY VERSAILLES",
@@ -63,7 +63,23 @@ const PIB_REEL = {
         multiLanguage: { itemE: "PISTE 07R/25L VFR DE NUIT INTERDIT." } })],
       aire_trafic: [], balisage: [], procedures: [], obstacles: [], autres_info: [],
     },
-    ADDeg: [], ADSur: [],
+    /* ADDeg et ADSur sont des TABLEAUX DE TERRAINS, de la même forme que
+       ADDep : code, name, puis les catégories. Les prendre pour des tableaux
+       de NOTAM broie tout leur contenu — et c'est précisément ce qui manquait
+       par rapport à autorouter : les terrains survolés et les dégagements. */
+    ADSur: [{
+      code: "LFOZ", name: "ORLEANS SAINT DENIS DE L'HOTEL",
+      aire_mouvement: [notam({ id: "400000051900001", number: 3120, itemA: "LFOZ",
+        itemE: "TWY A CLOSED.", multiLanguage: { itemE: "TAXIWAY A FERME." } })],
+      obstacles: [],
+    }],
+    ADDeg: [{
+      code: "LFPT", name: "PONTOISE CORMEILLES",
+      aerodromes_services: [notam({ id: "400000051900002", number: 3121, itemA: "LFPT",
+        itemE: "AD CLOSED OUTSIDE ATS HOURS.",
+        multiLanguage: { itemE: "AD FERME HORS HORAIRES ATS." } })],
+      aire_mouvement: [],
+    }],
     ADDes: {
       code: "LFPZ", name: "SAINT CYR L'ECOLE",
       aire_mouvement: [

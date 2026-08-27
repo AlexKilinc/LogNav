@@ -118,9 +118,18 @@ async function echoue(fn, motif, titre) {
   dit(r.trace.every((t) => !("cookieValeur" in t)), "la trace ne journalise que les NOMS de cookies");
 
   /* ===== 7. L'APLATISSAGE, CALÉ SUR LA STRUCTURE RÉELLE ============= */
-  dit(r.notams.length === 7 && r.nbNotams === 7,
-      "les 7 NOTAM sont extraits, et le compte annoncé par SOFIA concorde · "
+  dit(r.notams.length === 9 && r.nbNotams === 9,
+      "les 9 NOTAM sont extraits, et le compte annoncé par SOFIA concorde · "
       + r.notams.length + " / " + r.nbNotams);
+  /* ADDeg et ADSur sont des tableaux de TERRAINS, pas de NOTAM : les lire
+     comme des NOTAM broyait les terrains survolés et les dégagements — ce que
+     SOFIA rendait de moins qu'autorouter. */
+  dit(r.notams.some((n) => n.terrain === "LFOZ" && /TAXIWAY A FERME/.test(n.texte)),
+      "le NOTAM du terrain SURVOLÉ est extrait (groupe ADSur)");
+  dit(r.notams.some((n) => n.terrain === "LFPT" && /AD FERME HORS HORAIRES/.test(n.texte)),
+      "celui du DÉGAGEMENT aussi (groupe ADDeg)");
+  dit(["LFPN", "LFPZ", "LFOZ", "LFPT"].every((c) => r.notams.couverts.includes(c)),
+      "et les terrains examinés par SOFIA sont listés · " + r.notams.couverts.join(" "));
   const vfrNuit = r.notams.find((n) => n.numero === "E 3550/26");
   dit(!!vfrNuit, "le VRAI numéro est reconstitué depuis series/number/year · E 3550/26");
   dit(vfrNuit && vfrNuit.id === "400000051804734" && vfrNuit.id !== vfrNuit.numero,
@@ -147,7 +156,7 @@ async function echoue(fn, motif, titre) {
 
   /* le filtre VFR */
   const vfr = filtreVfr(r.notams);
-  dit(vfr.length === 6 && !vfr.some((n) => n.trafic === "I"),
+  dit(vfr.length === 8 && !vfr.some((n) => n.trafic === "I"),
       "le filtre VFR écarte le NOTAM en-route réservé à l'IFR · " + r.notams.length + " → " + vfr.length);
   dit(r.notams.some((n) => n.trafic === "I"),
       "mais il est bien présent dans la liste complète, sans filtre");

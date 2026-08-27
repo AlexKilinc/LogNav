@@ -87,13 +87,29 @@ dit(a.http === 200 && a.corps.ok === true, "la requête aboutit · HTTP " + a.ht
 dit(a.voie === "frais", "et elle est allée à la source · " + a.voie);
 dit(a.corps.pibUid === "LFYN2608272364", "pibUid · " + a.corps.pibUid);
 dit(a.corps.route.join(",") === "LFPN,LFPZ", "la route est reprise · " + a.corps.route.join(","));
-dit(a.corps.total === 7 && a.corps.nbSofia === 7,
-    "les 7 NOTAM sont extraits et le compte de SOFIA concorde · "
+dit(a.corps.total === 9 && a.corps.nbSofia === 9,
+    "les 9 NOTAM sont extraits et le compte de SOFIA concorde · "
     + a.corps.total + " / " + a.corps.nbSofia);
 /* la doublure porte exprès deux NOTAM sans traduction — le taxiway C et le
    NOTAM FIR — pour éprouver le repli sur l'anglais */
-dit(a.corps.traduits === 5,
-    "5 des 7 sont traduits, 2 ne le sont pas · " + a.corps.traduits + "/7");
+dit(a.corps.traduits === 7,
+    "7 des 9 sont traduits, 2 ne le sont pas · " + a.corps.traduits + "/9");
+
+/* ===== 1 bis. LES TERRAINS SURVOLÉS ET LES DÉGAGEMENTS ============
+   ADDeg et ADSur sont des tableaux de TERRAINS, pas de NOTAM. Les parcourir
+   comme des NOTAM broyait leur contenu : c'est exactement ce que SOFIA
+   rendait de moins qu'autorouter. */
+const sur = a.corps.notams.find((x) => x.ad === "LFOZ");
+dit(!!sur && sur.serie === "E3120/26" && /TAXIWAY A FERME/.test(sur.texte),
+    "le NOTAM du terrain SURVOLÉ est extrait · " + (sur && sur.serie + " " + sur.ad));
+const deg = a.corps.notams.find((x) => x.ad === "LFPT");
+dit(!!deg && deg.serie === "E3121/26" && /AD FERME HORS HORAIRES ATS/.test(deg.texte),
+    "celui du DÉGAGEMENT aussi · " + (deg && deg.serie + " " + deg.ad));
+dit(!!sur && !sur.fir_seul && !!deg && !deg.fir_seul,
+    "et ni l’un ni l’autre n’est rangé avec les NOTAM d’espace aérien");
+dit(Array.isArray(a.corps.couverts)
+    && ["LFPN", "LFPZ", "LFOZ", "LFPT"].every((c) => a.corps.couverts.includes(c)),
+    "les terrains examinés par SOFIA sont rendus · " + (a.corps.couverts || []).join(" "));
 
 /* ===== 2. LA FORME INTERNE DE L'APPLI ============================= */
 const n = a.corps.notams.find((x) => x.serie === "E3550/26");

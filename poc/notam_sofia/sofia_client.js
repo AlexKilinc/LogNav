@@ -310,6 +310,10 @@ function aplatis(listnotams, opts = {}) {
   const langue = opts.langue === "en" ? "en" : "fr";
   const sortie = [];
   const vu = new Set();
+  /* les terrains que SOFIA a réellement examinés : sans cette liste,
+     « aucun NOTAM ici » et « SOFIA n'a pas regardé ce terrain » s'affichent
+     pareil — et le second est un mensonge */
+  const couverts = new Set();
 
   const pousse = (n, groupe, categorie) => {
     if (!n || typeof n !== "object") return;
@@ -320,6 +324,8 @@ function aplatis(listnotams, opts = {}) {
     const cle = numero || JSON.stringify(n).slice(0, 60);
     if (vu.has(cle)) return;
     vu.add(cle);
+    const ter = n.itemA || n.sectionCode || "";
+    if (/^[A-Z]{4}$/.test(ter)) couverts.add(ter);
 
     const fr = n.multiLanguage && typeof n.multiLanguage.itemE === "string"
       ? n.multiLanguage.itemE.trim() : "";
@@ -343,34 +349,32 @@ function aplatis(listnotams, opts = {}) {
     });
   };
 
-  /* Un groupe est soit un objet { code, name, catégories… }, soit un tableau. */
-  const traite = (nom, groupe) => {
-    if (!groupe) return;
-    if (Array.isArray(groupe)) { groupe.forEach((n) => pousse(n, nom, "")); return; }
-    for (const [k, v] of Object.entries(groupe)) {
-      if (Array.isArray(v)) v.forEach((n) => pousse(n, groupe.code || nom, k));
-      else if (v && typeof v === "object") traite(v.code || k, v);
+  /* PIÈGE : ADDeg et ADSur ne sont PAS des tableaux de NOTAM, ce sont des
+     tableaux de TERRAINS, de la même forme qu'ADDep — code, name, puis les
+     catégories. Les parcourir comme des NOTAM broyait tout leur contenu :
+     les terrains survolés et les dégagements disparaissaient, et c'est
+     exactement ce que SOFIA rendait de moins qu'autorouter.
+     Le parcours ne se fie donc pas au NOM du groupe mais à la FORME : un
+     objet est un NOTAM s'il porte itemE (ou text), ou series + number. Tout
+     le reste est un conteneur dans lequel on descend. */
+  const estNotam = (o) => typeof o.itemE === "string" || typeof o.text === "string"
+    || (o.series != null && o.number != null);
+  const marche = (n, groupe, categorie) => {
+    if (!n || typeof n !== "object") return;
+    if (Array.isArray(n)) { n.forEach((x) => marche(x, groupe, categorie)); return; }
+    if (estNotam(n)) { pousse(n, groupe, categorie); return; }
+    if (typeof n.code === "string" && /^[A-Z]{4}$/.test(n.code)) couverts.add(n.code);
+    for (const [k, v] of Object.entries(n)) {
+      if (v && typeof v === "object") marche(v, groupe, k);
     }
   };
 
   const connus = ["ADDep", "ADDeg", "ADSur", "ADDes", "FIR", "Other"];
-  const reconnu = connus.some((k) => k in (listnotams || {}));
-  if (reconnu) {
-    for (const k of connus) traite(k, listnotams[k]);
-    /* tout groupe supplémentaire qu'une évolution de SOFIA ajouterait */
-    for (const k of Object.keys(listnotams)) if (!connus.includes(k)) traite(k, listnotams[k]);
-  } else {
-    /* structure inconnue : on retombe sur un parcours tolérant plutôt que de
-       rendre une liste vide, qui passerait pour « aucun NOTAM » */
-    (function marche(n, ch) {
-      if (!n || typeof n !== "object") return;
-      if (Array.isArray(n)) return n.forEach((x) => marche(x, ch));
-      if (typeof n.itemE === "string" || typeof n.text === "string") {
-        return pousse(n, ch[0] || "", ch[ch.length - 1] || "");
-      }
-      for (const [k, v] of Object.entries(n)) marche(v, ch.concat(v && v.code ? v.code : k));
-    })(listnotams, []);
-  }
+  const l = listnotams || {};
+  for (const k of connus) if (k in l) marche(l[k], k, "");
+  /* tout groupe supplémentaire qu'une évolution de SOFIA ajouterait */
+  for (const k of Object.keys(l)) if (!connus.includes(k)) marche(l[k], k, "");
+  sortie.couverts = Array.from(couverts).sort();
   return sortie;
 }
 
