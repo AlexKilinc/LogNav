@@ -22,14 +22,30 @@ const dit = (b, t) => { b ? ok++ : ko++; console.log((b ? "OK    " : "ÉCHEC ") 
 const REF = "2026-08-28T10:00:00Z";
 const refD = new Date(REF);
 
-let port = 8900;
+/* Chaque doublure prend un port ÉPHÉMÈRE et l'annonce : le banc le lit sur sa
+   sortie. Des ports fixes le rendaient tributaire de ce qu'une exécution
+   précédente avait laissé vivre — une doublure oubliée sur 8901 faisait
+   échouer le banc suivant pour une raison sans aucun rapport avec le code
+   éprouvé. C'est le genre de fragilité qui fait douter d'un banc au pire
+   moment. */
 const vivants = [];
 function lance(env = {}) {
-  const p = ++port;
-  const enf = spawn(process.execPath, ["faux_meteo.js", String(p)],
-    { stdio: "ignore", env: Object.assign({}, process.env, { FM_REF: REF }, env) });
-  vivants.push(enf);
-  return { o: { sofia: "http://127.0.0.1:" + p, meteo: "http://127.0.0.1:" + p }, enf };
+  return new Promise((res, rej) => {
+    const enf = spawn(process.execPath, ["faux_meteo.js", "0"],
+      { stdio: ["ignore", "pipe", "ignore"],
+        env: Object.assign({}, process.env, { FM_REF: REF }, env) });
+    vivants.push(enf);
+    const minuteur = setTimeout(() => rej(new Error("la doublure n'a pas annonce son port")), 8000);
+    let tampon = "";
+    enf.stdout.on("data", (c) => {
+      tampon += c;
+      const m = /127\.0\.0\.1:(\d+)/.exec(tampon);
+      if (!m) return;
+      clearTimeout(minuteur);
+      const u = "http://127.0.0.1:" + m[1];
+      res({ o: { sofia: u, meteo: u }, enf });
+    });
+  });
 }
 const attends = (ms) => new Promise((r) => setTimeout(r, ms));
 async function echoue(fn, motif, titre) {
@@ -38,8 +54,7 @@ async function echoue(fn, motif, titre) {
 }
 
 (async () => {
-  const nominal = lance();
-  await attends(900);
+  const nominal = await lance();
   const o = nominal.o;
 
   /* ===== § 15.1 — TEMSI FRANCE ===================================== */
@@ -69,6 +84,19 @@ async function echoue(fn, motif, titre) {
     (Date.parse(x.validAt) - Date.parse(wf.items[i].validAt)) / 3600e3);
   dit(pas.length >= 2 && pas.every((h) => h === 3),
       "cadence de 3 h visible entre les échéances · " + pas.join(", ") + " h");
+  /* Il n'y a PLUS QU'UNE carte WINTEM pour la France : une planche A4 qui
+     porte les trois niveaux. Une échéance qui en rendrait deux signalerait un
+     retour en arrière de Météo-France, ou une lecture fautive du catalogue. */
+  const parEcheance = {};
+  wf.items.forEach((x) => { parEcheance[x.validAt] = (parEcheance[x.validAt] || 0) + 1; });
+  dit(Object.values(parEcheance).every((n) => n === 1),
+      "UNE SEULE carte WINTEM par échéance — la France n'en a plus qu'une · "
+      + Object.values(parEcheance).join(","));
+  dit(wf.items.every((x) => x.niveau === "FL20-100"),
+      "et son niveau est FL20-100, les trois niveaux sur la même page · " + wf.items[0].niveau);
+  dit(M.PRODUITS["wintem-france"].niveauReel === "FL20-100"
+      && !("reserve" in M.PRODUITS["wintem-france"]),
+      "le client ne cherche plus à sélectionner un niveau : il n'y a plus rien à sélectionner");
 
   /* ===== § 15.5 et 15.6 — LE STATUT ================================ */
   const c = M.classe(tf.items, refD);
@@ -174,7 +202,7 @@ async function echoue(fn, motif, titre) {
   /* ===== MES AJOUTS À LA NOTE ====================================== */
 
   /* a) un trou au catalogue ne doit pas doubler la validité */
-  const t = lance({ FM_TROU: "1" }); await attends(900);
+  const t = await lance({ FM_TROU: "1" });
   const ct = await M.catalogue("temsi-france", t.o);
   const cc = M.classe(ct.items, refD);
   dit(ct.items.length === 3, "trou au catalogue : 3 échéances au lieu de 4 · " + ct.items.length);
@@ -186,7 +214,7 @@ async function echoue(fn, motif, titre) {
       "dans le trou, aucune carte n’est déclarée en vigueur — on ne comble pas un trou par une carte périmée");
 
   /* b) expiration qui diverge : changement de schéma, à savoir */
-  const e = lance({ FM_EXPDIFF: "1" }); await attends(900);
+  const e = await lance({ FM_EXPDIFF: "1" });
   const ce = await M.catalogue("temsi-france", e.o);
   dit((ce.alertes || []).length > 0 && /expiration diffère de date/.test(ce.alertes[0]),
       "expiration qui diverge : alerte de schéma levée · « " + (ce.alertes[0] || "").slice(0, 58) + " »");
@@ -194,13 +222,13 @@ async function echoue(fn, motif, titre) {
       "et le classement reste juste : expiration n’a jamais servi à classer");
 
   /* c) du HTML servi en 200 avec Content-Type application/pdf */
-  const h = lance({ FM_HTML: "1" }); await attends(900);
+  const h = await lance({ FM_HTML: "1" });
   const ch = await M.catalogue("temsi-france", h.o);
   await echoue(() => M.pdf("temsi-france", ch.items[1].validAt, Object.assign({ catalogue: ch }, h.o)),
     /n'est pas un PDF/, "un HTML servi en 200 sous Content-Type application/pdf est REFUSÉ");
 
   /* d) SOFIA vide -> repli AEROWEB */
-  const r = lance({ FM_VIDE: "1", FM_AEROWEB: "1" }); await attends(900);
+  const r = await lance({ FM_VIDE: "1", FM_AEROWEB: "1" });
   const cr = await M.catalogue("temsi-france", Object.assign({ aerowebId: "CODE" }, r.o));
   dit(cr.source === "AEROWEB", "SOFIA vide : le repli AEROWEB prend la main · " + cr.source);
   dit(cr.items.length >= 3, "et il rend un catalogue complet · " + cr.items.length);
@@ -212,7 +240,7 @@ async function echoue(fn, motif, titre) {
   dit(dr.octets > 1000, "et son PDF se télécharge · " + dr.octets + " octets");
 
   /* e) les deux voies tombent : erreur contrôlée, jamais une liste vide */
-  const z = lance({ FM_VIDE: "1" }); await attends(900);   /* AEROWEB refuse aussi */
+  const z = await lance({ FM_VIDE: "1" });   /* AEROWEB refuse aussi */
   await echoue(() => M.catalogue("temsi-france", Object.assign({ aerowebId: "CODE" }, z.o)),
     /aucun catalogue obtenu/, "SOFIA vide ET AEROWEB en échec : erreur explicite");
   await echoue(() => M.catalogue("temsi-france", z.o),

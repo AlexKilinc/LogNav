@@ -210,6 +210,11 @@ function arrete() { return new Promise((r) => serveur.close(r)); }
 module.exports = { demarre, arrete, serveur, reference, echeances, fabriquePdf };
 
 if (require.main === module) {
-  demarre(Number(process.argv[2]) || 8897).then((p) =>
+  /* « 0 » demande un port éphémère — et il faut le lire comme tel : avec un
+     « || 8897 », zéro étant falsy, toutes les doublures d'un même banc
+     retombaient sur LE MÊME port fixe, et toutes sauf la première échouaient
+     à s'attacher sans rien dire. */
+  const dem = process.argv[2] !== undefined ? Number(process.argv[2]) : 8897;
+  demarre(Number.isFinite(dem) ? dem : 8897).then((p) =>
     console.log("doublure SOFIA météo + Météo-France sur http://127.0.0.1:" + p));
 }

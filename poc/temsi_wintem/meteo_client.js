@@ -67,20 +67,24 @@ const PRODUITS = {
     level: "100",
     page: "/sofia/pages/meteosearchwintem.html",
     resultat: "/sofia/pages/meteowintem.html",
-    /* RÉSERVE IMPORTANTE, et elle contredit la note.
-       La note annonce « postWintem + level=100 » et relève « level=FL20-100 ».
-       Mais elle relève AUSSI, dans la même page, « layer=wintemp/fr/france/
-       fl020 ». Autrement dit : SOFIA étiquette FL20-100 et sert la planche
-       fl020, celle par défaut. Le relais « cartes » de LOGNAVAK l'avait déjà
-       constaté en production — « level=NNN simple : PROUVÉ inopérant, l'image
-       reste le fl020 par défaut » — et y a laissé une chasse aux formes qui
-       n'a jamais trouvé la bonne. Ce POC ne prétend donc PAS obtenir un niveau
-       choisi : il obtient la planche FL020, correctement identifiée comme
-       telle. Demander FL050 ou FL100 reste un problème ouvert. */
+    /* IL N'Y A PLUS QU'UNE SEULE CARTE WINTEM POUR LA FRANCE.
+       Météo-France a changé récemment : une planche unique FL20-100, une page
+       A4 en PDF qui porte LES TROIS NIVEAUX à la fois, valable environ 3 h.
+       Il n'y a donc plus rien à sélectionner.
+
+       Cela éclaire deux choses restées obscures. « level=100 » n'est pas un
+       sélecteur, c'est le paramètre de l'unique carte : la note avait raison
+       de le passer, et raison de relever « level=FL20-100 ». Et l'étiquette
+       « layer=wintemp/fr/france/fl020 » n'est pas une planche par défaut
+       servie à la place d'une autre : c'est l'identifiant, resté historique,
+       de cette carte unique. Le constat du relais LOGNAVAK — « level=NNN
+       PROUVÉ inopérant, l'image reste le fl020 » — était exact dans les faits
+       et faux dans son interprétation : rien ne manquait, il n'y avait plus
+       qu'une carte. La chasse aux formes qu'il a laissée derrière lui court
+       après des niveaux qui n'existent plus. */
     couche: "wintemp/fr/france/fl020",
-    niveauReel: "FL020",
-    reserve: "SOFIA étiquette FL20-100 mais sert la planche FL020 : "
-      + "le niveau n'est pas sélectionnable par ce chemin",
+    niveauReel: "FL20-100",
+    note: "carte unique pour la France : une page A4 portant les trois niveaux",
     aeroweb: "VUE_CARTE=AERO_WINTEM&ALTITUDE=020",
     avanceH: null, nom: "WINTEM France",
   },

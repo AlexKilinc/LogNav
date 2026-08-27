@@ -86,16 +86,34 @@ compte ses pages.
 
 ---
 
-## 5. Deux réserves à connaître
+## 5. Le WINTEM : une carte unique, et une vieille énigme résolue
 
-**Le WINTEM ne donne pas le niveau demandé.** La note annonce « `postWintem` +
-`level=100` » et relève `level=FL20-100`. Mais elle relève **aussi**, dans la
-même page, `layer=wintemp/fr/france/fl020`. SOFIA **étiquette** FL20-100 et
-**sert** la planche FL020, celle par défaut. Votre relais l'avait déjà constaté
-en production — *« level=NNN simple : PROUVÉ inopérant, l'image reste le fl020 »*
-— et y a laissé une chasse aux formes qui n'a jamais trouvé la bonne. Le POC ne
-prétend donc pas obtenir un niveau choisi : il obtient la planche FL020,
-correctement identifiée. **Demander FL050 ou FL100 reste un problème ouvert.**
+**Il n'y a plus qu'une seule carte WINTEM pour la France** : une planche unique
+FL20-100, une page A4 en PDF qui porte **les trois niveaux à la fois**, valable
+environ 3 h. Météo-France a changé cela récemment. Il n'y a donc plus rien à
+sélectionner, et le POC n'essaie pas.
+
+Cette information éclaire deux choses restées obscures des mois durant :
+
+- **`level=100` n'est pas un sélecteur**, c'est le paramètre de l'unique carte.
+  La note avait raison de le passer, et raison de relever `level=FL20-100`.
+- **`layer=wintemp/fr/france/fl020` n'est pas une planche par défaut** servie à
+  la place d'une autre : c'est l'identifiant, resté historique, de cette carte
+  unique.
+
+Le constat laissé dans votre relais — *« level=NNN : PROUVÉ inopérant, l'image
+reste le fl020 par défaut »* — était **exact dans les faits et faux dans son
+interprétation**. Rien ne manquait : il n'y avait plus qu'une carte.
+
+**Conséquence pour votre relais, quand vous y toucherez.** `opsPour()` déroule
+jusqu'à 18 variantes de formulaire pour le WINTEM (`level|`, `niveau`,
+`altitude`, `FL020|FL050|FL100`…) et mémorise la « forme gagnante ». Tout cela
+court après des niveaux qui n'existent plus, et coûte des allers-retours à
+chaque échéance manquante. Une seule forme suffit désormais :
+`{ zone: "FRANCE", level: "100" }`. **Je n'y ai pas touché** — vous avez demandé
+le POC seul — mais c'est du poids mort à retirer.
+
+## 5 bis. Une réserve, elle
 
 **L'ordre SOFIA → AEROWEB inverse le vôtre.** Vous demandez SOFIA d'abord,
 AEROWEB en repli ; le relais fait l'inverse aujourd'hui. En pratique cela ne
@@ -146,8 +164,9 @@ Sortie attendue :
   PDF  2026-08-28 09:00Z  184320 o  application/pdf  → ~/cartes/temsi-france-…pdf
 ```
 
-Envoyez-moi cette sortie : elle dira si les champs réels correspondent, et
-surtout ce que `level` vaut vraiment sur le WINTEM.
+Envoyez-moi cette sortie : elle dira si les champs réels correspondent. Sur le
+WINTEM, attendez-vous à **une seule carte par échéance**, `FL20-100` — c'est
+désormais la seule qui existe pour la France.
 
 ---
 
