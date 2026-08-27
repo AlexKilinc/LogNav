@@ -201,17 +201,51 @@ async function echoue(fn, motif, titre) {
 
   /* ===== MES AJOUTS À LA NOTE ====================================== */
 
-  /* a) un trou au catalogue ne doit pas doubler la validité */
+  /* a) LE SAUT D'HORAIRE — une échéance à 09:00, la suivante à 15:00.
+     La dernière publiée RESTE la référence dans l'intervalle : la retenir
+     laisserait le pilote sans carte alors qu'il en a une. Le devoir n'est pas
+     de la cacher, c'est de dire son âge et de dire que rien d'autre n'a été
+     publié entre-temps. */
   const t = await lance({ FM_TROU: "1" });
   const ct = await M.catalogue("temsi-france", t.o);
   const cc = M.classe(ct.items, refD);
-  dit(ct.items.length === 3, "trou au catalogue : 3 échéances au lieu de 4 · " + ct.items.length);
-  dit(cc.trous.length === 1, "le trou est DÉTECTÉ et signalé · " + cc.trous.length);
-  dit(cc.courante && cc.courante.finNominale === "2026-08-28T12:00:00Z",
-      "et la validité reste bornée à la cadence de 3 h, pas 6 · "
+  dit(ct.items.length === 3, "saut d’horaire : 3 échéances au lieu de 4 · " + ct.items.length);
+  dit(cc.trous.length === 1 && cc.trous[0].heures === 6,
+      "le saut est DÉTECTÉ et mesuré · " + (cc.trous[0] || {}).heures + " h entre "
+      + (cc.trous[0] || {}).apres + " et " + (cc.trous[0] || {}).avant);
+  dit(cc.courante && cc.courante.finNominale === "2026-08-28T15:00:00Z",
+      "la carte de 09:00Z vaut jusqu’à la SUIVANTE, 15:00Z — pas jusqu’à 12:00 · "
       + (cc.courante && cc.courante.finNominale));
-  dit(M.classe(ct.items, new Date("2026-08-28T12:30:00Z")).courante === null,
-      "dans le trou, aucune carte n’est déclarée en vigueur — on ne comble pas un trou par une carte périmée");
+  dit(cc.courante && cc.courante.ageH === 1 && !cc.courante.prolongee,
+      "à 10:00Z elle n’a qu’une heure : rien de particulier à signaler");
+
+  /* au cœur du saut, elle reste la référence — et le dit */
+  const dans = M.classe(ct.items, new Date("2026-08-28T12:30:00Z"));
+  dit(dans.courante && dans.courante.validAt === "2026-08-28T09:00:00Z",
+      "à 12:30Z, la carte de 09:00Z RESTE la référence · "
+      + (dans.courante && dans.courante.validAt));
+  dit(dans.courante && dans.courante.prolongee === true && dans.courante.ageH === 3.5,
+      "elle est marquée prolongée, avec son âge · " + (dans.courante && dans.courante.ageH) + " h");
+  dit(dans.courante && /aucune autre carte publiée depuis 09:00Z/.test(dans.courante.note || ""),
+      "et le motif est explicite · « " + (dans.courante && dans.courante.note || "").slice(0, 78) + " »");
+  dit(dans.courante && /suivante n’est qu’à 15:00Z/.test(dans.courante.note || ""),
+      "en nommant l’heure de la suivante, pour que le pilote sache jusqu’à quand extrapoler");
+
+  /* la dernière publiée, quand rien ne suit */
+  const fin = M.classe(ct.items, new Date("2026-08-28T19:00:00Z"));
+  dit(fin.courante && fin.courante.validAt === "2026-08-28T15:00:00Z"
+      && fin.courante.finNominale === null,
+      "la dernière publiée vaut « jusqu’à la prochaine publication », pas jusqu’à une heure inventée");
+  dit(fin.courante && fin.courante.derniere === true && fin.courante.prolongee === true
+      && /la plus récente disponible/.test(fin.courante.note || ""),
+      "et elle le dit · « " + (fin.courante && fin.courante.note || "").slice(-46) + " »");
+
+  /* le dossier de vol suit la même règle */
+  const volTrou = M.cartesPourVol(ct.items, "2026-08-28T12:00:00Z", "2026-08-28T14:00:00Z");
+  dit(volTrou.length === 1 && volTrou[0].validAt === "2026-08-28T09:00:00Z"
+      && volTrou[0].prolongee === true,
+      "un vol pris dans le saut reçoit bien la carte de 09:00Z, marquée prolongée · "
+      + volTrou.length + " carte");
 
   /* b) expiration qui diverge : changement de schéma, à savoir */
   const e = await lance({ FM_EXPDIFF: "1" });

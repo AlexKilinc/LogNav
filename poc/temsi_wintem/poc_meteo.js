@@ -74,12 +74,19 @@ const hhmm = (iso) => String(iso).slice(0, 16).replace("T", " ") + "Z";
     console.log("\n══ " + P.nom + " ══   source : " + cat.source
       + (cat.repli ? "   (repli — SOFIA : " + cat.repli + ")" : ""));
     (cat.alertes || []).forEach((a) => console.log("  ⚠ " + a));
-    c.trous.forEach((t) => console.log("  ⚠ trou au catalogue entre "
-      + hhmm(t.apres) + " et " + hhmm(t.avant)));
+    c.trous.forEach((t) => console.log("  ⚠ saut d’horaire : " + t.heures + " h entre "
+      + hhmm(t.apres) + " et " + hhmm(t.avant) + " — rien publié entre les deux"));
 
     if (c.courante) {
-      console.log("  EN VIGUEUR  " + hhmm(c.courante.validAt) + " → " + hhmm(c.courante.finNominale)
-        + (c.courante.niveau ? "   " + c.courante.niveau : ""));
+      const k = c.courante;
+      console.log("  EN VIGUEUR  " + hhmm(k.validAt) + " → "
+        + (k.finNominale ? hhmm(k.finNominale) : "prochaine publication")
+        + (k.niveau ? "   " + k.niveau : "") + "   (âge " + k.ageH + " h)");
+      /* Un saut d'horaire — 15:00 puis 21:00 — laisse la carte de 15:00 comme
+         référence. Elle le reste, mais le pilote doit savoir que rien d'autre
+         n'a été publié : une carte de 5 h d'âge ne se lit pas comme une
+         fraîche. Taire cela serait pire que de la retenir. */
+      if (k.note) console.log("  ⚠ " + k.note);
     } else {
       /* § 15.7 : ne jamais deviner. On le dit. */
       console.log("  EN VIGUEUR  aucune carte de référence disponible à cette heure");

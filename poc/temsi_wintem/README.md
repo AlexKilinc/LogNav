@@ -12,7 +12,7 @@ la moitié de ce que la note décrit, en production, depuis des semaines. Ce qui
 manque n'est pas l'accès aux cartes : c'est la **validité**.
 
 ```
-node test_meteo.js    →  58 OK / 0 ÉCHEC
+node test_meteo.js    →  68 OK / 0 ÉCHEC
 ```
 
 ---
@@ -65,13 +65,30 @@ d'échéance à la seconde près : à 11:59:59Z c'est encore la carte de 09:00Z,
 
 ## 4. Trois corrections apportées à la note
 
-**a) La fin de validité doit être bornée par la cadence.** La note calcule la
-fin d'une carte comme le début de **la suivante du catalogue**. Si une échéance
-manque — publication en retard, trou — la carte de 15:00 resterait « en
-vigueur » jusqu'à 21:00 : **six heures**, le double de la cadence et le double
-de la limite pratique du guide Météo-France. Le POC borne à la cadence, signale
-le trou, et ne déclare **aucune** carte en vigueur à l'intérieur du trou. Mieux
-vaut « pas de carte de référence » qu'une carte périmée présentée comme bonne.
+**a) Le saut d'horaire : la dernière publiée reste la référence, et on le dit.**
+Il arrive qu'une échéance soit à 15:00 et la suivante seulement à 21:00. Dans ce
+cas la carte de 15:00 **reste la référence** jusqu'à 21:00 — c'est l'usage, un
+TEMSI sert de son heure de validité jusqu'à l'arrivée du suivant, avec
+extrapolation.
+
+*J'avais d'abord fait le contraire* : bornée à la cadence de 3 h, la carte
+passait périmée et le POC annonçait « aucune carte de référence » au cœur du
+trou. C'était une faute. Cela **cachait une carte que le pilote a bel et bien**,
+et le laissait sans rien alors qu'il avait quelque chose. Le devoir n'est pas de
+retenir la carte, c'est de dire son âge et de dire que rien d'autre n'a été
+publié :
+
+```
+⚠ saut d’horaire : 6 h entre 09:00Z et 15:00Z — rien publié entre les deux
+  EN VIGUEUR  09:00Z → 15:00Z   FL20-150   (âge 3.5 h)
+⚠ aucune autre carte publiée depuis 09:00Z ; la suivante n’est qu’à 15:00Z
+  · elle reste la référence, âgée de 3.5 h
+```
+
+Le dossier de vol suit la même règle : un vol pris dans le saut reçoit la carte
+de 09:00Z, marquée `prolongee`. Et pour la dernière carte publiée, quand rien ne
+suit encore, la fin vaut `null` — qui se lit « jusqu'à la prochaine
+publication », et c'est la vérité, plutôt qu'une heure inventée.
 
 **b) `expiration` n'est pas seulement inutile — sa divergence est un signal.**
 La note dit de ne pas s'en servir ; le POC va plus loin et **alerte** s'il vient
@@ -177,7 +194,7 @@ désormais la seule qui existe pour la France.
 | `meteo_client.js` | le client : catalogue, classification, fenêtre de vol, PDF vérifié |
 | `poc_meteo.js` | le POC en ligne de commande |
 | `faux_meteo.js` | la doublure SOFIA + Météo-France, stricte sur tous les pièges |
-| `test_meteo.js` | 58 assertions — le § 15 au complet, les pièges du § 13, et mes ajouts |
+| `test_meteo.js` | 68 assertions — le § 15 au complet, les pièges du § 13, et mes ajouts |
 
 ---
 

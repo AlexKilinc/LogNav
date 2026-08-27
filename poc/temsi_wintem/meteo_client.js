@@ -366,25 +366,66 @@ function classe(items, reference, o = {}) {
   const ref = (reference instanceof Date ? reference : new Date(reference)).getTime();
   if (!isFinite(ref)) throw new Error("heure de référence invalide");
   const tri = items.slice().sort((a, b) => Date.parse(a.validAt) - Date.parse(b.validAt));
-  let courante = null;
   const futures = [], perimees = [], trous = [];
 
+  /* Les trous sont relevés pour eux-mêmes : un saut d'horaire — 15:00 puis
+     21:00, sans rien entre les deux — est une information, pas un détail
+     d'implémentation. */
+  for (let i = 0; i < tri.length - 1; i++) {
+    const a = Date.parse(tri[i].validAt), b = Date.parse(tri[i + 1].validAt);
+    if (b - a > cadence * 1.5) {
+      trous.push({ apres: tri[i].validAt, avant: tri[i + 1].validAt,
+        heures: Math.round((b - a) / 3600e3),
+        note: "aucune carte publiée entre ces deux échéances" });
+    }
+  }
+
+  /* LA RÉFÉRENCE EST LA DERNIÈRE CARTE PUBLIÉE AVANT L'HEURE VOULUE, un point.
+     Elle le reste jusqu'à ce que la suivante arrive — même si l'attente
+     dépasse la cadence habituelle. C'est l'usage : un TEMSI sert de son heure
+     de validité jusqu'à l'arrivée du suivant, avec extrapolation.
+     J'avais d'abord borné la validité à la cadence et déclaré « aucune carte
+     de référence » à l'intérieur d'un trou. C'était une faute : cela CACHAIT
+     une carte qui est bel et bien la référence, et laissait le pilote sans
+     rien alors qu'il avait quelque chose. Le devoir n'est pas de retenir la
+     carte, c'est de dire son âge et de dire que rien d'autre n'a été publié. */
+  let idx = -1;
+  for (let i = 0; i < tri.length; i++) if (Date.parse(tri[i].validAt) <= ref) idx = i;
+
+  let courante = null;
   for (let i = 0; i < tri.length; i++) {
     const it = tri[i];
     const debut = Date.parse(it.validAt);
     const suivante = tri[i + 1] ? Date.parse(tri[i + 1].validAt) : null;
-    /* la borne : la suivante, MAIS jamais au-delà d'une cadence */
-    const finNominale = suivante == null ? debut + cadence : Math.min(suivante, debut + cadence);
-    if (suivante != null && suivante - debut > cadence * 1.5) {
-      trous.push({ apres: it.validAt, avant: tri[i + 1].validAt,
-        note: "échéance manquante au catalogue entre ces deux cartes" });
+    /* la fin, c'est la SUIVANTE. Pour la dernière publiée, on ne sait pas :
+       null se lit « jusqu'à la prochaine publication », et c'est la vérité. */
+    const enrichie = Object.assign({}, it, {
+      finNominale: suivante == null ? null : isoSec(suivante),
+    });
+    if (i > idx) { futures.push(Object.assign(enrichie, { statut: "PUBLISHED_FUTURE" })); continue; }
+    if (i === idx) {
+      const ageH = Math.round((ref - debut) / 360e3) / 10;   /* au dixième d'heure */
+      const prolongee = ref - debut > cadence;
+      courante = Object.assign(enrichie, {
+        statut: "CURRENT", ageH,
+        /* prolongée : elle reste la référence, mais au-delà de la cadence
+           habituelle — le pilote doit le savoir et extrapoler en conséquence */
+        prolongee,
+        derniere: suivante == null,
+        note: prolongee
+          ? ("aucune autre carte publiée depuis " + it.validAt.slice(11, 16) + "Z"
+             + (suivante == null
+                ? " — c'est la plus récente disponible"
+                : " ; la suivante n’est qu’à " + tri[i + 1].validAt.slice(11, 16) + "Z")
+             + " · elle reste la référence, âgée de " + ageH + " h")
+          : null,
+      });
+      continue;
     }
-    const enrichie = Object.assign({}, it, { finNominale: isoSec(finNominale) });
-    if (debut > ref) { futures.push(Object.assign(enrichie, { statut: "PUBLISHED_FUTURE" })); continue; }
-    if (ref >= debut && ref < finNominale) courante = Object.assign(enrichie, { statut: "CURRENT" });
-    else perimees.push(Object.assign(enrichie, { statut: "EXPIRED" }));
+    perimees.push(Object.assign(enrichie, { statut: "EXPIRED" }));
   }
-  return { courante, futures, perimees, trous, reference: isoSec(ref) };
+  return { courante, futures, perimees, trous, cadenceH: cadence / 3600e3,
+    reference: isoSec(ref) };
 }
 
 /* Un vol couvre souvent PLUSIEURS échéances : la note le dit au § 14, et pour
@@ -401,9 +442,15 @@ function cartesPourVol(items, depart, arrivee, o = {}) {
   for (let i = 0; i < tri.length; i++) {
     const debut = Date.parse(tri[i].validAt);
     const suiv = tri[i + 1] ? Date.parse(tri[i + 1].validAt) : null;
-    const fin = suiv == null ? debut + cadence : Math.min(suiv, debut + cadence);
+    /* même règle que classe() : une carte vaut jusqu'à la SUIVANTE. Borner à
+       la cadence ferait disparaître du dossier la carte qui couvre un trou
+       d'horaire — celle-là même dont le pilote a besoin. */
+    const fin = suiv == null ? debut + cadence : suiv;
     if (fin > d && debut <= a) {
-      out.push(Object.assign({}, tri[i], { finNominale: isoSec(fin) }));
+      out.push(Object.assign({}, tri[i], {
+        finNominale: suiv == null ? null : isoSec(suiv),
+        prolongee: fin - debut > cadence,
+      }));
     }
   }
   return out;
