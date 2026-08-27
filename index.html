@@ -703,7 +703,7 @@ body.rec-full #trace-host .controls,body.rec-full #trace-host .maphint,body.rec-
   }
 #trace-host .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 @media screen and (max-width:820px){
-  /* les boutons Listing / 50 NM occupent le coin bas gauche : le message va a droite */
+  /* le bouton Listing occupe le coin bas gauche : le message va a droite */
   #trace-host .toast.show{transform:translateY(0)!important}
 }
 #trace-host #aeroSearch{
@@ -2998,7 +2998,7 @@ window.__TRACE_MARKUP="\n\n<header>\n  <div class=\"hdr-row1\">\n    <span class
    accessible depuis le bouton ⓘ du bandeau du log, avant toute ouverture de la carte */
 (function(){
   var host=document.createElement('div');
-  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Cartes OACI — origine et mise à jour</b></p>\n    <p style=\"margin-top:-6px\"><b>1/250 000 Région parisienne</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte250\">—</span>.</p>\n    <p style=\"margin-top:-6px\"><b>1/500 000 France</b> — IGN Géoplateforme (SCAN-OACI). Donnée <b>non libre</b>, tenue à jour par l’IGN.</p>\n    <p style=\"margin-top:-6px\"><b>1/1 000 000 France</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte1000\">—</span>.</p>\n    <p>Les deux cartes du SIA sont hébergées à part et lues par plages : seules les tuiles affichées sont téléchargées. Les trois se copient sur l’appareil pour voler sans réseau depuis <b>Profil → Cartes hors-ligne</b>. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.547</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
+  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Cartes OACI — origine et mise à jour</b></p>\n    <p style=\"margin-top:-6px\"><b>1/250 000 Région parisienne</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte250\">—</span>.</p>\n    <p style=\"margin-top:-6px\"><b>1/500 000 France</b> — IGN Géoplateforme (SCAN-OACI). Donnée <b>non libre</b>, tenue à jour par l’IGN.</p>\n    <p style=\"margin-top:-6px\"><b>1/1 000 000 France</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte1000\">—</span>.</p>\n    <p>Les deux cartes du SIA sont hébergées à part et lues par plages : seules les tuiles affichées sont téléchargées. Les trois se copient sur l’appareil pour voler sans réseau depuis <b>Profil → Cartes hors-ligne</b>. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.549</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
   (document.body||document.documentElement).appendChild(host.firstElementChild);
   /* le nom du fichier de la 1/1 000 000 dit son edition : on le lit la ou il
      est vraiment (cartes.json), jamais en dur, sinon il mentirait un jour */
@@ -6661,7 +6661,6 @@ function openRelinkChoice(){
    +'border:1px solid rgba(255,255,255,.28);border-radius:14px;padding:4px 10px;color:#dce8fa;'
    +'font:700 10.5px Poppins,sans-serif;cursor:pointer;box-shadow:0 3px 10px rgba(0,0,0,.25);'
    +'-webkit-tap-highlight-color:transparent}'
-   +'#ntmRayBtn.on{background:#7C3AED;border-color:#7C3AED;color:#fff}'
    +'#azbaLeg{display:inline-flex;align-items:center;gap:7px;background:rgba(15,39,76,.88);'
    +'border:1px solid rgba(255,255,255,.28);border-radius:14px;padding:4px 10px;color:#dce8fa;'
    +'font:700 10px Poppins,sans-serif;white-space:nowrap;box-shadow:0 3px 10px rgba(0,0,0,.25)}'
@@ -6819,15 +6818,14 @@ function openRelinkChoice(){
     +'<span class="mto-d" id="mtoD" title="NOTAM et SUP AIP des terrains du vol">Notam/SupAIP</span>'
     +'<span class="mto-z" id="mtoZ" title="AZBA / RTBA \u2014 activation des zones basse altitude (SIA)">AZBA</span>';
   wrap.appendChild(panel); wrap.appendChild(btn); th.appendChild(wrap);
-  /* outils NOTAM/SUP AIP : pile de fiches (listing complet) + rayon 50 NM —
+  /* outils NOTAM/SUP AIP : pile de fiches (listing complet) —
      visibles seulement quand la couche est allumée */
   var outils=document.createElement('div'); outils.id='ntmOutils'; outils.hidden=true;
   outils.className='no-print';
   outils.innerHTML='<button type="button" id="ntmDosBtn" title="Tous les NOTAM et SUP AIP du vol, classés par terrain">'
     +'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'
     +'<path d="M4 9h16v12H4z"/><path d="M6 9V6h12v3"/><path d="M8 6V3h8v3"/></svg>'
-    +'<span>Listing</span></button>'
-    +'<button type="button" id="ntmRayBtn" title="Étendre la recherche des terrains à 50 NM autour de la trace">50 NM</button>';
+    +'<span>Listing</span></button>';
   /* legende des couleurs AZBA : dans la meme barre que « Listing », donc
      jamais masquee par les boutons ni par le bandeau du bas */
   var azbaLeg=document.createElement('div'); azbaLeg.id='azbaLeg';
@@ -6839,11 +6837,6 @@ function openRelinkChoice(){
   wrap.appendChild(outils);
   outils.addEventListener('click',function(e){ e.stopPropagation();
     if(e.target.closest&&e.target.closest('#ntmDosBtn')){ ntmDossier(); return; }
-    if(e.target.closest&&e.target.closest('#ntmRayBtn')){
-      PROX_NM=(PROX_NM===10)?50:10;
-      var rb=document.getElementById('ntmRayBtn'); if(rb) rb.classList.toggle('on',PROX_NM===50);
-      if(notamOn) ntmCharge();
-    }
   });
   /* le badge AIRAC se pose en haut et au centre de la carte, et non plus dans
      le groupe du bouton Vent ; sa disparition après quelques secondes est
@@ -6980,7 +6973,12 @@ function openRelinkChoice(){
      (position, rayon NM, plancher/plafond FL) : rien à interpréter ici. */
   var notamGroup=L.layerGroup().addTo(map);
   var notamOn=false, notamData=null, notamBusy=false;
-  var PROX_NM=10;   /* rayon de recherche des terrains proches ; 50 NM en mode étendu */
+  /* Rayon de recherche des terrains proches de la trace. Il etait reglable —
+     un bouton « 50 NM » sur la carte et dans le pop-up — mais SOFIA fait mieux
+     et autrement : il compose un PIB de ROUTE, un couloir autour de la trace,
+     ce qu'un rayon autour de terrains ne remplace pas. Le bouton a donc ete
+     retire ; le rayon reste, fixe, pour la voie autorouter. */
+  var PROX_NM=10;
   var notamExtra=[];   /* terrains ajoutés à la main (clic carte ou saisie du listing) */
   /* affichage OACI : le NOTAM dans sa forme officielle, item par item
      (Q, A, B, C, D, E…), telle que la publie le service d'information
@@ -7064,10 +7062,10 @@ function openRelinkChoice(){
           if(d<best) best=d; }
         if(best<=PROX_NM) prox.push([best,k2]); }
       prox.sort(function(a,b){return a[0]-b[0]});
-      var cap=(PROX_NM>10)?40:12;
+      var cap=12;
       for(var s2=0;s2<prox.length&&ordre.length<cap;s2++) pose(prox[s2][1],'\u00e0 proximit\u00e9');
     }
-    return {codes:ordre.slice(0,(PROX_NM>10)?40:12), roles:roles, idx:idx};
+    return {codes:ordre.slice(0,12), roles:roles, idx:idx};
   }
   function ntmEsc(x){ return String(x||'').replace(/[<>&]/g,function(c){return {'<':'&lt;','>':'&gt;','&':'&amp;'}[c]}); }
   /* SUP AIP -> terrains : le titre du SUP cite un lieu ; on le rapproche du
@@ -7246,8 +7244,17 @@ function openRelinkChoice(){
     for(j=0;j<lst.length;j++) if(ddvCle(t,lst[j])===k){ i=j; break; }
     if(i>=0) lst.splice(i,1); else lst.push(o);
     window.__DDV_ECRIRE(d); return i<0; }
-  function ddvBouton(html0,t,i,dans){ return html0.replace('<div class="ntm-un">',
-    '<div class="ntm-un"><button type="button" class="ddv-pm'+(dans?' on':'')
+  /* Le bouton « + » se glisse juste apres le div d'ouverture de la ligne.
+     Il cherchait ce div par une CHAINE EXACTE, « <div class="ntm-un"> ».
+     Or la forme OACI — celle par defaut — ouvre sa ligne avec
+     « <div class="ntm-un ntm-oaci"> » : la substitution ne trouvait rien et le
+     bouton disparaissait SANS BRUIT de tous les NOTAM. Seuls les SUP AIP, qui
+     gardent la classe seule, le conservaient. D'ou « rajoute le petit bouton +
+     comme pour les SUP AIP » : il existait, il ne s'affichait plus.
+     On accepte donc toute liste de classes commencant par ntm-un. */
+  function ddvBouton(html0,t,i,dans){ return String(html0).replace(
+    /^(<div class="ntm-un[^"]*">)/,
+    '$1<button type="button" class="ddv-pm'+(dans?' on':'')
     +'" data-t="'+t+'" data-i="'+i+'" title="'
     +(dans?'Ne plus mettre en lumi\u00e8re dans le dossier de vol (DDV)'
           :'Mettre en lumi\u00e8re dans le dossier de vol (DDV)')
@@ -7574,6 +7581,16 @@ function openRelinkChoice(){
     /* un terrain ajoute a la main a ete demande nommement : il reste affiche
        meme vide, sinon le bouton « Ajouter » semble ne rien faire */
     function ntmdTenu(code){ return sel.roles[code]==='s\u00e9lectionn\u00e9'; }
+    /* \u00ab rien a signaler \u00bb n'est vrai que si la source a REGARDE le terrain.
+       autorouter les interroge tous nommement ; SOFIA, lui, raisonne en
+       couloir, et un terrain hors couloir et hors du rayon de 30 NM n'est pas
+       examine. Ecrire \u00ab rien a signaler \u00bb dessus serait affirmer une absence
+       qu'on n'a pas verifiee. Sans couverts (autorouter, ou un relais qui ne
+       la fournit pas encore), on considere tout comme examine \u2014 l'ancien
+       comportement, inchange. */
+    function ntmdVu(code){
+      var c=notamData&&notamData.couverts;
+      return !c||c.indexOf(code)>=0; }
     var totalN=0, totalS=0;
     codes.forEach(function(code){ totalN+=(parAd[code]||[]).length;
       totalS+=(supsParAd[code]||[]).length; });
@@ -7596,8 +7613,6 @@ function openRelinkChoice(){
     var v=document.createElement('div'); v.id='ntmDos';
     v.className='ntmd no-print'+(ntmHote?' ntmd-in':'');
     var html='<div class="ntmd-hd"><b>NOTAM &amp; SUP AIP</b>'
-      +'<button type="button" class="ntmd-f'+(PROX_NM===50?' on':'')+'" data-f="ray" '
-      +'title="\u00c9tendre la recherche des terrains \u00e0 50 NM autour de la trace">50 NM</button>'
       /* ancres de chapitre : elles MENENT au chapitre, elles ne le masquent
          plus. Chacune porte la couleur de son bandeau, pour qu'on lise
          « raccourci » et non « interrupteur ». */
@@ -7667,7 +7682,13 @@ function openRelinkChoice(){
         +'<span class="ntmd-nom">'+ntmEsc(q.nom||'')+'</span>'
         +'<span class="ntmd-cnt">'+compte+'</span></div>'; }
     {
-      var adsN=codes.filter(function(c){ return (parAd[c]||[]).length||ntmdTenu(c); });
+      /* Un terrain vide disparaît de la liste — c'est voulu, cela évite le
+         bruit. Mais un terrain NON EXAMINÉ n'est pas vide : on ne sait rien de
+         lui. Le faire disparaître reviendrait à le déclarer sans NOTAM sans
+         l'avoir vérifié. Il reste donc affiché, justement pour dire qu'il
+         manque. C'est la seule raison de garder un terrain sans contenu. */
+      var adsN=codes.filter(function(c){
+        return (parAd[c]||[]).length||ntmdTenu(c)||!ntmdVu(c); });
       /* combien ne sont PAS en vigueur a l'instant : c'est l'ecart avec un
          service qui ne montre que le present, et il doit se lire sans avoir
          a ouvrir chaque NOTAM */
@@ -7685,8 +7706,11 @@ function openRelinkChoice(){
       if(!adsN.length) html+='<div class="ntm-un">aucun NOTAM publi\u00e9 sur les terrains du vol.</div>';
       adsN.forEach(function(code){
         var lot=parAd[code]||[];
-        html+=ntmdTete(code,lot.length+' NOTAM');
-        if(!lot.length) html+='<div class="ntm-un">rien \u00e0 signaler</div>';
+        html+=ntmdTete(code,ntmdVu(code)?(lot.length+' NOTAM'):'non couvert');
+        if(!lot.length) html+='<div class="ntm-un'+(ntmdVu(code)?'':' ntmd-panne')+'">'
+          +(ntmdVu(code)?'rien \u00e0 signaler'
+            :'terrain non examin\u00e9 par SOFIA \u2014 il est hors du couloir de la route. '
+             +'Basculer sur AUTOROUTER pour l\u2019interroger nomm\u00e9ment.')+'</div>';
         html+=lot.map(function(n){ var i2=ddvRefN.push(n)-1;
           return ddvBouton(ntmLigne(n),'n',i2,ddvContient('n',n)); }).join(''); });
       /* Ce que SOFIA rend en plus des terrains du vol, en dernier : c'est le
@@ -7795,9 +7819,6 @@ function openRelinkChoice(){
     });
     v.querySelectorAll('.ntmd-f').forEach(function(bf){ bf.onclick=function(){
       var f=bf.getAttribute('data-f');
-      if(f==='ray'){ PROX_NM=(PROX_NM===10)?50:10;
-        var rb=document.getElementById('ntmRayBtn'); if(rb) rb.classList.toggle('on',PROX_NM===50);
-        ntmCharge(); return; }
       /* OACI : une forme d'affichage, pas un filtre — rien n'est masqué */
       if(f==='oaci'){ ntmOaci=!ntmOaci; ntmDossier(); return; }
       /* SOURCE : changer de service change les DONNEES, pas leur mise en
@@ -7920,6 +7941,10 @@ function openRelinkChoice(){
     var terrains=codes.map(function(code){
       var q=(sel.idx||{})[code]||{};
       return {code:code, role:sel.roles[code]||'', nom:q.nom||'',
+        /* la source a-t-elle REGARDE ce terrain ? autorouter les interroge
+           tous nommement ; SOFIA raisonne en couloir. Sans cette marque, un
+           terrain non examine se relit « rien a signaler ». */
+        vu:!notamData.couverts||notamData.couverts.indexOf(code)>=0,
         notams:(parAd[code]||[]).map(ddvNotam),
         sups:(supsParAd[code]||[]).map(function(sp){ return {ad:code,num:sp.num||'',
           du:sp.du||'',au:sp.au||'',titre:ddvCourt(sp.titre),pdf:sp.pdf||''}; })};
@@ -8141,7 +8166,12 @@ function openRelinkChoice(){
       +(d.motif?' \u2014 '+ntmEsc(d.motif):'')+'.</div>';
     else d.terrains.forEach(function(t9){
       h+='<div class="wxd-aero">'+tete(t9);
-      if(!(t9.notams||[]).length) h+='<div class="wxd-msg">rien \u00e0 signaler</div>';
+      /* le dossier est emporte en vol : \u00ab rien a signaler \u00bb sur un terrain que
+         personne n'a examine serait la pire des phrases. On dit ce qui est. */
+      if(!(t9.notams||[]).length) h+='<div class="wxd-msg">'
+        +(t9.vu===false?'<b>terrain non examin\u00e9 par SOFIA</b> \u2014 hors du couloir de la '
+          +'route ; \u00e0 v\u00e9rifier sur le briefing officiel'
+          :'rien \u00e0 signaler')+'</div>';
       (t9.notams||[]).forEach(function(n){ var lum=ddvContient('n',n);
         h+='<div class="wxd-msg'+(lum?' wxd-lum':'')+'">'+(lum?'\u2605 ':'')
           +'<b>'+ntmEsc(n.serie||n.qcode||'NOTAM')+'</b> \u00b7 '
@@ -8272,12 +8302,10 @@ function openRelinkChoice(){
     return true;
   };
   /* Listing visible des que l'une des deux couches est allumee ; le rayon
-     50 NM ne concerne que les terrains (NOTAM / SUP AIP) */
+     la legende AZBA ne parait qu'avec sa couche */
   function ntmOutilsMaj(){
     var o=document.getElementById('ntmOutils');
     if(o) o.hidden=!(notamOn||azbaOn);
-    var rb=document.getElementById('ntmRayBtn');
-    if(rb) rb.hidden=!notamOn;
     var lg=document.getElementById('azbaLeg');
     if(lg){ lg.hidden=!azbaOn;
       if(azbaOn){ var f=azbaFenetre();
@@ -8353,8 +8381,19 @@ function openRelinkChoice(){
        (width) et le rayon autour des terrains couvrent le reste.
        Il faut au moins deux points : sur un aller-retour au meme terrain,
        SOFIA n'a pas de route a tracer — on passe alors directement par
-       autorouter plutot que d'essuyer une erreur. */
-    var ROLES_ROUTE={'départ':1,'survolé':1,'arrivée':1};
+       autorouter plutot que d'essuyer une erreur.
+
+       LES DEGAGEMENTS PARTENT AUSSI, et c'est un choix assume. Un degagement
+       n'est pas sur la route : l'ajouter aux points fait passer le couloir
+       par lui, donc ramasser quelques NOTAM en-route de plus. Mais sans lui,
+       SOFIA ne le regarde pas du tout — sauf s'il tombe par chance dans le
+       rayon de 30 NM autour d'un point — et son terrain revenait vide alors
+       qu'autorouter, lui, l'interroge nommement. Entre un NOTAM de trop dans
+       le bloc espace aerien, qui a son propre chapitre, et un NOTAM de
+       degagement manquant, le choix ne se discute pas.
+       sel.codes est deja dans le bon ordre : depart, survoles, arrivee, puis
+       degagements — c'est l'ordre ou terrainsNotam les a poses. */
+    var ROLES_ROUTE={'départ':1,'survolé':1,'arrivée':1,'dégagement':1};
     var routeSofia=(sel.codes||[]).filter(function(c){
       return /^[A-Z]{4}$/.test(c)&&ROLES_ROUTE[sel.roles[c]]; });
     var viaSofia=function(){
@@ -8368,7 +8407,11 @@ function openRelinkChoice(){
              d'afficher un « aucun NOTAM » qui serait faux. */
           if(!l.length) return {ok:false,motif:'SOFIA n’a rien renvoyé',repli:true};
           ntmSrcServie='sofia';
-          return {ok:true,liste:l,bruts:(j&&j.nbSofia),supprimes:[],sofia:j}; },
+          /* les terrains que SOFIA a REELLEMENT examines. Sans eux, un terrain
+             hors du couloir s'afficherait « rien a signaler » — ce qui n'est
+             pas « aucun NOTAM », c'est « personne n'a regarde ». */
+          return {ok:true,liste:l,bruts:(j&&j.nbSofia),supprimes:[],
+                  couverts:(j&&j.couverts)||null,sofia:j}; },
               function(e){ return {ok:false,motif:String(e).slice(0,80),repli:true}; }); };
     /* Le repli est AUTOMATIQUE et il se dit : ntmReplie porte le motif, que
        le bandeau affiche. Un repli muet ferait lire de l'anglais EAD en
@@ -8397,7 +8440,7 @@ function openRelinkChoice(){
         motif:vN.ok?'':(vN.motif||''),
         bruts:vN.ok?vN.bruts:null, supprimes:vN.ok?(vN.supprimes||[]):[],
         complet:vN.ok&&vS.ok,sups:sups,
-        src:ntmSrcServie, sofia:vN.sofia||null};
+        src:ntmSrcServie, couverts:vN.couverts||null, sofia:vN.sofia||null};
       /* SOFIA livre les deux langues dans la meme charge : on choisit ici le
          champ a afficher, une fois, pour toute la liste. */
       ntmLangueApplique();
