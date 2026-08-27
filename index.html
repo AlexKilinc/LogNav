@@ -2998,7 +2998,7 @@ window.__TRACE_MARKUP="\n\n<header>\n  <div class=\"hdr-row1\">\n    <span class
    accessible depuis le bouton ⓘ du bandeau du log, avant toute ouverture de la carte */
 (function(){
   var host=document.createElement('div');
-  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Cartes OACI — origine et mise à jour</b></p>\n    <p style=\"margin-top:-6px\"><b>1/250 000 Région parisienne</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte250\">—</span>.</p>\n    <p style=\"margin-top:-6px\"><b>1/500 000 France</b> — IGN Géoplateforme (SCAN-OACI). Donnée <b>non libre</b>, tenue à jour par l’IGN.</p>\n    <p style=\"margin-top:-6px\"><b>1/1 000 000 France</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte1000\">—</span>.</p>\n    <p>Les deux cartes du SIA sont hébergées à part et lues par plages : seules les tuiles affichées sont téléchargées. Les trois se copient sur l’appareil pour voler sans réseau depuis <b>Profil → Cartes hors-ligne</b>. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.550</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
+  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Cartes OACI — origine et mise à jour</b></p>\n    <p style=\"margin-top:-6px\"><b>1/250 000 Région parisienne</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte250\">—</span>.</p>\n    <p style=\"margin-top:-6px\"><b>1/500 000 France</b> — IGN Géoplateforme (SCAN-OACI). Donnée <b>non libre</b>, tenue à jour par l’IGN.</p>\n    <p style=\"margin-top:-6px\"><b>1/1 000 000 France</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte1000\">—</span>.</p>\n    <p>Les deux cartes du SIA sont hébergées à part et lues par plages : seules les tuiles affichées sont téléchargées. Les trois se copient sur l’appareil pour voler sans réseau depuis <b>Profil → Cartes hors-ligne</b>. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.551</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
   (document.body||document.documentElement).appendChild(host.firstElementChild);
   /* le nom du fichier de la 1/1 000 000 dit son edition : on le lit la ou il
      est vraiment (cartes.json), jamais en dur, sinon il mentirait un jour */
@@ -6752,10 +6752,32 @@ function openRelinkChoice(){
    +'.ntmd-chap.z{background:#5B21B6}'
    +'.ntmd-corps>.ntmd-chap:first-child{margin-top:0}'
    +'.ntmd-chap span{float:right;font-weight:600;opacity:.72;text-transform:none;letter-spacing:0}'
-   +'.ntmd-corps{flex:1 1 auto;overflow:auto;padding:12px 14px;font:600 11px Poppins,sans-serif;'
-   +'color:#16213e;-webkit-overflow-scrolling:touch}'
-   +'.ntmd-ad{display:flex;align-items:center;gap:8px;margin:14px 0 2px;padding-top:9px;border-top:2px solid #e3e6ee}'
-   +'.ntmd-corps .ntmd-ad:first-child{margin-top:0;border-top:none;padding-top:0}'
+   /* LE CORPS EN FEUILLES, comme le dossier de vol.
+      Le blanc allait d'un bord a l'autre et les chapitres etaient des bandeaux
+      pleins, colores : c'etait eux qui portaient l'accent, et la fenetre
+      n'avait aucune respiration. On reprend la grammaire du DDV — fond nuit,
+      et le contenu dans des feuilles blanches detachees.
+      UNE FEUILLE PAR CHAPITRE : NOTAM, SUP AIP, AZBA. Le gain n'etait pas
+      prevu — chaque feuille peut nommer SA PROPRE SOURCE, ce que les bandeaux
+      colores ne faisaient pas. Trois provenances differentes, trois lignes qui
+      le disent. */
+   +'.ntmd-corps{flex:1 1 auto;overflow:auto;padding:12px;font:600 11px Poppins,sans-serif;'
+   +'color:#16213e;background:#0A1A33;display:flex;flex-direction:column;gap:12px;'
+   +'-webkit-overflow-scrolling:touch}'
+   +'.ntmf{background:#fff;border-radius:12px;padding:14px 14px 11px;'
+   +'box-shadow:0 10px 30px rgba(0,0,0,.35)}'
+   +'.ntmf-titre{font:800 14px Poppins,sans-serif;color:#16213e;'
+   +'border-bottom:2px solid #e94560;padding-bottom:7px;margin-bottom:9px}'
+   +'.ntmf-titre span{float:right;font:600 11px Poppins,sans-serif;color:#94a3b8}'
+   +'.ntmf-src{font:600 10px Poppins,sans-serif;color:#94a3b8;margin:-4px 0 8px}'
+   /* Sur telephone la feuille est COLLEE AUX BORDS : douze pixels de chaque
+      cote sur un ecran de 380, ce sont six pour cent de largeur perdus — et
+      la ligne de NOTAM la plus longue est justement celle qu'on veut lire en
+      entier. Le fond nuit suffit a separer les feuilles. */
+   +'@media (max-width:480px){.ntmd-corps{padding:10px 0}'
+   +'.ntmf{border-radius:0;box-shadow:0 6px 18px rgba(0,0,0,.3)}}'
+   +'.ntmd-ad{display:flex;align-items:center;gap:8px;margin:11px 0 3px}'
+   +'.ntmf>.ntmd-ad:first-of-type{margin-top:0}'
    +'.ntmd-ad.vise{background:#ede9fe;border-radius:8px;box-shadow:0 0 0 6px #ede9fe;transition:background .25s,box-shadow .25s}'
    +'.ntmd-rol{flex:none;font:700 9.5px Poppins,sans-serif;padding:2px 8px;border-radius:12px;background:#64748b;color:#fff}'
    +'.ntmd-rol.dep{background:#16a34a}.ntmd-rol.arr{background:#e94560}.ntmd-rol.mid{background:#2c5282}'
@@ -7659,8 +7681,11 @@ function openRelinkChoice(){
         +' \u00b7 '+totalN+' NOTAM \u00b7 '+totalS+' SUP AIP'
         /* l'age de ce qu'on lit : sans lui, impossible de savoir si l'on
            regarde l'etat d'il y a deux minutes ou d'il y a une heure */
+        /* LE CHRONO RESTE ICI, et nulle part ailleurs. Les feuilles portent
+           leur source ; la ligne d'etat reste le seul juge de la fraicheur —
+           un seul endroit ou regarder pour savoir si ce qu'on lit est frais. */
         +' \u00b7 '+(function(){ var mn=Math.floor((Date.now()-notamData.t)/60000);
-            return mn<1?'\u00e0 l\u2019instant':('il y a '+mn+' min'); })()
+            return mn<1?'relev\u00e9 \u00e0 l\u2019instant':('relev\u00e9 il y a '+mn+' min'); })()
         /* dire QUI a servi, et le dire surtout quand ce n'est pas ce qui a
            ete demande : un repli silencieux ferait lire de l'anglais EAD en
            croyant lire du francais SIA */
@@ -7700,9 +7725,15 @@ function openRelinkChoice(){
       if(nVenir) nuance.push(nVenir+' à venir');
       if(nEst) nuance.push(nEst+' à fin estimée dépassée');
       if(nAdm) nuance.push(nAdm+' administratif'+(nAdm>1?'s':''));
-      html+='<div class="ntmd-chap n">NOTAM<span>'+totalN+' sur '+adsN.length
+      html+='<div class="ntmf"><div class="ntmf-titre">NOTAM<span>'+totalN+' sur '+adsN.length
         +' terrain'+(adsN.length>1?'s':'')
-        +(nuance.length?' · dont '+nuance.join(', '):'')+'</span></div>';
+        +(nuance.length?' · dont '+nuance.join(', '):'')+'</span></div>'
+        /* chaque feuille NOMME SA SOURCE : trois provenances differentes, que
+           les anciens bandeaux colores ne disaient pas */
+        +'<div class="ntmf-src">'+(notamData&&notamData.src==='sofia'
+          ? 'SOFIA-Briefing (SIA / DGAC)'+(ntmLangue==='fr'?' · traduits en français':'')
+          : 'autorouter (EUROCONTROL EAD) · en anglais')
+        +(ntmOaci?' · forme OACI':'')+'</div>';
       if(!adsN.length) html+='<div class="ntm-un">aucun NOTAM publi\u00e9 sur les terrains du vol.</div>';
       adsN.forEach(function(code){
         var lot=parAd[code]||[];
@@ -7733,11 +7764,13 @@ function openRelinkChoice(){
             +'<span class="ntmd-cnt">'+g.liste.length+' NOTAM</span></div>';
           html+=g.liste.map(function(n){ var i2=ddvRefN.push(n)-1;
             return ddvBouton(ntmLigne(n),'n',i2,ddvContient('n',n)); }).join(''); }); }
+      html+='</div>';   /* fin de la feuille NOTAM */
     }
     {
       var adsS=codes.filter(function(c){ return (supsParAd[c]||[]).length; });
-      html+='<div class="ntmd-chap s">SUP AIP<span>'+totalS+' sur '+adsS.length
-        +' terrain'+(adsS.length>1?'s':'')+'</span></div>';
+      html+='<div class="ntmf"><div class="ntmf-titre">SUP AIP<span>'+totalS+' sur '+adsS.length
+        +' terrain'+(adsS.length>1?'s':'')+'</span></div>'
+        +'<div class="ntmf-src">Suppl\u00e9ments AIP du SIA rattach\u00e9s aux terrains du vol</div>';
       if(!adsS.length) html+='<div class="ntm-un">aucun SUP AIP rattach\u00e9 aux terrains du vol.</div>';
       adsS.forEach(function(code){
         var supsAd=supsParAd[code]||[];
@@ -7745,20 +7778,22 @@ function openRelinkChoice(){
         html+=supsAd.map(function(sp){ var o2=Object.assign({},sp,{ad:code});
           var i2=ddvRefS.push(o2)-1;
           return ddvBouton(supLigne(sp),'s',i2,ddvContient('s',o2)); }).join(''); });
+      html+='</div>';   /* fin de la feuille SUP AIP */
     }
     if(dispo&&!notamData.notamsOk)
-      html+='<div class="ntm-un ntmd-panne">Aucun NOTAM re\u00e7u'
+      html+='<div class="ntmf"><div class="ntm-un ntmd-panne">Aucun NOTAM re\u00e7u'
         +(notamData.motif?' \u2014 '+ntmEsc(notamData.motif):'')
-        +' \u2014 voir le bouton « ? » de l\u2019en-t\u00eate pour le d\u00e9tail.</div>';
-    if(!dispo) html+='<div class="ntm-un">Couche Notam/SupAIP \u00e9teinte \u2014 l\u2019allumer '
+        +' \u2014 voir le bouton « ? » de l\u2019en-t\u00eate pour le d\u00e9tail.</div></div>';
+    if(!dispo) html+='<div class="ntmf"><div class="ntm-un">Couche Notam/SupAIP \u00e9teinte \u2014 l\u2019allumer '
       +'(bouton Notam/SupAIP de la carte, ou badge du bandeau) pour lister les NOTAM '
-      +'et SUP AIP des terrains du vol.</div>';
+      +'et SUP AIP des terrains du vol.</div></div>';
     {
       var azZ=azbaData?azbaData.zones.filter(function(z){ return azbaFen(z,48).length; }):null;
       /* troisieme chapitre, de meme forme que NOTAM et SUP AIP */
-      html+='<div class="ntmd-chap z">AZBA / RTBA<span>'
+      html+='<div class="ntmf"><div class="ntmf-titre">AZBA / RTBA<span>'
         +(azZ?azZ.length+' zone'+(azZ.length>1?'s':'')+' sous 48 h':'chargement\u2026')
         +'</span></div>'
+        +'<div class="ntmf-src">Cr\u00e9neaux d\u2019activation transmis au SIA · 48 h à venir</div>'
         +'<div class="ntmd-ad"><span class="ntmd-rol azba">RTBA</span><b>AZBA</b>'
         +'<span class="ntmd-nom">activation basse altitude \u2014 cr\u00e9neaux sous 48 h (SIA)</span>'
         +'<span class="ntmd-cnt">'+(azZ?azZ.length+' zones':'\u2026')+'</span></div>';
@@ -7769,12 +7804,13 @@ function openRelinkChoice(){
           +((z.bas||z.haut)?' \u00b7 '+ntmEsc(z.bas||'?')+' \u2192 '+ntmEsc(z.haut||'?'):'')
           +(azbaActifMaintenant(cr)?' \u00b7 <b style="color:#B91C1C">ACTIVE</b>':'')
           +'<br>'+cr.slice(0,8).map(azbaCren).join(' \u00b7 ')+'</div>'; });
+      html+='</div>';   /* fin de la feuille AZBA */
     }
-    if(dispo) html+='<div class="ntmd-add">'
+    if(dispo) html+='<div class="ntmf"><div class="ntmd-add" style="margin-top:0;padding-top:0;border-top:none">'
       +'<input id="ntmAddInp" maxlength="4" autocapitalize="characters" autocorrect="off" '
       +'spellcheck="false" placeholder="OACI (ex. LFPO)" aria-label="Code OACI \u00e0 ajouter">'
       +'<button type="button" id="ntmAddBtn">Ajouter</button>'
-      +'<span class="ntmd-addh">consulter un terrain hors liste</span></div>';
+      +'<span class="ntmd-addh">consulter un terrain hors liste</span></div></div>';
     html+='</div>';
     v.innerHTML=html;
     (ntmHote||document.body).appendChild(v);
@@ -7839,7 +7875,10 @@ function openRelinkChoice(){
          element qui defile ; on pose sa position NOUS-MEMES, sans animation
          — un defilement doux se fait ecraser par les redessins qui suivent
          (chargement AZBA), la lecon des mises en vue precedentes. */
-      var chap={notam:'.ntmd-chap.n',sup:'.ntmd-chap.s',azba:'.ntmd-chap.z'}[f];
+      /* les ancres visent le titre de la feuille du chapitre : premiere,
+         deuxieme, troisieme — dans l'ordre ou elles sont composees */
+      var rang={notam:0,sup:1,azba:2}[f];
+      var chap=(rang!=null)?('.ntmf:nth-of-type('+(rang+1)+') .ntmf-titre'):null;
       if(chap){ var corps=v.querySelector('.ntmd-corps');
         var cible=corps&&corps.querySelector(chap);
         if(corps&&cible){
@@ -7928,15 +7967,30 @@ function openRelinkChoice(){
        serait un NOTAM perdu.
        Un NOTAM d'autorouter n'a pas de texteFr : il retombe naturellement sur
        son texte, en anglais, ce qui est tout ce qu'EAD publie. */
+    /* LE TEXTE D'UN NOTAM N'EST PLUS TRONQUE. Il l'etait a 140 caracteres, du
+       temps ou le dossier composait des lignes compactes : sur le papier,
+       c'etait la densite qui comptait. Mais un NOTAM coupe au milieu d'une
+       phrase — « RWY 07R/25L NIGHT VFR PROHIBITED EXC… » — est pire qu'un
+       NOTAM absent : on croit l'avoir lu. La forme OACI le rend en entier. */
     var ddvTexte=function(n){
       var fr=n.texteFr||'', en=n.texteEn||n.texte||'';
-      return {t:ddvCourt(fr||en), en:(n.src==='SOFIA'&&!fr&&!!en)}; };
+      return {t:String(fr||en||'').replace(/\s+$/,''), en:(n.src==='SOFIA'&&!fr&&!!en)}; };
     var ddvNotam=function(n){ var x=ddvTexte(n);
       return {ad:n.ad,serie:n.serie||'',
         qcode:n.qcode||'',debut:n.debut||0,fin:ntmFin(n),estimee:!!n.estimee,
         /* l'item D part avec : sans lui, un NOTAM de nuit se relit six mois
            plus tard comme actif en permanence */
         horaire:n.horaire||'',
+        /* ce qu'il faut pour composer la LIGNE Q officielle. Sans ces champs
+           l'instantane ne portait qu'un texte : la forme OACI etait donc
+           impossible a reconstituer six mois plus tard. Un instantane d'une
+           version anterieure ne les a pas — la ligne Q ne s'affichera
+           simplement pas, ce qui est deja la regle : jamais de ligne Q
+           incomplete, qui ressemblerait a l'officielle sans en etre une. */
+        fir:n.fir||'', trafic:n.trafic||'', objet:n.objet||'', portee:n.portee||'',
+        bas:(n.bas!=null?n.bas:null), haut:(n.haut!=null?n.haut:null),
+        lat:(n.lat!=null?n.lat:null), lon:(n.lon!=null?n.lon:null),
+        rayon:(n.rayon!=null?n.rayon:null),
         texte:x.t, nonTraduit:x.en}; };
     var terrains=codes.map(function(code){
       var q=(sel.idx||{})[code]||{};
@@ -8137,6 +8191,36 @@ function openRelinkChoice(){
     document.addEventListener('keydown',clav);
     ddvZoomEl(corps,svg,nw,nh);
   };
+  /* ===== Un NOTAM du dossier, en FORME OACI =====
+     Le dossier composait ses propres lignes, compactes, en une phrase. C'etait
+     defendable tant que les NOTAM etaient en anglais et le papier compte : la
+     densite primait. Deux choses ont change. D'abord SOFIA les livre traduits,
+     et un texte francais complet se lit sans effort. Ensuite la forme OACI est
+     celle qui se RECOUPE avec le briefing officiel : item par item, on retrouve
+     ce qu'on a sous les yeux sur SOFIA. Un dossier qui ne se recoupe pas ne
+     sert qu'a se rassurer.
+     Le prix est reel — le chapitre NOTAM occupe plus de place a l'impression.
+     C'est un choix assume : mieux vaut deux pages justes qu'une page rapide. */
+  function ddvOaci(n){
+    var lum=ddvContient('n',n), fn=ntmFin(n);
+    var h='<div class="wxd-msg wxd-oaci'+(lum?' wxd-lum':'')+'">'
+      +'<div class="wxd-oid">'+(lum?'★ ':'')+ntmEsc(n.serie||n.qcode||'NOTAM')
+      +(n.nonTraduit?'<span class="wxd-en">non traduit par le SIA</span>':'')
+      +'</div>';
+    var it=function(k,v){ return '<div class="wxd-oli"><span class="wxd-ok">'+k
+      +')</span><span class="wxd-ov">'+ntmEsc(v)+'</span></div>'; };
+    /* la ligne Q ne parait QUE complete — la regle du listing, ici aussi */
+    var q=ntmQOaci(n); if(q) h+=it('Q',q);
+    h+=it('A',n.ad||'');
+    h+=it('B',ntmDateOaci(n.debut));
+    h+=it('C',fn?(ntmDateOaci(fn)+(n.estimee?' EST':'')):'PERM');
+    if(n.horaire) h+=it('D',String(n.horaire).replace(/\s+/g,' ').trim());
+    h+=it('E',String(n.texte||''));
+    if(n.bas>0||(n.haut!=null&&n.haut<999)){
+      h+=it('F','FL'+(n.bas!=null?n.bas:'000'));
+      h+=it('G','FL'+(n.haut!=null?n.haut:'999')); }
+    return h+'</div>';
+  }
   function ddvRendu(d,fige){
     if(!d||!d.terrains) return null;
     if(!d.terrains.length) return '<div class="wxd-sect">NOTAM &amp; SUP AIP</div>'
@@ -8153,7 +8237,7 @@ function openRelinkChoice(){
         +' '+('0'+dF.getHours()).slice(-2)+':'+('0'+dF.getMinutes()).slice(-2)+' locale)</div>'; }
     /* --- chapitre NOTAM --- */
     h+='<div class="wxd-sect">NOTAM \u2014 terrains du vol</div>'
-      +'<div class="wxd-srcl">D\u00e9part, arriv\u00e9e, survol\u00e9s et d\u00e9gagements \u00b7 version courte \u2014 '
+      +'<div class="wxd-srcl">D\u00e9part, arriv\u00e9e, survol\u00e9s et d\u00e9gagements \u00b7 forme OACI \u2014 '
       +'les \u00e9l\u00e9ments mis en lumi\u00e8re au listing (bouton +) sont surlign\u00e9s</div>'
       /* la provenance, en toutes lettres : deux services, deux perimetres, et
          un dossier qui ne dit pas d'ou il vient ne se relit pas */
@@ -8172,16 +8256,7 @@ function openRelinkChoice(){
         +(t9.vu===false?'<b>terrain non examin\u00e9 par SOFIA</b> \u2014 hors du couloir de la '
           +'route ; \u00e0 v\u00e9rifier sur le briefing officiel'
           :'rien \u00e0 signaler')+'</div>';
-      (t9.notams||[]).forEach(function(n){ var lum=ddvContient('n',n);
-        h+='<div class="wxd-msg'+(lum?' wxd-lum':'')+'">'+(lum?'\u2605 ':'')
-          +'<b>'+ntmEsc(n.serie||n.qcode||'NOTAM')+'</b> \u00b7 '
-          +ntmDate(n.debut)+' \u2192 '+(ntmFin(n)?ntmDate(ntmFin(n))+(n.estimee?' (est.)':''):'PERM')
-          +(n.horaire?' \u00b7 <b>horaires : '+ntmEsc(String(n.horaire).replace(/\s+/g,' ').trim())
-            +'</b>':'')
-          +' \u00b7 '+ntmEsc(n.texte||'')
-          /* lire de l'anglais dans un dossier annonce en francais doit
-             s'expliquer sur place, pas se deviner */
-          +(n.nonTraduit?' <i>(non traduit par le SIA)</i>':'')+'</div>'; });
+      (t9.notams||[]).forEach(function(n){ h+=ddvOaci(n); });
       h+='</div>'; });
     /* --- NOTAM sans terrain du vol : bloc FIR et terrains longes ---
        En dernier, mais presents. Ils viennent de SOFIA ; autorouter, qui
@@ -8190,15 +8265,9 @@ function openRelinkChoice(){
       h+='<div class="wxd-aero"><div class="wxd-ahd">'
         +'<span class="wxd-role">FIR</span><b>espace a\u00e9rien</b>'
         +'<span class="wxd-anom">NOTAM en route, hors terrains du vol</span></div>';
-      d.horsTerrain.forEach(function(n){ var lum=ddvContient('n',n);
-        h+='<div class="wxd-msg'+(lum?' wxd-lum':'')+'">'+(lum?'\u2605 ':'')
-          +'<b>'+ntmEsc(n.serie||n.qcode||'NOTAM')+'</b>'
-          +(n.ad?' \u00b7 '+ntmEsc(n.ad):'')+' \u00b7 '
-          +ntmDate(n.debut)+' \u2192 '+(ntmFin(n)?ntmDate(ntmFin(n))+(n.estimee?' (est.)':''):'PERM')
-          +(n.horaire?' \u00b7 <b>horaires : '+ntmEsc(String(n.horaire).replace(/\s+/g,' ').trim())
-            +'</b>':'')
-          +' \u00b7 '+ntmEsc(n.texte||'')
-          +(n.nonTraduit?' <i>(non traduit par le SIA)</i>':'')+'</div>'; });
+      /* meme forme OACI que les terrains : un NOTAM d'espace aerien se
+         recoupe avec le briefing officiel comme les autres */
+      d.horsTerrain.forEach(function(n){ h+=ddvOaci(n); });
       h+='</div>'; }
     /* --- chapitre SUP AIP --- */
     h+='<div class="wxd-sect">SUP AIP \u2014 terrains du vol</div>'
@@ -11421,6 +11490,16 @@ window.__CARTE_ADR=function(j,cle){
 .wxd-msg{font:600 11.5px/1.5 "JetBrains Mono",monospace;color:#16213e;background:#f4f7fb;
   border:1px solid #e2e8f0;border-radius:8px;padding:7px 9px;margin:3px 0;white-space:pre-wrap;word-break:break-word}
 .wxd-msg i{color:#94a3b8;font-style:italic;font-family:"Poppins",sans-serif}
+/* Un NOTAM du dossier, en forme OACI : item par item, comme sur le briefing
+   officiel. C'est la forme qui SE RECOUPE — on retrouve ligne pour ligne ce
+   qu'on a sous les yeux sur SOFIA. */
+.wxd-oaci{font:600 11px/1.45 "JetBrains Mono",ui-monospace,monospace}
+.wxd-oid{color:#5b6b82;font-weight:800;letter-spacing:.02em;margin-bottom:4px}
+.wxd-en{display:inline-block;margin-left:7px;padding:1px 7px;border-radius:10px;
+  background:#E2E8F0;color:#475569;font:700 9px "Poppins",sans-serif}
+.wxd-oli{display:flex;gap:7px;align-items:flex-start;margin-top:1px}
+.wxd-ok{flex:none;width:15px;color:#E11D5C;font-weight:800}
+.wxd-ov{flex:1 1 auto;min-width:0;white-space:pre-wrap;overflow-wrap:anywhere}
 .wxd-vide{color:#94a3b8;font-style:italic;font:600 11.5px "Poppins",sans-serif}
 .wxd-srcl{font:600 10px "Poppins",sans-serif;color:#94a3b8;margin:-3px 0 7px}
 .wxd-cartes{display:flex;flex-direction:column;gap:12px;color:#64748b}
