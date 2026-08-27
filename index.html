@@ -2998,7 +2998,7 @@ window.__TRACE_MARKUP="\n\n<header>\n  <div class=\"hdr-row1\">\n    <span class
    accessible depuis le bouton ⓘ du bandeau du log, avant toute ouverture de la carte */
 (function(){
   var host=document.createElement('div');
-  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Cartes OACI — origine et mise à jour</b></p>\n    <p style=\"margin-top:-6px\"><b>1/250 000 Région parisienne</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte250\">—</span>.</p>\n    <p style=\"margin-top:-6px\"><b>1/500 000 France</b> — IGN Géoplateforme (SCAN-OACI). Donnée <b>non libre</b>, tenue à jour par l’IGN.</p>\n    <p style=\"margin-top:-6px\"><b>1/1 000 000 France</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte1000\">—</span>.</p>\n    <p>Les deux cartes du SIA sont hébergées à part et lues par plages : seules les tuiles affichées sont téléchargées. Les trois se copient sur l’appareil pour voler sans réseau depuis <b>Profil → Cartes hors-ligne</b>. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.545</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
+  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Cartes OACI — origine et mise à jour</b></p>\n    <p style=\"margin-top:-6px\"><b>1/250 000 Région parisienne</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte250\">—</span>.</p>\n    <p style=\"margin-top:-6px\"><b>1/500 000 France</b> — IGN Géoplateforme (SCAN-OACI). Donnée <b>non libre</b>, tenue à jour par l’IGN.</p>\n    <p style=\"margin-top:-6px\"><b>1/1 000 000 France</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte1000\">—</span>.</p>\n    <p>Les deux cartes du SIA sont hébergées à part et lues par plages : seules les tuiles affichées sont téléchargées. Les trois se copient sur l’appareil pour voler sans réseau depuis <b>Profil → Cartes hors-ligne</b>. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.546</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
   (document.body||document.documentElement).appendChild(host.firstElementChild);
   /* le nom du fichier de la 1/1 000 000 dit son edition : on le lit la ou il
      est vraiment (cartes.json), jamais en dur, sinon il mentirait un jour */
@@ -6730,6 +6730,17 @@ function openRelinkChoice(){
    +'.ntmd-f.on{background:#1E9FE0;color:#fff}'
    +'.ntmd-f[data-f=ray].on{background:#7C3AED}'
    /* ancres de chapitre : la couleur du bandeau qu'elles atteignent */
+   /* source et langue : ils vivent dans le bandeau rouge-rose, sous le trait.
+      La source porte sa couleur pour se lire d'un coup d'oeil sans etre
+      relue ; la langue reste discrete, c'est un reglage, pas un etat. */
+   +'.ntmd-src{font-weight:800;letter-spacing:.4px}'
+   +'.ntmd-src.sofia{background:#0B7A5B;color:#fff}'
+   +'.ntmd-src.auto{background:#2c5282;color:#fff}'
+   +'.ntmd-lng{min-width:26px;text-align:center}'
+   /* eteint plutot qu'absent : un bouton qui disparait laisse croire a un bug,
+      un bouton grise dit « pas ici, et voici pourquoi » dans son infobulle */
+   +'.ntmd-lng.mort{opacity:.38;cursor:not-allowed}'
+   +'.ntmd-repli{background:#B45309;color:#fff;font-weight:700}'
    +'.ntmd-f.cap{color:#fff}'
    +'.ntmd-f.cap.n{background:#E11D5C}'
    +'.ntmd-f.cap.s{background:#EA580C}'
@@ -6983,6 +6994,39 @@ function openRelinkChoice(){
      (voir ddvRendu) et ne passe pas par ntmLigne — sur le papier, c'est la
      densite qui compte, pas le recoupement. */
   var ntmOaci=true;
+  /* ---- source des NOTAM : SOFIA (SIA/DGAC) ou autorouter (EAD) ----
+     Deux services, deux natures. autorouter interroge terrain par terrain ;
+     SOFIA compose un PIB « route etroite » — un couloir autour de la trace —
+     et fournit en prime la traduction francaise de chaque item E. C'est cette
+     traduction qui fait de SOFIA la source par defaut : lire « PISTE 11L/29R
+     FERMEE » plutot que « RWY 11L/29R CLOSED » n'est pas un confort, c'est
+     une securite pour qui ne vole pas en anglais tous les jours.
+     Le choix se garde d'une session a l'autre ; il est volontairement range
+     dans ses propres clefs, hors du schema d'etat de l'appli, pour qu'une
+     preference d'affichage ne puisse jamais abimer une navigation. */
+  var ntmSrc='sofia', ntmLangue='fr';
+  /* la source REELLEMENT servie : elle differe de ntmSrc quand SOFIA a
+     echoue et que le repli sur autorouter a joue. Sans cette distinction, on
+     lirait des NOTAM anglais en croyant avoir demande SOFIA. */
+  var ntmSrcServie='', ntmReplie='';
+  try{ var s0=localStorage.getItem('lognav_notam_src');
+    if(s0==='auto'||s0==='sofia') ntmSrc=s0;
+    var l0=localStorage.getItem('lognav_notam_lang');
+    if(l0==='en'||l0==='fr') ntmLangue=l0; }catch(e){}
+  function ntmPrefPose(){ try{ localStorage.setItem('lognav_notam_src',ntmSrc);
+    localStorage.setItem('lognav_notam_lang',ntmLangue); }catch(e){} }
+  /* Le relais livre les DEUX textes cote a cote — texteFr et texteEn — pour
+     que la bascule FR/EN ne coute aucun aller-retour. Tous les NOTAM ne sont
+     pas traduits : sur un releve reel, environ un sur six ne l'est pas. Sans
+     traduction, on retombe sur l'anglais plutot que d'afficher du vide, et la
+     ligne le signale par « (en) » : un texte manquant serait un NOTAM perdu. */
+  function ntmLangueApplique(){
+    if(!notamData||!notamData.notams) return;
+    notamData.notams.forEach(function(n){
+      if(n.src!=='SOFIA') return;
+      var fr=n.texteFr||'', en=n.texteEn||'';
+      n.texte=(ntmLangue==='en'?en:(fr||en))||n.texte||'';
+      n.enSecours=(ntmLangue==='fr'&&!fr&&!!en); }); }
   var ntmMarkers={};   /* badge de chaque terrain, pour rouvrir sa popup */
   function ntmIdx(){ var idx={};
     for(var i=0;i<AERO.length;i++){ var a=AERO[i];
@@ -7308,6 +7352,12 @@ function openRelinkChoice(){
     h+=ntmItem('C',fn?(ntmDateOaci(fn)+(n.estimee?' EST':'')):'PERM');
     if(n.horaire) h+=ntmItem('D',String(n.horaire).replace(/\s+/g,' ').trim());
     h+=ntmItem('E',String(n.texte||''));
+    /* SOFIA ne traduit pas tout. Quand on lit l'anglais alors qu'on a demande
+       le francais, il faut que cela SE VOIE : sinon on croit que ce NOTAM-la
+       n'existe qu'en anglais chez le SIA, ou pire, on ne le remarque pas. */
+    if(n.enSecours) h+='<div class="ntm-oli"><span class="ntm-ok"></span>'
+      +'<span class="ntm-ov"><span class="ntm-et a" title="Ce NOTAM n’est pas '
+      +'traduit par le SIA : son texte reste en anglais.">non traduit</span></span></div>';
     /* F) et G) : les limites verticales, quand elles disent autre chose que
        \u00ab du sol \u00e0 l'illimit\u00e9 \u00bb */
     if(n.bas>0||(n.haut!=null&&n.haut<999)){
@@ -7321,6 +7371,8 @@ function openRelinkChoice(){
     +((n.bas>0||(n.haut!=null&&n.haut<999))?' \u00b7 FL'+n.bas+'\u2013FL'+n.haut:'')
     +(e?'<span class="ntm-et '+e.cl+'" title="'+ntmEsc(e.inf)+'">'+e.txt+'</span>':'')
     +ntmHoraire(n)
+    +(n.enSecours?'<span class="ntm-et a" title="Ce NOTAM n’est pas traduit '
+      +'par le SIA : son texte reste en anglais.">non traduit</span>':'')
     +'<br>'+ntmEsc(n.texte)+'</div>'; }
   function ntmDraw(){ notamGroup.clearLayers(); ntmMarkers={};
     if(!notamOn||!notamData) return;
@@ -7525,6 +7577,15 @@ function openRelinkChoice(){
     var totalN=0, totalS=0;
     codes.forEach(function(code){ totalN+=(parAd[code]||[]).length;
       totalS+=(supsParAd[code]||[]).length; });
+    /* SOFIA renvoie aussi un bloc FIR : des NOTAM d'espace aerien rattaches a
+       la region d'information de vol, pas a un terrain. Ils ne tombent donc
+       dans aucun parAd[code] des terrains du vol, et disparaitraient SANS
+       BRUIT — le pire des defauts pour un NOTAM. On les recueille ici pour
+       leur donner leur propre entree, plus bas. */
+    var ntmHorsTerrain=[];
+    Object.keys(parAd).forEach(function(c){ if(codes.indexOf(c)<0)
+      ntmHorsTerrain=ntmHorsTerrain.concat(parAd[c]||[]); });
+    totalN+=ntmHorsTerrain.length;
     /* fond cliquable : un toucher hors de la fenetre (menu inferieur compris) la ferme */
     /* en surimpression : un fond cliquable ferme la fenetre. Heberge dans un
        onglet, il n'y a rien a fermer et rien a assombrir. */
@@ -7557,13 +7618,39 @@ function openRelinkChoice(){
       +'<button type="button" class="ntmd-f" id="ntmDiagBtn" '
       +'title="\u00c9tat de la liaison autorouter : identifiants, jeton partag\u00e9, '
       +'jetons demand\u00e9s aujourd\u2019hui">?</button>'
-      +'<div class="ntmd-bas"><span class="ntmd-st">'
+      /* ---- bandeau rouge-rose : la SOURCE, puis la LANGUE ----
+         Ils sont ici et pas en haut parce qu'ils ne filtrent rien : ils disent
+         d'ou vient ce qu'on lit et dans quelle langue. Le badge de langue ne
+         vaut que pour SOFIA — autorouter ne livre que l'anglais — il s'eteint
+         donc au lieu de disparaitre, pour que son absence s'explique. */
+      +'<div class="ntmd-bas">'
+      +'<button type="button" class="ntmd-f ntmd-src'+(ntmSrc==='sofia'?' sofia':' auto')+'" data-f="src" '
+      +'title="'+(ntmSrc==='sofia'
+        ? 'Source SOFIA-Briefing (SIA/DGAC) : PIB route étroite, NOTAM traduits '
+          +'en français. Appuyer pour passer à autorouter (EAD).'
+        : 'Source autorouter (EUROCONTROL EAD), terrain par terrain, en anglais. '
+          +'Appuyer pour passer à SOFIA.')+'">'
+      +(ntmSrc==='sofia'?'SOFIA':'AUTOROUTER')+'</button>'
+      +'<button type="button" class="ntmd-f ntmd-lng'+(ntmSrc==='sofia'?'':' mort')
+      +(ntmLangue==='fr'?' on':'')+'" data-f="lng" '
+      +(ntmSrc==='sofia'?'':'disabled ')
+      +'title="'+(ntmSrc==='sofia'
+        ? 'Langue des NOTAM SOFIA. Tous ne sont pas traduits : ceux qui ne le '
+          +'sont pas restent en anglais et portent la mention (en).'
+        : 'autorouter ne livre que l’anglais : ce choix ne s’applique qu’à SOFIA.')+'">'
+      +(ntmLangue==='fr'?'FR':'EN')+'</button>'
+      +'<span class="ntmd-st">'
       +(dispo?(codes.length+' terrains \u00b7 rayon '+PROX_NM+' NM'
         +' \u00b7 '+totalN+' NOTAM \u00b7 '+totalS+' SUP AIP'
         /* l'age de ce qu'on lit : sans lui, impossible de savoir si l'on
            regarde l'etat d'il y a deux minutes ou d'il y a une heure */
         +' \u00b7 '+(function(){ var mn=Math.floor((Date.now()-notamData.t)/60000);
             return mn<1?'\u00e0 l\u2019instant':('il y a '+mn+' min'); })()
+        /* dire QUI a servi, et le dire surtout quand ce n'est pas ce qui a
+           ete demande : un repli silencieux ferait lire de l'anglais EAD en
+           croyant lire du francais SIA */
+        +(ntmSrcServie?' \u00b7 '+(ntmSrcServie==='sofia'?'SOFIA':'autorouter'):'')
+        +(ntmReplie?' \u00b7 repli : SOFIA indisponible ('+ntmEsc(ntmReplie)+')':'')
         +(notamData.notamsOk?'':' \u00b7 NOTAM indisponibles'
           +(notamData.motif?' ('+notamData.motif+')':'')))
         :'couche Notam/SupAIP \u00e9teinte \u00b7 AZBA/RTBA seuls')+'</span>'
@@ -7602,6 +7689,26 @@ function openRelinkChoice(){
         if(!lot.length) html+='<div class="ntm-un">rien \u00e0 signaler</div>';
         html+=lot.map(function(n){ var i2=ddvRefN.push(n)-1;
           return ddvBouton(ntmLigne(n),'n',i2,ddvContient('n',n)); }).join(''); });
+      /* Ce que SOFIA rend en plus des terrains du vol, en dernier : c'est le
+         plus volumineux — 60 NOTAM sur 84 dans un releve reel — mais on ne le
+         masque pas pour autant. Deux natures s'y melent, et les confondre
+         serait mentir : les NOTAM de la region d'information de vol, qui ne
+         visent aucun terrain, et ceux de terrains longes par le couloir mais
+         non retenus dans la liste du vol. */
+      if(ntmHorsTerrain.length){
+        var lots=[
+          {cl:'azba',code:'FIR',nom:'NOTAM d’espace aérien, rattachés à la région '
+            +'d’information de vol',
+           liste:ntmHorsTerrain.filter(function(n){ return n.fir_seul; })},
+          {cl:'prox',code:'autres',nom:'terrains longés par le couloir, hors liste du vol',
+           liste:ntmHorsTerrain.filter(function(n){ return !n.fir_seul; })}];
+        lots.forEach(function(g){ if(!g.liste.length) return;
+          html+='<div class="ntmd-ad" data-ad="'+g.code+'"><span class="ntmd-rol '+g.cl+'">'
+            +g.code+'</span><b>'+(g.cl==='azba'?'espace aérien':'autres terrains')+'</b>'
+            +'<span class="ntmd-nom">'+g.nom+'</span>'
+            +'<span class="ntmd-cnt">'+g.liste.length+' NOTAM</span></div>';
+          html+=g.liste.map(function(n){ var i2=ddvRefN.push(n)-1;
+            return ddvBouton(ntmLigne(n),'n',i2,ddvContient('n',n)); }).join(''); }); }
     }
     {
       var adsS=codes.filter(function(c){ return (supsParAd[c]||[]).length; });
@@ -7693,6 +7800,17 @@ function openRelinkChoice(){
         ntmCharge(); return; }
       /* OACI : une forme d'affichage, pas un filtre — rien n'est masqué */
       if(f==='oaci'){ ntmOaci=!ntmOaci; ntmDossier(); return; }
+      /* SOURCE : changer de service change les DONNEES, pas leur mise en
+         forme. Il faut donc tout redemander — d'ou l'oubli de notamData. */
+      if(f==='src'){ ntmSrc=(ntmSrc==='sofia')?'auto':'sofia'; ntmPrefPose();
+        notamData=null; ntmReplie=''; ntmSrcServie='';
+        bf.disabled=true; bf.textContent='…'; ntmCharge(); return; }
+      /* LANGUE : SOFIA livre les deux textes dans la meme charge — le
+         francais dans multiLanguage.itemE, l'anglais dans itemE. Basculer ne
+         redemande donc RIEN au relais : on rechoisit le champ deja recu. */
+      if(f==='lng'){ if(ntmSrc!=='sofia') return;
+        ntmLangue=(ntmLangue==='fr')?'en':'fr'; ntmPrefPose();
+        ntmLangueApplique(); ntmDossier(); ntmDraw(); return; }
       /* actualiser : jeter la memoire de l'appli et redemander au relais */
       if(f==='frais'){ notamData=null; azbaData=null; azbaErr='';
         bf.disabled=true; bf.textContent='…'; ntmCharge(); return; }
@@ -8147,6 +8265,9 @@ function openRelinkChoice(){
       else if(document.getElementById('ntmDos')) ntmDossier(ntmVise);
       return; }
     if(notamBusy) return; notamBusy=true;
+    /* on repart d'une ardoise propre : sans cela, le motif d'un repli d'il y a
+       dix minutes resterait affiche sous une source qui marche a nouveau */
+    ntmReplie=''; ntmSrcServie='';
     /* pas d'en-tete vers la fonction cartes : JWT desactive, un en-tete
        personnalise declencherait une pre-verification CORS inutile */
     var base=String(window.__SB_URL||'').replace(/\/+$/,'');
@@ -8155,14 +8276,59 @@ function openRelinkChoice(){
       if(typeof showToast==='function') showToast('NOTAM : relais non configur\u00e9.'); return; }
     var lit=function(u){ return fetch(u,{cache:'no-store'})
       .then(function(r){ return r.json().then(function(j){ if(!r.ok) throw (j&&j.erreur)||('http '+r.status); return j; }); }); };
-    Promise.all([
-      lit(base+'/functions/v1/cartes?notam=1&ad='+sig+'&_='+Date.now())
+    /* ---- autorouter : la voie historique, terrain par terrain ---- */
+    var viaAutorouter=function(){
+      return lit(base+'/functions/v1/cartes?notam=1&ad='+sig+'&_='+Date.now())
         /* bruts / supprimes : ce qu'autorouter a rendu avant tout filtrage,
            pour pouvoir trancher entre « la source ne l'a pas » et « nous
            l'avons écarté » quand un NOTAM manque à l'appel */
-        .then(function(j){ return {ok:true,liste:(j&&j.notams)||[],
-          bruts:(j&&j.bruts),supprimes:(j&&j.supprimes)||[]}; },
-              function(e){ return {ok:false,motif:String(e).slice(0,80)}; }),
+        .then(function(j){ ntmSrcServie='auto';
+          return {ok:true,liste:(j&&j.notams)||[],
+            bruts:(j&&j.bruts),supprimes:(j&&j.supprimes)||[]}; },
+              function(e){ ntmSrcServie='auto';
+                return {ok:false,motif:String(e).slice(0,80)}; }); };
+    /* ---- SOFIA : un PIB « route etroite ».
+       SOFIA ne prend pas une LISTE de terrains, il trace un COULOIR entre les
+       points qu'on lui donne, dans l'ordre. On ne peut donc pas lui envoyer
+       sel.codes tel quel : il contient aussi les terrains de simple
+       PROXIMITE, qui ne sont pas sur la route. Le couloir passerait par eux,
+       dans l'ordre ou ils ont ete trouves, et ce ne serait plus le vol.
+       On garde donc les seuls terrains DE LA ROUTE, dans l'ordre du vol —
+       depart, survoles, arrivee. sel.codes est deja dans cet ordre : c'est le
+       dossier qui le retrie ensuite pour l'affichage, pas ici.
+       On envoie des codes OACI et non les points tournants : SOFIA n'accepte
+       que des identifiants de 2 a 11 caracteres alphanumeriques, et un point
+       tournant nomme librement ferait echouer toute la requete. Le couloir
+       (width) et le rayon autour des terrains couvrent le reste.
+       Il faut au moins deux points : sur un aller-retour au meme terrain,
+       SOFIA n'a pas de route a tracer — on passe alors directement par
+       autorouter plutot que d'essuyer une erreur. */
+    var ROLES_ROUTE={'départ':1,'survolé':1,'arrivée':1};
+    var routeSofia=(sel.codes||[]).filter(function(c){
+      return /^[A-Z]{4}$/.test(c)&&ROLES_ROUTE[sel.roles[c]]; });
+    var viaSofia=function(){
+      if(routeSofia.length<2) return Promise.resolve(
+        {ok:false,motif:'vol local : SOFIA demande au moins deux terrains',repli:true});
+      return lit(base+'/functions/v1/cartes?sofia=1&route='+routeSofia.join(',')
+          +'&lang='+ntmLangue+'&_='+Date.now())
+        .then(function(j){ var l=(j&&j.notams)||[];
+          /* une charge vide n'est PAS une reponse : un vol reel a toujours au
+             moins un NOTAM de zone. Mieux vaut basculer sur autorouter que
+             d'afficher un « aucun NOTAM » qui serait faux. */
+          if(!l.length) return {ok:false,motif:'SOFIA n’a rien renvoyé',repli:true};
+          ntmSrcServie='sofia';
+          return {ok:true,liste:l,bruts:(j&&j.nbSofia),supprimes:[],sofia:j}; },
+              function(e){ return {ok:false,motif:String(e).slice(0,80),repli:true}; }); };
+    /* Le repli est AUTOMATIQUE et il se dit : ntmReplie porte le motif, que
+       le bandeau affiche. Un repli muet ferait lire de l'anglais EAD en
+       croyant lire du francais SIA. */
+    var voieNotam=(ntmSrc==='sofia')
+      ? viaSofia().then(function(v){ if(v.ok) return v;
+          ntmReplie=v.motif||'indisponible';
+          return viaAutorouter(); })
+      : viaAutorouter();
+    Promise.all([
+      voieNotam,
       lit(base+'/functions/v1/cartes?supaip=1&_='+Date.now())
         .then(function(j){ return {ok:true,liste:(j&&j.sups)||[]}; },
               function(e){ return {ok:false,motif:String(e).slice(0,80)}; })
@@ -8179,7 +8345,11 @@ function openRelinkChoice(){
       notamData={t:Date.now(),sig:sig,sel:sel,notams:vN.ok?vN.liste:[],notamsOk:vN.ok,
         motif:vN.ok?'':(vN.motif||''),
         bruts:vN.ok?vN.bruts:null, supprimes:vN.ok?(vN.supprimes||[]):[],
-        complet:vN.ok&&vS.ok,sups:sups};
+        complet:vN.ok&&vS.ok,sups:sups,
+        src:ntmSrcServie, sofia:vN.sofia||null};
+      /* SOFIA livre les deux langues dans la meme charge : on choisit ici le
+         champ a afficher, une fois, pour toute la liste. */
+      ntmLangueApplique();
       ntmDraw();
       if(notamVeutListing){ notamVeutListing=false; ntmDossier(ntmVise); }
       else if(document.getElementById('ntmDos')) ntmDossier(ntmVise);
