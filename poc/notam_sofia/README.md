@@ -7,14 +7,41 @@ faisabilité, et POC exécutable. **`index.html` n'a pas été touché.**
 
 ## 1. Verdict
 
-**Le protocole décrit est cohérent et le POC le parle exactement.** 57 assertions
-passent. Trois défauts réels ont été trouvés dans le Worker v1 du document, chacun
-mesuré, chacun corrigé.
+**Faisabilité technique : démontrée, contre le vrai serveur.**
 
-**Ce qui reste à prouver tient en une commande, et elle doit partir de votre Mac** :
-l'accès sortant vers `sofia-briefing.aviation-civile.gouv.fr` est refusé par la
-politique réseau de cette session (le mandataire répond `403` au `CONNECT`). Je ne
-peux donc pas interroger le vrai SOFIA d'ici, et je ne contourne pas cette règle.
+Test réel du 27/08/2026 depuis un Mac, `node poc.js --route LFPN,LFPZ` :
+
+```
+session     GET  200  1213 ms  cookies: JSESSIONID
+preparation POST 200    31 ms
+pib         POST 200  2561 ms   107 823 o
+pibUid : NL912608272061 · LFPN → LFPZ · 84 NOTAM · 3942 ms au total
+```
+
+Les trois étapes passent, le double décodage donne `listnotams`, et le risque n° 1
+que j'avais signalé — un service `.gouv.fr` filtrant les appels automatisés — ne
+s'est pas matérialisé depuis une IP résidentielle. **Il reste à vérifier depuis une
+IP de datacenter** (Supabase), ce que seul le déploiement dira.
+
+Côté banc, 57 assertions passent, et trois défauts réels ont été trouvés dans le
+Worker v1 du document, chacun mesuré, chacun corrigé.
+
+### Ce que le test réel a appris, et que le document ne disait pas
+
+1. **`duration=1200` vaut bien 12 heures.** `validFrom 14:13:11Z` →
+   `validTo 02:13:00Z` le lendemain. Le format HHMM est confirmé sur pièce.
+2. **Le champ `id` n'est PAS le numéro de NOTAM.** Le PIB porte un identifiant
+   interne (`400000051804734`) là où le document citait `E 3550/26` — pour le même
+   NOTAM, « RWY 07R/25L NIGHT VFR PROHIBITED. ». Le vrai numéro est ailleurs dans
+   la structure. L'aplatisseur doit être recalé sur une capture réelle.
+3. **Les catégories réelles sont bien plus riches** que les deux du document :
+   `aerodromes_services`, `aire_mouvement`, `balisage`,
+   `aides_atter_instal_radionav_GNSS`, `procedures`,
+   `organisation_espace_services_circulation`, `obstacles`, plus un bloc FIR entier.
+4. **Le volume est un sujet produit.** 84 NOTAM et 108 ko pour un vol de 12 NM.
+   Le bloc FIR contient beaucoup de choses sans objet en VFR local — CPDLC
+   Eurocontrol, restrictions Iran/Irak/Qatar pour transporteurs français, DME
+   en-route. Un filtrage sera nécessaire, sinon le badge NOTAM sera illisible.
 
 ---
 
@@ -92,15 +119,19 @@ nouveau à mettre en secret, rien qui puisse fuir dans GitHub.
 
 ---
 
-## 5. Ce que le POC ne prouve pas
+## 5. Ce qui reste ouvert après le test réel
 
-1. **Que le vrai SOFIA répond.** Réseau bloqué ici. Une commande depuis votre Mac.
-2. **Que SOFIA accepte un appel depuis un datacenter.** C'est le risque n° 1, et
-   seul le test réel le tranche : un service `.gouv.fr` peut très bien filtrer ou
-   ralentir les IP Supabase / Cloudflare, alors que votre PowerShell depuis une IP
-   résidentielle passait. Si c'est le cas, tout le reste tombe.
-3. **La forme réelle de `listnotams`** au-delà de `ADDep`/`ADDes`.
-4. **La latence réelle**, les quotas, le comportement en rafale.
+1. **Que SOFIA accepte un appel depuis un datacenter.** Le test réel est passé
+   depuis une IP résidentielle. Supabase sort d'un datacenter, et un service
+   `.gouv.fr` peut l'y filtrer ou le ralentir. Seul le déploiement le dira, et si
+   ça coince, c'est là que ça coincera.
+2. **Le nommage exact des NOTAM dans `listnotams`** — voir le point 2 du § 1.
+   L'aplatisseur est tolérant et conserve le JSON brut à côté, mais il faut le
+   recaler sur une capture réelle.
+3. **Le filtrage produit** : 84 NOTAM pour LFPN → LFPZ, dont un gros bloc FIR sans
+   objet en VFR local. Quoi montrer, quoi replier, quoi écarter.
+4. **Les quotas et le comportement en rafale.** Une requête isolée passe en 4 s ;
+   rien ne dit ce qui arrive à la vingtième dans la minute.
 5. **Si `postsaveinsessionprepa` est superflu** (§ 11.9 : ne pas le retirer avant
    preuve — le POC le garde).
 
