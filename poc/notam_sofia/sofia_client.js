@@ -27,6 +27,11 @@
 
 const SOFIA_ORIGIN_DEFAUT = "https://sofia-briefing.aviation-civile.gouv.fr";
 
+/* Sur Node 18, le « crypto » global n'existe qu'avec un drapeau ; sur Deno et
+   sur Cloudflare Workers il est toujours là et le require n'est jamais évalué. */
+const CRYPTO = globalThis.crypto ||
+  (typeof require === "function" ? require("node:crypto").webcrypto : null);
+
 /* ------------------------------------------------------------------ outils */
 
 const deuxChiffres = (n) => String(n).padStart(2, "0");
@@ -184,7 +189,7 @@ async function recuperePib(p = {}) {
   if (!client.pot.has("JSESSIONID")) throw new Error("SOFIA : JSESSIONID absent");
 
   /* 2 — UUID applicatif ------------------------------------------------ */
-  const uuid = crypto.randomUUID();
+  const uuid = CRYPTO.randomUUID();
 
   /* 3 — corps commun, dans l'ordre du test PowerShell validé ----------- */
   const departureDate = deuxChiffres(dt.getUTCDate()) + "-" +
