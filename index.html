@@ -2998,7 +2998,7 @@ window.__TRACE_MARKUP="\n\n<header>\n  <div class=\"hdr-row1\">\n    <span class
    accessible depuis le bouton ⓘ du bandeau du log, avant toute ouverture de la carte */
 (function(){
   var host=document.createElement('div');
-  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Cartes OACI — origine et mise à jour</b></p>\n    <p style=\"margin-top:-6px\"><b>1/250 000 Région parisienne</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte250\">—</span>.</p>\n    <p style=\"margin-top:-6px\"><b>1/500 000 France</b> — IGN Géoplateforme (SCAN-OACI). Donnée <b>non libre</b>, tenue à jour par l’IGN.</p>\n    <p style=\"margin-top:-6px\"><b>1/1 000 000 France</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte1000\">—</span>.</p>\n    <p>Les deux cartes du SIA sont hébergées à part et lues par plages : seules les tuiles affichées sont téléchargées. Les trois se copient sur l’appareil pour voler sans réseau depuis <b>Profil → Cartes hors-ligne</b>. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.549</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
+  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Cartes OACI — origine et mise à jour</b></p>\n    <p style=\"margin-top:-6px\"><b>1/250 000 Région parisienne</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte250\">—</span>.</p>\n    <p style=\"margin-top:-6px\"><b>1/500 000 France</b> — IGN Géoplateforme (SCAN-OACI). Donnée <b>non libre</b>, tenue à jour par l’IGN.</p>\n    <p style=\"margin-top:-6px\"><b>1/1 000 000 France</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte1000\">—</span>.</p>\n    <p>Les deux cartes du SIA sont hébergées à part et lues par plages : seules les tuiles affichées sont téléchargées. Les trois se copient sur l’appareil pour voler sans réseau depuis <b>Profil → Cartes hors-ligne</b>. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.550</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
   (document.body||document.documentElement).appendChild(host.firstElementChild);
   /* le nom du fichier de la 1/1 000 000 dit son edition : on le lit la ou il
      est vraiment (cartes.json), jamais en dur, sinon il mentirait un jour */
@@ -11973,20 +11973,128 @@ window.__pickGpx=function(cb){
     document.title=t; }catch(e){} }
   function wxTitreRend(){ try{ if(wxTitreAvant!==null){
     document.title=wxTitreAvant; wxTitreAvant=null; } }catch(e){} }
-  function wxCartesVigueur(j){
+  /* Les cartes configurées, dans l'ordre d'affichage — EUROC, France, WINTEM.
+     Le « type » est la couche telle qu'elle voyage dans l'adresse du relais :
+     c'est la clef pour lui demander les échéances réellement publiées. */
+  function wxListeCartes(j){
     var mo=(j&&j.meteo&&j.meteo.cartes&&j.meteo.cartes.length)?j.meteo.cartes:null;
     if(!mo) return [];
     var rang=function(c){ var t=String((c.id||'')+' '+(c.nom||'')).toLowerCase();
       return /wintem/.test(t)?2:(/euroc/.test(t)?0:1); };
-    var H=3600e3, now=Date.now();
     return mo.slice().sort(function(a,b){ return rang(a)-rang(b); }).map(function(c){
-      var pas=Math.max(1,+c.pas||3), P=pas*H, v0=Math.floor(now/P)*P;
-      var vig=(now-v0<=P/2)?v0:(v0+P), d=new Date(vig);
       var src=c.urls||c.url||[]; if(typeof src==='string') src=[src];
-      return {nom:c.nom||c.id||'Carte', vig:vig,
-        hh:('0'+d.getUTCHours()).slice(-2)+':00 UTC',
-        urls:src.map(function(u){ return wxAdrDate(u,vig); })}; });
+      var m=String(src[0]||'').match(/[?&]type=([^&]+)/);
+      return {nom:c.nom||c.id||'Carte', pas:Math.max(1,+c.pas||3), src:src,
+        type:m?decodeURIComponent(m[1]):''}; });
   }
+  /* L'ANCIENNE VOIE : deviner l'échéance par arrondi d'horloge. Elle ne
+     demande rien à personne — donc elle se trompe dès qu'une échéance manque
+     ou tarde, et elle pointe alors une carte qui n'existe pas. Elle ne sert
+     plus que de REPLI, quand le relais ne peut pas dire ce qui est publié.
+     Ce qu'elle rend est marqué « estimée » : une heure devinée ne doit pas se
+     lire comme une heure constatée. */
+  function wxCartesVigueur(j){
+    var H=3600e3, now=Date.now();
+    return wxListeCartes(j).map(function(c){
+      var P=c.pas*H, v0=Math.floor(now/P)*P;
+      var vig=(now-v0<=P/2)?v0:(v0+P), d=new Date(vig);
+      return {nom:c.nom, vig:vig, estimee:true,
+        hh:('0'+d.getUTCHours()).slice(-2)+':00 UTC',
+        urls:c.src.map(function(u){ return wxAdrDate(u,vig); })}; });
+  }
+
+  /* ===== Les échéances RÉELLEMENT publiées =====
+     Le relais sait les dire : ?dates=1&type=<couche> rend le catalogue SOFIA.
+     L'application ne le consultait que pour masquer des lignes du sélecteur ;
+     le choix de la carte du dossier, lui, restait deviné. C'était le maillon
+     faible : figer la bonne carte suppose de savoir laquelle est la bonne, et
+     cela ne se devine pas par arrondi. */
+  var wxCatMemo={};                    /* couche -> { t, dates } */
+  function wxCatalogue(type){
+    var base=String(window.__SB_URL||'').replace(/\/+$/,'');
+    if(!base||!type) return Promise.resolve(null);
+    var m=wxCatMemo[type];
+    if(m&&Date.now()-m.t<300000) return Promise.resolve(m.dates);
+    return fetch(base+'/functions/v1/cartes?dates=1&type='+encodeURIComponent(type)
+        +'&_='+Date.now(),{cache:'no-store'})
+      .then(function(r){ if(!r.ok) throw 0; return r.json(); })
+      .then(function(j){ var d=(j&&j.dates)||[];
+        /* catalogue muet : on ne sait pas, et on ne fera pas semblant */
+        if(!d.length) return null;
+        wxCatMemo[type]={t:Date.now(),dates:d}; return d; })
+      .catch(function(){ return null; });
+  }
+  function wxDeDate14(s){ s=String(s||'');
+    if(!/^\d{14}$/.test(s)) return NaN;
+    return Date.UTC(+s.slice(0,4),+s.slice(4,6)-1,+s.slice(6,8),
+      +s.slice(8,10),+s.slice(10,12),+s.slice(12,14)); }
+
+  /* LA RÉFÉRENCE EST LA DERNIÈRE CARTE PUBLIÉE AVANT L'HEURE VOULUE, et elle
+     le reste jusqu'à ce que la suivante arrive — même si l'attente dépasse la
+     cadence. Il arrive qu'une échéance soit à 15:00 et la suivante à 21:00 :
+     celle de 15:00 demeure la référence, avec extrapolation. La retenir
+     laisserait le pilote sans carte alors qu'il en a une ; le devoir est de
+     dire son âge et de dire que rien d'autre n'a été publié. */
+  function wxClasse(dates,ref,pasH){
+    var P=Math.max(1,pasH||3)*3600e3;
+    var t=(dates||[]).map(wxDeDate14).filter(function(x){ return isFinite(x); })
+      .sort(function(a,b){ return a-b; });
+    var trous=[];
+    for(var k=0;k<t.length-1;k++) if(t[k+1]-t[k]>P*1.5)
+      trous.push({apres:t[k],avant:t[k+1],heures:Math.round((t[k+1]-t[k])/3600e3)});
+    var idx=-1; for(var i=0;i<t.length;i++) if(t[i]<=ref) idx=i;
+    if(idx<0) return {courante:null,futures:t.slice(),perimees:[],trous:trous,liste:t};
+    var suiv=(t[idx+1]!=null)?t[idx+1]:null;
+    return {courante:{v:t[idx],fin:suiv,
+        ageH:Math.round((ref-t[idx])/360e3)/10,
+        prolongee:(ref-t[idx])>P, derniere:(suiv==null)},
+      futures:t.slice(idx+1),perimees:t.slice(0,idx),trous:trous,liste:t};
+  }
+
+  /* Les cartes à retenir pour une heure donnée — l'heure du vol quand on la
+     connaît, sinon maintenant. Rend la MÊME forme que wxCartesVigueur, avec
+     de quoi dire au lecteur ce qu'il regarde. Si le relais ne répond pas, on
+     retombe exactement sur l'ancien comportement : jamais moins qu'avant. */
+  function wxCartesReelles(j,ref){
+    ref=ref||Date.now();
+    var repli=wxCartesVigueur(j);
+    var liste=wxListeCartes(j);
+    if(!liste.length) return Promise.resolve([]);
+    return Promise.all(liste.map(function(c,i){
+      return wxCatalogue(c.type).then(function(ds){
+        if(!ds) return repli[i];        /* muet : l'ancienne estimation */
+        var k=wxClasse(ds,ref,c.pas);
+        if(!k.courante){
+          /* Rien de publié avant l'heure voulue. C'est le cas d'un vol
+             préparé la veille : le TEMSI ne paraît qu'environ 2 h avant son
+             échéance. On ne fabrique pas une carte — on dit qu'elle n'est pas
+             encore là, et à quoi s'attendre. */
+          var pr=k.futures.length?k.futures[0]:null;
+          return {nom:c.nom, vig:pr, estimee:false, absente:true,
+            hh:pr?(wxHhUtc(pr)+' (pas encore publiée)'):'non publiée',
+            info:'aucune carte publiée pour cette heure'
+              +(pr?' — la première est à '+wxHhUtc(pr):'')
+              +'. Les TEMSI paraissent environ 2 h avant leur échéance ; '
+              +'rafraîchir plus près du vol.',
+            urls:[]};
+        }
+        var u=k.courante;
+        return {nom:c.nom, vig:u.v, estimee:false, prolongee:u.prolongee,
+          ageH:u.ageH, fin:u.fin, trous:k.trous,
+          hh:wxHhUtc(u.v),
+          info:(u.prolongee
+              ? 'aucune autre carte publiée depuis '+wxHhUtc(u.v)
+                +(u.derniere?' — c’est la plus récente disponible'
+                            :' ; la suivante n’est qu’à '+wxHhUtc(u.fin))
+                +' · elle reste la référence, âgée de '+u.ageH+' h'
+              : ''),
+          urls:c.src.map(function(x){ return wxAdrDate(x,u.v); })};
+      });
+    }));
+  }
+  function wxHhUtc(ms){ var d=new Date(ms);
+    return ('0'+d.getUTCHours()).slice(-2)+':'
+      +('0'+d.getUTCMinutes()).slice(-2)+' UTC'; }
   /* Pourquoi une carte n'est-elle pas imprimable ? Trois causes possibles, que
      ce sondage distingue en un appel :
        - le relais deployé est anterieur a 7.27 : il ignore img=1 et REDIRIGE
@@ -12049,7 +12157,13 @@ window.__pickGpx=function(cb){
   function wxCartesFigees(){
     if(typeof window.__CARTES!=='function') return Promise.resolve([]);
     return window.__CARTES().then(function(j){
-      var lst=wxCartesVigueur(j); if(!lst.length) return [];
+      /* on fige la carte RÉELLEMENT publiée, pas celle qu'un arrondi
+         d'horloge suppose : un dossier relu dans six mois doit montrer ce qui
+         était en vigueur, pas ce qu'on avait deviné */
+      return wxCartesReelles(j);
+    }).then(function(lst){
+      lst=(lst||[]).filter(function(c){ return c&&c.urls&&c.urls.length; });
+      if(!lst.length) return [];
       return Promise.all(lst.map(function(c){
         return new Promise(function(res){
           if(wxOctetsKO){ res(null); return; }   /* voie morte : on ne fige rien */
@@ -12906,9 +13020,10 @@ window.__pickGpx=function(cb){
          en image dès que la voie octets aboutit. */
       /* les cartes en vigueur, integrees a la feuille ; un toucher ouvre la
          visionneuse et son zoom */
-      if(!arch && typeof window.__CARTES==='function') window.__CARTES().then(function(j){
+      if(!arch && typeof window.__CARTES==='function') window.__CARTES()
+        .then(function(j){ return wxCartesReelles(j); })
+        .then(function(lst){
         var el=dos.querySelector('#wxdCartes'); if(!el) return;
-        var lst=wxCartesVigueur(j);
         if(!lst.length){ el.innerHTML='<span class="wxd-vide">Aucune carte météo configurée.</span>'; return; }
         el.innerHTML='';
         lst.forEach(function(c2){
@@ -12916,11 +13031,22 @@ window.__pickGpx=function(cb){
           fig.className='wxd-carte '+wxFamCarte(c2.nom);
           fig.setAttribute('data-nom',c2.nom||'');
           try{ fig.setAttribute('data-urls',JSON.stringify(c2.urls||[])); }catch(e){}
+          /* L'heure de validité ne se lit pas seule. « Estimée » dit qu'on l'a
+             devinée faute de catalogue ; l'âge et la mention de prolongation
+             disent qu'une carte reste la référence au-delà de sa cadence,
+             faute de suivante publiée. Sans cela, une carte de cinq heures se
+             lit comme une fraîche. */
           fig.innerHTML='<div class="wxd-clbl">'+wxEchap(c2.nom)
-            +' · validité '+c2.hh+'</div>';
+            +' · validité '+wxEchap(c2.hh)
+            +(c2.estimee?' <i>(estimée — catalogue indisponible)</i>':'')
+            +(c2.prolongee?' <b>· prolongée, âge '+c2.ageH+' h</b>':'')
+            +'</div>'
+            +(c2.info?'<div class="wxd-srcl">'+wxEchap(c2.info)+'</div>':'');
           el.appendChild(fig);
           if(!c2.urls.length){ fig.insertAdjacentHTML('beforeend',
-            '<div class="wxd-vide">aucune adresse définie</div>'); return; }
+            '<div class="wxd-vide">'+(c2.absente
+              ? 'carte non encore publiée pour cette heure'
+              : 'aucune adresse définie')+'</div>'); return; }
           /* voie « octets » d'abord : ses pixels sont lisibles, donc la carte
              entre dans le PDF ; a defaut, affichage seul comme avant */
           wxChargeCarte(c2.urls,function(im,lisible){
