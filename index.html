@@ -2998,7 +2998,7 @@ window.__TRACE_MARKUP="\n\n<header>\n  <div class=\"hdr-row1\">\n    <span class
    accessible depuis le bouton ⓘ du bandeau du log, avant toute ouverture de la carte */
 (function(){
   var host=document.createElement('div');
-  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Cartes OACI — origine et mise à jour</b></p>\n    <p style=\"margin-top:-6px\"><b>1/250 000 Région parisienne</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte250\">—</span>.</p>\n    <p style=\"margin-top:-6px\"><b>1/500 000 France</b> — IGN Géoplateforme (SCAN-OACI). Donnée <b>non libre</b>, tenue à jour par l’IGN.</p>\n    <p style=\"margin-top:-6px\"><b>1/1 000 000 France</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte1000\">—</span>.</p>\n    <p>Les deux cartes du SIA sont hébergées à part et lues par plages : seules les tuiles affichées sont téléchargées. Les trois se copient sur l’appareil pour voler sans réseau depuis <b>Profil → Cartes hors-ligne</b>. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.554</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
+  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Cartes OACI — origine et mise à jour</b></p>\n    <p style=\"margin-top:-6px\"><b>1/250 000 Région parisienne</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte250\">—</span>.</p>\n    <p style=\"margin-top:-6px\"><b>1/500 000 France</b> — IGN Géoplateforme (SCAN-OACI). Donnée <b>non libre</b>, tenue à jour par l’IGN.</p>\n    <p style=\"margin-top:-6px\"><b>1/1 000 000 France</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte1000\">—</span>.</p>\n    <p>Les deux cartes du SIA sont hébergées à part et lues par plages : seules les tuiles affichées sont téléchargées. Les trois se copient sur l’appareil pour voler sans réseau depuis <b>Profil → Cartes hors-ligne</b>. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.555</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
   (document.body||document.documentElement).appendChild(host.firstElementChild);
   /* le nom du fichier de la 1/1 000 000 dit son edition : on le lit la ou il
      est vraiment (cartes.json), jamais en dur, sinon il mentirait un jour */
@@ -12953,7 +12953,18 @@ window.__pickGpx=function(cb){
         +'<svg class="wxd-ico" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">'
         +'<path fill="currentColor" d="M7 3h10a1 1 0 0 1 1 1v3H6V4a1 1 0 0 1 1-1z"/>'
         +'<path fill="currentColor" d="M5 8h14a3 3 0 0 1 3 3v5a1 1 0 0 1-1 1h-3v-4H6v4H3a1 1 0 0 1-1-1v-5a3 3 0 0 1 3-3z"/>'
-        +'<path fill="currentColor" d="M8 15h8v6H8z"/></svg> Imprimer</button></div>';
+        +'<path fill="currentColor" d="M8 15h8v6H8z"/></svg> Imprimer</button>'
+        /* La seconde voie : un document d'impression séparé, cartes comprises,
+           une carte par page A4 dans SON orientation. Elle ne remplace pas la
+           première — celle-ci reste la voie de secours, inchangée. */
+        +'<button id="wxdPrn2" type="button" class="wxd-b2" '
+        +'title="Document d’impression dédié : le dossier tel qu’affiché, '
+        +'puis une page A4 par carte — TEMSI en paysage, WINTEM en portrait">'
+        +'<svg class="wxd-ico" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">'
+        +'<path fill="currentColor" d="M7 3h10a1 1 0 0 1 1 1v3H6V4a1 1 0 0 1 1-1z"/>'
+        +'<path fill="currentColor" d="M5 8h14a3 3 0 0 1 3 3v5a1 1 0 0 1-1 1h-3v-4H6v4H3a1 1 0 0 1-1-1v-5a3 3 0 0 1 3-3z"/>'
+        +'<path fill="currentColor" d="M8 15h8v6H8z"/></svg> Imprimer Dossier de vol</button>'
+        +'</div>';
       html+='<div class="wxd-feuille">';
       html+='<div class="wxd-titre">DOSSIER DE VOL (DDV) <span>\u2014 M\u00c9T\u00c9O \u00b7 NOTAM \u00b7 SUP AIP</span></div>';
       /* de quel vol il s'agit, et pour quand : en clair sous le titre, donc en
@@ -13128,6 +13139,12 @@ window.__pickGpx=function(cb){
           return !!d&&!d.hidden; };
         var arme=function(){
           if(!dossierAffiche()) return;
+          /* Le second bouton compose son PROPRE document : cet armement-ci
+             masquerait tout sauf la fenêtre météo et poserait un @page
+             anonyme de 12 mm — les deux ruineraient le tirage dédié. Il se
+             tait donc tant que l'autre voie est en cours. Ce garde-fou ne
+             change rien au comportement du bouton « Imprimer » d'origine. */
+          if(window.__DDVP_ACTIF) return;
           if(!document.getElementById('wxdPage')){
             var st=document.createElement('style'); st.id='wxdPage';
             st.textContent='@page{size:A4 portrait;margin:12mm}';
@@ -13238,6 +13255,272 @@ window.__pickGpx=function(cb){
             passe(function(){ passe(function(){ setTimeout(partir,120); }); }); });
         };
       })();
+
+      /* ================================================================
+         « IMPRIMER DOSSIER DE VOL » — LE DOCUMENT SÉPARÉ
+         ----------------------------------------------------------------
+         Le bouton « Imprimer » ci-dessus imprime la PAGE VIVANTE : il
+         masque l'application par des règles @media print et laisse le
+         moteur d'impression composer ce qui reste. Cela mêle quatre
+         référentiels — pixels d'écran, dimensions du PDF source, zoom du
+         navigateur, règles @page concurrentes — et c'est de ce mélange que
+         viennent les décalages. Il est conservé tel quel : il reste la voie
+         de secours, et il marche.
+
+         Celui-ci suit la méthode de la note technique du 28 août :
+           · un document d'impression ENTIÈREMENT séparé de l'interface ;
+           · chaque carte PDF téléchargée, vérifiée, rendue par pdf.js en
+             toile puis figée en image — une image se dimensionne, un PDF
+             en cadre ne se dimensionne pas ;
+           · des feuilles A4 en MILLIMÈTRES, une carte par feuille ;
+           · l'impression n'est lancée qu'une fois toutes les images
+             décodées.
+
+         ORIENTATION. Les TEMSI sont des planches en paysage, la WINTEM une
+         page A4 portrait. Chaque feuille nomme donc sa page (@page ddvL /
+         @page ddvP) et reçoit la sienne. Mesuré : Chromium honore les @page
+         nommées et rend bien un PDF d'orientations mêlées. Si un navigateur
+         les ignore, la feuille ne casse pas pour autant : elle se mesure en
+         « 100% de large sur 100vh de haut », donc elle prend la page qu'on
+         lui donne, et la carte, posée en object-fit:contain, s'y inscrit
+         plus petite mais ENTIÈRE. Jamais de débordement, jamais de coupe.  */
+      var DDVP_CSS=[
+      /* À L'ÉCRAN le document d'impression n'existe pas. */
+      '#ddvPrn{display:none}',
+      '.ddvp-barre{position:fixed;inset:0;z-index:9500;background:rgba(6,14,30,.72);',
+      'display:flex;align-items:center;justify-content:center;padding:24px}',
+      '.ddvp-bx{width:min(420px,92vw);background:#fff;border-radius:14px;',
+      'padding:18px 18px 15px;box-shadow:0 22px 60px rgba(0,0,0,.5);',
+      'font-family:"Poppins",system-ui,sans-serif}',
+      '.ddvp-bt{font:800 14px "Poppins",sans-serif;color:#16213e;',
+      'border-bottom:2px solid #e94560;padding-bottom:7px;margin-bottom:11px}',
+      '.ddvp-bj{height:8px;border-radius:5px;background:#e6ecf5;overflow:hidden}',
+      '.ddvp-bj i{display:block;height:100%;width:0;background:#1E9FE0;',
+      'border-radius:5px;transition:width .25s ease}',
+      '.ddvp-bl{margin-top:9px;font:600 11.5px "Poppins",sans-serif;color:#64748b}',
+      '@media print{',
+        /* les deux gabarits de page. Chaque feuille NOMME le sien : la règle
+           @page anonyme que le log de nav pose depuis le corps du document ne
+           peut donc plus s'appliquer ici, et le dossier ne sort plus en
+           paysage par accident. */
+        '@page ddvP{size:A4 portrait;margin:0}',
+        '@page ddvL{size:A4 landscape;margin:0}',
+        /* LE DOCUMENT SÉPARÉ : l'application entière s'efface, seule la
+           racine d'impression subsiste. C'est là toute la différence avec le
+           bouton « Imprimer » d'origine, qui compose la page vivante. */
+        'html,body{background:#fff!important;height:auto!important;margin:0!important;padding:0!important}',
+        'body>*{display:none!important}',
+        'body>#ddvPrn{display:block!important}',
+        '#ddvPrn{page:ddvP;margin:0;padding:0;background:#fff;color:#16213e;',
+        'font-family:"Poppins",system-ui,sans-serif}',
+        /* LES SAUTS DE PAGE — MESURÉ, PAS SUPPOSÉ.
+           Changer de gabarit de page (@page ddvP → @page ddvL) provoque DÉJÀ
+           un saut. Un saut explicite en plus ne se confond pas avec lui : il
+           s'y ajoute, et laisse une page blanche entre les deux feuilles.
+           Constaté deux fois — d'abord avec « break-after » sur la feuille
+           précédente, puis avec « break-before » sur la suivante.
+           On ne pose donc un saut QUE là où le gabarit ne change pas, c'est-
+           à-dire entre deux feuilles qui partagent la même page nommée : deux
+           TEMSI de suite, deux WINTEM de suite, ou le dossier suivi d'une
+           WINTEM — toutes en portrait. Partout ailleurs, le changement de
+           gabarit fait le travail, et une seule fois. */
+        '.ddvp{box-sizing:border-box;background:#fff}',
+        '.ddvp-t + .ddvp-t,.ddvp-w + .ddvp-w,.ddvp-txt + .ddvp-w{',
+        'break-before:page;page-break-before:always}',
+        /* LA FEUILLE D'UNE CARTE EST MESURÉE EN MILLIMÈTRES. Un premier essai
+           la mesurait en « 100% de large sur 100vh de haut », pour qu'elle
+           s'adapte à la page qu'on lui donne. MESURÉ : à l'impression, vh ne
+           vaut PAS la hauteur de la page mais celle de la fenêtre — la feuille
+           TEMSI sortait alors sur DEUX pages paysage au lieu d'une. Les
+           millimètres sont les seules unités fiables ici, comme le dit la note.
+
+           La hauteur laisse le même jeu qu'au log de nav (v.554) : le
+           navigateur peut se réserver une bande pour son en-tête et son pied,
+           et une feuille calée pile sur la page déborderait. */
+        '.ddvp-t,.ddvp-w{padding:6mm 8mm;',
+        'overflow:hidden;display:flex;flex-direction:column;',
+        'break-inside:avoid;page-break-inside:avoid}',
+        '.ddvp-t{page:ddvL;width:297mm;height:203mm}',
+        '.ddvp-w{page:ddvP;width:210mm;height:290mm}',
+        /* le dossier lui-même COULE sur autant de pages qu'il en faut : ce
+           n'est pas une planche, c'est un texte. */
+        '.ddvp-txt{page:ddvP;display:block;height:auto;overflow:visible;',
+        'padding:10mm 10mm 8mm;break-inside:auto;page-break-inside:auto}',
+        '.ddvp-txt .wxd-feuille{box-shadow:none;border-radius:0;padding:0;background:#fff}',
+        /* AUCUN saut forcé par chapitre. Le tirage d'origine en pose un devant
+           chaque « wxd-sect » ; MESURÉ ici : 162 mm de dossier — de quoi tenir
+           sur UNE page — en ressortaient sur huit, presque vides. C'est le
+           défaut même auquel ce bouton doit répondre. Le dossier coule donc, et
+           on se contente d'interdire les coupes qui font mal : un NOTAM en deux
+           morceaux, un titre de chapitre orphelin en bas de page. */
+        '.ddvp-txt .ntm-un,.ddvp-txt .wxd-msg,.ddvp-txt .wxd-ahd,',
+        '.ddvp-txt .wxd-carte,.ddvp-txt .wxd-sig-un{',
+        'break-inside:avoid;page-break-inside:avoid}',
+        '.ddvp-txt .wxd-sect,.ddvp-txt .wxd-srcl{',
+        'break-after:avoid;page-break-after:avoid}',
+        /* l'en-tête et le pied d'une feuille de carte : identifier la planche
+           et dire quand elle a été relevée, sinon une carte périmée se lit
+           comme une fraîche */
+        '.ddvp-hd{flex:0 0 auto;display:flex;align-items:baseline;gap:3mm;',
+        'border-bottom:2px solid #e94560;padding-bottom:2mm;margin-bottom:3mm}',
+        '.ddvp-hd b{font:800 12pt "Poppins",sans-serif;color:#16213e}',
+        '.ddvp-hd span{font:600 9pt "Poppins",sans-serif;color:#64748b}',
+        '.ddvp-aire{flex:1 1 auto;min-height:0;display:flex;',
+        'align-items:center;justify-content:center;overflow:hidden}',
+        /* object-fit:contain, sans aucune dimension calculée : c'est le seul
+           dimensionnement qui ne dépende ni du zoom, ni de l'écran, ni de la
+           taille du PDF source */
+        '.ddvp-aire img{max-width:100%;max-height:100%;width:auto;height:auto;',
+        'object-fit:contain;display:block}',
+        '.ddvp-non{font:600 11pt "Poppins",sans-serif;color:#64748b;text-align:center}',
+        '.ddvp-pd{flex:0 0 auto;padding-top:2mm;margin-top:2mm;',
+        'border-top:1px solid #dbe4f0;',
+        'font:600 8pt "Poppins",sans-serif;color:#94a3b8}',
+        '#ddvPrn *{-webkit-print-color-adjust:exact;print-color-adjust:exact}',
+      '}'].join('');
+      function ddvpFeuilleTexte(dos){
+        /* le dossier TEL QU'À L'ÉCRAN : on clone la feuille composée, puis on
+           retire ce qui n'a pas de sens sur le papier — la barre de boutons,
+           et la section des cartes, qui reçoit désormais ses propres pages. */
+        var src=dos.querySelector('.wxd-feuille'); if(!src) return null;
+        var c=src.cloneNode(true);
+        c.querySelectorAll('.wxd-bar,.no-print').forEach(function(e){ e.remove(); });
+        var ca=c.querySelector('#wxdCartes');
+        if(ca){
+          /* Le titre de section et sa ligne de source précèdent la liste, dans
+             cet ordre : « wxd-sect », « wxd-srcl », puis #wxdCartes. On remonte
+             donc en arrière tant qu'on trouve l'un ou l'autre — chercher le
+             titre EN PREMIER ratait sa cible, puisque c'est la ligne de source
+             qui touche la liste, et le titre restait seul sur le papier au
+             dessus d'un vide. */
+          var av=ca.previousElementSibling;
+          while(av&&(av.classList.contains('wxd-srcl')||av.classList.contains('wxd-sect'))){
+            var p=av.previousElementSibling; av.remove(); av=p; }
+          ca.remove(); }
+        c.removeAttribute('id');
+        var f=document.createElement('section');
+        f.className='ddvp ddvp-txt'; f.appendChild(c);
+        return f;
+      }
+      function ddvpFeuilleCarte(c2,src){
+        var f=document.createElement('section');
+        /* wxFamCarte rend « wxd-w » pour une WINTEM, « wxd-t » sinon : la
+           première est portrait, les TEMSI sont en paysage. */
+        var wintem=(wxFamCarte(c2.nom)==='wxd-w');
+        f.className='ddvp '+(wintem?'ddvp-w':'ddvp-t');
+        var h='<div class="ddvp-hd"><b>'+wxEchap(c2.nom||'Carte')+'</b>'
+          +'<span>validité '+wxEchap(c2.hh||'—')
+          +(c2.estimee?' (estimée)':'')
+          +(c2.prolongee?' · prolongée, âge '+c2.ageH+' h':'')+'</span></div>';
+        h+='<div class="ddvp-aire">'+(src
+          ? '<img alt="'+wxEchap(c2.nom||'')+'" src="'+src+'">'
+          : '<div class="ddvp-non">Carte non disponible'
+            +(c2.absente?' — non encore publiée pour cette heure':'')+'</div>')+'</div>';
+        h+='<div class="ddvp-pd">Source : Météo-France (aviation.meteo.fr)'
+          +' · relevé le '+wxEchap(ddvpMaintenant())+'</div>';
+        f.innerHTML=h;
+        return f;
+      }
+      function ddvpMaintenant(){ var d=new Date(); var p=function(n){ return ('0'+n).slice(-2); };
+        return p(d.getDate())+'/'+p(d.getMonth()+1)+'/'+d.getFullYear()+' '
+          +p(d.getHours())+':'+p(d.getMinutes())
+          +' · '+p(d.getUTCHours())+':'+p(d.getUTCMinutes())+' UTC'; }
+      /* une toile ou une image devient une source affichable et FIGÉE : plus
+         rien à charger au moment d'imprimer */
+      function ddvpSource(o){
+        try{ if(!o) return null;
+          if(o.toDataURL) return o.toDataURL('image/jpeg',0.92);
+          if(o.src) return o.src; }catch(e){}
+        return null; }
+      /* attente prescrite par la note : le DOM posé, une image de rendu
+         passée, puis TOUTES les images décodées. Une impression lancée trop
+         tôt sort une page sans sa carte. */
+      function ddvpPret(racine,fin){
+        var deux=function(k){ try{ requestAnimationFrame(function(){
+            requestAnimationFrame(k); }); }catch(e){ setTimeout(k,120); } };
+        deux(function(){
+          var ims=[].slice.call(racine.querySelectorAll('img'));
+          var att=ims.map(function(im){
+            try{ return im.decode?im.decode().catch(function(){}):null; }
+            catch(e){ return null; } });
+          var suite=function(){ deux(fin); };
+          if(att.length&&typeof Promise!=='undefined') Promise.all(att).then(suite,suite);
+          else setTimeout(suite,80);
+        });
+      }
+      function ddvpNettoie(){
+        try{ var r=document.getElementById('ddvPrn'); if(r) r.remove();
+          var s=document.getElementById('ddvPrnCss'); if(s) s.remove();
+          var b=document.getElementById('ddvPrnBarre'); if(b) b.remove();
+          window.__DDVP_ACTIF=0; wxTitreRend(); }catch(e){}
+      }
+      try{ window.addEventListener('afterprint',function(){ ddvpNettoie(); }); }catch(e){}
+      /* la progression dit un ÉTAT RÉEL — carte par carte, avec ce qui a
+         échoué. Une barre qui avance toute seule ne renseigne personne. */
+      function ddvpBarre(){
+        var b=document.getElementById('ddvPrnBarre');
+        if(!b){ b=document.createElement('div'); b.id='ddvPrnBarre';
+          b.className='ddvp-barre no-print';
+          b.innerHTML='<div class="ddvp-bx"><div class="ddvp-bt">Préparation du dossier de vol</div>'
+            +'<div class="ddvp-bj"><i></i></div><div class="ddvp-bl">…</div></div>';
+          document.body.appendChild(b); }
+        return { dit:function(pc,txt){
+            try{ b.querySelector('.ddvp-bj i').style.width=Math.max(0,Math.min(100,pc))+'%';
+              b.querySelector('.ddvp-bl').textContent=txt; }catch(e){} },
+          ferme:function(){ try{ b.remove(); }catch(e){} } };
+      }
+      function ddvpImprime(dos){
+        if(window.__DDVP_ACTIF) return;
+        window.__DDVP_ACTIF=1;
+        ddvpNettoie(); window.__DDVP_ACTIF=1;
+        var bar=ddvpBarre();
+        bar.dit(4,'catalogue des cartes…');
+        var racine=document.createElement('div'); racine.id='ddvPrn';
+        var st=document.createElement('style'); st.id='ddvPrnCss';
+        st.textContent=DDVP_CSS;
+        document.body.appendChild(st);
+        var txt=ddvpFeuilleTexte(dos);
+        if(txt) racine.appendChild(txt);
+        var termine=function(manques){
+          bar.dit(94,'mise en page…');
+          document.body.appendChild(racine);
+          try{ wxTitrePose(wxNomFichier('Dossier de vol - '
+            +(nomNav||'sans nom')+' - '+dateFic)); }catch(e){}
+          ddvpPret(racine,function(){
+            bar.dit(100,manques.length
+              ? (manques.length+' carte(s) manquante(s) — le dossier part sans elles')
+              : 'prêt');
+            setTimeout(function(){ bar.ferme();
+              try{ window.print(); }catch(e){ ddvpNettoie(); } },
+              manques.length?900:180);
+          });
+        };
+        if(typeof window.__CARTES!=='function'){ termine([]); return; }
+        window.__CARTES().then(function(j){ return wxCartesReelles(j); })
+          .then(function(lst){
+            lst=lst||[];
+            if(!lst.length){ termine([]); return; }
+            var manques=[], i=0;
+            /* une carte à la fois : la note le recommande, et cela ménage
+               autant le relais que la source officielle */
+            (function suiv(){
+              if(i>=lst.length){ termine(manques); return; }
+              var c2=lst[i++];
+              bar.dit(8+Math.round(84*(i-1)/lst.length),
+                'carte '+i+' / '+lst.length+' · '+(c2.nom||''));
+              if(!c2.urls||!c2.urls.length){
+                manques.push(c2.nom||'?');
+                racine.appendChild(ddvpFeuilleCarte(c2,null)); suiv(); return; }
+              wxOctetsMotif(c2.urls,function(o){
+                var s=ddvpSource(o);
+                if(!s) manques.push(c2.nom||'?');
+                racine.appendChild(ddvpFeuilleCarte(c2,s));
+                suiv(); });
+            })();
+          },function(){ termine([]); });
+      }
+      (function(){ var b2=dos.querySelector('#wxdPrn2'); if(!b2) return;
+        b2.onclick=function(){ ddvpImprime(dos); }; })();
       /* « Télécharger PDF + Cartes » est retiré (26 août 2026). Le
          diagnostic imprimé dans le PDF avait établi que les deux sources
          refusent l'accès serveur : aviation.meteo.fr répond « Request
