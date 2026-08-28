@@ -2998,7 +2998,7 @@ window.__TRACE_MARKUP="\n\n<header>\n  <div class=\"hdr-row1\">\n    <span class
    accessible depuis le bouton ⓘ du bandeau du log, avant toute ouverture de la carte */
 (function(){
   var host=document.createElement('div');
-  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Cartes OACI — origine et mise à jour</b></p>\n    <p style=\"margin-top:-6px\"><b>1/250 000 Région parisienne</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte250\">—</span>.</p>\n    <p style=\"margin-top:-6px\"><b>1/500 000 France</b> — IGN Géoplateforme (SCAN-OACI). Donnée <b>non libre</b>, tenue à jour par l’IGN.</p>\n    <p style=\"margin-top:-6px\"><b>1/1 000 000 France</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte1000\">—</span>.</p>\n    <p>Les deux cartes du SIA sont hébergées à part et lues par plages : seules les tuiles affichées sont téléchargées. Les trois se copient sur l’appareil pour voler sans réseau depuis <b>Profil → Cartes hors-ligne</b>. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.560</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
+  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Cartes OACI — origine et mise à jour</b></p>\n    <p style=\"margin-top:-6px\"><b>1/250 000 Région parisienne</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte250\">—</span>.</p>\n    <p style=\"margin-top:-6px\"><b>1/500 000 France</b> — IGN Géoplateforme (SCAN-OACI). Donnée <b>non libre</b>, tenue à jour par l’IGN.</p>\n    <p style=\"margin-top:-6px\"><b>1/1 000 000 France</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte1000\">—</span>.</p>\n    <p>Les deux cartes du SIA sont hébergées à part et lues par plages : seules les tuiles affichées sont téléchargées. Les trois se copient sur l’appareil pour voler sans réseau depuis <b>Profil → Cartes hors-ligne</b>. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.561</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
   (document.body||document.documentElement).appendChild(host.firstElementChild);
   /* le nom du fichier de la 1/1 000 000 dit son edition : on le lit la ou il
      est vraiment (cartes.json), jamais en dur, sinon il mentirait un jour */
@@ -8447,22 +8447,36 @@ function openRelinkChoice(){
     /* --- NOTAM sans terrain du vol : bloc FIR et terrains longes ---
        En dernier, mais presents. Ils viennent de SOFIA ; autorouter, qui
        interroge terrain par terrain, n'en produit pas. */
-    if((d.horsTerrain||[]).length||d.firEcartes){
-      h+='<div class="wxd-aero"><div class="wxd-ahd">'
-        +'<span class="wxd-role">FIR</span><b>espace a\u00e9rien</b>'
-        +'<span class="wxd-anom">NOTAM en route, hors terrains du vol</span></div>';
-      /* CE QUE LE DOSSIER A \u00c9CART\u00c9, ET POURQUOI. Sans cette ligne, le pilote
-         croirait tenir la liste enti\u00e8re des NOTAM d'espace a\u00e9rien. */
-      if(d.firEcartes) h+='<div class="wxd-srcl">'+d.firEcartes
+    /* DEUX LOTS, PAS UN. « horsTerrain » réunit deux choses de nature
+       différente : les NOTAM d'ESPACE AÉRIEN, rattachés à la région
+       d'information de vol, et ceux de TERRAINS longés par le couloir mais
+       absents de la liste du vol. Le listing les sépare depuis toujours ; le
+       dossier, lui, les rangeait tous sous « espace aérien » — un NOTAM de
+       piste s'y lisait comme une zone. Le cadre rouge posé ici rendait la
+       confusion voyante ; elle existait avant lui. */
+    var hFir=(d.horsTerrain||[]).filter(function(n){ return n.fir_seul; });
+    var hAut=(d.horsTerrain||[]).filter(function(n){ return !n.fir_seul; });
+    if(hFir.length||d.firEcartes){
+      h+='<div class="wxd-aero fir"><div class="wxd-ahd">'
+        +'<span class="wxd-role fir">FIR</span><b>espace a\u00e9rien</b>'
+        +'<span class="wxd-anom">zones travers\u00e9es \u00b7 seules les activ\u00e9es</span></div>';
+      /* CE QUE LE DOSSIER A ÉCARTÉ, ET POURQUOI. Sans cette ligne, le pilote
+         croirait tenir la liste entière des NOTAM d'espace aérien. */
+      if(d.firEcartes) h+='<div class="wxd-ecart">'+d.firEcartes
         +' NOTAM d\u2019espace a\u00e9rien \u00e9cart\u00e9'+(d.firEcartes>1?'s':'')
         +' \u2014 Q-code ne se terminant ni par CA (activ\u00e9e), ni par CS ou LW '
         +'(activit\u00e9 connue) : ils d\u00e9crivent une zone sans l\u2019activer. '
         +'Liste enti\u00e8re dans le listing NOTAM.</div>';
       /* meme forme OACI que les terrains : un NOTAM d'espace aerien se
          recoupe avec le briefing officiel comme les autres */
-      (d.horsTerrain||[]).forEach(function(n){ h+=ddvOaci(n); });
-      if(!(d.horsTerrain||[]).length) h+='<div class="wxd-msg">aucun NOTAM '
-        +'d\u2019espace a\u00e9rien activ\u00e9 sur la route.</div>';
+      hFir.forEach(function(n){ h+=ddvOaci(n); });
+      if(!hFir.length) h+='<div class="wxd-msg">aucune zone activ\u00e9e sur la route.</div>';
+      h+='</div>'; }
+    if(hAut.length){
+      h+='<div class="wxd-aero"><div class="wxd-ahd">'
+        +'<span class="wxd-role">AUTRES</span><b>terrains long\u00e9s</b>'
+        +'<span class="wxd-anom">travers\u00e9s par le couloir, hors liste du vol</span></div>';
+      hAut.forEach(function(n){ h+=ddvOaci(n); });
       h+='</div>'; }
     /* --- chapitre SUP AIP --- */
     h+='<div class="wxd-sect">SUP AIP \u2014 terrains du vol</div>'
@@ -11711,6 +11725,27 @@ window.__CARTE_ADR=function(j,cle){
   color:#334155;text-transform:uppercase}
 .wxd-role.dep{background:#16a34a;color:#fff}.wxd-role.arr{background:#e94560;color:#fff}
 .wxd-role.deg{background:#b45309;color:#fff}.wxd-role.mid{background:#2c5282;color:#fff}
+/* L'ESPACE AÉRIEN SE VOIT. Le badge FIR portait le gris par défaut, celui
+   des rôles sans couleur : perdu au milieu d'une page de NOTAM de terrain,
+   alors qu'il ouvre le seul chapitre qui parle des zones traversées. Il prend
+   le rouge-rose du thème, comme les titres de chapitre. */
+/* #cc2f4a et non le #e94560 du thème : à 9,5 px en gras, le blanc sur
+   #e94560 ne donne que 3,8:1 — sous le seuil de lisibilité, et pire encore
+   sur une imprimante qui tire un peu clair. Un ton plus profond de la même
+   teinte porte le contraste à 5,2:1 sans quitter la famille du thème ; le
+   filet du bloc, lui, garde le rouge-rose exact. */
+.wxd-role.fir{background:#cc2f4a;color:#fff;letter-spacing:.06em}
+/* et le bloc entier se détache : un filet à gauche, un fond très pâle. Sur
+   papier comme à l'écran, on voit où il commence et où il finit. */
+.wxd-aero.fir{border-left:3px solid #e94560;background:#fdf2f4;border-radius:0 8px 8px 0;
+  padding:8px 10px 4px;margin:10px 0 9px}
+.wxd-aero.fir .wxd-ahd b{color:#9f1239}
+/* CE QUI EST ÉCARTÉ N'EST PAS UNE NOTE DE BAS DE PAGE. En gris pâle sur
+   fond pâle, la mention se lisait comme un commentaire ; elle dit pourtant
+   qu'une partie de la liste manque. */
+.wxd-ecart{font:700 10px "Poppins",sans-serif;color:#9a3412;background:#fff7ed;
+  border:1px solid #fdba74;border-radius:8px;padding:6px 9px;margin:2px 0 8px;
+  break-inside:avoid;page-break-inside:avoid}
 .wxd-msg{font:600 11.5px/1.5 "JetBrains Mono",monospace;color:#16213e;background:#f4f7fb;
   border:1px solid #e2e8f0;border-radius:8px;padding:7px 9px;margin:3px 0;white-space:pre-wrap;word-break:break-word}
 .wxd-msg i{color:#94a3b8;font-style:italic;font-family:"Poppins",sans-serif}
@@ -13566,12 +13601,16 @@ window.__pickGpx=function(cb){
          compléments. Un chapitre absent est simplement sauté ; un chapitre
          inattendu se range à la fin plutôt que de disparaître. */
       var DDVP_ORDRE=[
-        {cle:'metar', re:/metar/i},        /* reste avec l'en-tête */
+        /* L'ÉPHÉMÉRIDE OUVRE, AVEC L'EN-TÊTE. Coucher du soleil et nuit
+           aéronautique ne sont pas un complément : ils bornent l'heure de
+           retour, et se lisent en même temps que la date du vol. Deux lignes
+           qui tiennent sous le titre, et le METAR/TAF enchaîne. */
+        {cle:'eph',   re:/ph[ée]m[ée]ride/i, avec:1},
+        {cle:'metar', re:/metar/i,           avec:1},
         {cle:'notam', re:/^notam\b/i},
         {cle:'sup',   re:/sup\s*aip/i},
         {cle:'azba',  re:/azba|rtba/i},
-        {cle:'sigmet',re:/sigmet/i},
-        {cle:'eph',   re:/ph[ée]m[ée]ride/i}
+        {cle:'sigmet',re:/sigmet/i}
       ];
       /* Découpe le dossier affiché en CHAPITRES — un par « wxd-sect » — plus
          la tête (titre, vol, date) et le pied (l'avertissement). */
@@ -13609,19 +13648,21 @@ window.__pickGpx=function(cb){
          avec metar taf » ; chacune des suivantes porte un chapitre. */
       function ddvpFeuillesTexte(dos){
         var d=ddvpChapitres(dos); if(!d) return {avant:[],apres:[]};
-        var pris={}, avant=null, apres=[];
+        var pris={}, tete=d.tete.slice(), apres=[], avant=null;
         DDVP_ORDRE.forEach(function(o){
           for(var i=0;i<d.chaps.length;i++){
             if(pris[i]||!o.re.test(d.chaps[i].titre)) continue;
             pris[i]=1;
-            if(o.cle==='metar') avant=ddvpFeuille(d.tete.concat(d.chaps[i].n));
+            /* « avec:1 » : ce chapitre reste sur la feuille d'en-tête plutôt
+               que d'ouvrir une page à lui. Ils s'y ajoutent dans l'ordre
+               déclaré — éphéméride puis METAR/TAF. */
+            if(o.avec) tete=tete.concat(d.chaps[i].n);
             else apres.push(ddvpFeuille(d.chaps[i].n));
             return; }
         });
+        if(tete.length) avant=ddvpFeuille(tete);
         /* ce que l'ordre ne nomme pas garde sa place relative, à la fin */
         d.chaps.forEach(function(g,i){ if(!pris[i]) apres.push(ddvpFeuille(g.n)); });
-        /* pas de chapitre METAR : la tête ouvre quand même le document */
-        if(!avant&&d.tete.length) avant=ddvpFeuille(d.tete);
         if(d.pied){ if(apres.length) apres[apres.length-1].appendChild(d.pied);
           else if(avant) avant.appendChild(d.pied); }
         return {avant:avant?[avant]:[], apres:apres};
