@@ -12,15 +12,19 @@
  *        demandée manque au catalogue (avec sa vraie date, jamais maquillée)
  *   GET ?essai=1&type=...&date=...                  -> journal JSON de la voie SOFIA
  *   GET ?poste=1&op=postTemsi&zone=FRANCE           -> rejouer un POST SOFIA (diagnostic)
+ *   GET ?sofia=1&route=LFPN,LFPZ                    -> NOTAM via SOFIA (PIB route étroite)
  *   GET ?version=1                                  -> version du code déployé
  *
  * Déploiement : Supabase > Edge Functions > fonction « cartes », coller ce
  * fichier EN ENTIER (vérifier que la dernière ligne dans l'éditeur est bien
  * « }); »), déployer, et laisser « Enforce JWT verification » DÉSACTIVÉ.
- * Aucun secret requis. Vérification : ouvrir ?version=1 -> doit répondre 7.29.
+ * Aucun secret requis. Vérification : ouvrir ?version=1 -> doit répondre 7.44.
+ * Secret OPTIONNEL : CARTES_WORKER = adresse du Worker Cloudflare de secours
+ * (cloudflare/meteo-sofia du dépôt) pour les octets des cartes quand
+ * Météo-France refuse l'adresse IP de Supabase.
  */
 
-const VERSION = "7.41";
+const VERSION = "7.44";
 const AERO = "https://aviation.meteo.fr";
 const SOFIA = "https://sofia-briefing.aviation-civile.gouv.fr";
 const UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Safari/605.1.15";
@@ -558,7 +562,7 @@ async function jetonAutorouter(neuf = false): Promise<string | null> {
        comment en liberer. C'est ce texte qu'il faut lire. */
     const brut = texte.replace(/\s+/g, " ").trim().slice(0, 400);
     const motif = /toomanytokens/i.test(texte)
-      ? "plafond de jetons autorouter atteint (20 actifs) \u2014 reponse : " + brut
+      ? "plafond de jetons autorouter atteint (20 actifs) — reponse : " + brut
       : "jeton autorouter refusé (" + r.status + ") " + brut;
     await memoEcrit("autorouter_journal",
       JSON.stringify({ quand: new Date().toISOString(), evt: "refus", motif }),
@@ -735,7 +739,7 @@ async function supAip(_q: URLSearchParams): Promise<Response> {
     const r = await fetch(SIA_SUP, { headers: { "User-Agent": UA, "Accept": "text/html" }, redirect: "follow" });
     const texte = await r.text();
     if (!r.ok) return reponseJson({ erreur: "le SIA répond " + r.status }, 502);
-    const maj = (texte.match(/Date de derni\u00e8re mise \u00e0 jour de la liste\s*:\s*<b>([^<]+)<\/b>/) ||
+    const maj = (texte.match(/Date de dernière mise à jour de la liste\s*:\s*<b>([^<]+)<\/b>/) ||
                  texte.match(/mise . jour de la liste\s*:\s*<b>([^<]+)<\/b>/i) || [])[1] || "";
     const sups: { num: string; titre: string; pdf: string; du: string; au: string }[] = [];
     /* la page fait ~230 Ko : une expression unique avec retours en arriere
@@ -1034,8 +1038,375 @@ async function azba(q: URLSearchParams): Promise<Response> {
   }
 }
 
+/* ================== NOTAM via SOFIA-Briefing ==============================
+   L'autre source de NOTAM, à côté d'autorouter. Elle a deux avantages : elle
+   rend un PIB « route étroite » — un couloir autour de la trace, et non une
+   liste de terrains — et surtout elle livre la TRADUCTION FRANÇAISE de chaque
+   item E, dans multiLanguage.itemE. Lire « PISTE 11L/29R FERMEE » plutôt que
+   « RWY 11L/29R CLOSED » n'est pas un confort : c'est une sécurité.
+
+   La séquence, relevée puis vérifiée en vivo le 27/08/2026 (LFPN → LFPZ,
+   trois étapes en 200, 84 NOTAM) :
+
+     1. GET /sofia/pages/notamform.html   -> Set-Cookie: JSESSIONID
+     2. uuid = crypto.randomUUID()        (identifiant applicatif, PAS la session)
+     3. POST /sofia  :operation=postsaveinsessionprepa
+     4. POST /sofia  :operation=postNarrowRoutePibRequest
+     5. outer = JSON ; pib = JSON.parse(outer["status.message"])
+     6. pib.listnotams
+
+   Quatre pièges, tous rencontrés, tous désamorcés ici :
+     · route[] doit apparaître UNE FOIS PAR POINT. Un « LFPN,LFPZ » agrégé
+       fait répondre 500. D'où le corps construit en chaîne BRUTE.
+     · le JSESSIONID doit être le MÊME sur les deux POST. L'uuid ne le
+       remplace pas : ce sont deux identifiants distincts.
+     · status.message est une CHAÎNE contenant un second JSON : deux décodages.
+     · duration est au format HHMM — 1200 = 12 h, pas 1200 minutes.
+
+   Et un piège de plate-forme : fetch n'expose que les en-têtes de la réponse
+   FINALE. Un JSESSIONID posé sur une 302 serait perdu si l'on laissait suivre
+   les redirections. On les suit donc à la main, en récoltant à chaque saut.
+
+   Les NOTAM sont rendus DÉJÀ CONVERTIS dans la forme interne de l'application
+   (ad, serie, qcode, fir, trafic, objet, portee, bas, haut, lat, lon, rayon,
+   debut, fin, estimee, horaire, texte). L'application n'a ainsi aucune
+   connaissance de SOFIA : tout l'adaptateur tient ici.
+
+   ?sofia=1&route=LFPN,LFPZ[&lang=fr][&essai=1]
+     -> { ok, source, pibUid, validFrom, validTo, nbSofia, traduits, notams }
+   Mémo 10 minutes, partagé entre les instances comme celui d'autorouter. */
+
+const SOFIA_FORM = SOFIA + "/sofia/pages/notamform.html";
+const SOFIA_NOTAM_DUREE = 600000;      /* 10 min : la fraîcheur attendue */
+const memoSofiaN = new Map<string, { t: number; corps: string }>();
+
+/* « 4845N00207E » -> degrés décimaux. Le rayon voyage à part, dans radius. */
+function sofiaCoord(v: unknown): { lat: number | null; lon: number | null } {
+  const m = /^(\d{2})(\d{2})([NS])(\d{3})(\d{2})([EW])/.exec(String(v ?? ""));
+  if (!m) return { lat: null, lon: null };
+  return {
+    lat: (+m[1] + +m[2] / 60) * (m[3] === "S" ? -1 : 1),
+    lon: (+m[4] + +m[5] / 60) * (m[6] === "W" ? -1 : 1),
+  };
+}
+function sofiaNombre(v: unknown): number | null {
+  const n = Number(v);
+  return Number.isFinite(n) ? n : null;
+}
+function sofiaEpoque(v: unknown): number {
+  if (!v) return 0;
+  const t = Date.parse(String(v));
+  return Number.isNaN(t) ? 0 : Math.round(t / 1000);
+}
+/* Les noms de purpose / scope / lower / upper dans qLine ne sont pas tous
+   confirmés sur relevé : on essaie les variantes plausibles. Si aucune ne
+   répond, l'application se passe simplement de la ligne Q — elle refuse déjà
+   d'en afficher une incomplète, qui ressemblerait à l'officielle sans l'être. */
+function sofiaChamp(o: Record<string, unknown>, noms: string[]): unknown {
+  for (const n of noms) if (o && o[n] != null && o[n] !== "") return o[n];
+  return null;
+}
+
+function sofiaVersApp(n: Record<string, any>, groupe: string, categorie: string) {
+  const q = (n.qLine || {}) as Record<string, unknown>;
+  const c = sofiaCoord(n.coordinates);
+  const fr = typeof n.multiLanguage?.itemE === "string" ? n.multiLanguage.itemE.trim() : "";
+  const en = typeof n.itemE === "string" ? n.itemE.trim() : "";
+  return {
+    ad: String(n.itemA || n.sectionCode || (groupe === "FIR" ? (q.fir || "FIR") : "")),
+    /* le VRAI numéro, forme OACI : E3550/26. « id » est un identifiant interne
+       SOFIA (400000051804734) — ce n'est PAS le numéro du NOTAM. */
+    serie: (n.series && n.number != null)
+      ? String(n.series) + String(n.number) + "/" + String(n.year ?? "").slice(-2)
+      : String(n.id ?? ""),
+    qcode: [q.code23, q.code45].filter(Boolean).join(""),
+    fir: String(q.fir || ""),
+    trafic: String(q.traffic || ""),
+    objet: String(sofiaChamp(q, ["purpose", "pu", "purposes", "objet"]) ?? ""),
+    portee: String(sofiaChamp(q, ["scope", "sc", "portee"]) ?? ""),
+    bas: sofiaNombre(sofiaChamp(q, ["lower", "lowerLimit", "lower_fl", "bas"])),
+    haut: sofiaNombre(sofiaChamp(q, ["upper", "upperLimit", "upper_fl", "haut"])),
+    lat: c.lat, lon: c.lon, rayon: sofiaNombre(n.radius),
+    debut: sofiaEpoque(n.startValidity),
+    fin: sofiaEpoque(n.endValidity),
+    estimee: /\bEST\b/i.test(String(n.endValidityFormat || "")) || n.estimated === true,
+    horaire: String(n.itemD || ""),
+    /* LES DEUX LANGUES voyagent côte à côte : l'application bascule FR/EN sans
+       rien redemander. Tous les NOTAM ne sont pas traduits — environ un sur
+       six — et ceux-là retombent sur l'anglais plutôt que de rester vides. */
+    texte: fr || en,
+    texteFr: fr,
+    texteEn: en,
+    traduit: !!fr,
+    src: "SOFIA",
+    cat: categorie,
+    fir_seul: groupe === "FIR",
+    idSofia: String(n.id ?? ""),
+  };
+}
+
+/* La structure réelle, relevée le 27/08/2026 :
+
+     listnotams
+       ADDep, ADDes   { code, name, + 12 tableaux de catégorie }   -> OBJET terrain
+       ADDeg, ADSur   TABLEAUX DE TERRAINS de la même forme         -> dégagements,
+                      (chacun : code, name, + ses catégories)          survolés
+       FIR            { 8 tableaux de catégorie, aux noms différents }
+       Other          tableau
+
+   ATTENTION, c'est le piège qui a coûté le plus cher ici : ADDeg et ADSur ne
+   sont PAS des tableaux de NOTAM, ce sont des tableaux de TERRAINS. Les
+   parcourir comme s'ils contenaient des NOTAM broyait tout leur contenu —
+   autrement dit les terrains survolés et les dégagements disparaissaient, et
+   c'est précisément ce que SOFIA rendait de moins qu'autorouter.
+
+   Le parcours ne se fie donc plus au NOM du groupe mais à la FORME : un objet
+   est un NOTAM s'il porte itemE, ou series+number. Tout le reste est un
+   conteneur dans lequel on descend. Une évolution de SOFIA qui ajouterait un
+   niveau ou renommerait un groupe passera sans rien perdre. */
+const SOFIA_GROUPES = ["ADDep", "ADDeg", "ADSur", "ADDes", "FIR", "Other"];
+
+function sofiaAplatis(listnotams: Record<string, any>) {
+  const sortie: Record<string, unknown>[] = [];
+  const vus = new Set<string>();
+  /* les terrains que SOFIA a réellement examinés : sans cette liste,
+     « aucun NOTAM sur ce terrain » et « SOFIA n'a pas regardé ce terrain »
+     s'affichent pareil — et le second est un mensonge dangereux */
+  const couverts = new Set<string>();
+
+  const estNotam = (o: Record<string, unknown>) =>
+    typeof o.itemE === "string" || (o.series != null && o.number != null);
+
+  const pousse = (n: Record<string, any>, groupe: string, categorie: string) => {
+    const o = sofiaVersApp(n, groupe, categorie);
+    if (o.ad && /^[A-Z]{4}$/.test(o.ad)) couverts.add(o.ad);
+    /* dédupliquer par numéro et terrain : un même NOTAM peut figurer sous
+       deux catégories */
+    const cle = o.serie + "|" + o.ad;
+    if (vus.has(cle)) return;
+    vus.add(cle);
+    sortie.push(o);
+  };
+
+  const marche = (n: unknown, groupe: string, categorie: string) => {
+    if (!n || typeof n !== "object") return;
+    if (Array.isArray(n)) { n.forEach((x) => marche(x, groupe, categorie)); return; }
+    const o = n as Record<string, any>;
+    if (estNotam(o)) { pousse(o, groupe, categorie); return; }
+    /* conteneur : s'il porte un code OACI, c'est un terrain que SOFIA a
+       examiné — même s'il n'a aucun NOTAM à signaler */
+    if (typeof o.code === "string" && /^[A-Z]{4}$/.test(o.code)) couverts.add(o.code);
+    for (const [k, v] of Object.entries(o)) {
+      if (v && typeof v === "object") marche(v, groupe, k);
+    }
+  };
+
+  const l = listnotams || {};
+  for (const k of SOFIA_GROUPES) if (k in l) marche(l[k], k, "");
+  /* tout groupe qu'une évolution de SOFIA ajouterait : on le prend quand même */
+  for (const k of Object.keys(l)) if (!SOFIA_GROUPES.includes(k)) marche(l[k], k, "");
+  return { notams: sortie, couverts: Array.from(couverts).sort() };
+}
+
+/* La séquence complète. Le bocal à témoins est PROPRE À CET APPEL : le bocal
+   global du relais (temoinsSofia) sert les images de cartes, et un JSESSIONID
+   périmé qui s'y serait attardé ferait échouer la préparation. */
+async function sofiaPib(route: string[], o: Record<string, string>):
+    Promise<{ pib: Record<string, any>; trace: Record<string, unknown>[] }> {
+  const pot = new Map<string, string>();
+  const trace: Record<string, unknown>[] = [];
+
+  const appel = async (etape: string, url: string, init: RequestInit = {}): Promise<Response> => {
+    let cible = url, rep: Response | null = null;
+    for (let saut = 0; saut < 6; saut++) {
+      const t0 = Date.now();
+      const h = new Headers(init.headers);
+      const c = Array.from(pot).map(([k, v]) => k + "=" + v).join("; ");
+      if (c) h.set("Cookie", c);
+      rep = await fetch(cible, {
+        method: init.method ?? "GET", headers: h, body: init.body,
+        redirect: "manual", signal: AbortSignal.timeout(20000),
+      });
+      /* on récolte les témoins de CE saut avant de suivre la redirection */
+      const recus: string[] = [];
+      try {
+        const brut: string[] = typeof (rep.headers as unknown as { getSetCookie?: () => string[] }).getSetCookie === "function"
+          ? (rep.headers as unknown as { getSetCookie: () => string[] }).getSetCookie()
+          : (rep.headers.get("set-cookie") ? [rep.headers.get("set-cookie") as string] : []);
+        for (const l of brut) {
+          const m = /^\s*([^=;,\s]+)=([^;]*)/.exec(l);
+          if (m) { pot.set(m[1], m[2]); recus.push(m[1]); }
+        }
+      } catch { /* témoins illisibles */ }
+      /* on ne journalise QUE les noms de témoins, jamais leurs valeurs */
+      trace.push({ etape, http: rep.status, ms: Date.now() - t0, temoins: recus });
+      if (rep.status >= 300 && rep.status < 400 && rep.headers.get("location")) {
+        cible = new URL(rep.headers.get("location") as string, cible).toString();
+        init = { method: "GET", headers: init.headers };
+        continue;
+      }
+      break;
+    }
+    return rep as Response;
+  };
+
+  /* 1 — la session HTTP */
+  const init = await appel("session", SOFIA_FORM, {
+    headers: { "User-Agent": UA, "Accept": "text/html,application/xhtml+xml" },
+  });
+  if (!init.ok) throw new Error("SOFIA session HTTP " + init.status);
+  await init.text();
+  if (!pot.has("JSESSIONID")) throw new Error("SOFIA : JSESSIONID absent");
+
+  /* 2 — l'uuid applicatif, distinct de la session */
+  const uuid = crypto.randomUUID();
+  const validFrom = new Date().toISOString().replace(/\.\d{3}Z$/, "Z");
+  const d = new Date(validFrom);
+  const dd = (n: number) => String(n).padStart(2, "0");
+
+  /* 3 — le corps commun, « :operation » en tête comme le test de référence */
+  const commun: [string, string][] = [
+    ["valid_from", validFrom],
+    ["duration", o.duration || "1200"],      /* HHMM : 1200 = 12 h */
+    ["traffic", o.traffic || "VI"],
+    ["fl_lower", o.flLower || "0"],
+    ["fl_upper", o.flUpper || "999"],
+    ["width", o.width || "15"],
+    ["radiusAD", o.radiusAD || "30"],
+    ...route.map((p) => ["route[]", p] as [string, string]),   /* une occurrence par point */
+    ["uuid", uuid],
+    ["isFromSofia", "true"],
+    ["operation", "postNarrowRoutePibRequest"],
+    ["target", "#aside-target"],
+    ["href", "/sofia/pages/notamroute.html"],
+    ["typeVol", "N"],
+    ["departure_date", dd(d.getUTCDate()) + "-" + dd(d.getUTCMonth() + 1) + "-" + d.getUTCFullYear()],
+    ["departure_time", dd(d.getUTCHours()) + dd(d.getUTCMinutes())],
+    ["lang", "fr"],
+    ["routeVal", "false"],
+  ];
+  const corps = (op: string) =>
+    ([[":operation", op] as [string, string]].concat(commun))
+      .map(([k, v]) => encodeURIComponent(k) + "=" + encodeURIComponent(v)).join("&");
+  const entetes = {
+    "User-Agent": UA,
+    "Accept": "application/json, text/javascript, */*; q=0.01",
+    "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
+    "Origin": SOFIA,
+    "Referer": SOFIA_FORM,
+    "X-Requested-With": "XMLHttpRequest",
+  };
+
+  /* 4 — la préparation. Ne pas la retirer sans preuve : elle est dans le
+     chemin validé, et rien ne dit que le PIB s'en passe. */
+  const prep = await appel("preparation", SOFIA + "/sofia", {
+    method: "POST", headers: entetes, body: corps("postsaveinsessionprepa"),
+  });
+  if (!prep.ok) throw new Error("SOFIA preparation HTTP " + prep.status);
+  await prep.text();
+
+  /* 5 — le PIB */
+  const rp = await appel("pib", SOFIA + "/sofia", {
+    method: "POST", headers: entetes, body: corps("postNarrowRoutePibRequest"),
+  });
+  if (!rp.ok) throw new Error("SOFIA pib HTTP " + rp.status);
+  const texte = await rp.text();
+  trace[trace.length - 1].octets = texte.length;
+
+  /* 6 — le double décodage */
+  let externe: Record<string, unknown>;
+  try { externe = JSON.parse(texte); }
+  catch { throw new Error("SOFIA : réponse PIB non JSON (" + texte.slice(0, 60) + ")"); }
+  if (typeof externe["status.message"] !== "string") {
+    throw new Error("SOFIA : status.message absent — le schéma a peut-être changé");
+  }
+  const pib = JSON.parse(externe["status.message"] as string);
+  if (!pib || !pib.listnotams) throw new Error("SOFIA : listnotams absent");
+
+  /* 7 — cohérence : ne jamais rendre un PIB qui ne correspond pas à la route */
+  const dep = pib.listnotams?.ADDep?.code, des = pib.listnotams?.ADDes?.code;
+  if (dep && dep !== route[0]) throw new Error("SOFIA : départ incohérent (" + dep + ")");
+  if (des && des !== route[route.length - 1]) {
+    throw new Error("SOFIA : destination incohérente (" + des + ")");
+  }
+  return { pib, trace };
+}
+
+function reponseSofiaN(corps: string, voie: "memo" | "base" | "frais"): Response {
+  return new Response(corps, { headers: {
+    "Content-Type": "application/json; charset=utf-8",
+    "Cache-Control": "public, max-age=600",
+    "Access-Control-Allow-Origin": "*",
+    "X-Cartes-Version": VERSION,
+    "X-Cartes-Sofia": voie,
+  } });
+}
+
+async function notamSofia(q: URLSearchParams): Promise<Response> {
+  const route = (q.get("route") || "").toUpperCase().split(",")
+    .map((x) => x.trim()).filter(Boolean);
+  if (route.length < 2 || route.length > 20) {
+    return reponseJson({ erreur: "paramètre route attendu : route=LFPN,LFPZ (2 à 20 points)" }, 400);
+  }
+  for (const p of route) {
+    if (!/^[A-Z0-9]{2,11}$/.test(p)) {
+      return reponseJson({ erreur: "point de route invalide : " + p }, 400);
+    }
+  }
+  const opts: Record<string, string> = {};
+  for (const k of ["duration", "traffic", "flLower", "flUpper", "width", "radiusAD"]) {
+    const v = q.get(k); if (v) opts[k] = v;
+  }
+  /* La mémoire ne dépend PAS de la langue : les deux textes voyagent ensemble,
+     et l'application choisit lequel afficher. Une seule entrée sert donc les
+     deux langues — la mémoire partagée en est d'autant plus utile. */
+  const cle = "sofia:" + route.join(">") + "|" + JSON.stringify(opts);
+  const su = memoSofiaN.get(cle);
+  if (su && Date.now() - su.t < SOFIA_NOTAM_DUREE && q.get("essai") !== "1") {
+    return reponseSofiaN(su.corps, "memo");
+  }
+  const pt = q.get("essai") === "1" ? null : await memoFrais(cle);
+  if (pt) {
+    /* on garde l'ÂGE d'origine : passer par la base ne rajeunit rien */
+    memoSofiaN.set(cle, { t: Date.now() - (SOFIA_NOTAM_DUREE - pt.reste), corps: pt.valeur });
+    return reponseSofiaN(pt.valeur, "base");
+  }
+  try {
+    const { pib, trace } = await sofiaPib(route, opts);
+    const { notams, couverts } = sofiaAplatis(pib.listnotams);
+    const corps = JSON.stringify({
+      ok: true,
+      source: "SOFIA-Briefing",
+      route,
+      /* les terrains que SOFIA a examinés — départ, arrivée, survolés,
+         dégagements, et tout terrain tombé dans le rayon radiusAD. L'appli
+         s'en sert pour ne jamais écrire « rien à signaler » sur un terrain
+         que SOFIA n'a pas regardé. */
+      couverts,
+      pibUid: pib.pibUid,
+      validFrom: pib.validFrom,
+      validTo: pib.validTo,
+      releveA: new Date().toISOString(),
+      /* le compte annoncé par SOFIA, à côté du nôtre : un écart signale un
+         changement de schéma bien avant qu'un NOTAM ne manque en silence */
+      nbSofia: pib.nbNotams,
+      total: notams.length,
+      traduits: notams.filter((n) => n.traduit).length,
+      notams,
+      sofia: q.get("essai") === "1" ? trace : undefined,
+    });
+    memoSofiaN.set(cle, { t: Date.now(), corps });
+    if (q.get("essai") !== "1") await memoRange(cle, corps, SOFIA_NOTAM_DUREE);
+    return reponseSofiaN(corps, "frais");
+  } catch (e) {
+    /* JAMAIS un faux « aucun NOTAM » : une panne SOFIA est une ERREUR, et
+       l'application doit pouvoir replier sur autorouter en le sachant. */
+    return reponseJson({ erreur: String((e as Error)?.message ?? e).slice(0, 200) }, 502);
+  }
+}
+
 /* SIGMET : relais vers l'Aviation Weather Center (NOAA), qui sert les SIGMET
-   internationaux des FIR (dont les FIR français) en GeoJSON. aviationweather.gov
+   internationaux des FIR (dont les FIR françaises) en GeoJSON. aviationweather.gov
    n'est pas bloqué pour les IP de datacenter (les METAR de l'appli en viennent
    déjà) ; on ajoute juste l'autorisation CORS pour un usage direct côté carte.
    ?sigmet=1[&fir=LFFF,LFRR,...] -> GeoJSON (filtré aux FIR demandés si fournis) */
@@ -1257,6 +1628,7 @@ Deno.serve(async (req: Request) => {
   if (q.get("supaip") === "1") return supAip(q);
   if (q.get("azba") === "1") return azba(q);
   if (q.get("notam") === "1") return notam(q);
+  if (q.get("sofia") === "1") return notamSofia(q);
   if (q.get("sigmet") === "1") return sigmet(q);
   if (q.get("poste") === "1") return poste(q);
   const type = (q.get("type") || q.get("layer") || "").toLowerCase();
@@ -1281,12 +1653,219 @@ Deno.serve(async (req: Request) => {
     return lien ? reponseJson({ url: lien.url, couche: lien.couche, date: lien.date })
       : reponseJson({ erreur: "aucun lien signé obtenu", sofia: journal }, 404);
   }
+  /* ============ octets d'une carte : le protocole SOFIA COMPLET ============
+     La note « Récupération TEMSI/WINTEM depuis SOFIA » (26/08/2026), vérifiée
+     par le POC poc/temsi_wintem (73 assertions contre une doublure stricte) :
+     la planche se laisse télécharger quand on refait le chemin du NAVIGATEUR —
+     1. GET de la page de recherche  -> Set-Cookie: JSESSIONID ;
+     2. POST :operation=postsaveinsessionprepa (sa réponse est vide : normal) ;
+     3. POST postTemsi / postWintem  -> le catalogue (status.message, double
+        décodage — recolteSofia le fait déjà) ;
+     4. GET du lien affiche_image.php TOUT FRAIS (le login y est éphémère).
+     L'ancien img=1 sautait la session et la préparation : SOFIA rendait une
+     page de session à la place de la planche. Le bocal à témoins est PROPRE À
+     CET APPEL, comme pour sofiaPib : un JSESSIONID attardé ferait échouer la
+     préparation. Le login n'est JAMAIS journalisé (tronque). */
+  async function sofiaOctetsCarte(type: string, date: string,
+      essais: Record<string, unknown>[]):
+      Promise<{ octets: ArrayBuffer; ct: string; hote: string; date: string } | null> {
+    const t = type.toLowerCase();
+    let op = "", zone = "", level = "";
+    if (t === "sigwx/fr/france") { op = "postTemsi"; zone = "FRANCE"; }
+    else if (t === "sigwx/fr/euroc" || t === "sigwx/eur/euroc") { op = "postTemsi"; zone = "EUROC"; }
+    else if (/^wintemp\/fr\/france\/fl\d{3}$/.test(t)) {
+      /* il n'existe plus qu'UNE carte WINTEM France (FL20-100) : level=100
+         est le paramètre de cette carte unique, pas un sélecteur de niveau */
+      op = "postWintem"; zone = "FRANCE"; level = "100";
+    }
+    if (!op) { essais.push({ voie: "sofia-session", note: "couche inconnue : " + type }); return null; }
+    const page = SOFIA + "/sofia/pages/" + (op === "postWintem" ? "meteosearchwintem.html" : "meteosearchtemsi.html");
+    const pot = new Map<string, string>();
+    const appel = async (url: string, init: RequestInit = {}): Promise<Response> => {
+      let cible = url, rep: Response | null = null;
+      for (let saut = 0; saut < 6; saut++) {
+        const h = new Headers(init.headers);
+        const c = Array.from(pot).map(([k, v]) => k + "=" + v).join("; ");
+        /* les témoins ne se présentent qu'à l'hôte SOFIA qui les a posés */
+        if (c && cible.indexOf(SOFIA) === 0) h.set("Cookie", c);
+        rep = await fetch(cible, { method: init.method ?? "GET", headers: h,
+          body: init.body, redirect: "manual", signal: AbortSignal.timeout(20000) });
+        try {
+          const brut: string[] = typeof (rep.headers as unknown as { getSetCookie?: () => string[] }).getSetCookie === "function"
+            ? (rep.headers as unknown as { getSetCookie: () => string[] }).getSetCookie()
+            : (rep.headers.get("set-cookie") ? [rep.headers.get("set-cookie") as string] : []);
+          for (const l of brut) {
+            const m = /^\s*([^=;,\s]+)=([^;]*)/.exec(l);
+            if (m) pot.set(m[1], m[2]);
+          }
+        } catch { /* témoins illisibles */ }
+        if (rep.status >= 300 && rep.status < 400 && rep.headers.get("location")) {
+          cible = new URL(rep.headers.get("location") as string, cible).toString();
+          init = { method: "GET", headers: init.headers };
+          continue;
+        }
+        break;
+      }
+      return rep as Response;
+    };
+    try {
+      /* 1 — la session */
+      const init = await appel(page, { headers: { "User-Agent": UA,
+        "Accept": "text/html,application/xhtml+xml" } });
+      if (!init.ok) throw new Error("session HTTP " + init.status);
+      await init.text();
+      if (!pot.has("JSESSIONID")) throw new Error("JSESSIONID absent");
+      /* 2 — le corps commun de la note (§5.2). departure_date/time VIDES :
+         c'est la forme relevée pour les cartes, distincte du flux NOTAM. */
+      const commun: [string, string][] = [["zone", zone]];
+      if (level) commun.push(["level", level]);
+      commun.push(["operation", op], ["target", "#aside-target"],
+        ["href", "/sofia/pages/" + (op === "postWintem" ? "meteowintem.html" : "meteotemsi.html")],
+        ["typeVol", ""], ["departure_date", ""], ["departure_time", ""],
+        ["lang", "fr"], ["routeVal", "false"]);
+      const corps = (o2: string) =>
+        ([[":operation", o2] as [string, string]].concat(commun))
+          .map(([k, v]) => encodeURIComponent(k) + "=" + encodeURIComponent(v)).join("&");
+      const entetes = {
+        "User-Agent": UA,
+        "Accept": "application/json, text/javascript, */*; q=0.01",
+        "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
+        "Origin": SOFIA, "Referer": page, "X-Requested-With": "XMLHttpRequest",
+      };
+      /* 3 — la préparation : sa réponse vide ou « OK » n'est PAS le catalogue */
+      const prep = await appel(SOFIA + "/sofia", { method: "POST", headers: entetes,
+        body: corps("postsaveinsessionprepa") });
+      if (!prep.ok) throw new Error("préparation HTTP " + prep.status);
+      await prep.text();
+      /* 4 — le catalogue */
+      const rep = await appel(SOFIA + "/sofia", { method: "POST", headers: entetes,
+        body: corps(op) });
+      if (!rep.ok) throw new Error("catalogue HTTP " + rep.status);
+      const texte = await rep.text();
+      const liens = recolteSofia(texte);
+      const dispo = liens.filter((l) => memeCouche(type, l.couche));
+      if (!dispo.length) throw new Error("catalogue sans la couche demandée ("
+        + liens.length + " lien(s) au total)");
+      const cible = tempsDe((date || "").padEnd(14, "0"));
+      dispo.sort((a, b) => Math.abs((tempsDe(a.date) || 0) - (isFinite(cible) ? cible : 0))
+        - Math.abs((tempsDe(b.date) || 0) - (isFinite(cible) ? cible : 0)));
+      const choisi = dispo[0];
+      /* 5 — le document, sur un lien TOUT FRAIS. L'image vit chez
+         Météo-France (AERO) ; l'hôte SOFIA est essayé en second. */
+      const chemin = choisi.url.replace(/^https?:\/\/[^/]+/, "");
+      const cibles: string[] = [];
+      for (const h of [AERO + chemin, SOFIA + chemin, choisi.url]) {
+        if (!cibles.includes(h)) cibles.push(h);
+      }
+      const sous: Record<string, unknown>[] = [];
+      for (const cu of cibles) {
+        try {
+          const rd = await appel(cu, { headers: { "User-Agent": UA,
+            "Accept": "application/pdf,image/avif,image/webp,image/png,image/*;q=0.9,*/*;q=0.5",
+            "Referer": page } });
+          const ct = (rd.headers.get("Content-Type") || "").toLowerCase();
+          if (rd.ok && /^(image\/|application\/pdf)/.test(ct)) {
+            const buf = await rd.arrayBuffer();
+            const tete = new Uint8Array(buf.slice(0, 5));
+            const magie = String.fromCharCode(...tete);
+            /* la seule preuve qui vaille : un 200 « application/pdf » peut
+               porter une page d'erreur HTML — on lit les octets */
+            if (/pdf/.test(ct) && magie !== "%PDF-") {
+              sous.push({ cible: tronque(cu).slice(0, 110), http: rd.status,
+                note: "200 pdf mais contenu non-PDF (« " + magie.replace(/[^\x20-\x7e]/g, ".") + " »)" });
+              continue;
+            }
+            if (buf.byteLength < 1000) {
+              sous.push({ cible: tronque(cu).slice(0, 110), http: rd.status,
+                note: "document suspicieusement petit : " + buf.byteLength + " o" });
+              continue;
+            }
+            essais.push({ voie: "sofia-session", retenu: choisi.date,
+              hote: cu.replace(/^https?:\/\//, "").split("/")[0], octets: buf.byteLength });
+            return { octets: buf, ct: ct, date: choisi.date,
+              hote: cu.replace(/^https?:\/\//, "").split("/")[0] };
+          }
+          const tx = await rd.text();
+          sous.push({ cible: tronque(cu).slice(0, 110), http: rd.status,
+            contenu: ct, apercu: tx.slice(0, 120) });
+        } catch (e) {
+          sous.push({ cible: tronque(cu).slice(0, 110), erreur: String(e).slice(0, 110) });
+        }
+      }
+      essais.push({ voie: "sofia-session", liens: liens.length, retenu: choisi.date,
+        documents: sous });
+      return null;
+    } catch (e) {
+      essais.push({ voie: "sofia-session", erreur: String(e).slice(0, 160) });
+      return null;
+    }
+  }
+  /* le Worker Cloudflare de secours (cloudflare/meteo-sofia) : une autre
+     adresse de sortie, quand Météo-France refuse celle de Supabase. */
+  async function octetsViaWorker(type: string, date: string,
+      essais: Record<string, unknown>[]):
+      Promise<{ octets: ArrayBuffer; ct: string } | null> {
+    const w = (Deno.env.get("CARTES_WORKER") || "").replace(/\/+$/, "");
+    if (!w) { essais.push({ voie: "worker",
+      note: "aucun Worker de secours (secret CARTES_WORKER absent)" }); return null; }
+    const t = type.toLowerCase();
+    const produit = t === "sigwx/fr/france" ? "temsi-france"
+      : (/euroc/.test(t) ? "temsi-euroc"
+      : (/^wintemp\//.test(t) ? "wintem-france" : ""));
+    if (!produit) { essais.push({ voie: "worker", note: "couche inconnue : " + type }); return null; }
+    const ms = tempsDe((date || "").padEnd(14, "0"));
+    const ref = isFinite(ms) ? new Date(ms).toISOString().replace(/\.\d{3}Z$/, "Z") : "";
+    const u = w + "/api/meteo/pdf?product=" + produit
+      + (ref ? "&reference=" + encodeURIComponent(ref) : "");
+    try {
+      const r = await fetch(u, { signal: AbortSignal.timeout(25000) });
+      const ct = (r.headers.get("Content-Type") || "").toLowerCase();
+      if (r.ok && /^(image\/|application\/pdf)/.test(ct)) {
+        const buf = await r.arrayBuffer();
+        essais.push({ voie: "worker", http: r.status, octets: buf.byteLength,
+          valide: r.headers.get("X-Meteo-Valide") || "" });
+        return { octets: buf, ct: ct };
+      }
+      const tx = await r.text();
+      essais.push({ voie: "worker", http: r.status, contenu: ct, apercu: tx.slice(0, 140) });
+    } catch (e) {
+      essais.push({ voie: "worker", erreur: String(e).slice(0, 120) });
+    }
+    return null;
+  }
   /* img=1 : le relais récupère lui-même les octets de l'image et les re-sert
      AVEC l'autorisation CORS. Si aviation.meteo.fr sert l'image à notre serveur
      (comme le proxy de loxodrome), le navigateur peut alors l'intégrer au PDF
      et l'afficher sur Chrome. Sinon, on rapporte l'échec en clair. */
   if (q.get("img") === "1") {
-    if (!lien) return reponseJson({ erreur: "aucun lien signé obtenu", sofia: journal }, 404);
+    const essaisImg: Record<string, unknown>[] = [];
+    /* LA VOIE ROYALE D'ABORD : le protocole complet de la note, avec session
+       et préparation — celui que le navigateur emprunte. */
+    const prot = await sofiaOctetsCarte(type, date, essaisImg);
+    if (prot) {
+      return new Response(prot.octets, { headers: {
+        "Content-Type": prot.ct,
+        "Cache-Control": "public, max-age=600",
+        "Access-Control-Allow-Origin": "*",
+        "Cross-Origin-Resource-Policy": "cross-origin",
+        "Timing-Allow-Origin": "*",
+        "X-Cartes-Version": VERSION,
+        "X-Cartes-Voie": "sofia-session",
+        "X-Cartes-Date": prot.date,
+        "X-Cartes-Hote": prot.hote,
+      } });
+    }
+    if (!lien) {
+      /* même sans lien résolu, le Worker peut encore servir la planche */
+      const sec0 = await octetsViaWorker(type, date, essaisImg);
+      if (sec0) return new Response(sec0.octets, { headers: {
+        "Content-Type": sec0.ct, "Cache-Control": "public, max-age=600",
+        "Access-Control-Allow-Origin": "*", "Cross-Origin-Resource-Policy": "cross-origin",
+        "Timing-Allow-Origin": "*", "X-Cartes-Version": VERSION,
+        "X-Cartes-Voie": "worker", "X-Cartes-Hote": "worker" } });
+      return reponseJson({ erreur: "aucun lien signé obtenu",
+        essais: essaisImg, sofia: journal }, 404);
+    }
     /* Constate en production (25 aout) : le lien resolu vient d'AEROWEB, et
        aviation.meteo.fr refuse les serveurs (403). L'ancien code essayait
        alors CE MEME CHEMIN sur l'hote SOFIA — qui repondait 404, car les
@@ -1311,7 +1890,7 @@ Deno.serve(async (req: Request) => {
     } catch (e) { journal.push({ erreur: "viaSofia: " + String(e).slice(0, 120) }); }
     const chemin = lien.url.replace(/^https?:\/\/[^/]+/, "");
     for (const hote of [AERO, SOFIA]) aEssayer.push(hote + chemin);
-    const essais: Record<string, unknown>[] = [];
+    const essais: Record<string, unknown>[] = essaisImg;
     const dejaVu = new Set<string>();
     for (const cible of aEssayer) {
       if (dejaVu.has(cible)) continue;
@@ -1349,6 +1928,20 @@ Deno.serve(async (req: Request) => {
         const t = await ri.text();
         essais.push({ cible: cible.slice(0, 120), http: ri.status, contenu: ct, apercu: t.slice(0, 160) });
       } catch (e) { essais.push({ cible: cible.slice(0, 120), erreur: String(e).slice(0, 120) }); }
+    }
+    const secours = await octetsViaWorker(type, date, essais);
+    if (secours) {
+      return new Response(secours.octets, { headers: {
+        "Content-Type": secours.ct,
+        "Cache-Control": "public, max-age=600",
+        "Access-Control-Allow-Origin": "*",
+        "Cross-Origin-Resource-Policy": "cross-origin",
+        "Timing-Allow-Origin": "*",
+        "X-Cartes-Version": VERSION,
+        "X-Cartes-Voie": "worker",
+        "X-Cartes-Date": lien.date,
+        "X-Cartes-Hote": "worker",
+      } });
     }
     return reponseJson({ erreur: "octets d'image non obtenus côté serveur",
       version: VERSION, lien: tronque(lien.url), date: lien.date, essais }, 502);
