@@ -2998,7 +2998,7 @@ window.__TRACE_MARKUP="\n\n<header>\n  <div class=\"hdr-row1\">\n    <span class
    accessible depuis le bouton ⓘ du bandeau du log, avant toute ouverture de la carte */
 (function(){
   var host=document.createElement('div');
-  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Cartes OACI — origine et mise à jour</b></p>\n    <p style=\"margin-top:-6px\"><b>1/250 000 Région parisienne</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte250\">—</span>.</p>\n    <p style=\"margin-top:-6px\"><b>1/500 000 France</b> — IGN Géoplateforme (SCAN-OACI). Donnée <b>non libre</b>, tenue à jour par l’IGN.</p>\n    <p style=\"margin-top:-6px\"><b>1/1 000 000 France</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte1000\">—</span>.</p>\n    <p>Les deux cartes du SIA sont hébergées à part et lues par plages : seules les tuiles affichées sont téléchargées. Les trois se copient sur l’appareil pour voler sans réseau depuis <b>Profil → Cartes hors-ligne</b>. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.558</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
+  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Cartes OACI — origine et mise à jour</b></p>\n    <p style=\"margin-top:-6px\"><b>1/250 000 Région parisienne</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte250\">—</span>.</p>\n    <p style=\"margin-top:-6px\"><b>1/500 000 France</b> — IGN Géoplateforme (SCAN-OACI). Donnée <b>non libre</b>, tenue à jour par l’IGN.</p>\n    <p style=\"margin-top:-6px\"><b>1/1 000 000 France</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte1000\">—</span>.</p>\n    <p>Les deux cartes du SIA sont hébergées à part et lues par plages : seules les tuiles affichées sont téléchargées. Les trois se copient sur l’appareil pour voler sans réseau depuis <b>Profil → Cartes hors-ligne</b>. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.559</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
   (document.body||document.documentElement).appendChild(host.firstElementChild);
   /* le nom du fichier de la 1/1 000 000 dit son edition : on le lit la ou il
      est vraiment (cartes.json), jamais en dur, sinon il mentirait un jour */
@@ -13500,7 +13500,8 @@ window.__pickGpx=function(cb){
            WINTEM — toutes en portrait. Partout ailleurs, le changement de
            gabarit fait le travail, et une seule fois. */
         '.ddvp{box-sizing:border-box;background:#fff}',
-        '.ddvp-t + .ddvp-t,.ddvp-w + .ddvp-w,.ddvp-txt + .ddvp-w{',
+        '.ddvp-t + .ddvp-t,.ddvp-w + .ddvp-w,.ddvp-txt + .ddvp-w,',
+        '.ddvp-txt + .ddvp-txt,.ddvp-w + .ddvp-txt{',
         'break-before:page;page-break-before:always}',
         /* LA FEUILLE D'UNE CARTE EST MESURÉE EN MILLIMÈTRES. Un premier essai
            la mesurait en « 100% de large sur 100vh de haut », pour qu'elle
@@ -13558,29 +13559,72 @@ window.__pickGpx=function(cb){
         'font:600 8pt "Poppins",sans-serif;color:#94a3b8}',
         '#ddvPrn *{-webkit-print-color-adjust:exact;print-color-adjust:exact}',
       '}'].join('');
-      function ddvpFeuilleTexte(dos){
-        /* le dossier TEL QU'À L'ÉCRAN : on clone la feuille composée, puis on
-           retire ce qui n'a pas de sens sur le papier — la barre de boutons,
-           et la section des cartes, qui reçoit désormais ses propres pages. */
+      /* L'ORDRE DES CHAPITRES AU TIRAGE. Celui de l'écran suit l'ordre de
+         composition ; sur le papier, c'est l'ordre de LECTURE avant le vol qui
+         commande : ce qu'on regarde d'abord (le temps qu'il fait), puis les
+         planches, puis ce qui contraint (NOTAM, SUP AIP, zones), enfin les
+         compléments. Un chapitre absent est simplement sauté ; un chapitre
+         inattendu se range à la fin plutôt que de disparaître. */
+      var DDVP_ORDRE=[
+        {cle:'metar', re:/metar/i},        /* reste avec l'en-tête */
+        {cle:'notam', re:/^notam\b/i},
+        {cle:'sup',   re:/sup\s*aip/i},
+        {cle:'azba',  re:/azba|rtba/i},
+        {cle:'sigmet',re:/sigmet/i},
+        {cle:'eph',   re:/ph[ée]m[ée]ride/i}
+      ];
+      /* Découpe le dossier affiché en CHAPITRES — un par « wxd-sect » — plus
+         la tête (titre, vol, date) et le pied (l'avertissement). */
+      function ddvpChapitres(dos){
         var src=dos.querySelector('.wxd-feuille'); if(!src) return null;
         var c=src.cloneNode(true);
         c.querySelectorAll('.wxd-bar,.no-print').forEach(function(e){ e.remove(); });
-        var ca=c.querySelector('#wxdCartes');
-        if(ca){
-          /* Le titre de section et sa ligne de source précèdent la liste, dans
-             cet ordre : « wxd-sect », « wxd-srcl », puis #wxdCartes. On remonte
-             donc en arrière tant qu'on trouve l'un ou l'autre — chercher le
-             titre EN PREMIER ratait sa cible, puisque c'est la ligne de source
-             qui touche la liste, et le titre restait seul sur le papier au
-             dessus d'un vide. */
-          var av=ca.previousElementSibling;
-          while(av&&(av.classList.contains('wxd-srcl')||av.classList.contains('wxd-sect'))){
-            var p=av.previousElementSibling; av.remove(); av=p; }
-          ca.remove(); }
-        c.removeAttribute('id');
+        /* NOTAM, SUP AIP et AZBA vivent DANS un même conteneur (#wxdNtm) : sans
+           l'aplatir, les trois ne feraient qu'un seul bloc et ne pourraient pas
+           se répartir sur des pages distinctes. */
+        var w=c.querySelector('#wxdNtm');
+        if(w&&w.parentNode){ while(w.firstChild) w.parentNode.insertBefore(w.firstChild,w);
+          w.remove(); }
+        /* le pied part à la toute fin, quel que soit l'ordre des chapitres */
+        var pied=c.querySelector('.wxd-note');
+        if(pied) pied.remove();
+        var tete=[], chaps=[], cur=null;
+        [].slice.call(c.children).forEach(function(e){
+          if(e.classList.contains('wxd-sect')){
+            cur={titre:(e.textContent||'').trim(), n:[e]}; chaps.push(cur); return; }
+          if(cur) cur.n.push(e); else tete.push(e);
+        });
+        /* la section des cartes s'en va : chaque planche reçoit sa propre page */
+        chaps=chaps.filter(function(g){ return !/cartes?\s+temsi|temsi\s*&|wintem/i.test(g.titre); });
+        return {tete:tete, chaps:chaps, pied:pied};
+      }
+      function ddvpFeuille(noeuds){
         var f=document.createElement('section');
-        f.className='ddvp ddvp-txt'; f.appendChild(c);
+        f.className='ddvp ddvp-txt';
+        noeuds.forEach(function(n){ f.appendChild(n); });
         return f;
+      }
+      /* Rend les feuilles de TEXTE, dans l'ordre voulu. La première porte
+         l'en-tête et le METAR/TAF — « cela commence avec l'entête et enchaîne
+         avec metar taf » ; chacune des suivantes porte un chapitre. */
+      function ddvpFeuillesTexte(dos){
+        var d=ddvpChapitres(dos); if(!d) return {avant:[],apres:[]};
+        var pris={}, avant=null, apres=[];
+        DDVP_ORDRE.forEach(function(o){
+          for(var i=0;i<d.chaps.length;i++){
+            if(pris[i]||!o.re.test(d.chaps[i].titre)) continue;
+            pris[i]=1;
+            if(o.cle==='metar') avant=ddvpFeuille(d.tete.concat(d.chaps[i].n));
+            else apres.push(ddvpFeuille(d.chaps[i].n));
+            return; }
+        });
+        /* ce que l'ordre ne nomme pas garde sa place relative, à la fin */
+        d.chaps.forEach(function(g,i){ if(!pris[i]) apres.push(ddvpFeuille(g.n)); });
+        /* pas de chapitre METAR : la tête ouvre quand même le document */
+        if(!avant&&d.tete.length) avant=ddvpFeuille(d.tete);
+        if(d.pied){ if(apres.length) apres[apres.length-1].appendChild(d.pied);
+          else if(avant) avant.appendChild(d.pied); }
+        return {avant:avant?[avant]:[], apres:apres};
       }
       /* LES CARTES SONT DÉJÀ DANS LA FENÊTRE — c'est de là qu'il faut partir.
          Première version : le tirage retéléchargeait chaque planche par la
@@ -13700,9 +13744,15 @@ window.__pickGpx=function(cb){
         var st=document.createElement('style'); st.id='ddvPrnCss';
         st.textContent=DDVP_CSS;
         document.body.appendChild(st);
-        var txt=ddvpFeuilleTexte(dos);
-        if(txt) racine.appendChild(txt);
+        /* Le document se monte en TROIS temps : l'en-tête et le METAR/TAF, puis
+           les planches (une page chacune), puis les chapitres qui contraignent
+           le vol. Les feuilles d'après sont gardées de côté le temps que les
+           cartes s'intercalent — c'est leur PLACE qui compte, entre le temps
+           qu'il fait et ce qui l'interdit. */
+        var txt=ddvpFeuillesTexte(dos);
+        txt.avant.forEach(function(f){ racine.appendChild(f); });
         var termine=function(manques){
+          txt.apres.forEach(function(f){ racine.appendChild(f); });
           bar.dit(94,'mise en page…');
           document.body.appendChild(racine);
           try{ wxTitrePose(wxNomFichier('Dossier de vol - '
