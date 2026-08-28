@@ -1,8 +1,8 @@
-/* test_cartes744.mjs — le relais 7.44 COMPLET (supabase/functions/cartes/
+/* test_cartes744.mjs — le relais 7.45 COMPLET (supabase/functions/cartes/
    index.ts) contre la doublure stricte de SOFIA + Météo-France
    (poc/temsi_wintem/faux_meteo.js).
 
-   Ce que 7.44 ajoute, et que ce banc éprouve :
+   Ce que 7.45 ajoute, et que ce banc éprouve :
 
    · ?img=1 emprunte désormais le PROTOCOLE COMPLET de la note — session
      (JSESSIONID), préparation (postsaveinsessionprepa), postTemsi/postWintem,
@@ -50,7 +50,7 @@ const arrete = () => { for (const d of doubles) { try { d.kill(); } catch { /* m
 await new Promise((r) => setTimeout(r, 900));
 
 const src = fs.readFileSync("../../supabase/functions/cartes/index.ts", "utf8");
-dit(src.includes('const VERSION = "7.44";'), "le fichier porte la version 7.44");
+dit(src.includes('const VERSION = "7.45";'), "le fichier porte la version 7.45");
 dit(src.includes('if (q.get("sofia") === "1") return notamSofia(q);'),
     "la branche NOTAM ?sofia=1 (7.42/7.43) est toujours là");
 dit(src.trimEnd().endsWith("});"),
@@ -89,6 +89,7 @@ const va = async (qs: string, env?: Record<string, string>) => {
 await va("version=1");
 /* la voie royale : session + préparation + postTemsi + lien frais */
 await va("type=sigwx/fr/france&date=20260828120000&img=1");
+await va("type=sigwx/fr/france&date=20260828120000&img=1");
 await va("type=sigwx/fr/euroc&date=20260828150000&img=1");
 await va("type=wintemp/fr/france/fl020&date=20260828120000&img=1");
 console.log("---JSON---" + JSON.stringify(sortie));
@@ -103,9 +104,9 @@ try {
     + "\n--- sortie ---\n" + (e.stdout || "") + "\n--- erreurs ---\n" + (e.stderr || ""));
   arrete(); process.exit(1);
 }
-const [v, tf, te, wf] = JSON.parse(brut.split("---JSON---")[1]);
+const [v, tf, tf2, te, wf] = JSON.parse(brut.split("---JSON---")[1]);
 
-dit(v.http === 200 && v.corps.version === "7.44", "?version=1 répond 7.44 · " + v.corps.version);
+dit(v.http === 200 && v.corps.version === "7.45", "?version=1 répond 7.45 · " + v.corps.version);
 
 /* ===== 1. LA VOIE ROYALE : LE PROTOCOLE COMPLET ================== */
 /* La doublure refuse tout POST sans JSESSIONID : l'ancienne voie (posteSofia
@@ -122,6 +123,8 @@ dit(te.http === 200 && te.magie === "%PDF-" && te.date === "20260828150000",
     "TEMSI EUROC aussi, à SON échéance · " + te.date);
 dit(wf.http === 200 && wf.magie === "%PDF-",
     "WINTEM France aussi (carte unique FL20-100, level=100) · " + wf.octets + " o");
+dit(tf2.http === 200 && tf2.magie === "%PDF-" && tf2.voie === "memo",
+    "la MÊME planche redemandée sort du mémo, sans nouvelle session · " + tf2.voie);
 
 /* ===== 2. SANS CATALOGUE : L'ÉCHEC SE DIT, PUIS LE WORKER ======== */
 fs.writeFileSync(essai, stub + pointe("http://127.0.0.1:" + portVide) + `

@@ -18,13 +18,13 @@
  * Déploiement : Supabase > Edge Functions > fonction « cartes », coller ce
  * fichier EN ENTIER (vérifier que la dernière ligne dans l'éditeur est bien
  * « }); »), déployer, et laisser « Enforce JWT verification » DÉSACTIVÉ.
- * Aucun secret requis. Vérification : ouvrir ?version=1 -> doit répondre 7.44.
+ * Aucun secret requis. Vérification : ouvrir ?version=1 -> doit répondre 7.45.
  * Secret OPTIONNEL : CARTES_WORKER = adresse du Worker Cloudflare de secours
  * (cloudflare/meteo-sofia du dépôt) pour les octets des cartes quand
  * Météo-France refuse l'adresse IP de Supabase.
  */
 
-const VERSION = "7.44";
+const VERSION = "7.45";
 const AERO = "https://aviation.meteo.fr";
 const SOFIA = "https://sofia-briefing.aviation-civile.gouv.fr";
 const UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Safari/605.1.15";
@@ -181,6 +181,19 @@ function gardeTemoins(r: Response): void {
 }
 function presenteTemoins(): string {
   return Array.from(temoinsSofia).map(([k, v]) => k + "=" + v).join("; ");
+}
+
+/* MÉMO DES OCTETS de cartes — 10 minutes, la durée du Cache-Control servi.
+   AU NIVEAU MODULE, comme memoPoste : posé dans le gestionnaire de requêtes,
+   il renaissait vide à chaque appel et ne servait à rien (attrapé au banc).
+   Chaque carte affichée coûtait une session SOFIA complète (~2 à 6 s) ;
+   l'onglet météo en montre jusqu'à une dizaine, le dossier trois de plus.
+   Le premier appel paie la session, les suivants sont instantanés — pour
+   tous les appareils qui passent par cette instance. */
+const memoOctets = new Map<string, { t: number; ct: string; date: string;
+  hote: string; buf: ArrayBuffer }>();
+function memoOctetsRange(): void {
+  for (const [k, v] of memoOctets) if (Date.now() - v.t > 600000) memoOctets.delete(k);
 }
 
 /* POST vers /sofia, mémorisé 2 minutes pour ne pas marteler le service quand
@@ -1639,12 +1652,21 @@ Deno.serve(async (req: Request) => {
   const souple = q.get("souple") === "1";
   const journal: Record<string, unknown>[] = [];
   let lien: Lien | null = null;
-  try {
-    lien = await viaAeroweb(type, date, journal);
-    if (!lien) lien = await viaSofia(type, date, journal, souple);
-  } catch (e) {
-    journal.push({ erreur: String(e).slice(0, 160) });
-  }
+  /* AVANT 7.45, la résolution du lien (AEROWEB puis POST SOFIA) se faisait
+     TOUJOURS, même pour ?img=1 qui refait ensuite sa propre danse SOFIA au
+     complet : chaque planche coûtait deux sessions. La résolution est donc
+     devenue paresseuse : les routes de redirection l'appellent tout de
+     suite ; ?img=1 ne la paie que si le protocole complet a échoué. */
+  const resoudre = async (): Promise<void> => {
+    if (lien) return;
+    try {
+      lien = await viaAeroweb(type, date, journal);
+      if (!lien) lien = await viaSofia(type, date, journal, souple);
+    } catch (e) {
+      journal.push({ erreur: String(e).slice(0, 160) });
+    }
+  };
+  if (q.get("img") !== "1") await resoudre();
   if (q.get("essai") === "1" || q.get("debug") === "1") {
     return reponseJson({ demande: { type, date }, version: VERSION,
       lien: lien ? tronque(lien.url) : null, sofia: journal });
@@ -1839,10 +1861,29 @@ Deno.serve(async (req: Request) => {
      et l'afficher sur Chrome. Sinon, on rapporte l'échec en clair. */
   if (q.get("img") === "1") {
     const essaisImg: Record<string, unknown>[] = [];
+    const cleMemo = type + "|" + date;
+    /* 0 — le mémo : la même planche vient peut-être d'être servie */
+    memoOctetsRange();
+    const su = memoOctets.get(cleMemo);
+    if (su) {
+      return new Response(su.buf, { headers: {
+        "Content-Type": su.ct,
+        "Cache-Control": "public, max-age=600",
+        "Access-Control-Allow-Origin": "*",
+        "Cross-Origin-Resource-Policy": "cross-origin",
+        "Timing-Allow-Origin": "*",
+        "X-Cartes-Version": VERSION,
+        "X-Cartes-Voie": "memo",
+        "X-Cartes-Date": su.date,
+        "X-Cartes-Hote": su.hote,
+      } });
+    }
     /* LA VOIE ROYALE D'ABORD : le protocole complet de la note, avec session
        et préparation — celui que le navigateur emprunte. */
     const prot = await sofiaOctetsCarte(type, date, essaisImg);
     if (prot) {
+      memoOctets.set(cleMemo, { t: Date.now(), ct: prot.ct, date: prot.date,
+        hote: prot.hote, buf: prot.octets });
       return new Response(prot.octets, { headers: {
         "Content-Type": prot.ct,
         "Cache-Control": "public, max-age=600",
@@ -1855,9 +1896,14 @@ Deno.serve(async (req: Request) => {
         "X-Cartes-Hote": prot.hote,
       } });
     }
+    await resoudre();
     if (!lien) {
       /* même sans lien résolu, le Worker peut encore servir la planche */
       const sec0 = await octetsViaWorker(type, date, essaisImg);
+      if (sec0) {
+        memoOctets.set(cleMemo, { t: Date.now(), ct: sec0.ct, date: date,
+          hote: "worker", buf: sec0.octets });
+      }
       if (sec0) return new Response(sec0.octets, { headers: {
         "Content-Type": sec0.ct, "Cache-Control": "public, max-age=600",
         "Access-Control-Allow-Origin": "*", "Cross-Origin-Resource-Policy": "cross-origin",
@@ -1931,6 +1977,8 @@ Deno.serve(async (req: Request) => {
     }
     const secours = await octetsViaWorker(type, date, essais);
     if (secours) {
+      memoOctets.set(cleMemo, { t: Date.now(), ct: secours.ct, date: lien.date,
+        hote: "worker", buf: secours.octets });
       return new Response(secours.octets, { headers: {
         "Content-Type": secours.ct,
         "Cache-Control": "public, max-age=600",
