@@ -3015,7 +3015,7 @@ window.__TRACE_MARKUP="\n\n<header>\n  <div class=\"hdr-row1\">\n    <span class
    accessible depuis le bouton ⓘ du bandeau du log, avant toute ouverture de la carte */
 (function(){
   var host=document.createElement('div');
-  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Cartes OACI — origine et mise à jour</b></p>\n    <p style=\"margin-top:-6px\"><b>1/250 000 Région parisienne</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte250\">—</span>.</p>\n    <p style=\"margin-top:-6px\"><b>1/500 000 France</b> — IGN Géoplateforme (SCAN-OACI). Donnée <b>non libre</b>, tenue à jour par l’IGN.</p>\n    <p style=\"margin-top:-6px\"><b>1/1 000 000 France</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte1000\">—</span>.</p>\n    <p>Les deux cartes du SIA sont hébergées à part et lues par plages : seules les tuiles affichées sont téléchargées. Les trois se copient sur l’appareil pour voler sans réseau depuis <b>Profil → Cartes hors-ligne</b>. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.569</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
+  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Cartes OACI — origine et mise à jour</b></p>\n    <p style=\"margin-top:-6px\"><b>1/250 000 Région parisienne</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte250\">—</span>.</p>\n    <p style=\"margin-top:-6px\"><b>1/500 000 France</b> — IGN Géoplateforme (SCAN-OACI). Donnée <b>non libre</b>, tenue à jour par l’IGN.</p>\n    <p style=\"margin-top:-6px\"><b>1/1 000 000 France</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte1000\">—</span>.</p>\n    <p>Les deux cartes du SIA sont hébergées à part et lues par plages : seules les tuiles affichées sont téléchargées. Les trois se copient sur l’appareil pour voler sans réseau depuis <b>Profil → Cartes hors-ligne</b>. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.570</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
   (document.body||document.documentElement).appendChild(host.firstElementChild);
   /* le nom du fichier de la 1/1 000 000 dit son edition : on le lit la ou il
      est vraiment (cartes.json), jamais en dur, sinon il mentirait un jour */
@@ -13348,21 +13348,15 @@ window.__pickGpx=function(cb){
          « Télécharger PDF + Cartes », le choix n'apportait rien — un dossier
          sans ses cartes n'a pas d'usage propre. */
       var html='<div class="wxd-bar">'
-        /* l'impression du navigateur est la seule voie qui embarque les cartes
-           quand Meteo-France refuse de les servir au relais : le moteur
-           d'impression redessine les images lui-meme, sans lire leurs pixels */
-        +'<button id="wxdPrn" type="button" class="wxd-b2" '
-        +'title="Voie de secours : impression par le navigateur">'
-        +'<svg class="wxd-ico" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">'
-        +'<path fill="currentColor" d="M7 3h10a1 1 0 0 1 1 1v3H6V4a1 1 0 0 1 1-1z"/>'
-        +'<path fill="currentColor" d="M5 8h14a3 3 0 0 1 3 3v5a1 1 0 0 1-1 1h-3v-4H6v4H3a1 1 0 0 1-1-1v-5a3 3 0 0 1 3-3z"/>'
-        +'<path fill="currentColor" d="M8 15h8v6H8z"/></svg> Imprimer</button>'
-        /* La seconde voie : un document d'impression séparé, cartes comprises,
-           une carte par page A4 dans SON orientation. Elle ne remplace pas la
-           première — celle-ci reste la voie de secours, inchangée. */
+        /* L'ANCIEN BOUTON « Imprimer » (impression de la page vivante) a été
+           RETIRÉ à la demande du pilote (29/08) : deux boutons d'impression
+           côte à côte, c'est un choix à faire au mauvais moment. Le document
+           d'impression dédié est la seule voie — cartes comprises, une par
+           page A4. Son mécanisme (body.wxd-imp) reste dans le code, inerte :
+           il ne se déclenche plus sans bouton. */
         +'<button id="wxdPrn2" type="button" class="wxd-b2" '
-        +'title="Document d’impression dédié : le dossier tel qu’affiché, '
-        +'puis une page A4 par carte — TEMSI en paysage, WINTEM en portrait">'
+        +'title="Imprime le dossier tel qu’affiché, puis une page A4 par '
+        +'carte météo (TEMSI pivotées dans la page)">'
         +'<svg class="wxd-ico" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">'
         +'<path fill="currentColor" d="M7 3h10a1 1 0 0 1 1 1v3H6V4a1 1 0 0 1 1-1z"/>'
         +'<path fill="currentColor" d="M5 8h14a3 3 0 0 1 3 3v5a1 1 0 0 1-1 1h-3v-4H6v4H3a1 1 0 0 1-1-1v-5a3 3 0 0 1 3-3z"/>'
@@ -13777,6 +13771,17 @@ window.__pickGpx=function(cb){
         '.ddvp-aire{display:block;position:relative;text-align:center}',
         '.ddvp-aire>img{max-width:100%;max-height:238mm;width:auto;height:auto;',
         'display:inline-block}',
+        /* SUR IOS (MESURÉ, 29/08) : 238 mm passaient la coupe de la feuille,
+           mais pas la page — Safari rogne la zone imprimable (ses marges
+           s'ajoutent aux nôtres) et la planche ne tenait plus SOUS le titre.
+           La feuille étant insécable, WebKit la basculait entière page
+           suivante : restait le titre seul sur une page quasi blanche, une
+           par TEMSI. À 190 mm, feuille entière ≈ 210 mm : elle tient dans
+           toute page rognée. La classe est posée par ddvpImprime, d'après
+           l'appareil — les autres moteurs gardent leurs 238 mm. */
+        '.ddvp-ios .ddvp-aire>img{max-height:190mm}',
+        '.ddvp-ios .ddvp-cadre .ddvp-aire{height:190mm}',
+        '.ddvp-ios .ddvp-rot{width:190mm}',
         /* seule la feuille en CADRE (PDF affiché tel quel, sans pixels) garde
            une aire à cotes fixes : un iframe n'a pas de taille naturelle */
         '.ddvp-cadre .ddvp-aire{height:238mm;overflow:hidden}',
@@ -14051,6 +14056,11 @@ window.__pickGpx=function(cb){
         var bar=ddvpBarre();
         bar.dit(4,'catalogue des cartes…');
         var racine=document.createElement('div'); racine.id='ddvPrn';
+        /* iPhone et iPad (l'iPad moderne se dit « MacIntel » mais a un écran
+           tactile) : zone imprimable rognée, voir .ddvp-ios dans la feuille */
+        try{ if(/iPad|iPhone|iPod/.test(navigator.userAgent)
+          ||(/Mac/.test(navigator.platform)&&navigator.maxTouchPoints>2)){
+          racine.classList.add('ddvp-ios'); } }catch(e){}
         var st=document.createElement('style'); st.id='ddvPrnCss';
         st.textContent=DDVP_CSS;
         document.body.appendChild(st);
