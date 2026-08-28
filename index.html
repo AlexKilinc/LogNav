@@ -2998,7 +2998,7 @@ window.__TRACE_MARKUP="\n\n<header>\n  <div class=\"hdr-row1\">\n    <span class
    accessible depuis le bouton ⓘ du bandeau du log, avant toute ouverture de la carte */
 (function(){
   var host=document.createElement('div');
-  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Cartes OACI — origine et mise à jour</b></p>\n    <p style=\"margin-top:-6px\"><b>1/250 000 Région parisienne</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte250\">—</span>.</p>\n    <p style=\"margin-top:-6px\"><b>1/500 000 France</b> — IGN Géoplateforme (SCAN-OACI). Donnée <b>non libre</b>, tenue à jour par l’IGN.</p>\n    <p style=\"margin-top:-6px\"><b>1/1 000 000 France</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte1000\">—</span>.</p>\n    <p>Les deux cartes du SIA sont hébergées à part et lues par plages : seules les tuiles affichées sont téléchargées. Les trois se copient sur l’appareil pour voler sans réseau depuis <b>Profil → Cartes hors-ligne</b>. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.555</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
+  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Cartes OACI — origine et mise à jour</b></p>\n    <p style=\"margin-top:-6px\"><b>1/250 000 Région parisienne</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte250\">—</span>.</p>\n    <p style=\"margin-top:-6px\"><b>1/500 000 France</b> — IGN Géoplateforme (SCAN-OACI). Donnée <b>non libre</b>, tenue à jour par l’IGN.</p>\n    <p style=\"margin-top:-6px\"><b>1/1 000 000 France</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte1000\">—</span>.</p>\n    <p>Les deux cartes du SIA sont hébergées à part et lues par plages : seules les tuiles affichées sont téléchargées. Les trois se copient sur l’appareil pour voler sans réseau depuis <b>Profil → Cartes hors-ligne</b>. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.557</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
   (document.body||document.documentElement).appendChild(host.firstElementChild);
   /* le nom du fichier de la 1/1 000 000 dit son edition : on le lit la ou il
      est vraiment (cartes.json), jamais en dur, sinon il mentirait un jour */
@@ -6661,6 +6661,16 @@ function openRelinkChoice(){
    +'border:1px solid rgba(255,255,255,.28);border-radius:14px;padding:4px 10px;color:#dce8fa;'
    +'font:700 10.5px Poppins,sans-serif;cursor:pointer;box-shadow:0 3px 10px rgba(0,0,0,.25);'
    +'-webkit-tap-highlight-color:transparent}'
+   /* le bouton du tri : allume, il porte le ROUGE des cercles qu'il laisse
+      voir — la couleur du bouton et celle de la carte disent la meme chose */
+   +'#ntmActBtn.on{background:#7f1d1d;border-color:#DC2626;color:#fff}'
+   +'#ntmActBtn .ntm-pastille{width:9px;height:9px;border-radius:50%;'
+   +'background:#7C3AED;border:1px solid rgba(255,255,255,.55);flex:0 0 auto}'
+   +'#ntmActBtn.on .ntm-pastille{background:#DC2626}'
+   /* le COMPTE de ce qui est masque : jamais un cercle absent sans un chiffre */
+   +'#ntmActBtn b{background:rgba(255,255,255,.22);border-radius:9px;'
+   +'padding:0 5px;font:800 9.5px Poppins,sans-serif}'
+   +'#ntmActBtn b[hidden]{display:none}'
    +'#azbaLeg{display:inline-flex;align-items:center;gap:7px;background:rgba(15,39,76,.88);'
    +'border:1px solid rgba(255,255,255,.28);border-radius:14px;padding:4px 10px;color:#dce8fa;'
    +'font:700 10px Poppins,sans-serif;white-space:nowrap;box-shadow:0 3px 10px rgba(0,0,0,.25)}'
@@ -6742,6 +6752,9 @@ function openRelinkChoice(){
    +'font:700 10px Poppins,sans-serif;padding:4px 10px;cursor:pointer;white-space:nowrap}'
    +'.ntmd-f.on{background:#1E9FE0;color:#fff}'
    +'.ntmd-f[data-f=ray].on{background:#7C3AED}'
+   /* allume, ce bouton MASQUE : il le dit par sa couleur — l'ambre des
+      avertissements, non le bleu des simples reglages d'affichage */
+   +'.ntmd-f.fir.on{background:#EA580C;color:#fff}'
    /* ancres de chapitre : la couleur du bandeau qu'elles atteignent */
    /* source et langue : ils vivent dans le bandeau rouge-rose, sous le trait.
       La source porte sa couleur pour se lire d'un coup d'oeil sans etre
@@ -6807,6 +6820,10 @@ function openRelinkChoice(){
    +'.ntmd-rol.dep{background:#16a34a}.ntmd-rol.arr{background:#e94560}.ntmd-rol.mid{background:#2c5282}'
    +'.ntmd-rol.deg{background:#b45309}.ntmd-rol.sel{background:#7C3AED}.ntmd-rol.prox{background:#64748b}'
    +'.ntmd-rol.azba{background:#B91C1C}'
+   /* ce qu'un filtre ECARTE doit se lire aussi clairement que ce qu'il montre */
+   +'.ntmd-ecart{margin:4px 0 10px;padding:7px 10px;border-radius:8px;'
+   +'background:#fff7ed;border:1px solid #fdba74;'
+   +'font:600 10.5px Poppins,sans-serif;color:#9a3412}'
    +'.ntmd-nom{flex:1 1 auto;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;'
    +'color:#5b6b82;font:600 10.5px Poppins,sans-serif}'
    +'.ntmd-cnt{flex:none;color:#5B21B6;font:800 10.5px Poppins,sans-serif}'
@@ -6871,7 +6888,16 @@ function openRelinkChoice(){
   outils.innerHTML='<button type="button" id="ntmDosBtn" title="Tous les NOTAM et SUP AIP du vol, classés par terrain">'
     +'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'
     +'<path d="M4 9h16v12H4z"/><path d="M6 9V6h12v3"/><path d="M8 6V3h8v3"/></svg>'
-    +'<span>Listing</span></button>';
+    +'<span>Listing</span></button>'
+    /* Le tri des cercles d'espace aérien, à côté du Listing parce qu'il agit
+       sur la MÊME matière. Allumé, il porte le rouge des NOTAM qu'il laisse
+       voir ; éteint, il reprend l'habillage neutre des autres outils. */
+    +'<button type="button" id="ntmActBtn" class="on" '
+    +'title="N’afficher les cercles que pour les NOTAM de terrain et les '
+    +'NOTAM d’espace aérien ACTIVÉS (Q-code CA, CS ou LW), en rouge. '
+    +'Les zones simplement décrites sont masquées.">'
+    +'<i class="ntm-pastille"></i><span>NOTAM actif</span>'
+    +'<b id="ntmActN" hidden></b></button>';
   /* legende des couleurs AZBA : dans la meme barre que « Listing », donc
      jamais masquee par les boutons ni par le bandeau du bas */
   var azbaLeg=document.createElement('div'); azbaLeg.id='azbaLeg';
@@ -6883,7 +6909,31 @@ function openRelinkChoice(){
   wrap.appendChild(outils);
   outils.addEventListener('click',function(e){ e.stopPropagation();
     if(e.target.closest&&e.target.closest('#ntmDosBtn')){ ntmDossier(); return; }
+    if(e.target.closest&&e.target.closest('#ntmActBtn')){
+      ntmCarteActifs=!ntmCarteActifs; ntmPrefPose(); ntmDraw(); return; }
   });
+  /* L'état du bouton et le COMPTE de ce qu'il masque. Un cercle absent ne
+     doit jamais se lire comme « aucun NOTAM ici » : le nombre est affiché
+     sur le bouton lui-même. */
+  function ntmActMaj(){
+    var b=document.getElementById('ntmActBtn'); if(!b) return;
+    b.classList.toggle('on',!!ntmCarteActifs);
+    var n=b.querySelector('#ntmActN'); if(!n) return;
+    if(ntmCarteActifs&&ntmCarteMasques){
+      n.hidden=false; n.textContent=ntmCarteMasques;
+      b.title='NOTAM actif — '+ntmCarteMasques+' cercle'
+        +(ntmCarteMasques>1?'s':'')+' d’espace aérien masqué'
+        +(ntmCarteMasques>1?'s':'')+' : zones décrites, non activées. '
+        +'Toucher pour toutes les revoir.';
+    } else {
+      n.hidden=true; n.textContent='';
+      b.title=ntmCarteActifs
+        ? 'N’afficher les cercles que pour les NOTAM de terrain et les NOTAM '
+          +'d’espace aérien ACTIVÉS (Q-code CA, CS ou LW), en rouge.'
+        : 'Tous les cercles sont affichés, y compris les zones d’espace aérien '
+          +'simplement décrites. Toucher pour ne garder que les activées.';
+    }
+  }
   /* le badge AIRAC se pose en haut et au centre de la carte, et non plus dans
      le groupe du bouton Vent ; sa disparition après quelques secondes est
      inchangée, elle tient à la classe « show » posée ailleurs */
@@ -7038,6 +7088,17 @@ function openRelinkChoice(){
      (voir ddvRendu) et ne passe pas par ntmLigne — sur le papier, c'est la
      densite qui compte, pas le recoupement. */
   var ntmOaci=true;
+  /* Tri des NOTAM d'espace aérien dans la FENÊTRE. Éteint par défaut : rien
+     ne doit disparaître sans que le pilote l'ait demandé. Le DOSSIER, lui,
+     applique toujours la règle — c'est un document, il doit tenir. */
+  var ntmFirActif=false;
+  try{ if(localStorage.getItem('lognav_notam_firactif')==='1') ntmFirActif=true; }catch(e){}
+  /* SUR LA CARTE, le même tri, mais ALLUMÉ par défaut. Les cercles d'espace
+     aérien descriptifs se superposent par dizaines et finissent par cacher
+     la route elle-même : là, montrer tout revient à ne rien montrer. Le
+     bouton reste à portée pour tout revoir, et la carte dit ce qu'elle tait. */
+  var ntmCarteActifs=true;
+  try{ if(localStorage.getItem('lognav_notam_carteactifs')==='0') ntmCarteActifs=false; }catch(e){}
   /* ---- source des NOTAM : SOFIA (SIA/DGAC) ou autorouter (EAD) ----
      Deux services, deux natures. autorouter interroge terrain par terrain ;
      SOFIA compose un PIB « route etroite » — un couloir autour de la trace —
@@ -7058,7 +7119,9 @@ function openRelinkChoice(){
     var l0=localStorage.getItem('lognav_notam_lang');
     if(l0==='en'||l0==='fr') ntmLangue=l0; }catch(e){}
   function ntmPrefPose(){ try{ localStorage.setItem('lognav_notam_src',ntmSrc);
-    localStorage.setItem('lognav_notam_lang',ntmLangue); }catch(e){} }
+    localStorage.setItem('lognav_notam_lang',ntmLangue);
+    localStorage.setItem('lognav_notam_firactif',ntmFirActif?'1':'0');
+    localStorage.setItem('lognav_notam_carteactifs',ntmCarteActifs?'1':'0'); }catch(e){} }
   /* Le relais livre les DEUX textes cote a cote — texteFr et texteEn — pour
      que la bascule FR/EN ne coute aucun aller-retour. Tous les NOTAM ne sont
      pas traduits : sur un releve reel, environ un sur six ne l'est pas. Sans
@@ -7394,6 +7457,32 @@ function openRelinkChoice(){
       +(co?' / '+co:''); }
   function ntmItem(k,v){ return '<div class="ntm-oli"><span class="ntm-ok">'+k
     +')</span><span class="ntm-ov">'+ntmEsc(v)+'</span></div>'; }
+
+  /* ===== NOTAM DE FIR : LESQUELS CONTRAIGNENT VRAIMENT ? ============
+     Un PIB de route rapporte des dizaines de NOTAM rattachés à la région
+     d'information de vol. La plupart ne contraignent rien : ils DÉCRIVENT
+     une zone, ses limites, son gestionnaire. Ce qui contraint, c'est
+     l'ACTIVATION — et elle se lit dans les deux dernières lettres du
+     Q-code, le champ « condition » (code 4-5) :
+
+        CA  zone ACTIVÉE
+        CS  activité connue / observée
+        LW  activité connue / observée
+
+     « TT » et les autres décrivent, ils n'activent pas.
+
+     Cette lecture ne masque JAMAIS un NOTAM de terrain : elle ne s'applique
+     qu'aux NOTAM d'espace aérien, ceux que le relais marque « fir_seul ».
+     Et là où elle écarte quelque chose, on le DIT et on donne le compte —
+     un NOTAM qu'on ne montre pas sans le dire est pire qu'un NOTAM de trop. */
+  var NTM_FIR_ACTIF={CA:1,CS:1,LW:1};
+  function ntmFirContraint(n){
+    var q=String((n&&n.qcode)||'').toUpperCase();
+    /* le champ « qcode » porte les QUATRE lettres qui suivent le Q : les deux
+       de sujet puis les deux de condition. On ne lit que les dernières. */
+    if(q.length<4) return true;      /* Q-code absent ou tronqué : on garde */
+    return !!NTM_FIR_ACTIF[q.slice(-2)];
+  }
   function ntmLigneOaci(n){
     var e=ntmEtat(n), fn=ntmFin(n), h='<div class="ntm-un ntm-oaci">'
       +'<div class="ntm-oid">'+ntmEsc(n.serie||'NOTAM')
@@ -7427,20 +7516,37 @@ function openRelinkChoice(){
     +(n.enSecours?'<span class="ntm-et a" title="Ce NOTAM n’est pas traduit '
       +'par le SIA : son texte reste en anglais.">non traduit</span>':'')
     +'<br>'+ntmEsc(n.texte)+'</div>'; }
+  var ntmCarteMasques=0;
   function ntmDraw(){ notamGroup.clearLayers(); ntmMarkers={};
-    if(!notamOn||!notamData) return;
+    ntmCarteMasques=0;
+    if(!notamOn||!notamData){ try{ ntmActMaj(); }catch(e){} return; }
     var sel=notamData.sel, maintenant=Date.now()/1000, parAd={};
     (notamData.notams||[]).forEach(function(n){
       if(ntmFin(n)&&!n.estimee&&ntmFin(n)<maintenant) return;         /* expiré */
       if(n.debut&&n.debut>maintenant+48*3600) return;         /* trop lointain */
       (parAd[n.ad]=parAd[n.ad]||[]).push(n);
       if(isFinite(n.lat)&&isFinite(n.lon)&&n.rayon>0&&n.rayon<=30){
-        var c=L.circle([n.lat,n.lon],{radius:n.rayon*1852,color:'#7C3AED',weight:1.5,
-          dashArray:'4 4',fill:true,fillColor:'#7C3AED',fillOpacity:.07});
+        /* TROIS CAS, DEUX COULEURS.
+           · NOTAM de terrain      -> violet, comme toujours ;
+           · NOTAM de FIR ACTIVÉ   -> ROUGE : c'est lui qui contraint le vol,
+                                      il doit se distinguer au premier coup
+                                      d'œil des zones simplement décrites ;
+           · NOTAM de FIR descriptif -> violet, et masqué tant que
+                                      « NOTAM actif » est allumé. */
+        var estFir=!!n.fir_seul, actif=estFir&&ntmFirContraint(n);
+        if(estFir&&!actif&&ntmCarteActifs){ ntmCarteMasques++; return; }
+        var col=actif?'#DC2626':'#7C3AED';
+        var c=L.circle([n.lat,n.lon],{radius:n.rayon*1852,color:col,
+          weight:actif?2.2:1.5,
+          dashArray:actif?null:'4 4',fill:true,fillColor:col,
+          fillOpacity:actif?.12:.07});
         c.bindPopup('<div class="ntm-pop"><b>'+ntmEsc(n.ad)+'</b>'+ntmLigne(n)+'</div>',{maxWidth:330});
         notamGroup.addLayer(c);
       }
     });
+    /* la carte DIT ce qu'elle tait : un cercle absent ne doit jamais passer
+       pour une zone sans NOTAM */
+    try{ ntmActMaj(); }catch(e){}
     var supsParAd=(notamData.sups&&notamData.sups.parAd)||{};
     (sel.codes||[]).forEach(function(code){
       var q=sel.idx[code]; if(!q) return;
@@ -7672,6 +7778,15 @@ function openRelinkChoice(){
       +'title="Forme officielle OACI, item par item (Q, A, B, C, D, E) — '
       +'celle qui se recoupe avec SOFIA. Éteindre pour la forme compacte, '
       +'deux lignes par NOTAM.">OACI</button>'
+      /* Le tri des NOTAM d'espace aérien. Il MASQUE quelque chose : il porte
+         donc une couleur d'alerte quand il est allumé, et le chapitre dit
+         toujours combien ont été écartés. */
+      +'<button type="button" class="ntmd-f fir'+(ntmFirActif?' on':'')+'" data-f="firact" '
+      +'title="N’afficher que les NOTAM d’espace aérien (FIR) qui '
+      +'CONTRAIGNENT vraiment : Q-code se terminant par CA (zone activée), '
+      +'CS ou LW (activité connue). Les autres — TT et compagnie — décrivent '
+      +'une zone sans l’activer. Les NOTAM de TERRAIN ne sont jamais '
+      +'concernés.">NOTAM FIR actif</button>'
       +'<button type="button" class="ntmd-f" data-f="frais" '
       +'title="Redemander les NOTAM et SUP AIP maintenant, sans attendre. '
       +'Le relais peut servir jusqu\u2019\u00e0 10 minutes de m\u00e9moire pour ne pas '
@@ -7775,17 +7890,43 @@ function openRelinkChoice(){
          visent aucun terrain, et ceux de terrains longes par le couloir mais
          non retenus dans la liste du vol. */
       if(ntmHorsTerrain.length){
+        /* Le tri « NOTAM FIR actif » ne touche QUE l'espace aérien : les
+           terrains longés par le couloir restent entiers, ce sont des NOTAM
+           de terrain comme les autres. */
+        var firTous=ntmHorsTerrain.filter(function(n){ return n.fir_seul; });
+        var firVus=ntmFirActif?firTous.filter(ntmFirContraint):firTous;
+        var firEcartes=firTous.length-firVus.length;
+        /* MÊME FILTRE ÉTEINT, LES ACTIVÉS PASSENT DEVANT. Le tri est un
+           confort ; l'ordre, lui, est une sécurité : sur quarante NOTAM de
+           FIR, ceux qui contraignent ne doivent pas se trouver en bas de la
+           pile par le seul hasard de l'ordre de livraison. Tri STABLE — à
+           l'intérieur de chaque moitié, l'ordre reçu est conservé. */
+        firVus=firVus.map(function(n,i){ return {n:n,i:i,a:ntmFirContraint(n)?0:1}; })
+          .sort(function(x,y){ return (x.a-y.a)||(x.i-y.i); })
+          .map(function(o){ return o.n; });
+        var firActifs=firVus.filter(ntmFirContraint).length;
         var lots=[
           {cl:'azba',code:'FIR',nom:'NOTAM d’espace aérien, rattachés à la région '
-            +'d’information de vol',
-           liste:ntmHorsTerrain.filter(function(n){ return n.fir_seul; })},
+            +'d’information de vol'
+            +(ntmFirActif?' · seuls les activés (Q-code CA / CS / LW)'
+              :(firActifs&&firActifs<firVus.length
+                ? ' · '+firActifs+' activé'+(firActifs>1?'s':'')+' en tête'
+                : '')),
+           liste:firVus, ecartes:firEcartes},
           {cl:'prox',code:'autres',nom:'terrains longés par le couloir, hors liste du vol',
-           liste:ntmHorsTerrain.filter(function(n){ return !n.fir_seul; })}];
-        lots.forEach(function(g){ if(!g.liste.length) return;
+           liste:ntmHorsTerrain.filter(function(n){ return !n.fir_seul; }),ecartes:0}];
+        lots.forEach(function(g){ if(!g.liste.length&&!g.ecartes) return;
           html+='<div class="ntmd-ad" data-ad="'+g.code+'"><span class="ntmd-rol '+g.cl+'">'
             +g.code+'</span><b>'+(g.cl==='azba'?'espace aérien':'autres terrains')+'</b>'
             +'<span class="ntmd-nom">'+g.nom+'</span>'
             +'<span class="ntmd-cnt">'+g.liste.length+' NOTAM</span></div>';
+          /* CE QUI EST ÉCARTÉ SE DIT, ET SE COMPTE. */
+          if(g.ecartes) html+='<div class="ntmd-ecart">'+g.ecartes
+            +' NOTAM d’espace aérien écarté'+(g.ecartes>1?'s':'')
+            +' : leur Q-code ne se termine pas par CA, CS ou LW — ils décrivent '
+            +'une zone sans l’activer. Éteindre « NOTAM FIR actif » pour les voir.'
+            +'</div>';
+          if(!g.liste.length) return;
           html+=g.liste.map(function(n){ var i2=ddvRefN.push(n)-1;
             return ddvBouton(ntmLigne(n),'n',i2,ddvContient('n',n)); }).join(''); }); }
       html+='</div>';   /* fin de la feuille NOTAM */
@@ -7881,6 +8022,10 @@ function openRelinkChoice(){
       var f=bf.getAttribute('data-f');
       /* OACI : une forme d'affichage, pas un filtre — rien n'est masqué */
       if(f==='oaci'){ ntmOaci=!ntmOaci; ntmDossier(); return; }
+      /* FIR ACTIF : un vrai filtre, celui-là. Il ne redemande rien au relais —
+         tout est déjà là — il recompose seulement le chapitre. */
+      if(f==='firact'){ ntmFirActif=!ntmFirActif; ntmPrefPose();
+        ntmDossier(); return; }
       /* SOURCE : changer de service change les DONNEES, pas leur mise en
          forme. Il faut donc tout redemander — d'ou l'oubli de notamData. */
       if(f==='src'){ ntmSrc=(ntmSrc==='sofia')?'auto':'sofia'; ntmPrefPose();
@@ -8002,6 +8147,10 @@ function openRelinkChoice(){
     var ddvNotam=function(n){ var x=ddvTexte(n);
       return {ad:n.ad,serie:n.serie||'',
         qcode:n.qcode||'',debut:n.debut||0,fin:ntmFin(n),estimee:!!n.estimee,
+        /* espace aérien ou terrain ? Le tri du Q-code ne vise que le premier,
+           et sans cette marque il s'appliquait à tout — y compris aux NOTAM
+           de piste. */
+        fir_seul:!!n.fir_seul,
         /* l'item D part avec : sans lui, un NOTAM de nuit se relit six mois
            plus tard comme actif en permanence */
         horaire:n.horaire||'',
@@ -8044,10 +8193,23 @@ function openRelinkChoice(){
        bloc FIR, et les terrains longes par le couloir. Le dossier ne retenant
        que depart / arrivee / survoles / degagements, ils tombaient dans le
        vide. Un NOTAM qu'on ne montre pas est pire qu'un NOTAM de trop. */
-    var horsTerrain=[];
+    var horsTerrain=[], firEcartes=0;
     Object.keys(parAd).forEach(function(c){ if(codes.indexOf(c)<0)
       horsTerrain=horsTerrain.concat((parAd[c]||[]).map(ddvNotam)); });
+    /* LE DOSSIER NE RETIENT QUE LES NOTAM D'ESPACE AÉRIEN QUI CONTRAIGNENT.
+       Sur le papier, une liste de cinquante NOTAM de FIR descriptifs noie les
+       trois qui comptent — et un dossier qu'on ne lit pas ne protège personne.
+       On applique donc toujours la règle du Q-code, sans attendre le bouton
+       de la fenêtre. Ce qui est écarté est COMPTÉ et le dossier le dit : le
+       pilote sait qu'il existe une liste plus longue, et où la consulter.
+       Le tri ne vise que l'espace aérien : les terrains longés par le
+       couloir gardent tous leurs NOTAM. */
+    horsTerrain=horsTerrain.filter(function(n){
+      if(!n.fir_seul) return true;
+      if(ntmFirContraint(n)) return true;
+      firEcartes++; return false; });
     return {v:4,t:Date.now(),notamsOk:!!notamData.notamsOk,
+      firEcartes:firEcartes,
       motif:notamData.motif||'',terrains:terrains,
       horsTerrain:horsTerrain,
       /* QUI a servi, et pourquoi si ce n'est pas ce qui etait demande : un
@@ -8285,13 +8447,22 @@ function openRelinkChoice(){
     /* --- NOTAM sans terrain du vol : bloc FIR et terrains longes ---
        En dernier, mais presents. Ils viennent de SOFIA ; autorouter, qui
        interroge terrain par terrain, n'en produit pas. */
-    if((d.horsTerrain||[]).length){
+    if((d.horsTerrain||[]).length||d.firEcartes){
       h+='<div class="wxd-aero"><div class="wxd-ahd">'
         +'<span class="wxd-role">FIR</span><b>espace a\u00e9rien</b>'
         +'<span class="wxd-anom">NOTAM en route, hors terrains du vol</span></div>';
+      /* CE QUE LE DOSSIER A \u00c9CART\u00c9, ET POURQUOI. Sans cette ligne, le pilote
+         croirait tenir la liste enti\u00e8re des NOTAM d'espace a\u00e9rien. */
+      if(d.firEcartes) h+='<div class="wxd-srcl">'+d.firEcartes
+        +' NOTAM d\u2019espace a\u00e9rien \u00e9cart\u00e9'+(d.firEcartes>1?'s':'')
+        +' \u2014 Q-code ne se terminant ni par CA (activ\u00e9e), ni par CS ou LW '
+        +'(activit\u00e9 connue) : ils d\u00e9crivent une zone sans l\u2019activer. '
+        +'Liste enti\u00e8re dans le listing NOTAM.</div>';
       /* meme forme OACI que les terrains : un NOTAM d'espace aerien se
          recoupe avec le briefing officiel comme les autres */
-      d.horsTerrain.forEach(function(n){ h+=ddvOaci(n); });
+      (d.horsTerrain||[]).forEach(function(n){ h+=ddvOaci(n); });
+      if(!(d.horsTerrain||[]).length) h+='<div class="wxd-msg">aucun NOTAM '
+        +'d\u2019espace a\u00e9rien activ\u00e9 sur la route.</div>';
       h+='</div>'; }
     /* --- chapitre SUP AIP --- */
     h+='<div class="wxd-sect">SUP AIP \u2014 terrains du vol</div>'
@@ -13369,8 +13540,13 @@ window.__pickGpx=function(cb){
         'align-items:center;justify-content:center;overflow:hidden}',
         /* object-fit:contain, sans aucune dimension calculée : c'est le seul
            dimensionnement qui ne dépende ni du zoom, ni de l'écran, ni de la
-           taille du PDF source */
-        '.ddvp-aire img{max-width:100%;max-height:100%;width:auto;height:auto;',
+           taille de la planche source.
+           « width:100% + height:100% » plutôt que « max-width + max-height » :
+           avec les seconds, une planche plus petite que la page reste à sa
+           taille naturelle et flotte au milieu d'un grand blanc — mesuré, une
+           WINTEM n'occupait que 93 % de son aire. Ici elle s'inscrit toujours
+           au plus grand, sans jamais se déformer ni déborder. */
+        '.ddvp-aire img{width:100%;height:100%;',
         'object-fit:contain;display:block}',
         '.ddvp-non{font:600 11pt "Poppins",sans-serif;color:#64748b;text-align:center}',
         '.ddvp-pd{flex:0 0 auto;padding-top:2mm;margin-top:2mm;',
@@ -13402,20 +13578,61 @@ window.__pickGpx=function(cb){
         f.className='ddvp ddvp-txt'; f.appendChild(c);
         return f;
       }
+      /* LES CARTES SONT DÉJÀ DANS LA FENÊTRE — c'est de là qu'il faut partir.
+         Première version : le tirage retéléchargeait chaque planche par la
+         voie « octets » du relais (?img=1). Elle ne répond PAS en production —
+         aviation.meteo.fr refuse l'accès serveur (« Request forbidden by
+         administrative rules ») et SOFIA rend une page de session. Résultat :
+         des cartes bien visibles à l'écran, et des pages « Carte non
+         disponible » au tirage.
+         Or le navigateur du pilote, lui, A le droit d'aller les chercher :
+         c'est pourquoi la fenêtre les affiche. On reprend donc l'image que le
+         dossier a déjà chargée. */
+      function ddvpCartesAffichees(dos){
+        return [].slice.call(dos.querySelectorAll('#wxdCartes .wxd-carte'))
+          .map(function(fig){
+            var urls=[]; try{ urls=JSON.parse(fig.getAttribute('data-urls')||'[]'); }catch(e){}
+            var lbl=fig.querySelector('.wxd-clbl');
+            var vide=fig.querySelector('.wxd-vide');
+            return { nom:fig.getAttribute('data-nom')||'',
+              /* le libellé porte déjà nom, validité, « estimée », « prolongée » :
+                 le recomposer ailleurs, c'est risquer qu'il diverge */
+              lbl:lbl?lbl.textContent.replace(/\s+/g,' ').trim():'',
+              motif:vide?vide.textContent.replace(/\s+/g,' ').trim():'',
+              wintem:fig.classList.contains('wxd-w'),
+              img:fig.querySelector('img'), urls:urls };
+          });
+      }
+      /* Fige une image affichée en data: — pour n'avoir plus RIEN à charger au
+         moment d'imprimer. Impossible si ses pixels sont protégés (planche
+         servie par un autre domaine) : la toile est alors « teintée » et
+         toDataURL lève. On rend null, et l'appelant gardera l'adresse. */
+      function ddvpFige(im){
+        try{
+          var w=im.naturalWidth||0, h=im.naturalHeight||0;
+          if(!w||!h) return null;
+          var e=Math.min(1,2200/Math.max(w,h));   /* finesse de la note */
+          var cv=document.createElement('canvas');
+          cv.width=Math.round(w*e); cv.height=Math.round(h*e);
+          var cx=cv.getContext('2d');
+          cx.fillStyle='#fff'; cx.fillRect(0,0,cv.width,cv.height);
+          cx.drawImage(im,0,0,cv.width,cv.height);
+          return cv.toDataURL('image/jpeg',0.92);
+        }catch(e){ return null; }
+      }
       function ddvpFeuilleCarte(c2,src){
         var f=document.createElement('section');
-        /* wxFamCarte rend « wxd-w » pour une WINTEM, « wxd-t » sinon : la
-           première est portrait, les TEMSI sont en paysage. */
-        var wintem=(wxFamCarte(c2.nom)==='wxd-w');
-        f.className='ddvp '+(wintem?'ddvp-w':'ddvp-t');
+        /* une WINTEM est une A4 portrait, les TEMSI sont des planches paysage */
+        f.className='ddvp '+(c2.wintem?'ddvp-w':'ddvp-t');
+        var reste=String(c2.lbl||'').replace(/^\s*/,'');
+        if(c2.nom&&reste.indexOf(c2.nom)===0) reste=reste.slice(c2.nom.length)
+          .replace(/^\s*[·\-]\s*/,'');
         var h='<div class="ddvp-hd"><b>'+wxEchap(c2.nom||'Carte')+'</b>'
-          +'<span>validité '+wxEchap(c2.hh||'—')
-          +(c2.estimee?' (estimée)':'')
-          +(c2.prolongee?' · prolongée, âge '+c2.ageH+' h':'')+'</span></div>';
+          +'<span>'+wxEchap(reste||'')+'</span></div>';
         h+='<div class="ddvp-aire">'+(src
           ? '<img alt="'+wxEchap(c2.nom||'')+'" src="'+src+'">'
           : '<div class="ddvp-non">Carte non disponible'
-            +(c2.absente?' — non encore publiée pour cette heure':'')+'</div>')+'</div>';
+            +(c2.motif?'<br>'+wxEchap(c2.motif):'')+'</div>')+'</div>';
         h+='<div class="ddvp-pd">Source : Météo-France (aviation.meteo.fr)'
           +' · relevé le '+wxEchap(ddvpMaintenant())+'</div>';
         f.innerHTML=h;
@@ -13495,29 +13712,49 @@ window.__pickGpx=function(cb){
               manques.length?900:180);
           });
         };
-        if(typeof window.__CARTES!=='function'){ termine([]); return; }
-        window.__CARTES().then(function(j){ return wxCartesReelles(j); })
-          .then(function(lst){
-            lst=lst||[];
-            if(!lst.length){ termine([]); return; }
-            var manques=[], i=0;
-            /* une carte à la fois : la note le recommande, et cela ménage
-               autant le relais que la source officielle */
-            (function suiv(){
-              if(i>=lst.length){ termine(manques); return; }
-              var c2=lst[i++];
-              bar.dit(8+Math.round(84*(i-1)/lst.length),
-                'carte '+i+' / '+lst.length+' · '+(c2.nom||''));
-              if(!c2.urls||!c2.urls.length){
-                manques.push(c2.nom||'?');
-                racine.appendChild(ddvpFeuilleCarte(c2,null)); suiv(); return; }
-              wxOctetsMotif(c2.urls,function(o){
-                var s=ddvpSource(o);
-                if(!s) manques.push(c2.nom||'?');
-                racine.appendChild(ddvpFeuilleCarte(c2,s));
-                suiv(); });
-            })();
-          },function(){ termine([]); });
+        /* On attend que le dossier ait POSÉ ses cartes : cliquer aussitôt après
+           l'ouverture ne doit pas produire un tirage sans elles. Plafonné, pour
+           ne jamais immobiliser le bouton. */
+        var t0=Date.now();
+        (function attend(){
+          var l=ddvpCartesAffichees(dos);
+          var pretes=l.length&&l.every(function(c){
+            return !c.img || c.img.complete; });
+          if(!pretes&&Date.now()-t0<12000){ setTimeout(attend,300); return; }
+          if(!l.length){ termine([]); return; }
+          var manques=[], i=0;
+          /* On rend la main entre deux cartes. Sans cela, quand les planches
+             sont déjà chargées, toute la boucle s'exécute d'un trait : la
+             barre passe de « catalogue » à « mise en page » sans que rien ne
+             soit peint entre les deux, et sur un dossier chargé l'interface
+             se fige le temps du traitement. Un pas par image de rendu. */
+          var pas=function(k){ try{ requestAnimationFrame(k); }
+            catch(e){ setTimeout(k,16); } };
+          (function suiv(){
+            if(i>=l.length){ termine(manques); return; }
+            var c2=l[i++];
+            bar.dit(8+Math.round(84*(i-1)/l.length),
+              'carte '+i+' / '+l.length+' · '+(c2.nom||''));
+            /* 1. l'image de la fenêtre, figée si ses pixels sont lisibles */
+            var s=c2.img?ddvpFige(c2.img):null;
+            /* 2. sinon la MÊME adresse : le moteur d'impression sait la
+                  redessiner sans avoir le droit d'en lire les pixels — c'est
+                  exactement ce qui fait marcher le bouton « Imprimer ». */
+            if(!s&&c2.img&&c2.img.src) s=c2.img.src;
+            if(s){ racine.appendChild(ddvpFeuilleCarte(c2,s)); pas(suiv); return; }
+            /* 3. dernier recours : la voie octets du relais. Elle échoue en
+                  production, mais si un jour Météo-France l'autorise, elle
+                  rendra la planche sans dépendre de l'affichage. */
+            if(!c2.urls||!c2.urls.length){
+              manques.push(c2.nom||'?');
+              racine.appendChild(ddvpFeuilleCarte(c2,null)); pas(suiv); return; }
+            wxOctetsMotif(c2.urls,function(o){
+              var s2=ddvpSource(o);
+              if(!s2) manques.push(c2.nom||'?');
+              racine.appendChild(ddvpFeuilleCarte(c2,s2));
+              pas(suiv); });
+          })();
+        })();
       }
       (function(){ var b2=dos.querySelector('#wxdPrn2'); if(!b2) return;
         b2.onclick=function(){ ddvpImprime(dos); }; })();
