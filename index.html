@@ -3015,7 +3015,7 @@ window.__TRACE_MARKUP="\n\n<header>\n  <div class=\"hdr-row1\">\n    <span class
    accessible depuis le bouton ⓘ du bandeau du log, avant toute ouverture de la carte */
 (function(){
   var host=document.createElement('div');
-  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Cartes OACI — origine et mise à jour</b></p>\n    <p style=\"margin-top:-6px\"><b>1/250 000 Région parisienne</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte250\">—</span>.</p>\n    <p style=\"margin-top:-6px\"><b>1/500 000 France</b> — IGN Géoplateforme (SCAN-OACI). Donnée <b>non libre</b>, tenue à jour par l’IGN.</p>\n    <p style=\"margin-top:-6px\"><b>1/1 000 000 France</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte1000\">—</span>.</p>\n    <p>Les deux cartes du SIA sont hébergées à part et lues par plages : seules les tuiles affichées sont téléchargées. Les trois se copient sur l’appareil pour voler sans réseau depuis <b>Profil → Cartes hors-ligne</b>. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.577</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
+  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Cartes OACI — origine et mise à jour</b></p>\n    <p style=\"margin-top:-6px\"><b>1/250 000 Région parisienne</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte250\">—</span>.</p>\n    <p style=\"margin-top:-6px\"><b>1/500 000 France</b> — IGN Géoplateforme (SCAN-OACI). Donnée <b>non libre</b>, tenue à jour par l’IGN.</p>\n    <p style=\"margin-top:-6px\"><b>1/1 000 000 France</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte1000\">—</span>.</p>\n    <p>Les deux cartes du SIA sont hébergées à part et lues par plages : seules les tuiles affichées sont téléchargées. Les trois se copient sur l’appareil pour voler sans réseau depuis <b>Profil → Cartes hors-ligne</b>. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.578</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
   (document.body||document.documentElement).appendChild(host.firstElementChild);
   /* le nom du fichier de la 1/1 000 000 dit son edition : on le lit la ou il
      est vraiment (cartes.json), jamais en dur, sinon il mentirait un jour */
@@ -12066,8 +12066,18 @@ window.__CARTE_ADR=function(j,cle){
 .wxd-bar{display:flex;justify-content:flex-end;margin:0 0 10px}
 .wxd-bar button{background:rgba(30,159,224,.18);border:1px solid #1E9FE0;border-radius:10px;color:#7fd1ff;
   font:800 12px "Poppins",sans-serif;padding:9px 14px;cursor:pointer}
-.wxd-feuille{background:#fff;color:#16213e;border-radius:12px;padding:16px 16px 12px;
-  font:500 12.5px/1.5 "Poppins",sans-serif;box-shadow:0 10px 30px rgba(0,0,0,.35)}
+/* La feuille n'est plus un seul aplat blanc : chaque chapitre du dossier vit
+   dans sa propre carte blanche arrondie sur le fond bleu (demande du 31/08,
+   lisibilite). La feuille reste le porte-cartes : elle garde la police et
+   l'encre, les cartes portent le blanc. */
+.wxd-feuille{background:transparent;color:#16213e;border-radius:0;padding:0;
+  font:500 12.5px/1.5 "Poppins",sans-serif}
+.wxd-bloc{background:#fff;color:#16213e;border-radius:12px;padding:14px 16px 12px;
+  margin:0 0 12px;box-shadow:0 10px 30px rgba(0,0,0,.35)}
+.wxd-bloc:last-child{margin-bottom:0}
+/* en tete de carte, le titre de chapitre n'a plus besoin de son trait ni de
+   sa marge de separation : la carte separe deja */
+.wxd-bloc>.wxd-sect:first-child,#wxdNtm>.wxd-sect:first-child{border-top:0;margin-top:0}
 .wxd-titre{font:800 15px "Poppins",sans-serif;color:#16213e;border-bottom:2px solid #e94560;
   padding-bottom:8px;margin-bottom:10px;white-space:nowrap;overflow:hidden}
 .wxd-titre span{font-weight:600;color:#64748b;font-size:12px}
@@ -13667,6 +13677,22 @@ window.__pickGpx=function(cb){
         +'V\u00e9rifier le dossier officiel avant le d\u00e9part.</div>';
       html+='</div>';
       dos.innerHTML=html;
+      /* LA FEUILLE EN CARTES BLANCHES (v.578) : chaque chapitre part dans sa
+         carte — l'entete d'abord, puis une carte par titre de section ; le
+         module Notam/AIP (#wxdNtm) forme la sienne, et le pied la suit.
+         Les injections asynchrones (cartes, SIGMET, NOTAM) visent des ids qui
+         demenagent AVEC leur carte. Le document d'impression, lui, garde la
+         feuille d'un seul tenant : ddvpChapitres remet les cartes a plat. */
+      (function(){ var f=dos.querySelector('.wxd-feuille'); if(!f) return;
+        var kids=[].slice.call(f.childNodes), bloc=null;
+        var neuf=function(){ bloc=document.createElement('div');
+          bloc.className='wxd-bloc'; f.appendChild(bloc); };
+        neuf();
+        for(var i3=0;i3<kids.length;i3++){ var k=kids[i3];
+          if(k.nodeType===1&&(k.classList.contains('wxd-sect')||k.id==='wxdNtm')
+            &&bloc.childNodes.length) neuf();
+          bloc.appendChild(k); }
+      })();
       /* le titre tient toujours sur UNE ligne : la police se reduit au besoin
          (sur telephone « SUP AIP » passait seul a la ligne) */
       (function(){ var ti=dos.querySelector('.wxd-titre'); if(!ti) return;
@@ -14027,6 +14053,11 @@ window.__pickGpx=function(cb){
         var src=dos.querySelector('.wxd-feuille'); if(!src) return null;
         var c=src.cloneNode(true);
         c.querySelectorAll('.wxd-bar,.no-print').forEach(function(e){ e.remove(); });
+        /* les cartes blanches de l'ecran (v.578) se remettent a plat : le
+           decoupage en chapitres lit les enfants directs de la feuille */
+        c.querySelectorAll('.wxd-bloc').forEach(function(b){
+          while(b.firstChild) b.parentNode.insertBefore(b.firstChild,b);
+          b.remove(); });
         /* NOTAM, SUP AIP et AZBA vivent DANS un même conteneur (#wxdNtm) : sans
            l'aplatir, les trois ne feraient qu'un seul bloc et ne pourraient pas
            se répartir sur des pages distinctes. */
