@@ -3005,7 +3005,7 @@ window.__TRACE_MARKUP="\n\n<header>\n  <div class=\"hdr-row1\">\n    <span class
    accessible depuis le bouton ⓘ du bandeau du log, avant toute ouverture de la carte */
 (function(){
   var host=document.createElement('div');
-  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Cartes OACI — origine et mise à jour</b></p>\n    <p style=\"margin-top:-6px\"><b>1/250 000 Région parisienne</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte250\">—</span>.</p>\n    <p style=\"margin-top:-6px\"><b>1/500 000 France</b> — IGN Géoplateforme (SCAN-OACI). Donnée <b>non libre</b>, tenue à jour par l’IGN.</p>\n    <p style=\"margin-top:-6px\"><b>1/1 000 000 France</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte1000\">—</span>.</p>\n    <p>Les deux cartes du SIA sont hébergées à part et lues par plages : seules les tuiles affichées sont téléchargées. Les trois se copient sur l’appareil pour voler sans réseau depuis <b>Profil → Cartes hors-ligne</b>. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.611</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
+  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Cartes OACI — origine et mise à jour</b></p>\n    <p style=\"margin-top:-6px\"><b>1/250 000 Région parisienne</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte250\">—</span>.</p>\n    <p style=\"margin-top:-6px\"><b>1/500 000 France</b> — IGN Géoplateforme (SCAN-OACI). Donnée <b>non libre</b>, tenue à jour par l’IGN.</p>\n    <p style=\"margin-top:-6px\"><b>1/1 000 000 France</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte1000\">—</span>.</p>\n    <p>Les deux cartes du SIA sont hébergées à part et lues par plages : seules les tuiles affichées sont téléchargées. Les trois se copient sur l’appareil pour voler sans réseau depuis <b>Profil → Cartes hors-ligne</b>. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.613</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
   (document.body||document.documentElement).appendChild(host.firstElementChild);
   /* le nom du fichier de la 1/1 000 000 dit son edition : on le lit la ou il
      est vraiment (cartes.json), jamais en dur, sinon il mentirait un jour */
@@ -6759,10 +6759,12 @@ function openRelinkChoice(){
    +'box-shadow:0 3px 10px rgba(0,0,0,.25);-webkit-tap-highlight-color:transparent}'
    +'#wndBtn.on{background:#1E9FE0;border-color:#1E9FE0}'
    +'#wndBtn{padding:0;overflow:hidden;gap:0}'
-   +'#wndBtn .mto-g,#wndBtn .mto-d,#wndBtn .mto-z{display:inline-flex;align-items:center;gap:5px;padding:5px 10px;cursor:pointer}'
+   +'#wndBtn .mto-g,#wndBtn .mto-d,#wndBtn .mto-s,#wndBtn .mto-z{display:inline-flex;align-items:center;gap:5px;padding:5px 10px;cursor:pointer}'
    +'#wndBtn .mto-g.on{background:#1E9FE0}'
    +'#wndBtn .mto-d{border-left:1px solid rgba(255,255,255,.28);color:#bcd6ec}'
    +'#wndBtn .mto-d.on{background:#e0532e;color:#fff}'
+   +'#wndBtn .mto-s{border-left:1px solid rgba(255,255,255,.28);color:#bcd6ec}'
+   +'#wndBtn .mto-s.on{background:#e0532e;color:#fff}'
    +'#wndBtn .mto-z{border-left:1px solid rgba(255,255,255,.28);color:#bcd6ec}'
    +'#wndBtn .mto-z.on{background:#B91C1C;color:#fff}'
    +'#wndPanel .sig-row{display:flex;align-items:center;gap:7px;background:rgba(255,255,255,.08);'
@@ -7009,9 +7011,9 @@ function openRelinkChoice(){
   document.head.appendChild(st);
   var wrap=document.createElement('div'); wrap.id='wndWrap'; wrap.className='no-print';
   var panel=document.createElement('div'); panel.id='wndPanel'; panel.hidden=true;
-  panel.innerHTML='<div class="ti">SIGMET · FIR France</div>'
-    +'<div class="sig-row" id="sigRow"><span class="dot"></span><span>Afficher les SIGMET</span></div>'
-    +'<div class="ti" style="margin-top:6px">Vent prévu · Open-Météo</div>'
+  /* la ligne SIGMET a quitte ce panneau (v.613) : le segment « Sigmet »
+     du bouton quadruple la remplace, meme fonctionnement */
+  panel.innerHTML='<div class="ti">Vent prévu · Open-Météo</div>'
     +'<button data-l="">OFF</button>'
     +LV.map(function(l){return '<button data-l="'+l[1]+'">'+l[0]+(l[0].indexOf('FL')<0?' ft':'')+'</button>'}).join('');
   var btn=document.createElement('button'); btn.id='wndBtn'; btn.type='button';
@@ -7019,6 +7021,7 @@ function openRelinkChoice(){
     +'<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><path d="M3 8h11a3 3 0 1 0-3-3M3 13h15a3 3 0 1 1-3 3M3 18h8"/></svg>'
     +'<span id="wndLab">Météo</span></span>'
     +'<span class="mto-d" id="mtoD" title="NOTAM et SUP AIP des terrains du vol">Notam/SupAIP</span>'
+    +'<span class="mto-s" id="mtoS" title="SIGMET \u00b7 FIR France \u2014 affiche les SIGMET et d\u00e9zoome sur la France enti\u00e8re">Sigmet</span>'
     +'<span class="mto-z" id="mtoZ" title="AZBA / RTBA \u2014 activation des zones basse altitude (SIA)">AZBA</span>';
   wrap.appendChild(panel); wrap.appendChild(btn); th.appendChild(wrap);
   /* outils NOTAM/SUP AIP : pile de fiches (listing complet) —
@@ -7089,6 +7092,7 @@ function openRelinkChoice(){
   try{ map.on('resize',place); map.whenReady(function(){ setTimeout(place,300); setTimeout(place,1200); }); }catch(e){}
   btn.addEventListener('click',function(e){ e.stopPropagation();
     if(e.target.closest && e.target.closest('#mtoD')){ ntmToggle(); return; }
+    if(e.target.closest && e.target.closest('#mtoS')){ sigToggle(); return; }
     if(e.target.closest && e.target.closest('#mtoZ')){ azbaToggle(); return; }
     panel.hidden=!panel.hidden; place(); });
   try{ map.on('zoomend',function(){ draw(); }); }catch(e){}
@@ -7135,7 +7139,7 @@ function openRelinkChoice(){
     });
   }
   function majEtat(){ var g=document.getElementById('mtoG');
-    if(g) g.classList.toggle('on',!!cur||sigOn); }
+    if(g) g.classList.toggle('on',!!cur); } /* le Sigmet a son propre segment (v.613) */
   function setLevel(lv,lab){
     cur=lv||null;
     panel.querySelectorAll('button[data-l]').forEach(function(b){b.classList.toggle('on',b.getAttribute('data-l')===(lv||''))});
@@ -7200,7 +7204,7 @@ function openRelinkChoice(){
   function sigRend(){ if(!sigVue) return; var v=sigVue; sigVue=null;
     try{ map.setView(v.c,v.z); }catch(e){} }
   function sigToggle(){
-    var row=document.getElementById('sigRow');
+    var row=document.getElementById('mtoS');
     sigOn=!sigOn; if(row) row.classList.toggle('on',sigOn); majEtat();
     if(!sigOn){ sigGroup.clearLayers(); sigRend(); return; }
     if(sigData&&(Date.now()-sigData.t)<300000){ sigDraw(); sigCadre(); return; }
@@ -7218,8 +7222,8 @@ function openRelinkChoice(){
         var row2=document.getElementById('sigRow'); if(row2) row2.classList.remove('on'); majEtat();
         if(typeof showToast==='function') showToast('SIGMET indisponible (réseau).'); });
   }
-  (function(){ var row=document.getElementById('sigRow');
-    if(row) row.addEventListener('click',function(e){ e.stopPropagation(); sigToggle(); }); })();
+  /* (v.613) plus de ligne « Afficher les SIGMET » dans le panneau : le
+     segment #mtoS du bouton quadruple porte le geste */
   /* ===== Couche NOTAM (partie droite du bouton) — terrains du vol, dégagements
      et terrains proches de la trace ; source EUROCONTROL (EAD) via autorouter,
      relayée par la fonction « cartes ». autorouter livre la ligne Q décodée
@@ -7445,7 +7449,9 @@ function openRelinkChoice(){
     if(!azbaOn||!azbaData) return 0;
     var n=0;
     azbaData.zones.forEach(function(z){
-      var cr=azbaFen(z,48); if(!cr.length) return;
+      /* v.612 : rien ne se filtre — une zone sans creneau sous 48 h se
+         dessine quand meme, en dormante, et sa popup le dit */
+      var cr=azbaFen(z,48);
       var pts=azbaPoly(z.geometrie); if(!pts) return;
       var actif=azbaActifMaintenant(cr);
       var pg=L.polygon(pts,{color:actif?'#B91C1C':'#EA580C',weight:2,
@@ -7454,7 +7460,8 @@ function openRelinkChoice(){
       pg.bindPopup('<div class="ntm-pop"><b>'+ntmEsc(z.nom)+'</b>'
         +((z.bas||z.haut)?' \u00b7 '+ntmEsc(z.bas||'?')+' \u2192 '+ntmEsc(z.haut||'?'):'')
         +(actif?' \u00b7 <b style="color:#B91C1C">ACTIVE</b>':'')
-        +'<br>'+cr.slice(0,6).map(azbaCren).join('<br>')+'</div>',{maxWidth:300});
+        +'<br>'+(cr.length?cr.slice(0,6).map(azbaCren).join('<br>')
+                :'aucun cr\u00e9neau sous 48 h')+'</div>',{maxWidth:300});
       azbaGroup.addLayer(pg); n++;
       var la=0,lo=0; pts.forEach(function(q){ la+=q[0]; lo+=q[1]; });
       azbaCentres.push({lat:la/pts.length,lon:lo/pts.length,nom:z.nom,actif:actif}); });
@@ -8166,7 +8173,7 @@ function openRelinkChoice(){
       +'(bouton Notam/SupAIP de la carte, ou badge du bandeau) pour lister les NOTAM '
       +'et SUP AIP des terrains du vol.</div></div>';
     {
-      var azZ=azbaData?azbaData.zones.filter(function(z){ return azbaFen(z,48).length; }):null;
+      var azZ=azbaData?azbaData.zones.slice():null; /* v.612 : tout se montre */
       /* troisieme chapitre, de meme forme que NOTAM et SUP AIP */
       html+='<div class="ntmf"><div class="ntmf-titre">AZBA / RTBA<span>'
         +(azZ?azZ.length+' zone'+(azZ.length>1?'s':'')+' sous 48 h':'chargement\u2026')
@@ -8178,10 +8185,11 @@ function openRelinkChoice(){
       if(!azbaData) html+='<div class="ntm-un">'+(azbaErr?('AZBA indisponibles \u00b7 '+ntmEsc(azbaErr)):'chargement\u2026')+'</div>';
       else if(!azZ.length) html+='<div class="ntm-un">aucun cr\u00e9neau dans les 48 prochaines heures</div>';
       else azZ.forEach(function(z){ var cr=azbaFen(z,48);
+        /* v.612 : une zone sans creneau sous 48 h se lit aussi */
         html+='<div class="ntm-un"><b>'+ntmEsc(z.nom)+'</b>'
           +((z.bas||z.haut)?' \u00b7 '+ntmEsc(z.bas||'?')+' \u2192 '+ntmEsc(z.haut||'?'):'')
           +(azbaActifMaintenant(cr)?' \u00b7 <b style="color:#B91C1C">ACTIVE</b>':'')
-          +'<br>'+cr.slice(0,8).map(azbaCren).join(' \u00b7 ')+'</div>'; });
+          +'<br>'+cr.slice(0,8).map(azbaCren).join(' \u00b7 ')||'aucun cr\u00e9neau sous 48 h'+'</div>'; });
       html+='</div>';   /* fin de la feuille AZBA */
     }
     /* LA SAISIE « terrain hors liste » A QUITTE LE BAS DU LISTING (v.608) :
@@ -8405,7 +8413,7 @@ function openRelinkChoice(){
       return [Math.round(p[0]*1e4)/1e4, Math.round(p[1]*1e4)/1e4]; }); };
     var azb=null;
     if(azbaData){ azb=azbaData.zones.map(function(z){ var cr=azbaFen(z,48);
-        if(!cr.length) return null;
+        /* v.612 : rien ne se filtre — la zone sans creneau part dormante */
         var o={nom:z.nom,bas:z.bas||'',haut:z.haut||'',creneaux:cr};
         var pts=azbaPoly(z.geometrie); if(pts) o.geometrie=arr4(pts);
         return o; })
@@ -8824,7 +8832,8 @@ function openRelinkChoice(){
     if(d.azba&&d.azba.length) d.azba.forEach(function(z){
       h+='<div class="wxd-msg"><b>'+ntmEsc(z.nom)+'</b>'
         +((z.bas||z.haut)?' \u00b7 '+ntmEsc(z.bas||'?')+' \u2192 '+ntmEsc(z.haut||'?'):'')
-        +' \u00b7 '+(z.creneaux||[]).slice(0,6).map(azbaCren).join(' \u00b7 ')+'</div>'; });
+        +' \u00b7 '+((z.creneaux||[]).slice(0,6).map(azbaCren).join(' \u00b7 ')
+          ||'aucun cr\u00e9neau sous 48 h')+'</div>'; });
     return h;
   }
   function ddvSectionHtml(){
