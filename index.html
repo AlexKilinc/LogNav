@@ -3013,7 +3013,7 @@ window.__TRACE_MARKUP="\n\n<header>\n  <div class=\"hdr-row1\">\n    <span class
    accessible depuis le bouton ⓘ du bandeau du log, avant toute ouverture de la carte */
 (function(){
   var host=document.createElement('div');
-  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Cartes OACI — origine et mise à jour</b></p>\n    <p style=\"margin-top:-6px\"><b>1/250 000 Région parisienne</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte250\">—</span>.</p>\n    <p style=\"margin-top:-6px\"><b>1/500 000 France</b> — IGN Géoplateforme (SCAN-OACI). Donnée <b>non libre</b>, tenue à jour par l’IGN.</p>\n    <p style=\"margin-top:-6px\"><b>1/1 000 000 France</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte1000\">—</span>.</p>\n    <p>Les deux cartes du SIA sont hébergées à part et lues par plages : seules les tuiles affichées sont téléchargées. Les trois se copient sur l’appareil pour voler sans réseau depuis <b>Profil → Cartes hors-ligne</b>. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.584</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
+  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Cartes OACI — origine et mise à jour</b></p>\n    <p style=\"margin-top:-6px\"><b>1/250 000 Région parisienne</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte250\">—</span>.</p>\n    <p style=\"margin-top:-6px\"><b>1/500 000 France</b> — IGN Géoplateforme (SCAN-OACI). Donnée <b>non libre</b>, tenue à jour par l’IGN.</p>\n    <p style=\"margin-top:-6px\"><b>1/1 000 000 France</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte1000\">—</span>.</p>\n    <p>Les deux cartes du SIA sont hébergées à part et lues par plages : seules les tuiles affichées sont téléchargées. Les trois se copient sur l’appareil pour voler sans réseau depuis <b>Profil → Cartes hors-ligne</b>. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.585</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
   (document.body||document.documentElement).appendChild(host.firstElementChild);
   /* le nom du fichier de la 1/1 000 000 dit son edition : on le lit la ou il
      est vraiment (cartes.json), jamais en dur, sinon il mentirait un jour */
@@ -12503,7 +12503,12 @@ window.__CARTE_ADR=function(j,cle){
 .wxf .wx-sig-t{color:#b45309}
 .wxf .wx-sig-t span{color:#64748b}
 .wxf .wx-sig-un pre{color:#16213e}
-.wxf #wxProxBtn{background:#e2f1fb;border-color:#1E9FE0;color:#0f5c8c}
+/* flat : aplat du bleu de l'appli (celui du badge « prox »), sans bordure */
+.wxf #wxProxBtn{display:inline-flex;align-items:center;gap:6px;
+  background:#1E9FE0;border:0;color:#fff;border-radius:9px;
+  padding:6px 12px;font:700 11.5px "Poppins",sans-serif;cursor:pointer}
+.wxf #wxProxBtn:active{background:#1786be}
+.wxf #wxProxBtn:disabled{opacity:.6;cursor:default}
 /* les cartes WINTEM / TEMSI, memes regles */
 /* text-align:left explicite : .wxc-row est un <button>, que le navigateur
    centre par defaut. Invisible tant que le nom se contentait de sa largeur,
@@ -13282,6 +13287,13 @@ window.__pickGpx=function(cb){
   window.addEventListener('online',function(){ wxHorloge(); });
   window.__WX_HORLOGE=wxHorloge;   /* utilisé par les tests */
 
+  /* le bouton « Autour de moi » : picto PLAT (epingle au trait, couleur
+     courante) — l'emoji detonnait dans la feuille (31/08) */
+  var WX_PROX_LBL='<svg viewBox="0 0 24 24" width="13" height="13" fill="none"'
+    +' stroke="currentColor" stroke-width="2" stroke-linecap="round"'
+    +' stroke-linejoin="round" aria-hidden="true">'
+    +'<path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/>'
+    +'<circle cx="12" cy="10" r="3"/></svg><span>Autour de moi</span>';
   window.__WX_OPEN=function(pl){
     /* Deux gabarits : le badge du bandeau ouvre une fenêtre étroite, l'onglet
        Météo une page à la taille du log de navigation. Sur téléphone les deux
@@ -13364,7 +13376,7 @@ window.__pickGpx=function(cb){
       +(favRows||'<div class="wx-empty">Aucun favori \u2014 ajoutez un terrain ci-dessus.</div>')
       +'</div>'
       +'<div class="wxf"><div class="wxf-titre"><b>\u00c0 proximit\u00e9</b>'
-      +'<button id="wxProxBtn" type="button" title="Rechercher les a\u00e9rodromes les plus proches de ma position (GPS \u2014 sinon autour du d\u00e9part)">\ud83d\udccd Autour de moi</button></div>'
+      +'<button id="wxProxBtn" type="button" title="Rechercher les a\u00e9rodromes les plus proches de ma position (GPS \u2014 sinon autour du d\u00e9part)">'+WX_PROX_LBL+'</button></div>'
       +(codes.filter(function(c){return c.role==='prox'}).map(rowHtml).join('')||'<div class="wx-empty" style="margin:0 2px">Appuyez sur \u00ab Autour de moi \u00bb pour lister les terrains les plus proches.</div>')
       +'</div>'
       /* L\'onglet s\'appelle « METAR / TAF / SIGMET » : les SIGMET doivent donc
@@ -14843,7 +14855,7 @@ window.__pickGpx=function(cb){
       var s=Math.sin(dLa/2)*Math.sin(dLa/2)+Math.cos(la1*toR)*Math.cos(la2*toR)*Math.sin(dLo/2)*Math.sin(dLo/2);
       return 2*R*Math.asin(Math.sqrt(s)); };
     if(proxBtn) proxBtn.onclick=function(){
-      proxBtn.disabled=true; proxBtn.textContent='Recherche\u2026';
+      proxBtn.disabled=true; proxBtn.innerHTML='<span>Recherche\u2026</span>';
       var found=function(lat,lng){
         var near=[];
         try{ for(var k in AERO_POS){ if(!/^LF[A-Z]{2}$/.test(k)) continue;
@@ -14851,13 +14863,16 @@ window.__pickGpx=function(cb){
         near.sort(function(a,b){return a.nm-b.nm});
         var cur=new Set(base.concat(codes.filter(function(c){return c.role==='fav'})).map(function(c){return c.code}));
         wxProx=near.filter(function(x){return !cur.has(x.code)}).slice(0,6);
-        window.__WX_OPEN(pl);
+        /* rester sur l'onglet METAR/TAF : rejouer pl tel quel rouvrait
+           l'onglet d'ORIGINE — le dossier, quand la fenetre venait du
+           bouton « Print DDV » (bug du 31/08) */
+        window.__WX_OPEN(Object.assign({},pl,{onglet:'metar'}));
       };
       var fallback=function(){
         var ref=(base[0]&&AERO_POS[base[0].code])||null;
         if(ref) found(ref[0],ref[1]);
         else { alert('Position indisponible \u2014 autorisez la localisation ou ajoutez un a\u00e9rodrome \u00e0 la navigation.');
-          proxBtn.disabled=false; proxBtn.textContent='\ud83d\udccd Autour de moi'; }
+          proxBtn.disabled=false; proxBtn.innerHTML=WX_PROX_LBL; }
       };
       if(navigator.geolocation) navigator.geolocation.getCurrentPosition(
         function(pos){ found(pos.coords.latitude,pos.coords.longitude); },
