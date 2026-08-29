@@ -3013,7 +3013,7 @@ window.__TRACE_MARKUP="\n\n<header>\n  <div class=\"hdr-row1\">\n    <span class
    accessible depuis le bouton ⓘ du bandeau du log, avant toute ouverture de la carte */
 (function(){
   var host=document.createElement('div');
-  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Cartes OACI — origine et mise à jour</b></p>\n    <p style=\"margin-top:-6px\"><b>1/250 000 Région parisienne</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte250\">—</span>.</p>\n    <p style=\"margin-top:-6px\"><b>1/500 000 France</b> — IGN Géoplateforme (SCAN-OACI). Donnée <b>non libre</b>, tenue à jour par l’IGN.</p>\n    <p style=\"margin-top:-6px\"><b>1/1 000 000 France</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte1000\">—</span>.</p>\n    <p>Les deux cartes du SIA sont hébergées à part et lues par plages : seules les tuiles affichées sont téléchargées. Les trois se copient sur l’appareil pour voler sans réseau depuis <b>Profil → Cartes hors-ligne</b>. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.579</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
+  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Cartes OACI — origine et mise à jour</b></p>\n    <p style=\"margin-top:-6px\"><b>1/250 000 Région parisienne</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte250\">—</span>.</p>\n    <p style=\"margin-top:-6px\"><b>1/500 000 France</b> — IGN Géoplateforme (SCAN-OACI). Donnée <b>non libre</b>, tenue à jour par l’IGN.</p>\n    <p style=\"margin-top:-6px\"><b>1/1 000 000 France</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte1000\">—</span>.</p>\n    <p>Les deux cartes du SIA sont hébergées à part et lues par plages : seules les tuiles affichées sont téléchargées. Les trois se copient sur l’appareil pour voler sans réseau depuis <b>Profil → Cartes hors-ligne</b>. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.582</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
   (document.body||document.documentElement).appendChild(host.firstElementChild);
   /* le nom du fichier de la 1/1 000 000 dit son edition : on le lit la ou il
      est vraiment (cartes.json), jamais en dur, sinon il mentirait un jour */
@@ -9787,6 +9787,11 @@ function DoubleSep(){return React.createElement("div",{style:{height:6,backgroun
   var pose=function(){
     var f=feuilles();
     for(var i=0;i<f.length;i++){ var s=f[i];
+      /* la feuille de la CARTE est preparee par __CARTE_AVANT_TIRAGE : son
+         contenu DEBORDE a dessein (cadrage pleine page, rognage centre).
+         La « reduire pour que tout tienne » defaisait ce cadrage — mesure
+         au PDF : pans de carte decales et bandes nues (v.582). */
+      if(s.querySelector('.leaflet-container')) continue;
       s.style.removeProperty('zoom');
       var r=s.getBoundingClientRect();
       if(!(r.width>1&&r.height>1)) continue;      /* feuille masquee : on passe */
@@ -9828,19 +9833,21 @@ function DoubleSep(){return React.createElement("div",{style:{height:6,backgroun
   }catch(e){}
   try{ window.__LOG_AJUSTE=pose; window.__LOG_REND=rend; }catch(e){}
 })();
-/* LA CARTE DU LOG, AVANT LE TIRAGE NATIF. La feuille porte une carte Leaflet
-   VIVANTE : ses tuiles ne couvrent que la taille du conteneur A L'ECRAN. Or
-   le CSS d'impression force la feuille a 284,3 x 195 mm : des que la fenetre
-   est plus etroite, le conteneur GRANDIT au tirage et les bords sortent SANS
-   tuiles — les bandes bleu ciel a droite et en bas, signalees le 30/08.
-   L'export PDF regle ce probleme depuis longtemps (il agrandit, previent
-   Leaflet, attend les tuiles) ; l'impression native partait, elle, sans rien
-   preparer. Le bouton « Print LOG » passe donc par ici : on agrandit AVANT,
-   on attend que les tuiles de la nouvelle emprise soient arrivees, puis on
-   imprime. « afterprint » rend la feuille a l'ecran.
-   Un Cmd+P direct ne peut pas attendre le reseau (beforeprint est synchrone) :
-   le filet plus bas agrandit et previent Leaflet quand meme — les tuiles deja
-   en cache couvrent, les autres arriveront pour l'apercu suivant. */
+/* LA CARTE DU LOG, AVANT LE TIRAGE NATIF — ON IMPRIME CE QUE L'ON VOIT
+   (v.582, demande du pilote apres une bande bleue persistante). Les
+   strategies precedentes AGRANDISSAIENT l'emprise au format papier puis
+   attendaient les tuiles neuves des bords : chaque tirage dependait donc du
+   reseau, et un seul refus laissait sa bande bleu ciel. Desormais l'emprise
+   VISIBLE A L'ECRAN est mise a l'echelle de la page : la feuille passe aux
+   cotes d'impression (284,3 x 195 mm), mais le conteneur Leaflet GARDE ses
+   pixels d'ecran — toutes tuiles deja posees — et une transformation CSS le
+   cadre PLEINE PAGE, centre, leger rognage haut/bas (l'ecran est a peine
+   plus carre que la page). Aucune tuile nouvelle n'est demandee : la bande
+   bleue est structurellement impossible, et le tirage est immediat.
+   Leaflet n'est pas prevenu (pas d'invalidateSize) : la carte vivante ne
+   sait rien de la transformation, qui se retire a « afterprint ».
+   Un Cmd+P direct profite du meme mecanisme via « beforeprint », desormais
+   suffisant puisqu'il n'y a plus rien a attendre du reseau. */
 (function(){
   var enCours=0, rendre=null;
   var feuilleCarte=function(){
@@ -9848,18 +9855,41 @@ function DoubleSep(){return React.createElement("div",{style:{height:6,backgroun
     for(var i=0;i<f.length;i++) if(f[i].querySelector('.leaflet-container')) return f[i];
     return null; };
   var agrandit=function(){
-    if(rendre) return true;               /* deja agrandie */
+    if(rendre) return true;               /* deja preparee */
     var s2=feuilleCarte(); if(!s2||!window.__traceMap) return false;
+    var c=s2.querySelector('.leaflet-container'); if(!c) return false;
+    var r0=c.getBoundingClientRect();
+    var W0=Math.round(r0.width), H0=Math.round(r0.height);
+    if(!(W0>50&&H0>50)) return false;
     var sv={w:s2.style.width,mw:s2.style.maxWidth,h:s2.style.height,
-      ar:s2.style.aspectRatio,mh:s2.style.minHeight};
+      ar:s2.style.aspectRatio,mh:s2.style.minHeight,ov:s2.style.overflow,
+      cw:c.style.width,ch:c.style.height,cz:c.style.zoom,
+      cg:c.style.marginLeft,cht:c.style.marginTop};
     rendre=function(){ s2.style.width=sv.w; s2.style.maxWidth=sv.mw;
       s2.style.height=sv.h; s2.style.aspectRatio=sv.ar; s2.style.minHeight=sv.mh;
+      s2.style.overflow=sv.ov;
+      c.style.width=sv.cw; c.style.height=sv.ch; c.style.zoom=sv.cz;
+      c.style.marginLeft=sv.cg; c.style.marginTop=sv.cht;
       rendre=null;
       try{ window.__traceMap.invalidateSize({animate:false}); }catch(e){} };
-    /* les cotes du CSS d'impression de la feuille (v.554) */
+    /* le conteneur d'abord : fige a ses pixels d'ecran, il ne bougera pas
+       quand la feuille passera aux cotes du CSS d'impression (v.554) */
+    c.style.width=W0+'px'; c.style.height=H0+'px';
     s2.style.width='284.3mm'; s2.style.maxWidth='none';
     s2.style.height='195mm'; s2.style.aspectRatio='auto'; s2.style.minHeight='0';
-    try{ window.__traceMap.invalidateSize({animate:false}); }catch(e){}
+    s2.style.overflow='hidden';
+    /* pleine page, centre : le facteur COUVRE la page (leger rognage sur
+       l'axe le moins large plutot qu'une marge vide). La mise a l'echelle
+       passe par « zoom » et non par transform : mesure faite, le moteur
+       d'impression aplatit mal un scale() pose au-dessus des translate3d
+       des tuiles Leaflet (pans de carte perdus au PDF), quand zoom — deja
+       eprouve a l'impression par le zoom-pose du log — rend juste. */
+    var r2=s2.getBoundingClientRect();
+    var k=Math.max(r2.width/W0, r2.height/H0);
+    c.style.zoom=k.toFixed(4);
+    /* les marges se posent dans le repere DEJA zoome : on les compense */
+    c.style.marginLeft=((r2.width-W0*k)/2/k).toFixed(1)+'px';
+    c.style.marginTop=((r2.height-H0*k)/2/k).toFixed(1)+'px';
     return true; };
   /* L'ATTENTE, REPRISE DEPUIS LE FOND (v.576, apres « toujours tres long,
      aleatoire »). La racine etait dans la couche PMTiles de la bibliotheque :
@@ -12130,10 +12160,11 @@ window.__CARTE_ADR=function(j,cle){
    teinte porte le contraste à 5,2:1 sans quitter la famille du thème ; le
    filet du bloc, lui, garde le rouge-rose exact. */
 .wxd-role.fir{background:#cc2f4a;color:#fff;letter-spacing:.06em}
-/* et le bloc entier se détache : un filet à gauche, un fond très pâle. Sur
-   papier comme à l'écran, on voit où il commence et où il finit. */
-.wxd-aero.fir{border-left:3px solid #e94560;background:#fdf2f4;border-radius:0 8px 8px 0;
-  padding:8px 10px 4px;margin:10px 0 9px}
+/* Le bloc FIR est SOBRE, a l'ecran comme sur papier (31/08 — le fond rose
+   et le filet, deja retires du tirage en v.572, quittent aussi l'ecran).
+   L'identite du chapitre tient au badge rouge-rose « FIR » et a l'encre
+   du code, rien d'autre. */
+.wxd-aero.fir{margin:10px 0 9px}
 .wxd-aero.fir .wxd-ahd b{color:#9f1239}
 /* CE QUI EST ÉCARTÉ N'EST PAS UNE NOTE DE BAS DE PAGE. En gris pâle sur
    fond pâle, la mention se lisait comme un commentaire ; elle dit pourtant
@@ -13692,20 +13723,34 @@ window.__pickGpx=function(cb){
         +'V\u00e9rifier le dossier officiel avant le d\u00e9part.</div>';
       html+='</div>';
       dos.innerHTML=html;
-      /* LA FEUILLE EN CARTES BLANCHES (v.578) : chaque chapitre part dans sa
-         carte — l'entete d'abord, puis une carte par titre de section ; le
-         module Notam/AIP (#wxdNtm) forme la sienne, et le pied la suit.
-         Les injections asynchrones (cartes, SIGMET, NOTAM) visent des ids qui
-         demenagent AVEC leur carte. Le document d'impression, lui, garde la
-         feuille d'un seul tenant : ddvpChapitres remet les cartes a plat. */
+      /* LA FEUILLE EN CARTES BLANCHES (v.578, affinee v.581) : chaque
+         chapitre part dans sa carte — l'entete d'abord, puis une carte par
+         titre de section. Le conteneur du module Notam/AIP (#wxdNtm) n'est
+         PAS une carte : chacune de ses sections (NOTAM, SUP AIP, AZBA/RTBA)
+         recoit la SIENNE — wxdNtmBlocs redecoupe a CHAQUE injection, le
+         module remplacant tout son contenu quand ses donnees arrivent.
+         Le document d'impression, lui, garde la feuille d'un seul tenant :
+         ddvpChapitres remet toutes les cartes a plat. */
+      var wxdNtmBlocs=function(el){
+        if(!el) return;
+        var kids=[].slice.call(el.childNodes), bloc=null;
+        var neuf=function(){ bloc=document.createElement('div');
+          bloc.className='wxd-bloc'; el.appendChild(bloc); };
+        for(var i4=0;i4<kids.length;i4++){ var k=kids[i4];
+          if(k.nodeType===1&&k.classList.contains('wxd-bloc')) continue;
+          if(!bloc||(k.nodeType===1&&k.classList.contains('wxd-sect')
+            &&bloc.childNodes.length)) neuf();
+          bloc.appendChild(k); }
+      };
       (function(){ var f=dos.querySelector('.wxd-feuille'); if(!f) return;
         var kids=[].slice.call(f.childNodes), bloc=null;
         var neuf=function(){ bloc=document.createElement('div');
           bloc.className='wxd-bloc'; f.appendChild(bloc); };
-        neuf();
         for(var i3=0;i3<kids.length;i3++){ var k=kids[i3];
-          if(k.nodeType===1&&(k.classList.contains('wxd-sect')||k.id==='wxdNtm')
-            &&bloc.childNodes.length) neuf();
+          if(k.nodeType===1&&k.id==='wxdNtm'){ f.appendChild(k); bloc=null;
+            wxdNtmBlocs(k); continue; }
+          if(!bloc||(k.nodeType===1&&k.classList.contains('wxd-sect')
+            &&bloc.childNodes.length)) neuf();
           bloc.appendChild(k); }
       })();
       /* le titre tient toujours sur UNE ligne : la police se reduit au besoin
@@ -13720,12 +13765,15 @@ window.__pickGpx=function(cb){
       (function(){ var el=dos.querySelector('#wxdNtm'); if(!el) return;
         if(arch&&arch.ntm&&typeof window.__DDV_SECTION_DE==='function'){
           var hA=window.__DDV_SECTION_DE(arch.ntm,dateVol);
-          el.innerHTML=hA||'<div class="wxd-vide">Instantan\u00e9 NOTAM illisible.</div>'; return; }
+          el.innerHTML=hA||'<div class="wxd-vide">Instantan\u00e9 NOTAM illisible.</div>';
+          wxdNtmBlocs(el); return; }
         if(typeof window.__DDV_SECTION!=='function'){
-          el.innerHTML='<div class="wxd-vide">Module Notam/AIP non charg\u00e9.</div>'; return; }
+          el.innerHTML='<div class="wxd-vide">Module Notam/AIP non charg\u00e9.</div>';
+          wxdNtmBlocs(el); return; }
         window.__DDV_SECTION(function(h){
           el.innerHTML=(arch?'<div class="wxd-vide">Section non fig\u00e9e pour ce vol (ant\u00e9rieur \u00e0 la version 444) \u2014 donn\u00e9es actuelles :</div>':'')
-            +(h||'<div class="wxd-vide">NOTAM et SUP AIP indisponibles.</div>'); },dateVol);
+            +(h||'<div class="wxd-vide">NOTAM et SUP AIP indisponibles.</div>');
+          wxdNtmBlocs(el); },dateVol);
       })();
       /* SIGMET : messages bruts des FIR France (texte -> s'integre au PDF).
          Memorises dans window.__WX_DOSSIER_SIG pour l'archivage au depart. */
