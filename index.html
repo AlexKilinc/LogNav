@@ -3013,7 +3013,7 @@ window.__TRACE_MARKUP="\n\n<header>\n  <div class=\"hdr-row1\">\n    <span class
    accessible depuis le bouton ⓘ du bandeau du log, avant toute ouverture de la carte */
 (function(){
   var host=document.createElement('div');
-  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Cartes OACI — origine et mise à jour</b></p>\n    <p style=\"margin-top:-6px\"><b>1/250 000 Région parisienne</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte250\">—</span>.</p>\n    <p style=\"margin-top:-6px\"><b>1/500 000 France</b> — IGN Géoplateforme (SCAN-OACI). Donnée <b>non libre</b>, tenue à jour par l’IGN.</p>\n    <p style=\"margin-top:-6px\"><b>1/1 000 000 France</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte1000\">—</span>.</p>\n    <p>Les deux cartes du SIA sont hébergées à part et lues par plages : seules les tuiles affichées sont téléchargées. Les trois se copient sur l’appareil pour voler sans réseau depuis <b>Profil → Cartes hors-ligne</b>. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.620</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
+  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Cartes OACI — origine et mise à jour</b></p>\n    <p style=\"margin-top:-6px\"><b>1/250 000 Région parisienne</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte250\">—</span>.</p>\n    <p style=\"margin-top:-6px\"><b>1/500 000 France</b> — IGN Géoplateforme (SCAN-OACI). Donnée <b>non libre</b>, tenue à jour par l’IGN.</p>\n    <p style=\"margin-top:-6px\"><b>1/1 000 000 France</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte1000\">—</span>.</p>\n    <p>Les deux cartes du SIA sont hébergées à part et lues par plages : seules les tuiles affichées sont téléchargées. Les trois se copient sur l’appareil pour voler sans réseau depuis <b>Profil → Cartes hors-ligne</b>. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.621</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
   (document.body||document.documentElement).appendChild(host.firstElementChild);
   /* le nom du fichier de la 1/1 000 000 dit son edition : on le lit la ou il
      est vraiment (cartes.json), jamais en dur, sinon il mentirait un jour */
@@ -7638,6 +7638,31 @@ function openRelinkChoice(){
      autorouter. Les dossiers figes avant la correction du relais portent
      encore la seconde : on la reconnait ici aussi, sans quoi un NOTAM
      permanent se relit avec une fausse date de fin. */
+  /* v.621 : la REFERENCE des ecartements. Un NOTAM se juge par rapport au
+     DEPART PREVU du vol (meta.date) quand il est connu et FUTUR — pas
+     seulement par rapport a l'instant de la consultation. Fenetre commune :
+     48 h. La date se lit dans la sauvegarde locale (toujours a jour), avec
+     une petite memoire pour ne pas la relire a chaque NOTAM d'une boucle. */
+  var NTM_FEN_H=48;
+  var ntmRefMem={t:0,v:0};
+  function ntmRefEpoq(){
+    var now=Date.now();
+    if(now-ntmRefMem.t<5000) return ntmRefMem.v;
+    var v=now/1000;
+    try{
+      var a=JSON.parse(localStorage.getItem('lognav_app_v7')||'null');
+      var nv=a&&a.currentId&&a.navs&&a.navs[a.currentId];
+      var t=Date.parse((nv&&nv.meta&&nv.meta.date)||'');
+      if(isFinite(t)&&t>now) v=t/1000;
+    }catch(e){}
+    ntmRefMem={t:now,v:v}; return v;
+  }
+  /* les parametres de fenetre pour le relais SOFIA */
+  function ntmFenParams(){
+    var t=ntmRefEpoq()*1000;
+    return '&fenetre='+NTM_FEN_H+((t-Date.now()>60000)
+      ?'&depart='+encodeURIComponent(new Date(t).toISOString()):'');
+  }
   function ntmFin(n){ var f=Number(n&&n.fin)||0;
     return f>=2147483647?0:f; }
   function ntmEtat(n){ var m=Date.now()/1000, ad=ntmAdmin(n);
@@ -7671,7 +7696,9 @@ function openRelinkChoice(){
   /* \u00ab 4845N00207E005 \u00bb : latitude DDMM, longitude DDDMM, rayon sur 3 chiffres */
   function ntmCoordOaci(n){
     var la=Number(n.lat), lo=Number(n.lon), r=Number(n.rayon);
-    if(!isFinite(la)||!isFinite(lo)) return '';
+    /* v.621 : une position impossible (lat 99, lon 816...) ne s'ecrit pas —
+       une ligne Q sans groupe coordonnees vaut mieux qu'une fausse */
+    if(!isFinite(la)||!isFinite(lo)||Math.abs(la)>90||Math.abs(lo)>180) return '';
     var f=function(v,larg,pos,neg){ var s=v<0, a=Math.abs(v);
       var dg=Math.floor(a), mn=Math.round((a-dg)*60);
       if(mn===60){ dg++; mn=0; }
@@ -7782,9 +7809,9 @@ function openRelinkChoice(){
     var sel=notamData.sel, maintenant=Date.now()/1000, parAd={};
     (notamData.notams||[]).forEach(function(n){
       if(ntmFin(n)&&!n.estimee&&ntmFin(n)<maintenant) return;         /* expiré */
-      if(n.debut&&n.debut>maintenant+48*3600) return;         /* trop lointain */
+      if(n.debut&&n.debut>ntmRefEpoq()+NTM_FEN_H*3600) return; /* au-dela de la fenetre */
       (parAd[n.ad]=parAd[n.ad]||[]).push(n);
-      if(isFinite(n.lat)&&isFinite(n.lon)&&n.rayon>0&&n.rayon<=30){
+      if(isFinite(n.lat)&&isFinite(n.lon)&&Math.abs(n.lat)<=90&&Math.abs(n.lon)<=180&&n.rayon>0&&n.rayon<=30){
         /* TROIS CAS, DEUX COULEURS.
            · NOTAM de terrain      -> violet, comme toujours ;
            · NOTAM de FIR ACTIVÉ   -> ROUGE : c'est lui qui contraint le vol,
@@ -7897,9 +7924,9 @@ function openRelinkChoice(){
       var nom=(n.serie||n.qcode||'NOTAM')+' ('+(n.ad||'?')+')';
       if(ntmFin(n)&&!n.estimee&&ntmFin(n)<m){
         ecartes.push('   · '+nom+' — fin ferme dépassée le '+ntmDate(ntmFin(n))); return; }
-      if(n.debut&&n.debut>m+48*3600){
+      if(n.debut&&n.debut>ntmRefEpoq()+NTM_FEN_H*3600){
         ecartes.push('   · '+nom+' — ne commence que le '+ntmDate(n.debut)
-          +' (au-delà de 48 h)'); return; }
+          +' (au-delà de la fenêtre de '+NTM_FEN_H+' h)'); return; }
       gardes++; });
     var L=['Où sont passés les NOTAM ? (terrains : '+((notamData.sel||{}).codes||[]).join(', ')+')'];
     if(notamData.bruts!=null)
@@ -7978,7 +8005,7 @@ function openRelinkChoice(){
     var sel=dispo?notamData.sel:{codes:[],roles:{},idx:{}}, parAd={}, maintenant=Date.now()/1000;
     if(dispo)(notamData.notams||[]).forEach(function(n){
       if(ntmFin(n)&&!n.estimee&&ntmFin(n)<maintenant) return;
-      if(n.debut&&n.debut>maintenant+48*3600) return;
+      if(n.debut&&n.debut>ntmRefEpoq()+NTM_FEN_H*3600) return;
       (parAd[n.ad]=parAd[n.ad]||[]).push(n); });
     var supsParAd=(dispo&&notamData.sups&&notamData.sups.parAd)||{};
     var codes=(sel.codes||[]).slice().sort(function(a,b){
@@ -8087,6 +8114,8 @@ function openRelinkChoice(){
       +'<span class="ntmd-st">'
       +(dispo?(codes.length+' terrains \u00b7 rayon '+PROX_NM+' NM'
         +' \u00b7 '+totalN+' NOTAM \u00b7 '+totalS+' SUP AIP'
+        +' \u00b7 fen\u00eatre '+NTM_FEN_H+' h'
+        +((ntmRefEpoq()*1000-Date.now()>60000)?' d\u00e8s le '+ntmDate(ntmRefEpoq()):'')
         /* l'age de ce qu'on lit : sans lui, impossible de savoir si l'on
            regarde l'etat d'il y a deux minutes ou d'il y a une heure */
         /* LE CHRONO RESTE ICI, et nulle part ailleurs. Les feuilles portent
@@ -8426,7 +8455,7 @@ function openRelinkChoice(){
     var parAd={};
     (notamData.notams||[]).forEach(function(n){
       if(ntmFin(n)&&!n.estimee&&ntmFin(n)<maintenant) return;
-      if(n.debut&&n.debut>maintenant+48*3600) return;
+      if(n.debut&&n.debut>ntmRefEpoq()+NTM_FEN_H*3600) return;
       (parAd[n.ad]=parAd[n.ad]||[]).push(n); });
     var supsParAd=(notamData.sups&&notamData.sups.parAd)||{};
     /* LE DOSSIER EST EN FRANCAIS, quel que soit le reglage de l'ecran.
@@ -9018,7 +9047,7 @@ function openRelinkChoice(){
       if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); }); };
     var viaS=function(){
       return lit2(base+'/functions/v1/cartes?sofia=1&route='+code+','+code
-          +'&lang='+ntmLangue+'&_='+Date.now())
+          +'&lang='+ntmLangue+ntmFenParams()+'&_='+Date.now())
         .then(function(j){ var l=(j&&j.notams)||[];
           if(!l.length) throw new Error('SOFIA vide');
           l.forEach(function(n){ n.src='SOFIA';
@@ -9041,7 +9070,7 @@ function openRelinkChoice(){
         var f=epoq(n.fin), d0=epoq(n.debut);
         if(f>=2147483647) f=0;                     /* PERM : jamais perime */
         if(f&&!n.estimee&&f<mnt) return false;     /* perime : le listing l'ecarte */
-        if(d0&&d0>mnt+48*3600) return false;       /* debut a plus de 48 h : pareil */
+        if(d0&&d0>ntmRefEpoq()+NTM_FEN_H*3600) return false; /* au-dela de la fenetre : pareil */
         return true; });
       return {ok:true,src:r.src,langue:ntmLangue,liste:l};
     },function(e){ return {ok:false,motif:String(e&&e.message||e).slice(0,120)}; });
@@ -9147,7 +9176,7 @@ function openRelinkChoice(){
       if(routeSofia.length<2) return Promise.resolve(
         {ok:false,motif:'vol local : SOFIA demande au moins deux terrains',repli:true});
       return lit(base+'/functions/v1/cartes?sofia=1&route='+routeSofia.join(',')
-          +'&lang='+ntmLangue+'&_='+Date.now())
+          +'&lang='+ntmLangue+ntmFenParams()+'&_='+Date.now())
         .then(function(j){ var l=(j&&j.notams)||[];
           /* une charge vide n'est PAS une reponse : un vol reel a toujours au
              moins un NOTAM de zone. Mieux vaut basculer sur autorouter que
