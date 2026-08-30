@@ -3012,7 +3012,7 @@ window.__TRACE_MARKUP="\n\n<header>\n  <div class=\"hdr-row1\">\n    <span class
    accessible depuis le bouton ⓘ du bandeau du log, avant toute ouverture de la carte */
 (function(){
   var host=document.createElement('div');
-  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Cartes OACI — origine et mise à jour</b></p>\n    <p style=\"margin-top:-6px\"><b>1/250 000 Région parisienne</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte250\">—</span>.</p>\n    <p style=\"margin-top:-6px\"><b>1/500 000 France</b> — IGN Géoplateforme (SCAN-OACI). Donnée <b>non libre</b>, tenue à jour par l’IGN.</p>\n    <p style=\"margin-top:-6px\"><b>1/1 000 000 France</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte1000\">—</span>.</p>\n    <p>Les deux cartes du SIA sont hébergées à part et lues par plages : seules les tuiles affichées sont téléchargées. Les trois se copient sur l’appareil pour voler sans réseau depuis <b>Profil → Cartes hors-ligne</b>. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.617</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
+  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Cartes OACI — origine et mise à jour</b></p>\n    <p style=\"margin-top:-6px\"><b>1/250 000 Région parisienne</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte250\">—</span>.</p>\n    <p style=\"margin-top:-6px\"><b>1/500 000 France</b> — IGN Géoplateforme (SCAN-OACI). Donnée <b>non libre</b>, tenue à jour par l’IGN.</p>\n    <p style=\"margin-top:-6px\"><b>1/1 000 000 France</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte1000\">—</span>.</p>\n    <p>Les deux cartes du SIA sont hébergées à part et lues par plages : seules les tuiles affichées sont téléchargées. Les trois se copient sur l’appareil pour voler sans réseau depuis <b>Profil → Cartes hors-ligne</b>. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.619</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
   (document.body||document.documentElement).appendChild(host.firstElementChild);
   /* le nom du fichier de la 1/1 000 000 dit son edition : on le lit la ou il
      est vraiment (cartes.json), jamais en dur, sinon il mentirait un jour */
@@ -6847,8 +6847,10 @@ function openRelinkChoice(){
       la seule unite juste a l'interieur de la zone zoomee. Le panneau des
       espaces aeriens s'en sert deja. */
    +'.ntmd{position:fixed;left:50%;bottom:calc(54px + env(safe-area-inset-bottom,0px));'
-   +'transform:translate(-50%,0);width:min(760px,96vw);'
-   +'height:min(calc(var(--vh-app, 100vh) * 0.84),820px);'
+   /* v.618 : MEMES COTES que la fenetre meteo (#wxOv.wx-pop .wx-box :
+      720 x min(82vh,780)) — les deux fenetres se presentent pareil */
+   +'transform:translate(-50%,0);width:min(720px,96vw);'
+   +'height:min(calc(var(--vh-app, 100vh) * 0.82),780px);'
    +'max-height:calc(var(--vh-app, 100vh) - 66px - env(safe-area-inset-bottom,0px));'
    +'background:#fff;border-radius:14px;box-shadow:0 18px 60px rgba(0,0,0,.5);'
    +'z-index:6000;display:flex;flex-direction:column;overflow:hidden;resize:both}'
@@ -6906,6 +6908,8 @@ function openRelinkChoice(){
    +'.ntmd-hd b{font-size:10.5px}.ntmd-hd .ntmd-f{font-size:8.5px;padding:3px 5px}'
    +'.ntmd-hd .ntmd-x{padding:2px 4px}}'
    +'.ntmd-x{background:none;border:none;color:#fff;font:700 20px/1 sans-serif;cursor:pointer;padding:2px 6px}'
+   /* v.618 : posee en fin de 1re ligne, elle s'y colle a droite */
+   +'.ntmd-hd>.ntmd-x{flex:none;margin-left:auto}'
    +'.ntmd-f{flex:none;border:0;border-radius:999px;background:rgba(255,255,255,.14);color:#a9bdd4;'
    +'font:700 10px Poppins,sans-serif;padding:4px 10px;cursor:pointer;white-space:nowrap}'
    +'.ntmd-f.on{background:#1E9FE0;color:#fff}'
@@ -8037,13 +8041,10 @@ function openRelinkChoice(){
       +'CS ou LW (activité connue). Les autres — TT et compagnie — décrivent '
       +'une zone sans l’activer. Les NOTAM de TERRAIN ne sont jamais '
       +'concernés.">NOTAM FIR actif</button>'
-      +'<button type="button" class="ntmd-f" data-f="frais" '
-      +'title="Redemander les NOTAM et SUP AIP maintenant, sans attendre. '
-      +'Le relais peut servir jusqu\u2019\u00e0 10 minutes de m\u00e9moire pour ne pas '
-      +'marteler autorouter.">\u21bb</button>'
-      +'<button type="button" class="ntmd-f" id="ntmDiagBtn" '
-      +'title="\u00c9tat de la liaison autorouter : identifiants, jeton partag\u00e9, '
-      +'jetons demand\u00e9s aujourd\u2019hui">?</button>'
+      /* v.618 : la croix ferme la 1re ligne, comme la fenetre meteo ;
+         ↻ et ? sont descendus sur la 2e ligne (voir ntmd-bas) pour que
+         chaque ligne reste UNE ligne, sur ordi comme sur mobile */
+      +'<button type="button" class="ntmd-x" aria-label="Fermer" title="Fermer">\u00d7</button>'
       /* ---- bandeau rouge-rose : la SOURCE, puis la LANGUE ----
          Ils sont ici et pas en haut parce qu'ils ne filtrent rien : ils disent
          d'ou vient ce qu'on lit et dans quelle langue. Le badge de langue ne
@@ -8075,6 +8076,13 @@ function openRelinkChoice(){
       +'title="Forme officielle OACI, item par item (Q, A, B, C, D, E) — '
       +'celle qui se recoupe avec SOFIA. Éteindre pour la forme compacte, '
       +'deux lignes par NOTAM.">OACI</button>'
+      +'<button type="button" class="ntmd-f" data-f="frais" '
+      +'title="Redemander les NOTAM et SUP AIP maintenant, sans attendre. '
+      +'Le relais peut servir jusqu\u2019\u00e0 10 minutes de m\u00e9moire pour ne pas '
+      +'marteler autorouter.">\u21bb</button>'
+      +'<button type="button" class="ntmd-f" id="ntmDiagBtn" '
+      +'title="\u00c9tat de la liaison autorouter : identifiants, jeton partag\u00e9, '
+      +'jetons demand\u00e9s aujourd\u2019hui">?</button>'
       +'<span class="ntmd-st">'
       +(dispo?(codes.length+' terrains \u00b7 rayon '+PROX_NM+' NM'
         +' \u00b7 '+totalN+' NOTAM \u00b7 '+totalS+' SUP AIP'
@@ -8093,7 +8101,6 @@ function openRelinkChoice(){
         +(notamData.notamsOk?'':' \u00b7 NOTAM indisponibles'
           +(notamData.motif?' ('+notamData.motif+')':'')))
         :'couche Notam/SupAIP \u00e9teinte \u00b7 AZBA/RTBA seuls')+'</span>'
-      +'<button type="button" class="ntmd-x" aria-label="Fermer" title="Fermer">\u00d7</button>'
       +'</div></div>'
       +'<div class="ntmd-corps">';
     /* Classement demande : d'abord TOUS les NOTAM (groupes par terrain),
@@ -15426,6 +15433,7 @@ window.__pickGpx=function(cb){
       var age=Math.round((now.getTime()-t)/60000);
       return {age:age, z:String(m[2])+':'+String(m[3])+'Z'};
     }
+    window.__WX_OBS_AGE=obsAge;   /* v.619 : la fenetre Recherche s'en sert */
     function render(c,status){
       if(!document.getElementById('wxOv'))return;
       lastC=c; lastStatus=status;
@@ -15667,7 +15675,9 @@ window.__pickGpx=function(cb){
        casse de .wx-ov — illisibles sur la carte blanche. Meme encre que le
        chapitre NOTAM du listing. */
     '#arxOv .ntm-un{color:#16213e}',
-    '.arx-src{color:#64748b;font:700 10.5px "Poppins",sans-serif;letter-spacing:.2px;margin:0 0 6px}' 
+    '.arx-src{color:#64748b;font:700 10.5px "Poppins",sans-serif;letter-spacing:.2px;margin:0 0 6px}',
+    /* v.619 : le titre porte le badge d'age a son bout droit */
+    '#arxOv .wxf-titre{display:flex;align-items:center;gap:8px}' 
   ].join('\n');
   function injecteCss(){ if(document.getElementById('arxCss')) return;
     var st=document.createElement('style'); st.id='arxCss'; st.textContent=CSS;
@@ -15724,16 +15734,46 @@ window.__pickGpx=function(cb){
      +carte('ÉPHÉMÉRIDE','<div id="arxEp" class="arx-vide">…</div>');
     var b=base();
     var pose=function(id,html){ var e=document.getElementById(id); if(e) e.outerHTML=html; };
+    /* v.619 : MEME BADGE que la fenetre METEO — heure du message et chrono
+       d'age, orange quand le message vieillit. Le seuil suit la nature du
+       message : 45 min pour un METAR (semi-horaire), 6 h pour un TAF. */
+    /* horloge locale : __WX_OBS_AGE n'existe qu'apres une ouverture de la
+       fenetre meteo — la Recherche doit savoir lire l'heure toute seule */
+    var obsAgeLoc=function(raw){
+      var m=String(raw||'').match(/\b(\d{2})(\d{2})(\d{2})Z\b/); if(!m) return null;
+      var now=new Date(), d=+m[1], h=+m[2], mn=+m[3];
+      var t=Date.UTC(now.getUTCFullYear(),now.getUTCMonth(),d,h,mn);
+      if(t-now.getTime()>6*3600000) t=Date.UTC(now.getUTCFullYear(),now.getUTCMonth()-1,d,h,mn);
+      return {age:Math.round((now.getTime()-t)/60000), z:m[2]+':'+m[3]+'Z'};
+    };
+    var badgeAge=function(titre,raw,seuil){
+      try{
+        var ov2=document.getElementById('arxOv'); if(!ov2) return;
+        var ti=[].slice.call(ov2.querySelectorAll('.wxf-titre')).filter(function(t){
+          return String(t.textContent||'').indexOf(titre)===0; })[0];
+        if(!ti) return;
+        var old=ti.querySelector('.wx-age'); if(old) old.remove();
+        var oa=raw?(window.__WX_OBS_AGE||obsAgeLoc)(raw):null; if(!oa) return;
+        var sp=document.createElement('span');
+        sp.className='wx-age'+(oa.age>seuil?' stale':'');
+        sp.textContent=oa.z+' \u00b7 '+(oa.age<1?'\u00e0 l\u2019instant'
+          :(oa.age<60?oa.age+' min':Math.floor(oa.age/60)+' h'+String(oa.age%60).padStart(2,'0')));
+        sp.title='Heure du message ('+titre+')'+(oa.age>seuil?' \u2014 message ancien':'');
+        ti.appendChild(sp);
+      }catch(e){}
+    };
     /* METAR / TAF : le meme relais que la fenetre meteo */
     litTexte(b+'/functions/v1/wx?kind=metar&ids='+code+'&_='+Date.now())
       .then(function(t){ t=String(t||'').trim();
         pose('arxMe',t?'<div class="arx-pre">'+esc(t)+'</div>'
-                      :'<div class="arx-vide">Aucun METAR reçu pour '+esc(code)+'.</div>'); },
+                      :'<div class="arx-vide">Aucun METAR reçu pour '+esc(code)+'.</div>');
+        badgeAge('METAR',t,45); },
         function(e){ pose('arxMe','<div class="arx-vide">METAR indisponible — '+esc(e.message||e)+'</div>'); });
     litTexte(b+'/functions/v1/wx?kind=taf&ids='+code+'&_='+Date.now())
       .then(function(t){ t=String(t||'').trim();
         pose('arxTa',t?'<div class="arx-pre">'+esc(t)+'</div>'
-                      :'<div class="arx-vide">Aucun TAF reçu pour '+esc(code)+'.</div>'); },
+                      :'<div class="arx-vide">Aucun TAF reçu pour '+esc(code)+'.</div>');
+        badgeAge('TAF',t,360); },
         function(e){ pose('arxTa','<div class="arx-vide">TAF indisponible — '+esc(e.message||e)+'</div>'); });
     /* NOTAM (v.611) : la MEME chaine que le badge — SOFIA d'abord, repli
        autorouter, langue choisie (FR par defaut), format OACI, et les
