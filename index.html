@@ -3005,7 +3005,7 @@ window.__TRACE_MARKUP="\n\n<header>\n  <div class=\"hdr-row1\">\n    <span class
    accessible depuis le bouton ⓘ du bandeau du log, avant toute ouverture de la carte */
 (function(){
   var host=document.createElement('div');
-  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Cartes OACI — origine et mise à jour</b></p>\n    <p style=\"margin-top:-6px\"><b>1/250 000 Région parisienne</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte250\">—</span>.</p>\n    <p style=\"margin-top:-6px\"><b>1/500 000 France</b> — IGN Géoplateforme (SCAN-OACI). Donnée <b>non libre</b>, tenue à jour par l’IGN.</p>\n    <p style=\"margin-top:-6px\"><b>1/1 000 000 France</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte1000\">—</span>.</p>\n    <p>Les deux cartes du SIA sont hébergées à part et lues par plages : seules les tuiles affichées sont téléchargées. Les trois se copient sur l’appareil pour voler sans réseau depuis <b>Profil → Cartes hors-ligne</b>. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.614</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
+  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Cartes OACI — origine et mise à jour</b></p>\n    <p style=\"margin-top:-6px\"><b>1/250 000 Région parisienne</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte250\">—</span>.</p>\n    <p style=\"margin-top:-6px\"><b>1/500 000 France</b> — IGN Géoplateforme (SCAN-OACI). Donnée <b>non libre</b>, tenue à jour par l’IGN.</p>\n    <p style=\"margin-top:-6px\"><b>1/1 000 000 France</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte1000\">—</span>.</p>\n    <p>Les deux cartes du SIA sont hébergées à part et lues par plages : seules les tuiles affichées sont téléchargées. Les trois se copient sur l’appareil pour voler sans réseau depuis <b>Profil → Cartes hors-ligne</b>. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.615</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
   (document.body||document.documentElement).appendChild(host.firstElementChild);
   /* le nom du fichier de la 1/1 000 000 dit son edition : on le lit la ou il
      est vraiment (cartes.json), jamais en dur, sinon il mentirait un jour */
@@ -6821,6 +6821,15 @@ function openRelinkChoice(){
    +'text-shadow:0 0 2px #fff,0 0 2px #fff,0 0 2px #fff,0 0 3px #fff;pointer-events:none;'
    +'transform:translate(-50%,-50%);background:none;border:none}'
    +'.azba-lbl.act{color:#7f1d1d}'
+   +'.azba-leg{position:absolute;right:8px;bottom:26px;z-index:900;background:rgba(255,255,255,.93);'
+   +'border:1px solid #cbd5e1;border-radius:9px;padding:6px 9px;display:flex;flex-direction:column;'
+   +'gap:3px;font:600 10px Poppins,sans-serif;color:#334155;pointer-events:none;'
+   +'box-shadow:0 3px 10px rgba(0,0,0,.18)}'
+   +'.azba-leg b{font:800 10px Poppins,sans-serif;color:#16213e}'
+   +'.azba-leg span{display:flex;align-items:center;gap:6px}'
+   +'.azba-leg i{width:14px;height:10px;border-radius:2px;flex:none;box-sizing:border-box}'
+   +'.azba-leg i.a{background:rgba(185,28,28,.25);border:2px solid #B91C1C}'
+   +'.azba-leg i.p{background:rgba(234,88,12,.14);border:2px dashed #EA580C}'
    /* HAUTEUR ET ZOOM D'INTERFACE. L'appli pose un facteur d'echelle sur le
       corps du document (Auto, 125 %, 150 %...). Une hauteur exprimee en vh se
       resout sur la vue ENTIERE, puis se trouve multipliee par ce facteur : a
@@ -7207,7 +7216,14 @@ function openRelinkChoice(){
     var row=document.getElementById('mtoS');
     sigOn=!sigOn; if(row) row.classList.toggle('on',sigOn); majEtat();
     if(!sigOn){ sigGroup.clearLayers(); sigRend(); return; }
-    if(sigData&&(Date.now()-sigData.t)<300000){ sigDraw(); sigCadre(); return; }
+    if(sigData&&(Date.now()-sigData.t)<300000){ sigDraw(); sigCadre();
+      /* v.615 : meme servi de memoire (<5 min), le geste repond — surtout
+         quand il n'y a RIEN a montrer : le dezoom seul ne s'explique pas */
+      var n0=(sigData.features||[]).length;
+      if(typeof showToast==='function')
+        showToast(n0?(n0+' SIGMET affich\u00e9'+(n0>1?'s':'')+' \u2014 source NOAA.')
+          :'Aucun SIGMET actif sur les FIR France \u2014 rien \u00e0 afficher.');
+      return; }
     if(sigBusy) return; sigBusy=true;
     /* pas d'en-tete vers la fonction cartes : JWT desactive, un en-tete
        personnalise declencherait une pre-verification CORS inutile */
@@ -7217,9 +7233,9 @@ function openRelinkChoice(){
       .then(function(r){ return r.json(); })
       .then(function(gj){ sigBusy=false; gj.t=Date.now(); sigData=gj; sigDraw(); sigCadre();
         var n=(gj.features||[]).length;
-        if(typeof showToast==='function') showToast(n?(n+' SIGMET affiché'+(n>1?'s':'')+' — source NOAA.'):'Aucun SIGMET actif sur les FIR France.'); })
+        if(typeof showToast==='function') showToast(n?(n+' SIGMET affiché'+(n>1?'s':'')+' — source NOAA.'):'Aucun SIGMET actif sur les FIR France \u2014 rien \u00e0 afficher.'); })
       .catch(function(){ sigBusy=false; sigOn=false;
-        var row2=document.getElementById('sigRow'); if(row2) row2.classList.remove('on'); majEtat();
+        var row2=document.getElementById('mtoS'); if(row2) row2.classList.remove('on'); majEtat();
         if(typeof showToast==='function') showToast('SIGMET indisponible (réseau).'); });
   }
   /* (v.613) plus de ligne « Afficher les SIGMET » dans le panneau : le
@@ -7449,9 +7465,10 @@ function openRelinkChoice(){
     if(!azbaOn||!azbaData) return 0;
     var n=0;
     azbaData.zones.forEach(function(z){
-      /* v.612 : rien ne se filtre — une zone sans creneau sous 48 h se
-         dessine quand meme, en dormante, et sa popup le dit */
-      var cr=azbaFen(z,48);
+      /* v.615 : SEULES les zones actives ou activables sous 48 h se
+         dessinent — une zone sans creneau dans la fenetre n'apparait pas
+         (demande du 30/08, revient sur la v.612) */
+      var cr=azbaFen(z,48); if(!cr.length) return;
       var pts=azbaPoly(z.geometrie); if(!pts) return;
       var actif=azbaActifMaintenant(cr);
       var pg=L.polygon(pts,{color:actif?'#B91C1C':'#EA580C',weight:2,
@@ -7460,8 +7477,7 @@ function openRelinkChoice(){
       pg.bindPopup('<div class="ntm-pop"><b>'+ntmEsc(z.nom)+'</b>'
         +((z.bas||z.haut)?' \u00b7 '+ntmEsc(z.bas||'?')+' \u2192 '+ntmEsc(z.haut||'?'):'')
         +(actif?' \u00b7 <b style="color:#B91C1C">ACTIVE</b>':'')
-        +'<br>'+(cr.length?cr.slice(0,6).map(azbaCren).join('<br>')
-                :'aucun cr\u00e9neau sous 48 h')+'</div>',{maxWidth:300});
+        +'<br>'+cr.slice(0,6).map(azbaCren).join('<br>')+'</div>',{maxWidth:300});
       azbaGroup.addLayer(pg); n++;
       var la=0,lo=0; pts.forEach(function(q){ la+=q[0]; lo+=q[1]; });
       azbaCentres.push({lat:la/pts.length,lon:lo/pts.length,nom:z.nom,actif:actif}); });
@@ -7505,18 +7521,35 @@ function openRelinkChoice(){
     var v=azbaVueAvant; azbaVueAvant=null;
     try{ map.setView(v.c,v.z); }catch(e){}
   }
+  /* v.615 : le CODE COULEUR, pose sur la carte tant que la couche vit —
+     rouge plein : zone ACTIVE en ce moment ; orange tirete : activation
+     prevue sous 48 h. Une couche qu'on lit sans sa legende se devine. */
+  function azbaLegende(on){
+    var c; try{ c=map.getContainer(); }catch(e){ return; }
+    var el=c.querySelector('.azba-leg');
+    if(!on){ if(el) el.remove(); return; }
+    if(el) return;
+    el=document.createElement('div'); el.className='azba-leg no-print';
+    el.innerHTML='<b>AZBA / RTBA \u2014 actives & activables sous 48 h</b>'
+      +'<span><i class="a"></i>zone ACTIVE en ce moment</span>'
+      +'<span><i class="p"></i>activation pr\u00e9vue sous 48 h</span>';
+    c.appendChild(el);
+  }
   function azbaToggle(){
     var zb=document.getElementById('mtoZ');
     if(azbaOn){ azbaOn=false; azbaGroup.clearLayers(); azbaLabG.clearLayers();
       try{ map.removeLayer(azbaGroup); map.removeLayer(azbaLabG); }catch(e){}
+      azbaLegende(false);
       if(zb) zb.classList.remove('on'); ntmOutilsMaj(); azbaRendVue(); return; }
     azbaOn=true; if(zb) zb.classList.add('on'); ntmOutilsMaj();
     try{ azbaGroup.addTo(map); azbaLabG.addTo(map); }catch(e){}
+    azbaLegende(true);
     azbaVoirFrance();
     azbaCharge(function(d){
       if(!azbaOn) return;
       if(!d){ if(typeof showToast==='function') showToast('AZBA indisponibles \u00b7 '+(azbaErr||'?'));
         azbaOn=false; try{ map.removeLayer(azbaGroup); map.removeLayer(azbaLabG); }catch(e){}
+        azbaLegende(false);
         if(zb) zb.classList.remove('on'); ntmOutilsMaj(); azbaRendVue(); return; }
       var n=azbaDraw();
       var act=d.zones.filter(function(z){ return azbaFen(z,48).length; }).length;
@@ -8173,12 +8206,14 @@ function openRelinkChoice(){
       +'(bouton Notam/SupAIP de la carte, ou badge du bandeau) pour lister les NOTAM '
       +'et SUP AIP des terrains du vol.</div></div>';
     {
-      var azZ=azbaData?azbaData.zones.slice():null; /* v.612 : tout se montre */
+      var azZ=azbaData?azbaData.zones.filter(function(z){
+        return azbaFen(z,48).length; }):null; /* v.615 : actives & activables sous 48 h SEULEMENT */
       /* troisieme chapitre, de meme forme que NOTAM et SUP AIP */
       html+='<div class="ntmf"><div class="ntmf-titre">AZBA / RTBA<span>'
         +(azZ?azZ.length+' zone'+(azZ.length>1?'s':'')+' sous 48 h':'chargement\u2026')
         +'</span></div>'
-        +'<div class="ntmf-src">Cr\u00e9neaux d\u2019activation transmis au SIA · 48 h à venir</div>'
+        +'<div class="ntmf-src">Seules les zones ACTIVES ou ACTIVABLES dans les 48 h \u00e0 venir '
+        +'s\u2019affichent \u2014 cr\u00e9neaux transmis au SIA</div>'
         +'<div class="ntmd-ad"><span class="ntmd-rol azba">RTBA</span><b>AZBA</b>'
         +'<span class="ntmd-nom">activation basse altitude \u2014 cr\u00e9neaux sous 48 h (SIA)</span>'
         +'<span class="ntmd-cnt">'+(azZ?azZ.length+' zones':'\u2026')+'</span></div>';
@@ -8204,11 +8239,10 @@ function openRelinkChoice(){
       if(!azbaData) html+='<div class="ntm-un">'+(azbaErr?('AZBA indisponibles \u00b7 '+ntmEsc(azbaErr)):'chargement\u2026')+'</div>';
       else if(!azZ.length) html+='<div class="ntm-un">aucun cr\u00e9neau dans les 48 prochaines heures</div>';
       else azZ.forEach(function(z){ var cr=azbaFen(z,48);
-        /* v.612 : une zone sans creneau sous 48 h se lit aussi */
         html+='<div class="ntm-un"><b>'+ntmEsc(z.nom)+'</b>'
           +((z.bas||z.haut)?' \u00b7 '+ntmEsc(z.bas||'?')+' \u2192 '+ntmEsc(z.haut||'?'):'')
           +(azbaActifMaintenant(cr)?' \u00b7 <b style="color:#B91C1C">ACTIVE</b>':'')
-          +'<br>'+cr.slice(0,8).map(azbaCren).join(' \u00b7 ')||'aucun cr\u00e9neau sous 48 h'+'</div>'; });
+          +'<br>'+cr.slice(0,8).map(azbaCren).join(' \u00b7 ')+'</div>'; });
       html+='</div>';   /* fin de la feuille AZBA */
     }
     /* LA SAISIE « terrain hors liste » A QUITTE LE BAS DU LISTING (v.608) :
@@ -8432,7 +8466,9 @@ function openRelinkChoice(){
       return [Math.round(p[0]*1e4)/1e4, Math.round(p[1]*1e4)/1e4]; }); };
     var azb=null;
     if(azbaData){ azb=azbaData.zones.map(function(z){ var cr=azbaFen(z,48);
-        /* v.612 : rien ne se filtre — la zone sans creneau part dormante */
+        /* v.615 : seules les zones actives ou activables sous 48 h entrent
+           au dossier (revient sur la v.612) */
+        if(!cr.length) return null;
         var o={nom:z.nom,bas:z.bas||'',haut:z.haut||'',creneaux:cr};
         var pts=azbaPoly(z.geometrie); if(pts) o.geometrie=arr4(pts);
         return o; })
@@ -8537,6 +8573,9 @@ function openRelinkChoice(){
        premier. En dernier recours (carte saturee) le nom se pose au plus
        pres : rien ne disparait plus en silence. */
     var pris=[]; var lignes=''; var textes='';
+    /* v.615 : la legende occupe le coin bas-gauche — on le reserve pour
+       qu'aucun nom ne vienne s'y poser */
+    if(teintes.legende) pris.push({x0:4,x1:240,y0:H-58,y1:H-2});
     var DIRS=[[1,0],[0.7,-0.7],[0,-1],[-0.7,-0.7],[-1,0],[-0.7,0.7],[0,1],[0.7,0.7]];
     var libre=function(r){ return !pris.some(function(q){
       return !(r.x0>q.x1+2||r.x1<q.x0-2||r.y0>q.y1+2||r.y1<q.y0-2); }); };
@@ -8581,11 +8620,31 @@ function openRelinkChoice(){
       t.forEach(function(p){ g+='<circle cx="'+X(p[1]).toFixed(1)+'" cy="'+Y(p[0]).toFixed(1)
         +'" r="3" fill="#0F274C"/>'; });
     });
+    /* v.615 : le CODE COULEUR en legende, dans le croquis lui-meme —
+       il suit la carte partout (listing, dossier, visionneuse, papier) */
+    if(teintes.legende){
+      var ly=H-40;
+      g+='<g font-family="Poppins,sans-serif" font-size="8.5">'
+        +'<rect x="6" y="'+(ly-12)+'" width="228" height="46" rx="7" fill="#ffffff" '
+        +'fill-opacity="0.93" stroke="#cbd5e1" stroke-width="1"/>'
+        +'<text x="13" y="'+ly+'" font-weight="800" fill="#16213e">'+ntmEsc(teintes.legende)+'</text>'
+        +'<rect x="13" y="'+(ly+6)+'" width="13" height="9" fill="'+teintes.actif.trait
+        +'" fill-opacity="0.25" stroke="'+teintes.actif.trait+'" stroke-width="1.6"/>'
+        +'<text x="31" y="'+(ly+14)+'" font-weight="600" fill="'+teintes.actif.texte
+        +'">zone ACTIVE en ce moment</text>'
+        +'<rect x="13" y="'+(ly+20)+'" width="13" height="9" fill="'+teintes.dormant.trait
+        +'" fill-opacity="0.12" stroke="'+teintes.dormant.trait
+        +'" stroke-width="1.4" stroke-dasharray="4 3"/>'
+        +'<text x="31" y="'+(ly+28)+'" font-weight="600" fill="'+teintes.dormant.texte
+        +'">activation pr\u00e9vue sous 48 h</text>'
+        +'</g>';
+    }
     g+=textes+'</svg>';
     return {svg:g,W:W,H:H,tracees:zones.length};
   }
   var CROQ_AZBA={actif:{trait:'#B91C1C',fond:'0.18',texte:'#7f1d1d'},
-                 dormant:{trait:'#EA580C',fond:'0.09',texte:'#9a3412',tirets:true}};
+                 dormant:{trait:'#EA580C',fond:'0.09',texte:'#9a3412',tirets:true},
+                 legende:'Zones actives & activables sous 48 h'};
   /* Croquis AZBA du dossier : zones retenues et trace du vol. */
   function ddvCroquis(d){
     var c=croquisFrance((d.azba||[]).map(function(z){
@@ -8845,7 +8904,8 @@ function openRelinkChoice(){
     /* --- chapitre AZBA / RTBA --- */
     var fen=azbaFenetreDe(d);
     h+='<div class="wxd-sect">AZBA / RTBA \u2014 r\u00e9seau tr\u00e8s basse altitude</div>'
-      +'<div class="wxd-srcl">Cr\u00e9neaux d\u2019activation transmis au SIA \u00b7 <b>48 h '
+      +'<div class="wxd-srcl">Seules les zones actives ou activables s\u2019affichent \u2014 '
+      +'cr\u00e9neaux transmis au SIA \u00b7 <b>48 h '
       +(fige?'\u00e0 partir du d\u00e9part du vol':'\u00e0 partir de maintenant')+'</b> : '
       +fen.txt+' \u00b7 version courte. Cette fen\u00eatre est celle publi\u00e9e par le SIA ; '
       +'elle ne suit pas la date saisie pour le vol.</div>'
@@ -8856,8 +8916,7 @@ function openRelinkChoice(){
     if(d.azba&&d.azba.length) d.azba.forEach(function(z){
       h+='<div class="wxd-msg"><b>'+ntmEsc(z.nom)+'</b>'
         +((z.bas||z.haut)?' \u00b7 '+ntmEsc(z.bas||'?')+' \u2192 '+ntmEsc(z.haut||'?'):'')
-        +' \u00b7 '+((z.creneaux||[]).slice(0,6).map(azbaCren).join(' \u00b7 ')
-          ||'aucun cr\u00e9neau sous 48 h')+'</div>'; });
+        +' \u00b7 '+(z.creneaux||[]).slice(0,6).map(azbaCren).join(' \u00b7 ')+'</div>'; });
     return h;
   }
   function ddvSectionHtml(){
@@ -15595,6 +15654,10 @@ window.__pickGpx=function(cb){
     '.arx-sg{display:flex;gap:9px;align-items:baseline;background:rgba(255,255,255,.06);border:1px solid #2a4372;border-radius:8px;color:#e6eefc;font:600 12px "Poppins",sans-serif;padding:7px 10px;cursor:pointer;text-align:left}',
     '.arx-sg b{font-weight:800;letter-spacing:.4px}',
     '.arx-sg span{color:#8fa9cc;font-size:11px}',
+    /* v.615 : les lignes NOTAM (classes du chapitre) heritaient du blanc
+       casse de .wx-ov — illisibles sur la carte blanche. Meme encre que le
+       chapitre NOTAM du listing. */
+    '#arxOv .ntm-un{color:#16213e}',
     '.arx-src{color:#64748b;font:700 10.5px "Poppins",sans-serif;letter-spacing:.2px;margin:0 0 6px}' 
   ].join('\n');
   function injecteCss(){ if(document.getElementById('arxCss')) return;
