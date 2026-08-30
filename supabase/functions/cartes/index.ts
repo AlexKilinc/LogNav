@@ -24,7 +24,7 @@
  * Météo-France refuse l'adresse IP de Supabase.
  */
 
-const VERSION = "7.45";
+const VERSION = "7.46";
 const AERO = "https://aviation.meteo.fr";
 const SOFIA = "https://sofia-briefing.aviation-civile.gouv.fr";
 const UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Safari/605.1.15";
@@ -702,8 +702,24 @@ async function notam(q: URLSearchParams): Promise<Response> {
       trafic: String(n.traffic ?? n.trafficType ?? n.qtraffic ?? ""),
       objet: String(n.purpose ?? n.qpurpose ?? ""),
     }));
+    /* v.621 : GARDE sur la position decodee. Certaines lignes autorouter
+       portent des lat/lon impossibles — constate le 30/08/2026 sur LFPN
+       (E4082/26 : 5400N81600E005 la ou SOFIA dit 4845N00207E005). On retire
+       la position — jamais une ligne Q fausse ni un cercle au mauvais
+       endroit — et on COMPTE ce qu'on retire, comme les « suppressed ». */
+    const coordsAberrantes: string[] = [];
+    for (const n of notams as unknown as Record<string, unknown>[]) {
+      if (n.lat == null && n.lon == null) continue;
+      const la = Number(n.lat), lo = Number(n.lon);
+      if (!Number.isFinite(la) || !Number.isFinite(lo)
+          || Math.abs(la) > 90 || Math.abs(lo) > 180) {
+        coordsAberrantes.push(String(n.serie || ""));
+        delete n.lat; delete n.lon;
+      }
+    }
     const corps = JSON.stringify({ terrains: ads, total: notams.length,
-      bruts: lignes.length, supprimes, notams });
+      bruts: lignes.length, supprimes,
+      coordsAberrantes: coordsAberrantes.slice(0, 40), notams });
     memoNotam.set(cle, { t: Date.now(), corps });
     await memoRange("notam:" + cle, corps, NOTAM_DUREE);
     return reponseNotam(corps, "frais");
@@ -1273,14 +1289,18 @@ async function sofiaPib(route: string[], o: Record<string, string>):
 
   /* 2 — l'uuid applicatif, distinct de la session */
   const uuid = crypto.randomUUID();
-  const validFrom = new Date().toISOString().replace(/\.\d{3}Z$/, "Z");
+  /* v.621 : le PIB se demande pour le DEPART PREVU quand l'appli le fournit
+     (et qu'il est futur) — sinon pour maintenant, comme avant. */
+  const tDep = Date.parse(o.depart || "");
+  const validFrom = (Number.isFinite(tDep) && tDep > Date.now()
+    ? new Date(tDep) : new Date()).toISOString().replace(/\.\d{3}Z$/, "Z");
   const d = new Date(validFrom);
   const dd = (n: number) => String(n).padStart(2, "0");
 
   /* 3 — le corps commun, « :operation » en tête comme le test de référence */
   const commun: [string, string][] = [
     ["valid_from", validFrom],
-    ["duration", o.duration || "1200"],      /* HHMM : 1200 = 12 h */
+    ["duration", o.duration || "4800"],      /* HHMM — v.621 : 48 h, la fenetre commune */
     ["traffic", o.traffic || "VI"],
     ["fl_lower", o.flLower || "0"],
     ["fl_upper", o.flUpper || "999"],
@@ -1367,8 +1387,16 @@ async function notamSofia(q: URLSearchParams): Promise<Response> {
     }
   }
   const opts: Record<string, string> = {};
-  for (const k of ["duration", "traffic", "flLower", "flUpper", "width", "radiusAD"]) {
+  for (const k of ["duration", "traffic", "flLower", "flUpper", "width", "radiusAD", "depart"]) {
     const v = q.get(k); if (v) opts[k] = v;
+  }
+  /* v.621 : la FENETRE du PIB, en heures (1..168, defaut 48 h — celle de
+     toute la chaine). Elle se porte dans duration, au format HHMM de SOFIA.
+     C'etait 12 h en dur : un NOTAM publie pour demain (E3870/26, LFPN,
+     30/08) n'arrivait jamais — elimine par SOFIA, sur NOTRE demande. */
+  if (!opts.duration) {
+    const fh = Math.max(1, Math.min(168, Number(q.get("fenetre")) || 48));
+    opts.duration = String(fh) + "00";
   }
   /* La mémoire ne dépend PAS de la langue : les deux textes voyagent ensemble,
      et l'application choisit lequel afficher. Une seule entrée sert donc les
@@ -1385,7 +1413,20 @@ async function notamSofia(q: URLSearchParams): Promise<Response> {
     return reponseSofiaN(pt.valeur, "base");
   }
   try {
-    const { pib, trace } = await sofiaPib(route, opts);
+    /* v.621 : si SOFIA refuse la fenetre demandee, on replie par paliers
+       (48 h puis 12 h) au lieu d'echouer — et la reponse DIT ce qui a servi. */
+    const paliers = Array.from(new Set([opts.duration || "4800", "4800", "1200"]));
+    let pib: Record<string, any> | null = null;
+    let trace: Record<string, unknown>[] = [];
+    let dureeServie = "";
+    let panne: unknown = null;
+    for (const du of paliers) {
+      try {
+        const r = await sofiaPib(route, { ...opts, duration: du });
+        pib = r.pib; trace = r.trace; dureeServie = du; break;
+      } catch (e) { panne = e; }
+    }
+    if (!pib) throw panne;
     const { notams, couverts } = sofiaAplatis(pib.listnotams);
     const corps = JSON.stringify({
       ok: true,
@@ -1400,6 +1441,10 @@ async function notamSofia(q: URLSearchParams): Promise<Response> {
       validFrom: pib.validFrom,
       validTo: pib.validTo,
       releveA: new Date().toISOString(),
+      /* v.621 : la fenetre reellement servie (heures) et le depart demande */
+      fenetreServie: Number(dureeServie) / 100,
+      fenetreDemandee: Number(opts.duration || "4800") / 100,
+      depart: opts.depart || null,
       /* le compte annoncé par SOFIA, à côté du nôtre : un écart signale un
          changement de schéma bien avant qu'un NOTAM ne manque en silence */
       nbSofia: pib.nbNotams,
