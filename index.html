@@ -1988,7 +1988,7 @@ html.xtra-on .mtoolbar .tb-info{display:none!important}
     var sb=window.sb; if(!sb) return;
     var KEY='lognav_app_v7', MT='lognav_local_mt', ST='lognav_sync_t';
     var TR='lognav_tracks_v1', TRS='lognav_tr_synced';
-    var pushT=null, lastSent={}, trSent={}, syncBooted=false;
+    var pushT=null, pushPend=false, lastSent={}, trSent={}, syncBooted=false;
     /* cartes VAC : une planche pese de 0,3 a 1 Mo. On garde deux empreintes
        par carte — le calage et l'image — pour n'envoyer que ce qui a bouge :
        deplacer un coin ne doit pas renvoyer la planche entiere. */
@@ -2104,6 +2104,7 @@ html.xtra-on .mtoolbar .tb-info{display:none!important}
     }
     var pushEnCours=null;
     function push(){
+      pushPend=false; try{ clearTimeout(pushT); }catch(e){}
       /* deux envois simultanes se marchaient dessus : le second effacait avant
          que le premier n'ait insere, et la liste des favoris se retrouvait en
          double. On les met a la file. */
@@ -2121,17 +2122,27 @@ html.xtra-on .mtoolbar .tb-info{display:none!important}
         if(!user){ resolve(false); return; }
         var av=[]; try{ var u=window.AkilaAuth&&window.AkilaAuth.current&&window.AkilaAuth.current(); av=(u&&u.avions)||[]; }catch(e){}
         var jobs=[];
+        /* v.632 : supabase-js ne rejette pas, il repond {error} — si un envoi
+           du PROFIL echoue (reseau, 500), on ne marque PAS « synchronise »,
+           sinon la modification locale serait crue envoyee et le nuage
+           l'ecraserait au prochain lancement. Seule l'absence de colonne
+           (base pas encore migree) reste toleree. */
+        var echecDur=false;
+        var durSi=function(r2){ if(r2&&r2.error) echecDur=true; };
+        var tolCol=function(r2){ if(r2&&r2.error){
+          var m=String(r2.error.code||'')+' '+String(r2.error.message||'');
+          if(!/PGRST204|42703|column/i.test(m)) echecDur=true; } };
         jobs.push(sb.from('profiles').update({fuel:app.fuel||{},current_nav_id:app.currentId||null,
-          map_state:app.mapState||0,avions:av}).eq('id',user.id));
+          map_state:app.mapState||0,avions:av}).eq('id',user.id).then(durSi,function(){ echecDur=true; }));
         /* colonnes optionnelles (home_ad, wx_favs) : envoi séparé, toléré si la base ne les a pas encore */
         var wxf=[]; try{ wxf=JSON.parse(localStorage.getItem('lognav_wx_favs')||'[]')||[]; }catch(e){}
         var hAd=''; try{ var uu=window.AkilaAuth&&window.AkilaAuth.current&&window.AkilaAuth.current(); hAd=(uu&&uu.homeAd)||''; }catch(e){}
-        jobs.push(sb.from('profiles').update({wx_favs:wxf,home_ad:hAd}).eq('id',user.id).then(function(){},function(){}));
+        jobs.push(sb.from('profiles').update({wx_favs:wxf,home_ad:hAd}).eq('id',user.id).then(tolCol,function(){ echecDur=true; }));
         /* v.616 : favoris de la fenetre Recherche aerodrome — envoi separe et
            tolere (colonne arx_favs), pour ne rien casser tant que la base ne
            la porte pas encore */
         var axf=[]; try{ axf=JSON.parse(localStorage.getItem('lognav_arx_favs')||'[]')||[]; }catch(e){}
-        jobs.push(sb.from('profiles').update({arx_favs:axf}).eq('id',user.id).then(function(){},function(){}));
+        jobs.push(sb.from('profiles').update({arx_favs:axf}).eq('id',user.id).then(tolCol,function(){ echecDur=true; }));
         Object.keys(app.navs||{}).forEach(function(id){
           var n=app.navs[id]; if(!n) return;
           var s2=JSON.stringify(n); if(lastSent[id]===s2) return;
@@ -2192,12 +2203,18 @@ html.xtra-on .mtoolbar .tb-info{display:none!important}
             radio_nav:f.radioNav||'',obs:f.obs||'',sort:i}; });
           if(rows.length) return sb.from('favorites').insert(rows);
         }));
-        Promise.all(jobs).then(function(){ stamp(ST); resolve(true); },function(){ resolve(false); });
+        Promise.all(jobs).then(function(){ if(!echecDur) stamp(ST); resolve(!echecDur); },function(){ resolve(false); });
       });
       });
     }
-    function pushSoon(ms){ try{ clearTimeout(pushT); }catch(e){} pushT=setTimeout(push, ms==null?2500:ms); }
+    function pushSoon(ms){ try{ clearTimeout(pushT); }catch(e){} pushPend=true; pushT=setTimeout(push, ms==null?2500:ms); }
     window.__SYNC_PULL=pull; window.__SYNC_PUSH_SOON=pushSoon; window.__SYNC_PUSH_NOW=push;
+    /* v.632 : marque « modifications locales » (l'horloge MT) — a appeler
+       des qu'une donnee suivie change HORS de lognav_app_v7 (favoris de
+       recherche, favoris meteo...). Sans cette marque, le lancement
+       suivant croyait le local inchange : le nuage gagnait et ecrasait
+       la nouveaute avant tout envoi. */
+    window.__SYNC_TOUCHE=function(){ stamp(MT); try{ paint(); }catch(e){} };
     /* bouton Sync : envoie les modifications locales, récupère celles des autres
        appareils, et recharge l'état de l'appli en place — sans redémarrage */
     window.__SYNC_NOW=function(){
@@ -2242,6 +2259,15 @@ html.xtra-on .mtoolbar .tb-info{display:none!important}
       }catch(e){}
     },300000);
     window.addEventListener('online',function(){ pushSoon(1200); });
+    /* v.632 : un envoi encore au minuteur part TOUT DE SUITE quand l'appli
+       passe en arriere-plan — sur iPhone le minuteur ne survit pas a la
+       mise en veille, et l'envoi differe ne partait jamais */
+    var chasse=function(){ try{
+      if(pushPend&&navigator.onLine&&localStorage.getItem('akila_session_v1')) push();
+    }catch(e){} };
+    document.addEventListener('visibilitychange',function(){
+      if(document.visibilityState==='hidden') chasse(); });
+    window.addEventListener('pagehide',chasse);
   })();
 
   /* ---- Overlay "Gestion des utilisateurs" (owner uniquement) ---- */
@@ -3028,7 +3054,7 @@ window.__TRACE_MARKUP="\n\n<header>\n  <div class=\"hdr-row1\">\n    <span class
    accessible depuis le bouton ⓘ du bandeau du log, avant toute ouverture de la carte */
 (function(){
   var host=document.createElement('div');
-  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Cartes OACI — origine et mise à jour</b></p>\n    <p style=\"margin-top:-6px\"><b>1/250 000 Région parisienne</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte250\">—</span>.</p>\n    <p style=\"margin-top:-6px\"><b>1/500 000 France</b> — IGN Géoplateforme (SCAN-OACI). Donnée <b>non libre</b>, tenue à jour par l’IGN.</p>\n    <p style=\"margin-top:-6px\"><b>1/1 000 000 France</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte1000\">—</span>.</p>\n    <p>Les deux cartes du SIA sont hébergées à part et lues par plages : seules les tuiles affichées sont téléchargées. Les trois se copient sur l’appareil pour voler sans réseau depuis <b>Profil → Cartes hors-ligne</b>. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.631</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
+  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Cartes OACI — origine et mise à jour</b></p>\n    <p style=\"margin-top:-6px\"><b>1/250 000 Région parisienne</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte250\">—</span>.</p>\n    <p style=\"margin-top:-6px\"><b>1/500 000 France</b> — IGN Géoplateforme (SCAN-OACI). Donnée <b>non libre</b>, tenue à jour par l’IGN.</p>\n    <p style=\"margin-top:-6px\"><b>1/1 000 000 France</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte1000\">—</span>.</p>\n    <p>Les deux cartes du SIA sont hébergées à part et lues par plages : seules les tuiles affichées sont téléchargées. Les trois se copient sur l’appareil pour voler sans réseau depuis <b>Profil → Cartes hors-ligne</b>. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.632</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
   (document.body||document.documentElement).appendChild(host.firstElementChild);
   /* le nom du fichier de la 1/1 000 000 dit son edition : on le lit la ou il
      est vraiment (cartes.json), jamais en dur, sinon il mentirait un jour */
@@ -13775,7 +13801,12 @@ window.__pickGpx=function(cb){
       vent:{dir:(vent&&vent.dir)||'',kt:(vent&&vent.kt)||''} }; });
   };
   function favs(){try{var f=JSON.parse(localStorage.getItem(FKEY)||'[]');return Array.isArray(f)?f:[]}catch(e){return[]}}
-  function setFavs(f){try{localStorage.setItem(FKEY,JSON.stringify(f))}catch(e){}try{if(window.__SYNC_PUSH_SOON)window.__SYNC_PUSH_SOON()}catch(e){}}
+  function setFavs(f){try{localStorage.setItem(FKEY,JSON.stringify(f))}catch(e){}
+   /* v.632 : marque locale + envoi immediat (meme remede que les favoris
+      de la fenetre Recherche) */
+   try{if(window.__SYNC_TOUCHE)window.__SYNC_TOUCHE()}catch(e){}
+   try{if(window.__SYNC_PUSH_NOW)window.__SYNC_PUSH_NOW();
+     else if(window.__SYNC_PUSH_SOON)window.__SYNC_PUSH_SOON()}catch(e){}}
   function aeroName(code){ try{ if(typeof FR_AERO_MAP!=='undefined'&&FR_AERO_MAP[code]&&FR_AERO_MAP[code].n) return FR_AERO_MAP[code].n; }catch(e){} return ''; }
   function normTxt(s){ try{ return String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase(); }catch(e){ return String(s||'').toUpperCase(); } }
   function hm(ts){var d=new Date(ts);return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0')}
@@ -15834,8 +15865,13 @@ window.__pickGpx=function(cb){
     return Array.isArray(l)?l.filter(function(c){return /^[A-Z]{4}$/.test(c);}):[]; }
     catch(e){ return []; } }
   function favsPose(l){ try{ localStorage.setItem(FAVK,JSON.stringify(l)); }catch(e){}
-    /* v.616 : chaque ajout/retrait part vers le profil de l'utilisateur */
-    try{ if(window.__SYNC_PUSH_SOON) window.__SYNC_PUSH_SOON(); }catch(e){} }
+    /* v.616 : chaque ajout/retrait part vers le profil de l'utilisateur.
+       v.632 : marque LOCALE puis envoi IMMEDIAT — le minuteur de 2,5 s
+       mourait quand l'iPhone passait en arriere-plan, et sans la marque
+       le nuage ecrasait la liste au lancement suivant. */
+    try{ if(window.__SYNC_TOUCHE) window.__SYNC_TOUCHE(); }catch(e){}
+    try{ if(window.__SYNC_PUSH_NOW) window.__SYNC_PUSH_NOW();
+      else if(window.__SYNC_PUSH_SOON) window.__SYNC_PUSH_SOON(); }catch(e){} }
   function litTexte(u){ return fetch(u,{headers:entetes()}).then(function(r){
     if(!r.ok) throw new Error('HTTP '+r.status); return r.text(); }); }
   function litJson(u){ return fetch(u,{headers:entetes()}).then(function(r){
