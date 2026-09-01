@@ -2095,6 +2095,13 @@ html.xtra-on .mtoolbar .tb-info{display:none!important}
               try{ if(Array.isArray(p.wx_favs)) localStorage.setItem('lognav_wx_favs',JSON.stringify(p.wx_favs)); }catch(e){}
               /* v.616 : les favoris de la fenetre Recherche suivent l'utilisateur */
               try{ if(Array.isArray(p.arx_favs)) localStorage.setItem('lognav_arx_favs',JSON.stringify(p.arx_favs)); }catch(e){}
+              /* v.636 : les positions des favoris de la carte. FUSION et non
+                 remplacement : le nuage l'emporte cle par cle, mais un favori
+                 pose ici et pas encore envoye n'est jamais efface. */
+              try{ if(p.fav_pos&&typeof p.fav_pos==='object'&&!Array.isArray(p.fav_pos)){
+                var loc={}; try{ loc=JSON.parse(localStorage.getItem('lognav_fav_map_pos')||'{}')||{}; }catch(e2){}
+                for(var kk in p.fav_pos){ if(Object.prototype.hasOwnProperty.call(p.fav_pos,kk)) loc[kk]=p.fav_pos[kk]; }
+                localStorage.setItem('lognav_fav_map_pos',JSON.stringify(loc)); } }catch(e){}
               stamp(ST); stamp(MT);
             } else { pushSoon(700); }
             end();
@@ -2143,6 +2150,12 @@ html.xtra-on .mtoolbar .tb-info{display:none!important}
            la porte pas encore */
         var axf=[]; try{ axf=JSON.parse(localStorage.getItem('lognav_arx_favs')||'[]')||[]; }catch(e){}
         jobs.push(sb.from('profiles').update({arx_favs:axf}).eq('id',user.id).then(tolCol,function(){ echecDur=true; }));
+        /* v.636 : OU chaque favori est pose sur la carte. Les favoris
+           eux-memes voyagent par la table « favorites » ; leur position,
+           elle, ne vivait que dans le cache — un autre appareil les
+           remettait a leur place d'usine. Envoi separe et tolere. */
+        var fvp={}; try{ fvp=JSON.parse(localStorage.getItem('lognav_fav_map_pos')||'{}')||{}; }catch(e){}
+        jobs.push(sb.from('profiles').update({fav_pos:fvp}).eq('id',user.id).then(tolCol,function(){ echecDur=true; }));
         Object.keys(app.navs||{}).forEach(function(id){
           var n=app.navs[id]; if(!n) return;
           var s2=JSON.stringify(n); if(lastSent[id]===s2) return;
@@ -2767,7 +2780,9 @@ function akEnter(u){
   try{ prev=localStorage.getItem(OWN)||''; }catch(_){}
   try{ localStorage.setItem(OWN,em); }catch(_){}
   if(prev && prev!==em){
-    ['lognav_app_v7','lognav_local_mt','lognav_sync_t','lognav_tracks_v1','lognav_tr_synced','lognav_wx_favs','lognav_arx_favs'].forEach(function(k){ try{ localStorage.removeItem(k); }catch(_){} });
+    /* v.636 : « lognav_fav_map_pos » entre dans la liste — les points d'un
+       pilote ne doivent pas rester sur la carte du suivant */
+    ['lognav_app_v7','lognav_local_mt','lognav_sync_t','lognav_tracks_v1','lognav_tr_synced','lognav_wx_favs','lognav_arx_favs','lognav_fav_map_pos'].forEach(function(k){ try{ localStorage.removeItem(k); }catch(_){} });
     try{ location.reload(); }catch(_){}
     return;
   }
@@ -3054,7 +3069,7 @@ window.__TRACE_MARKUP="\n\n<header>\n  <div class=\"hdr-row1\">\n    <span class
    accessible depuis le bouton ⓘ du bandeau du log, avant toute ouverture de la carte */
 (function(){
   var host=document.createElement('div');
-  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Cartes OACI — origine et mise à jour</b></p>\n    <p style=\"margin-top:-6px\"><b>1/250 000 Région parisienne</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte250\">—</span>.</p>\n    <p style=\"margin-top:-6px\"><b>1/500 000 France</b> — IGN Géoplateforme (SCAN-OACI). Donnée <b>non libre</b>, tenue à jour par l’IGN.</p>\n    <p style=\"margin-top:-6px\"><b>1/1 000 000 France</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte1000\">—</span>.</p>\n    <p>Les deux cartes du SIA sont hébergées à part et lues par plages : seules les tuiles affichées sont téléchargées. Les trois se copient sur l’appareil pour voler sans réseau depuis <b>Profil → Cartes hors-ligne</b>. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.635</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
+  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Cartes OACI — origine et mise à jour</b></p>\n    <p style=\"margin-top:-6px\"><b>1/250 000 Région parisienne</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte250\">—</span>.</p>\n    <p style=\"margin-top:-6px\"><b>1/500 000 France</b> — IGN Géoplateforme (SCAN-OACI). Donnée <b>non libre</b>, tenue à jour par l’IGN.</p>\n    <p style=\"margin-top:-6px\"><b>1/1 000 000 France</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte1000\">—</span>.</p>\n    <p>Les deux cartes du SIA sont hébergées à part et lues par plages : seules les tuiles affichées sont téléchargées. Les trois se copient sur l’appareil pour voler sans réseau depuis <b>Profil → Cartes hors-ligne</b>. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.636</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
   (document.body||document.documentElement).appendChild(host.firstElementChild);
   /* le nom du fichier de la 1/1 000 000 dit son edition : on le lit la ou il
      est vraiment (cartes.json), jamais en dur, sinon il mentirait un jour */
@@ -5470,7 +5485,12 @@ window.__traceAspProfile=function(branch,expectedN){
 var __favState=0, __favLayer=null;
 var FAVPOS_KEY='lognav_fav_map_pos';
 function __favPositions(){ try{return JSON.parse(localStorage.getItem(FAVPOS_KEY)||'{}');}catch(e){return {};} }
-function __favSavePos(name,ll){ try{var p=__favPositions(); p[name]=[ll.lat,ll.lng]; localStorage.setItem(FAVPOS_KEY,JSON.stringify(p));}catch(e){} }
+function __favSavePos(name,ll){ try{var p=__favPositions(); p[name]=[ll.lat,ll.lng]; localStorage.setItem(FAVPOS_KEY,JSON.stringify(p));}catch(e){}
+  /* v.636 : marque locale + envoi immediat — meme remede que les favoris
+     de recherche (v.632) : un minuteur ne survit pas a la mise en veille */
+  try{ if(window.__SYNC_TOUCHE) window.__SYNC_TOUCHE(); }catch(e){}
+  try{ if(window.__SYNC_PUSH_NOW) window.__SYNC_PUSH_NOW();
+    else if(window.__SYNC_PUSH_SOON) window.__SYNC_PUSH_SOON(); }catch(e){} }
 function __favIcon(name,drag){
   var star='<svg viewBox="0 0 24 24" fill="'+(drag?'#e94560':'#f59e0b')+'" stroke="'+(drag?'#9f1239':'#b45309')+'" stroke-width="1.2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>';
   return L.divIcon({className:'', html:'<div class="fav-star'+(drag?' fav-drag':'')+'">'+star+'<span>'+name+'</span></div>', iconSize:null, iconAnchor:[10,10]});
