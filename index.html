@@ -3054,7 +3054,7 @@ window.__TRACE_MARKUP="\n\n<header>\n  <div class=\"hdr-row1\">\n    <span class
    accessible depuis le bouton ⓘ du bandeau du log, avant toute ouverture de la carte */
 (function(){
   var host=document.createElement('div');
-  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Cartes OACI — origine et mise à jour</b></p>\n    <p style=\"margin-top:-6px\"><b>1/250 000 Région parisienne</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte250\">—</span>.</p>\n    <p style=\"margin-top:-6px\"><b>1/500 000 France</b> — IGN Géoplateforme (SCAN-OACI). Donnée <b>non libre</b>, tenue à jour par l’IGN.</p>\n    <p style=\"margin-top:-6px\"><b>1/1 000 000 France</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte1000\">—</span>.</p>\n    <p>Les deux cartes du SIA sont hébergées à part et lues par plages : seules les tuiles affichées sont téléchargées. Les trois se copient sur l’appareil pour voler sans réseau depuis <b>Profil → Cartes hors-ligne</b>. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.632</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
+  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Cartes OACI — origine et mise à jour</b></p>\n    <p style=\"margin-top:-6px\"><b>1/250 000 Région parisienne</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte250\">—</span>.</p>\n    <p style=\"margin-top:-6px\"><b>1/500 000 France</b> — IGN Géoplateforme (SCAN-OACI). Donnée <b>non libre</b>, tenue à jour par l’IGN.</p>\n    <p style=\"margin-top:-6px\"><b>1/1 000 000 France</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte1000\">—</span>.</p>\n    <p>Les deux cartes du SIA sont hébergées à part et lues par plages : seules les tuiles affichées sont téléchargées. Les trois se copient sur l’appareil pour voler sans réseau depuis <b>Profil → Cartes hors-ligne</b>. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.634</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
   (document.body||document.documentElement).appendChild(host.firstElementChild);
   /* le nom du fichier de la 1/1 000 000 dit son edition : on le lit la ou il
      est vraiment (cartes.json), jamais en dur, sinon il mentirait un jour */
@@ -6833,7 +6833,11 @@ function openRelinkChoice(){
 /* ===== Vent en altitude le long du trajet — prévisions Open-Météo ===== */
 (function(){
   var th=document.getElementById('trace-host'); if(!th) return;
-  var LV=[["1500","950"],["2500","925"],["3300","900"],["5000","850"],["FL100","700"]];
+  /* v.633 : 2 000 ft (meme niveau 950 hPa que l'ancien 1 500 ft) devient
+     l'entree par defaut ; l'echelle Auto ajoute 1000 hPa pour le tres bas */
+  var LV=[["2000","950"],["2500","925"],["3300","900"],["5000","850"],["FL100","700"]];
+  var NIVA=[[360,"1000"],[2000,"950"],[2500,"925"],[3300,"900"],[5000,"850"],[10000,"700"]];
+  var HPS=["1000","950","925","900","850","700"];
   var cur=null, data=null, busy=false;
   var windGroup=L.layerGroup().addTo(map);
   /* Couche SIGMET : polygones des FIR (source NOAA via le relais). */
@@ -7114,14 +7118,36 @@ function openRelinkChoice(){
    +'.wbarb{display:flex;flex-direction:column;align-items:center;color:#16213e;'
    +'filter:drop-shadow(0 0 2px #fff) drop-shadow(0 0 2px #fff)}'
    +'.wbarb b{font:800 10.5px "JetBrains Mono",monospace;color:#0F274C;background:rgba(255,255,255,.85);'
-   +'border-radius:6px;padding:0 3px;line-height:1.3;margin-top:-4px}';
+   +'border-radius:6px;padding:0 3px;line-height:1.3;margin-top:-4px}'
+   /* v.633 : la bulle meteo qui alterne avec les barbules — vent, T°,
+      visibilite et condition de vol coloree */
+   +'.wbul{display:flex;flex-direction:column;align-items:center;gap:1px;'
+   +'background:rgba(255,255,255,.93);border:1px solid #cbd5e1;border-radius:9px;'
+   +'padding:3px 7px;box-shadow:0 2px 8px rgba(22,33,62,.3);color:#16213e;'
+   +'white-space:nowrap;width:max-content}'
+   +'.wbul b{font:800 1.02em "JetBrains Mono",monospace;color:#0F274C}'
+   +'.wbul .tv{font:700 .95em "JetBrains Mono",monospace;color:#334155}'
+   +'.wbul .cv{font:800 .88em Poppins,sans-serif;color:#fff;border-radius:7px;'
+   +'padding:0 6px;line-height:1.5}'
+   /* v.634 : le bandeau de condition de vol de la route */
+   +'#mtoCond[hidden]{display:none!important}'
+   +'#mtoCond{display:inline-flex;align-items:baseline;gap:7px;color:#fff;'
+   +'border-radius:12px;padding:4px 11px;font:700 10.5px Poppins,sans-serif;'
+   +'box-shadow:0 3px 10px rgba(0,0,0,.3);max-width:min(340px,84vw)}'
+   +'#mtoCond b{font:800 12px Poppins,sans-serif;letter-spacing:.3px}'
+   +'#mtoCond span{opacity:.92}';
   document.head.appendChild(st);
   var wrap=document.createElement('div'); wrap.id='wndWrap'; wrap.className='no-print';
+  /* v.634 : le bandeau qui DIT la condition de vol de la route */
+  var cond=document.createElement('div'); cond.id='mtoCond'; cond.hidden=true;
+  cond.className='no-print';
   var panel=document.createElement('div'); panel.id='wndPanel'; panel.hidden=true;
   /* la ligne SIGMET a quitte ce panneau (v.613) : le segment « Sigmet »
      du bouton quadruple la remplace, meme fonctionnement */
-  panel.innerHTML='<div class="ti">Vent prévu · Open-Météo</div>'
-    +'<button data-l="">OFF</button>'
+  panel.innerHTML='<div class="ti">Météo prévue · Open-Météo</div>'
+    /* v.633 : OFF sort — le bouton Météo lui-même éteint la couche ;
+       « Auto » suit l'altitude de chaque branche du vol */
+    +'<button data-l="auto" title="L\u2019altitude suit chaque branche du vol (2\u00a0000\u00a0ft si non renseign\u00e9e)">Auto · alt. du vol</button>'
     +LV.map(function(l){return '<button data-l="'+l[1]+'">'+l[0]+(l[0].indexOf('FL')<0?' ft':'')+'</button>'}).join('');
   var btn=document.createElement('button'); btn.id='wndBtn'; btn.type='button';
   btn.innerHTML='<span class="mto-g" id="mtoG" title="Vent et SIGMET">'
@@ -7130,7 +7156,7 @@ function openRelinkChoice(){
     +'<span class="mto-d" id="mtoD" title="NOTAM et SUP AIP des terrains du vol">Notam/SupAIP</span>'
     +'<span class="mto-s" id="mtoS" title="SIGMET \u00b7 FIR France \u2014 affiche les SIGMET et d\u00e9zoome sur la France enti\u00e8re">Sigmet</span>'
     +'<span class="mto-z" id="mtoZ" title="AZBA / RTBA \u2014 activation des zones basse altitude (SIA)">AZBA</span>';
-  wrap.appendChild(panel); wrap.appendChild(btn); th.appendChild(wrap);
+  wrap.appendChild(cond); wrap.appendChild(panel); wrap.appendChild(btn); th.appendChild(wrap);
   /* outils NOTAM/SUP AIP : pile de fiches (listing complet) —
      visibles seulement quand la couche est allumée */
   var outils=document.createElement('div'); outils.id='ntmOutils'; outils.hidden=true;
@@ -7197,27 +7223,84 @@ function openRelinkChoice(){
   place(); window.addEventListener('resize',place);
   window.addEventListener('orientationchange',function(){setTimeout(place,120)});
   try{ map.on('resize',place); map.whenReady(function(){ setTimeout(place,300); setTimeout(place,1200); }); }catch(e){}
+  /* v.633 : le selecteur reste ouvert TROIS minutes puis se range seul */
+  var panelT=null;
+  function panelMontre(){ panel.hidden=false; place();
+    try{ clearTimeout(panelT); }catch(e){}
+    panelT=setTimeout(function(){ panel.hidden=true; },180000); }
   btn.addEventListener('click',function(e){ e.stopPropagation();
     if(e.target.closest && e.target.closest('#mtoD')){ ntmToggle(); return; }
     if(e.target.closest && e.target.closest('#mtoS')){ sigToggle(); return; }
     if(e.target.closest && e.target.closest('#mtoZ')){ azbaToggle(); return; }
-    panel.hidden=!panel.hidden; place(); });
+    /* v.633 : un clic ALLUME (2 000 ft par defaut) et ouvre le selecteur ;
+       un second clic eteint la couche (OFF a quitte le selecteur) */
+    if(cur){ setLevel(null); panel.hidden=true; try{ clearTimeout(panelT); }catch(e2){} }
+    else { setLevel('950','2000 ft'); panelMontre(); }
+    place(); });
   try{ map.on('zoomend',function(){ draw(); }); }catch(e){}
+  /* v.633 : les altitudes de vol de la nav courante, branche par branche
+     (la route tracee ne les porte pas — le log, si) */
+  function altsDe(sens){ try{
+    var a=JSON.parse(localStorage.getItem('lognav_app_v7'));
+    var n=a&&a.navs&&a.navs[a.currentId]; var l=(n&&n[sens])||[];
+    return l.map(function(x){ return Math.round(+String((x&&x.altVol)||'').replace(',','.'))||0; });
+  }catch(e){ return []; } }
+  function nivAuto(ft){ if(!ft) ft=2000;      /* branche sans altitude : 2 000 ft */
+    var b=NIVA[0];
+    for(var i=0;i<NIVA.length;i++) if(Math.abs(NIVA[i][0]-ft)<Math.abs(b[0]-ft)) b=NIVA[i];
+    return b[1]; }
   function samples(){
-    var pts=[],seen={};
-    [routes.aller,routes.retour].forEach(function(a){
-      if(!a||a.length<2) return;
+    var pts=[],lv=[],seen={};
+    [['aller',routes.aller],['retour',routes.retour]].forEach(function(sa){
+      var a=sa[1]; if(!a||a.length<2) return;
+      var alts=altsDe(sa[0]);
       for(var i=0;i+1<a.length;i++){
         var A=a[i],B=a[i+1],d=legCalc(A,B).nm;
+        var hp=nivAuto(alts[i]||0);
         var add=function(la,lo){ var k=la.toFixed(2)+','+lo.toFixed(2);
-          if(!seen[k]&&pts.length<22){seen[k]=1;pts.push([+la.toFixed(4),+lo.toFixed(4)]);} };
+          if(!seen[k]&&pts.length<22){seen[k]=1;pts.push([+la.toFixed(4),+lo.toFixed(4)]);lv.push(hp);} };
         add(A.lat,A.lng);
         var n=Math.min(3,Math.floor(d/18));
         for(var q=1;q<=n;q++) add(A.lat+(B.lat-A.lat)*q/(n+1),A.lng+(B.lng-A.lng)*q/(n+1));
         if(i+2===a.length) add(B.lat,B.lng);
       }
     });
-    return pts;
+    return {pts:pts,lv:lv};
+  }
+  /* v.634 : LE PLAFOND, estime. Open-Meteo ne publie pas de base des
+     nuages ; on l'approche par l'ecart temperature / point de rosee au sol
+     (regle du pouce : ~400 ft par degre d'ecart), et seulement quand la
+     couche basse est FRAGMENTEE OU COUVERTE (>= 5/8) — en dessous, il n'y
+     a pas de plafond au sens aeronautique. Estimation, jamais une mesure :
+     le TAF reste la reference. */
+  function plafondFt(T2,Td,nBas){
+    if(T2==null||Td==null||nBas==null) return null;
+    if(nBas<62) return null;                  /* moins de 5/8 : pas de plafond */
+    var ft=Math.round(Math.max(0,(T2-Td))*400);
+    return ft>12000?null:ft;
+  }
+  /* v.633/634 : la condition de vol — le PIRE du plafond et de la
+     visibilite, seuils d'usage aeronautique */
+  var CONDS=[['VFR','#16a34a'],['MVFR','#2563EB'],['IFR','#DC2626'],['LIFR','#A21CAF']];
+  function condVol(vis,plaf){
+    if(vis==null&&plaf==null) return null;
+    var r=0;                                   /* 0 VFR, 1 MVFR, 2 IFR, 3 LIFR */
+    if(vis!=null){ r=Math.max(r, vis<1600?3:(vis<5000?2:(vis<8000?1:0))); }
+    if(plaf!=null){ r=Math.max(r, plaf<500?3:(plaf<1000?2:(plaf<3000?1:0))); }
+    return CONDS[r];
+  }
+  function bulleHtml(dir,kt,T,vis,plaf,sc){
+    var c=condVol(vis,plaf);
+    return '<div class="wbul" style="font-size:'+(10*sc).toFixed(1)+'px">'
+      +(c?'<span class="cv" style="background:'+c[1]+'">'+c[0]+'</span>':'')
+      +'<b>'+('00'+Math.round(dir)).slice(-3)+'\u00b0 \u00b7 '+Math.round(kt)+' kt</b>'
+      +'<span class="tv">'+(T==null?'':((Math.round(T)>0?'+':'')+Math.round(T)+' \u00b0C'))
+      +(vis==null?'':((T==null?'':' \u00b7 ')+(vis>=9999?'\u2265 10 km':((vis/1000).toFixed(vis<5000?1:0)+' km'))))
+      +'</span>'
+      /* v.634 : le plafond, quand il y en a un — c'est lui qui fait
+         basculer la condition sans que la visibilite bouge */
+      +(plaf==null?'':'<span class="tv">plafond ~ '+plaf+' ft</span>')
+      +'</div>';
   }
   function barbHtml(dir,kt,sc){ sc=sc||1;
     var k5=Math.max(0,Math.round(kt/5)*5), parts='', y=7;
@@ -7237,13 +7320,64 @@ function openRelinkChoice(){
     var z=(map.getZoom&&map.getZoom())||9;
     var sc=Math.max(1,Math.min(1.4,1+(z-9)*0.09));
     var idx=Math.min(new Date().getUTCHours(),23);
+    var pire=-1, nDur=0, nCond=0;   /* v.634 : le verdict de la route */
     data.list.forEach(function(loc,i){
-      var h=loc.hourly||{}, sp=h['wind_speed_'+cur+'hPa'], di=h['wind_direction_'+cur+'hPa'];
-      if(!sp||!di) return;
-      var kt=sp[idx], dir=di[idx]; if(kt==null||dir==null) return;
+      /* v.633 : en Auto, chaque point porte le niveau de SA branche */
+      var hp=(cur==='auto')?((data.lv&&data.lv[i])||'950'):cur;
+      var h=loc.hourly||{};
+      var lit=function(k){ var a2=h[k]; var v=a2&&a2[idx];
+        return (v==null||isNaN(v))?null:+v; };
+      var kt=lit('wind_speed_'+hp+'hPa'), dir=lit('wind_direction_'+hp+'hPa');
+      if(kt==null||dir==null) return;
+      /* v.634 : la condition se calcule pour CHAQUE point — le bandeau
+         annonce ensuite le pire de la route, bulle ou barbule */
+      var vis=lit('visibility');
+      var plaf=plafondFt(lit('temperature_2m'),lit('dew_point_2m'),lit('cloud_cover_low'));
+      var cd=condVol(vis,plaf);
+      if(cd){ var ri=CONDS.map(function(x){return x[0]}).indexOf(cd[0]);
+        if(ri>pire) pire=ri; if(ri>=2) nDur++; nCond++; }
+      if(i%2===1){
+        /* v.633 : un point sur deux — la bulle (vent chiffre, T°,
+           visibilite, condition de vol coloree) */
+        var T=lit('temperature_'+hp+'hPa');
+        /* la bulle se pose AU-DESSUS du point : centree dessus, le trait de
+           route et ses etiquettes (cap, distance) la traversaient */
+        var ic2=L.divIcon({className:'',iconSize:[Math.round(100*sc),Math.round(46*sc)],
+          iconAnchor:[Math.round(50*sc),Math.round(52*sc)],html:bulleHtml(dir,kt,T,vis,plaf,sc)});
+        windGroup.addLayer(L.marker(data.pts[i],{icon:ic2,interactive:false,keyboard:false}));
+        return;
+      }
       var ic=L.divIcon({className:'',iconSize:[Math.round(56*sc),Math.round(64*sc)],iconAnchor:[Math.round(28*sc),Math.round(33*sc)],html:barbHtml(dir,kt,sc)});
       windGroup.addLayer(L.marker(data.pts[i],{icon:ic,interactive:false,keyboard:false}));
     });
+    condPose(pire,nDur,nCond);
+  }
+  /* v.634 : LE BANDEAU — la reponse a « est-ce IFR ? » sans fouiller les
+     bulles : la condition du PIRE point de la route, et combien de points
+     sortent du VFR. */
+  function condPose(pire,nDur,nCond){
+    var el=document.getElementById('mtoCond'); if(!el) return;
+    if(!cur||pire<0||!nCond){ el.hidden=true; return; }
+    var c=CONDS[pire];
+    el.hidden=false;
+    el.style.background=c[1];
+    el.innerHTML='<b>Route : '+c[0]+'</b><span>'
+      +(pire===0
+        ? 'conditions VFR sur les '+nCond+' points'
+        : (nDur
+            ? (nDur+' point'+(nDur>1?'s':'')+' en IFR ou pire')
+            : ('marginal sur '+nCond+' points')))
+      +'</span>';
+    el.title=(pire>=2
+        ? 'CONDITIONS IFR PRÉVUES sur la route : plafond estimé sous 1 000 ft '
+          +'ou visibilité sous 5 km, sur au moins un point. '
+        : (pire===1
+            ? 'Conditions marginales (MVFR) : plafond estimé sous 3 000 ft ou '
+              +'visibilité sous 8 km. '
+            : 'Conditions VFR sur toute la route : plafond estimé au-dessus de '
+              +'3 000 ft et visibilité au-dessus de 8 km. '))
+      +'Le plafond est ESTIMÉ (écart température / point de rosée, couche basse '
+      +'≥ 5/8) — à recouper impérativement avec les TAF et la TEMSI.';
   }
   function majEtat(){ var g=document.getElementById('mtoG');
     if(g) g.classList.toggle('on',!!cur); } /* le Sigmet a son propre segment (v.613) */
@@ -7252,30 +7386,37 @@ function openRelinkChoice(){
     panel.querySelectorAll('button[data-l]').forEach(function(b){b.classList.toggle('on',b.getAttribute('data-l')===(lv||''))});
     document.getElementById('wndLab').textContent=cur?lab:'Météo';
     majEtat();
-    panel.hidden=true;
-    if(!cur){ windGroup.clearLayers(); return; }
-    var pts=samples();
-    if(pts.length<2){ if(typeof showToast==='function') showToast('Tracez d’abord une navigation sur la carte.'); windGroup.clearLayers(); return; }
-    var sig=JSON.stringify(pts);
-    if(data&&data.sig===sig&&(Date.now()-data.t)<3600000){ draw(); return; }
+    /* v.633 : le panneau ne se referme plus ici — il vit ses 3 minutes */
+    if(!cur){ windGroup.clearLayers(); condPose(-1,0,0); return; }
+    var sm=samples();
+    if(sm.pts.length<2){ if(typeof showToast==='function') showToast('Tracez d’abord une navigation sur la carte.'); windGroup.clearLayers(); return; }
+    var sig=JSON.stringify(sm.pts);
+    if(data&&data.sig===sig&&(Date.now()-data.t)<3600000){ data.lv=sm.lv; draw(); return; }
     if(busy) return; busy=true;
-    var la=pts.map(function(p){return p[0]}).join(','), lo=pts.map(function(p){return p[1]}).join(',');
-    var vars=LV.map(function(l){return 'wind_speed_'+l[1]+'hPa,wind_direction_'+l[1]+'hPa'}).join(',');
+    var la=sm.pts.map(function(p){return p[0]}).join(','), lo=sm.pts.map(function(p){return p[1]}).join(',');
+    /* v.633 : la requete porte aussi la temperature de chaque niveau, la
+       visibilite, et le niveau 1000 hPa (branches tres basses en Auto) */
+    /* v.634 : temperature, point de rosee et couche basse au sol servent a
+       estimer le PLAFOND — sans lui, un ciel bas passait pour VFR */
+    var vars='visibility,temperature_2m,dew_point_2m,cloud_cover_low,'
+      +HPS.map(function(hh){return 'wind_speed_'+hh+'hPa,wind_direction_'+hh+'hPa,temperature_'+hh+'hPa'}).join(',');
     fetch('https://api.open-meteo.com/v1/forecast?latitude='+la+'&longitude='+lo
       +'&hourly='+vars+'&wind_speed_unit=kn&forecast_days=1&timezone=UTC')
       .then(function(r){return r.json()})
       .then(function(js){ busy=false;
         var list=Array.isArray(js)?js:[js];
-        data={t:Date.now(),sig:sig,pts:pts,list:list};
+        data={t:Date.now(),sig:sig,pts:sm.pts,lv:sm.lv,list:list};
         draw();
-        if(typeof showToast==='function') showToast('Vent prévu affiché — source Open-Météo.');
+        if(typeof showToast==='function') showToast('Météo prévue affichée — source Open-Météo.');
       })
       .catch(function(){ busy=false;
         if(typeof showToast==='function') showToast('Météo vent indisponible (réseau).'); });
   }
   panel.querySelectorAll('button[data-l]').forEach(function(b){
     b.addEventListener('click',function(e){ e.stopPropagation();
-      setLevel(b.getAttribute('data-l'),b.textContent); });
+      setLevel(b.getAttribute('data-l'),
+        b.getAttribute('data-l')==='auto'?'Auto':b.textContent);
+      panelMontre(); });
   });
   function sigStyle(){ return {color:'#e0532e',weight:2,dashArray:'6 4',
     fill:true,fillColor:'#e0532e',fillOpacity:.12}; }
