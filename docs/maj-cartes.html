@@ -1,0 +1,222 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8">
+<title>LogNavAK — Mise à jour des cartes</title>
+<style>
+  @page { size:A4; margin:16mm 15mm 18mm; }
+  *{box-sizing:border-box}
+  body{font:10.5pt/1.5 "Helvetica Neue",Helvetica,Arial,sans-serif;color:#1b2436;margin:0}
+  h1,h2,h3{font-weight:700;color:#16213e;margin:0}
+  .cover{height:245mm;display:flex;flex-direction:column;justify-content:center;page-break-after:always}
+  .cover .kick{font:700 9pt/1 ui-monospace,Menlo,monospace;letter-spacing:.26em;text-transform:uppercase;color:#7c8aa3;margin-bottom:14mm}
+  .cover .kick span{display:inline-block;width:16mm;height:1.6pt;background:#e94560;vertical-align:middle;margin-right:5mm}
+  .cover h1{font-size:31pt;line-height:1.08;letter-spacing:-.01em;margin-bottom:6mm}
+  .cover h1 em{font-style:normal;color:#e94560}
+  .cover p{font-size:12pt;color:#46536b;max-width:125mm;margin:0 0 4mm}
+  .cover .meta{margin-top:14mm;border-top:1px solid #dfe4ec;padding-top:5mm;font-size:9pt;color:#7c8aa3}
+  .cover .meta b{color:#16213e;font-weight:700}
+
+  h2{font-size:15pt;margin:11mm 0 3mm;padding-bottom:2.4mm;border-bottom:2px solid #16213e;page-break-after:avoid}
+  h2 .n{color:#e94560;margin-right:3mm}
+  h3{font-size:11.5pt;margin:6.5mm 0 2mm;page-break-after:avoid}
+  p{margin:0 0 3mm}
+  ul,ol{margin:0 0 3mm;padding-left:6mm}
+  li{margin-bottom:1.6mm}
+  code{font:9.4pt ui-monospace,Menlo,Consolas,monospace;background:#eef1f6;border-radius:2px;padding:.5mm 1.2mm;color:#16213e}
+  pre{font:9pt/1.45 ui-monospace,Menlo,Consolas,monospace;background:#0f1c33;color:#e6edf8;
+      padding:3.5mm 4mm;border-radius:2.5mm;margin:0 0 3.5mm;white-space:pre-wrap;overflow-wrap:anywhere;
+      page-break-inside:avoid;border-left:3px solid #e94560}
+  pre .c{color:#8fa4c4}
+  table{width:100%;border-collapse:collapse;margin:0 0 4mm;font-size:9.3pt;page-break-inside:avoid}
+  th{background:#16213e;color:#fff;text-align:left;padding:2.2mm 2.6mm;font-weight:700}
+  td{border-bottom:1px solid #e2e7ef;padding:2.2mm 2.6mm;vertical-align:top}
+  tr:nth-child(even) td{background:#f7f9fc}
+  .note{border-left:3px solid #2c5282;background:#f2f6fc;padding:3mm 4mm;margin:0 0 4mm;page-break-inside:avoid}
+  .warn{border-left:3px solid #e94560;background:#fdf2f4;padding:3mm 4mm;margin:0 0 4mm;page-break-inside:avoid}
+  .note b,.warn b{display:block;margin-bottom:1mm}
+  .step{display:flex;gap:4mm;margin-bottom:4mm;page-break-inside:avoid}
+  .step .num{flex:none;width:7mm;height:7mm;border-radius:50%;background:#16213e;color:#fff;
+      font:700 9.5pt/7mm ui-sans-serif;text-align:center}
+  .step .txt{flex:1;min-width:0}
+  .step h3{margin-top:.6mm}
+  .prompt{border:1px solid #cdd6e4;border-radius:2.5mm;padding:0 0 3mm;margin:0 0 5mm;page-break-inside:avoid}
+  .prompt .t{background:#eef1f6;border-bottom:1px solid #cdd6e4;padding:2.2mm 4mm;font:700 9.5pt ui-sans-serif;
+      color:#16213e;border-radius:2.2mm 2.2mm 0 0}
+  .prompt .q{padding:3mm 4mm 0;font-size:9.8pt;color:#2b3549}
+  .prompt .u{font-size:8.8pt;color:#6b7891;padding:2mm 4mm 0;border-top:1px dotted #dfe4ec;margin-top:2.5mm}
+  mark{background:#ffe9b0;padding:.3mm 1mm;border-radius:1.5mm}
+  .tight li{margin-bottom:.9mm}
+</style></head><body>
+
+<div class="cover">
+  <div class="kick"><span></span>LogNavAK — procédure</div>
+  <h1>Mettre à jour<br>les <em>cartes OACI</em></h1>
+  <p>Ce que fait le SIA deux fois l'an, et ce que vous avez à faire en retour : convertir, déposer, changer une ligne.</p>
+  <p>Trois cartes, trois régimes différents. Une seule d'entre elles demande vraiment du travail, et ce document sert à ce qu'il ne dure jamais plus d'un quart d'heure.</p>
+  <div class="meta">
+    Application <b>LogNavAK</b> · version 2026-07-22.378 et suivantes<br>
+    Document établi le 20 août 2026 · à conserver avec le dépôt
+  </div>
+</div>
+
+<h2><span class="n">1</span>Ce qui vit où</h2>
+<p>Une carte n'est pas l'autre : leur origine, leur format et leur hébergement diffèrent, donc le travail de mise à jour aussi. Ce tableau est la carte du territoire ; tout le reste du document en découle.</p>
+<table>
+  <tr><th style="width:26%">Carte</th><th style="width:22%">Origine</th><th style="width:26%">Où vit le fichier</th><th>À chaque édition</th></tr>
+  <tr><td><b>1/250 000</b><br>Région parisienne</td><td>SIA<br>Licence Ouverte</td><td>Fichier <code>.pmtiles</code>, dépôt GitHub ou Cloudflare R2</td><td>Convertir, déposer, changer une ligne de <code>cartes.json</code></td></tr>
+  <tr><td><b>1/500 000</b><br>France</td><td>IGN Géoplateforme<br>donnée non libre</td><td>Nulle part : tuiles servies en direct par l'IGN</td><td><b>Rien.</b> L'IGN met à jour de son côté</td></tr>
+  <tr><td><b>1/1 000 000</b><br>France</td><td>SIA<br>Licence Ouverte</td><td>Fichier <code>.pmtiles</code>, Cloudflare R2</td><td>Convertir, déposer, changer une ligne de <code>cartes.json</code></td></tr>
+</table>
+
+<div class="note"><b>Pourquoi convertir ?</b>
+Le SIA publie des <code>.mbtiles</code>. C'est une base SQLite : pour en extraire une seule tuile, il faut un moteur de base de données et, surtout, le fichier entier. Un navigateur devrait donc télécharger vos 150 Mo avant d'afficher le premier pixel. Le format <code>.pmtiles</code> contient exactement les mêmes tuiles, rangées de façon à ce qu'on puisse réclamer « les octets 4 210 000 à 4 214 000 » et recevoir une tuile. C'est ce qui permet à l'application d'ouvrir une carte de 150 Mo en deux secondes sur un iPhone, en 4G.</div>
+
+<h2><span class="n">2</span>Avant de commencer</h2>
+<p>Trois choses, une fois pour toutes.</p>
+<h3>L'outil de conversion</h3>
+<pre>brew install pmtiles</pre>
+<p>À défaut de Homebrew : l'exécutable <code>go-pmtiles</code> se télécharge depuis les <i>releases</i> de <code>protomaps/go-pmtiles</code> — un seul fichier, rien à installer. Après décompression, levez la quarantaine macOS une fois :</p>
+<pre>cd ~/Downloads &amp;&amp; xattr -d com.apple.quarantine ./pmtiles</pre>
+<p>Dans ce cas, écrivez <code>./pmtiles</code> partout où ce document écrit <code>pmtiles</code>.</p>
+<h3>L'hébergement</h3>
+<p>Le seau Cloudflare R2 <b>cartes</b>, en Europe de l'Ouest, avec l'URL de développement publique activée et la règle CORS qui autorise <code>https://alexkilinc.github.io</code>. C'est fait ; il n'y a rien à y refaire à chaque cycle, seulement des fichiers à y déposer.</p>
+<h3>Le dépôt</h3>
+<p>Un accès à <code>github.com/AlexKilinc/LogNav</code> pour modifier <code>cartes.json</code> depuis le navigateur. Aucune installation de Git n'est nécessaire.</p>
+
+<h2><span class="n">3</span>Mettre à jour la 1/1 000 000 (France)</h2>
+
+<div class="step"><div class="num">1</div><div class="txt">
+<h3>Récupérer et convertir</h3>
+<p>Placez-vous dans le dossier du fichier téléchargé chez le SIA, puis :</p>
+<pre>ls -lh *.mbtiles
+pmtiles convert "<mark>SIA France 02_2026.mbtiles</mark>" ~/Downloads/SIA_France_1000k_<mark>2026-02</mark>.pmtiles</pre>
+<p>Deux règles dans cette commande. Le nom de sortie <b>porte l'édition</b> : c'est ce qui empêchera un cache de servir un mélange de l'ancienne et de la nouvelle. Et la sortie va dans <code>~/Downloads</code>, jamais dans Dropbox : ce fichier n'a pas vocation à être synchronisé.</p>
+</div></div>
+
+<div class="step"><div class="num">2</div><div class="txt">
+<h3>Contrôler ce qui est sorti</h3>
+<pre>pmtiles show ~/Downloads/SIA_France_1000k_<mark>2026-02</mark>.pmtiles
+ls -lh   ~/Downloads/SIA_France_1000k_<mark>2026-02</mark>.pmtiles</pre>
+<p>Trois lignes à lire : <b>tile type</b> doit être <code>png</code>, <code>jpeg</code> ou <code>webp</code> — si c'est <code>mvt</code>, la carte est vectorielle et ne s'affichera pas dans cette couche ; <b>bounds</b> doit couvrir la France, et vous y verrez du même coup jusqu'où va la couverture (l'édition 01/2026 s'arrêtait à 41,83° de latitude, laissant le sud de la Corse dehors) ; <b>clustered</b> doit être <code>true</code>.</p>
+</div></div>
+
+<div class="step"><div class="num">3</div><div class="txt">
+<h3>Déposer chez R2</h3>
+<p>Tableau de bord Cloudflare → <b>R2 Object Storage</b> → seau <b>cartes</b> → onglet <b>Objects</b> → <b>Upload</b>. La console accepte jusqu'à 300 Mo par fichier.</p>
+<p>Ne supprimez pas encore l'édition précédente : elle vous servira de retour arrière si quelque chose cloche.</p>
+</div></div>
+
+<div class="step"><div class="num">4</div><div class="txt">
+<h3>Vérifier que le fichier est lisible par l'application</h3>
+<pre>curl -s -o /dev/null -D - -r 0-99 -H 'Origin: https://alexkilinc.github.io' \
+  https://pub-3255550d78614e53914f48f1897a111a.r2.dev/SIA_France_1000k_<mark>2026-02</mark>.pmtiles</pre>
+<p>Deux en-têtes doivent apparaître, et ce sont les seuls qui comptent :</p>
+<ul class="tight">
+  <li><code>Content-Range: bytes 0-99/…</code> — la lecture par plages fonctionne ;</li>
+  <li><code>Access-Control-Allow-Origin: https://alexkilinc.github.io</code> — l'application a le droit de lire.</li>
+</ul>
+<p>Si le second manque, le fichier est bien servi mais aucun navigateur ne pourra l'ouvrir : reprenez la règle CORS du seau.</p>
+</div></div>
+
+<div class="step"><div class="num">5</div><div class="txt">
+<h3>Changer la ligne</h3>
+<p>Sur GitHub, ouvrez <code>cartes.json</code> à la racine → crayon <b>Edit this file</b> → remplacez l'adresse de <code>oaci1000</code> par celle du nouveau fichier → <b>Commit changes</b>. C'est la seule modification : ni <code>index.html</code>, ni quoi que ce soit d'autre.</p>
+</div></div>
+
+<div class="step"><div class="num">6</div><div class="txt">
+<h3>Contrôler dans l'application</h3>
+<p>Ouvrez l'application, page <b>Map</b>, sélecteur de fond → <b>Carte OACI 1/1 000 000 (France)</b>. Puis le bouton <b>information</b> : la ligne de la 1/1 000 000 doit nommer le <b>nouveau fichier</b>. C'est le contrôle décisif — ce nom est lu dans <code>cartes.json</code>, jamais écrit en dur, donc il dit toujours l'édition réellement en service.</p>
+<p>Si vous aviez une copie hors-ligne de l'ancienne édition : <b>Profil → Cartes hors-ligne</b> → Supprimer, puis Télécharger. Sans cela, votre appareil continuera d'afficher l'ancienne carte, et il aura raison de le faire : une copie hors-ligne l'emporte toujours sur le réseau.</p>
+</div></div>
+
+<h2><span class="n">4</span>Mettre à jour la 1/250 000 (Région parisienne)</h2>
+<p>Depuis la version 378, cette carte suit exactement le même chemin. La procédure ci-dessus s'applique mot pour mot, avec deux différences :</p>
+<ul>
+  <li>le fichier de sortie se nomme <code>SIA_Paris_250k_<mark>2026-2</mark>.pmtiles</code> ;</li>
+  <li>c'est la ligne <code>oaci250</code> de <code>cartes.json</code> que vous modifiez.</li>
+</ul>
+<div class="note"><b>Ce qui change pour vous, en pratique</b>
+Tant que cette carte vivait dans le dépôt GitHub, elle devait tenir sous 100 Mo, d'où le travail d'allègement à chaque édition. Déposée chez R2, cette contrainte disparaît : convertissez le fichier du SIA <b>tel quel</b>, sans réduction de qualité ni de niveaux de zoom. C'est du temps gagné à chaque cycle, et une carte plus nette à l'écran.</div>
+<p>La première fois, il faut aussi retirer l'ancien fichier du dépôt (<code>SIA_Paris_250k_2026-1_FULL.pmtiles</code> et sa variante <i>light</i>) : il ne sert plus, et allège le dépôt de 40 Mo.</p>
+
+<h2><span class="n">5</span>Le fichier <code>cartes.json</code></h2>
+<p>C'est le carnet d'adresses des cartes, posé à côté de <code>index.html</code>. Il est lu une fois par session, et son contenu l'emporte sur tout ce qui est écrit dans le code.</p>
+<pre>{
+  "_lisezmoi": "…",
+  "oaci250":  "https://pub-<span class="c">…</span>.r2.dev/SIA_Paris_250k_2026-2.pmtiles",
+  "oaci1000": ["https://pub-<span class="c">…</span>.r2.dev/SIA_France_1000k_2026-02.pmtiles"]
+}</pre>
+<ul>
+  <li><b>Une adresse complète</b> (commençant par <code>https://</code>) désigne un fichier hébergé ailleurs.</li>
+  <li><b>Un nom seul</b> désigne un fichier posé à côté de <code>index.html</code>, dans le dépôt.</li>
+  <li><b>Une liste</b> — acceptée pour <code>oaci1000</code> — réunit plusieurs morceaux en une seule carte : utile si un hébergeur limite la taille des fichiers. Chaque morceau se cantonne alors tout seul à l'emprise inscrite dans son en-tête.</li>
+</ul>
+<div class="warn"><b>La règle à ne jamais enfreindre</b>
+Ne réutilisez jamais le nom d'un fichier pour une nouvelle édition. Les PMTiles se lisent par petits morceaux, et les caches gardent ces morceaux : sous un nom identique, un appareil pourrait mélanger des octets de l'ancienne carte et de la nouvelle, et afficher une tuile fausse sans jamais signaler d'erreur. Une édition, un nom.</div>
+
+<h2><span class="n">6</span>Vérifications après chaque mise à jour</h2>
+<table>
+  <tr><th style="width:42%">Ce qu'on vérifie</th><th>Comment</th></tr>
+  <tr><td>Le fichier est lisible depuis l'application</td><td>Le <code>curl</code> de l'étape 4 : <code>Content-Range</code> <b>et</b> <code>Access-Control-Allow-Origin</code></td></tr>
+  <tr><td>L'édition en service est la bonne</td><td>Bouton <b>information</b> : le nom du fichier y est affiché pour les deux cartes</td></tr>
+  <tr><td>La carte s'affiche</td><td>Page Map, sélecteur de fond, à plusieurs niveaux de zoom</td></tr>
+  <tr><td>La copie hors-ligne suit</td><td><b>Profil → Cartes hors-ligne</b> : supprimer, retélécharger</td></tr>
+  <tr><td>Rien n'est cassé pour les autres</td><td>Ouvrir l'application sur un second appareil, sans copie hors-ligne</td></tr>
+</table>
+
+<h2><span class="n">7</span>Dépannage</h2>
+<table>
+  <tr><th style="width:32%">Symptôme</th><th style="width:32%">Cause probable</th><th>Remède</th></tr>
+  <tr><td>« Carte 1/1 000 000 introuvable… »</td><td>L'adresse de <code>cartes.json</code> ne correspond pas au nom réel de l'objet</td><td>Recopier l'adresse depuis la console R2, par copier-coller et non à la main</td></tr>
+  <tr><td>Le <code>curl</code> répond 401</td><td>L'URL de développement publique n'est pas activée sur le seau</td><td>R2 → seau → Settings → Public Development URL → <i>Enable</i></td></tr>
+  <tr><td>Le <code>curl</code> répond 404</td><td>Le nom du fichier diffère de celui de l'URL</td><td>Onglet <b>Objects</b> : comparer caractère par caractère</td></tr>
+  <tr><td><code>Access-Control-Allow-Origin</code> absent</td><td>Règle CORS absente, ou <code>Origin</code> du test différent de celui autorisé</td><td>Ajouter la règle CORS au seau, ou y mettre <code>"*"</code></td></tr>
+  <tr><td>L'ancienne carte s'affiche encore</td><td>Une copie hors-ligne est présente sur l'appareil : elle l'emporte, c'est voulu</td><td>Profil → Cartes hors-ligne → Supprimer, puis Télécharger</td></tr>
+  <tr><td>La carte est floue au zoom fort</td><td>Le fichier s'arrête à son dernier niveau ; au-delà, l'image est agrandie</td><td>Normal. Vérifier <code>max zoom</code> avec <code>pmtiles show</code></td></tr>
+  <tr><td>Une région manque</td><td>L'emprise du fichier du SIA ne la couvre pas</td><td><code>pmtiles show</code> → <b>bounds</b>. Rien à corriger de notre côté</td></tr>
+  <tr><td>Le téléchargement hors-ligne échoue</td><td>Fichier reçu qui n'est pas un <code>.pmtiles</code> (mauvaise adresse, page d'erreur)</td><td>Le message le dit ; rien n'est conservé. Reprendre l'étape 4</td></tr>
+</table>
+
+<h2><span class="n">8</span>Les demandes à me passer</h2>
+<p>Les étapes ci-dessus sont les vôtres — vous seul avez les fichiers du SIA et l'accès au seau. Tout le reste peut m'être confié : voici les demandes prêtes à recopier, avec les valeurs à remplacer en surbrillance.</p>
+
+<div class="prompt">
+  <div class="t">Cas courant — une nouvelle édition est en ligne</div>
+  <div class="q">« Nouvelle édition des cartes. J'ai déposé sur R2 <mark>SIA_France_1000k_2026-02.pmtiles</mark> et <mark>SIA_Paris_250k_2026-2.pmtiles</mark>. Mets à jour <code>cartes.json</code>, vérifie que les informations de l'application nomment bien ces éditions, teste, incrémente la version et livre-moi les fichiers. »</div>
+  <div class="u">Ce que je fais : la modification, les tests de non-régression sur les cartes, le numéro de version, le commit, et je vous renvoie les fichiers à recopier.</div>
+</div>
+
+<div class="prompt">
+  <div class="t">Le fichier est trop lourd pour l'hébergeur</div>
+  <div class="q">« La carte <mark>1/250 000</mark> fait <mark>320 Mo</mark> et l'hébergeur refuse au-delà de <mark>50 Mo</mark>. Donne-moi les commandes de découpage, et adapte l'application pour qu'elle réunisse les morceaux. »</div>
+  <div class="u">L'application sait déjà réunir des morceaux pour la 1/1 000 000 ; pour une autre carte, c'est une soirée de travail, pas davantage.</div>
+</div>
+
+<div class="prompt">
+  <div class="t">Ajouter une carte</div>
+  <div class="q">« Je veux ajouter la carte <mark>1/250 000 Lyon</mark>. Fichier <mark>SIA Lyon 01_2026.mbtiles</mark>, à afficher sous le nom <mark>Carte OACI 1/250 000 Lyon (SIA)</mark>, hébergée chez R2. Ajoute-la au sélecteur, au carnet d'adresses et aux cartes hors-ligne. »</div>
+  <div class="u">Précisez toujours le nom exact à afficher : c'est celui que vous lirez en vol.</div>
+</div>
+
+<div class="prompt">
+  <div class="t">Changer d'hébergeur</div>
+  <div class="q">« Je quitte <mark>Cloudflare R2</mark> pour <mark>…</mark>. Voici l'adresse d'un fichier de test : <mark>https://…</mark>. Vérifie qu'elle convient et bascule les cartes dessus. »</div>
+  <div class="u">Les deux conditions à remplir par tout hébergeur : la lecture par plages (<code>Content-Range</code>) et l'autorisation d'origine (<code>Access-Control-Allow-Origin</code>). GitHub, par exemple, remplit la première mais pas la seconde : ses <i>releases</i> ne peuvent pas servir de source.</div>
+</div>
+
+<div class="prompt">
+  <div class="t">Quelque chose ne va pas</div>
+  <div class="q">« La carte <mark>1/1 000 000</mark> ne s'affiche plus. Voici ce que répond le serveur : <mark>[coller la sortie du curl]</mark>. »</div>
+  <div class="u">La sortie du <code>curl</code> de l'étape 4 suffit presque toujours à trancher entre un problème d'adresse, d'autorisation ou de fichier.</div>
+</div>
+
+<h2><span class="n">9</span>Ce qu'il ne faut jamais faire</h2>
+<ul>
+  <li><b>Déposer un <code>.mbtiles</code> chez l'hébergeur.</b> Il ne sera jamais lisible par un navigateur. La conversion n'est pas une commodité, c'est une nécessité.</li>
+  <li><b>Réutiliser le nom d'une édition précédente.</b> Voir l'encadré du chapitre 5.</li>
+  <li><b>Ajouter un fichier de carte au dépôt Git.</b> GitHub refuse au-delà de 100 Mo, et l'historique conserve pour toujours ce qu'on y verse : quelques éditions suffiraient à rendre le dépôt inutilisable.</li>
+  <li><b>Passer par Git LFS.</b> GitHub Pages ne résout pas les fichiers LFS : il servirait le pointeur, un fichier texte de quelques octets, et la carte resterait blanche.</li>
+  <li><b>Retirer l'attribution SIA ou IGN.</b> Elle est obligatoire, y compris sous Licence Ouverte.</li>
+  <li><b>Voler sur la foi de ces cartes seules.</b> L'application n'est ni officielle ni validée DGAC. Les cartes VAC en vigueur, les NOTAM et le rapporteur restent la référence.</li>
+</ul>
+
+</body></html>
