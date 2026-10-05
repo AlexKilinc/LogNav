@@ -3077,7 +3077,7 @@ window.__TRACE_MARKUP="\n\n<header>\n  <div class=\"hdr-row1\">\n    <span class
    accessible depuis le bouton ⓘ du bandeau du log, avant toute ouverture de la carte */
 (function(){
   var host=document.createElement('div');
-  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Cartes OACI — origine et mise à jour</b></p>\n    <p style=\"margin-top:-6px\"><b>1/250 000 Région parisienne</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte250\">—</span>.</p>\n    <p style=\"margin-top:-6px\"><b>1/500 000 France</b> — IGN Géoplateforme (SCAN-OACI). Donnée <b>non libre</b>, tenue à jour par l’IGN.</p>\n    <p style=\"margin-top:-6px\"><b>1/1 000 000 France</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte1000\">—</span>.</p>\n    <p>Les deux cartes du SIA sont hébergées à part et lues par plages : seules les tuiles affichées sont téléchargées. Les trois se copient sur l’appareil pour voler sans réseau depuis <b>Profil → Cartes hors-ligne</b>. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.640</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
+  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Cartes OACI — origine et mise à jour</b></p>\n    <p style=\"margin-top:-6px\"><b>1/250 000 Région parisienne</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte250\">—</span>.</p>\n    <p style=\"margin-top:-6px\"><b>1/500 000 France</b> — IGN Géoplateforme (SCAN-OACI). Donnée <b>non libre</b>, tenue à jour par l’IGN.</p>\n    <p style=\"margin-top:-6px\"><b>1/1 000 000 France</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte1000\">—</span>.</p>\n    <p>Les deux cartes du SIA sont hébergées à part et lues par plages : seules les tuiles affichées sont téléchargées. Les trois se copient sur l’appareil pour voler sans réseau depuis <b>Profil → Cartes hors-ligne</b>. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.641</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
   (document.body||document.documentElement).appendChild(host.firstElementChild);
   /* le nom du fichier de la 1/1 000 000 dit son edition : on le lit la ou il
      est vraiment (cartes.json), jamais en dur, sinon il mentirait un jour */
@@ -7116,6 +7116,11 @@ function openRelinkChoice(){
    +'.ntm-et.e{background:#FEF3C7;color:#92400E}'
    +'.ntm-et.a{background:#E2E8F0;color:#475569}'
    +'.ntm-et.p{background:#F3E8FF;color:#6D28D9}'
+   /* v.641 : les badges OPERATIONNELS. Un seul rouge pour les trois : ils
+      ne paraissent jamais ensemble, et leur texte dit lequel c'est. Le
+      rouge les separe franchement des badges d'etat (bleu, violet, gris,
+      ambre), qui eux ne contraignent rien. */
+   +'.ntm-et.x{background:#FEE2E2;color:#B91C1C;font-weight:800}'
    /* l'item D : il change QUAND le NOTAM s'applique — jamais discret */
    +'.ntm-hor{display:inline-block;margin-left:6px;padding:1px 7px;border-radius:10px;'
    +'background:#EDE9FE;color:#5B21B6;font:700 9px Poppins,sans-serif;vertical-align:1px}'
@@ -7951,6 +7956,43 @@ function openRelinkChoice(){
         +'Un NOTAM \u00e0 fin estim\u00e9e reste en vigueur tant qu\u2019il n\u2019est ni annul\u00e9 '
         +'ni remplac\u00e9 : il est gard\u00e9 \u00e0 dessein.'};
     return null; }
+  /* ===== v.641 : LES TROIS BADGES OPERATIONNELS =====================
+     ntmEtat dit l'ETAT d'un NOTAM (a venir, permanent, administratif...).
+     Il ne dit rien de ce qu'il CONTRAINT. Ces trois-ci le disent, et ils
+     se deduisent du seul Q-code : sujet aux lettres 1-2, condition aux
+     lettres 3-4. Le relais livre deja ces quatre lettres, de SOFIA comme
+     d'autorouter, sous forme structuree (code23 + code45).
+
+     Pourquoi le Q-code et rien d'autre : le champ E) est du texte libre,
+     tantot francais tantot anglais (le SIA ne traduit pas tout), ou les
+     memes mots disent des choses differentes. Un badge tire d'un mot-cle
+     se trompe en silence ; un badge tire d'un vocabulaire ferme, non.
+
+     Q-code absent ou tronque : AUCUN badge. Jamais de devinette — c'est
+     deja la regle du tri des NOTAM d'espace aerien, plus haut.
+
+     Un seul badge a la fois, le plus contraignant : aerodrome ferme avant
+     VFR interdit, VFR interdit avant piste fermee. Un aerodrome ferme
+     englobe sa piste ; « VFR interdit » ferme le terrain au vol qui nous
+     occupe, meme si la piste reste ouverte a l'IFR. */
+  function ntmOper(n){
+    var q=String((n&&n.qcode)||'').toUpperCase();
+    if(q.length<4) return null;
+    var suj=q.slice(0,2), cond=q.slice(2,4);
+    if(suj==='FA'&&cond==='LC') return {cl:'x',txt:'AD ferm\u00e9',
+      inf:'A\u00e9rodrome FERM\u00e9 \u2014 Q-code FA (a\u00e9rodrome) + LC (ferm\u00e9). '
+        +'D\u00e9duit du Q-code, pas du texte : v\u00e9rifier la port\u00e9e exacte au champ E).'};
+    if(cond==='LV') return {cl:'x',txt:'VFR interdit',
+      inf:'Ferm\u00e9 au VFR \u2014 Q-code condition LV. '
+        +'D\u00e9duit du Q-code, pas du texte : v\u00e9rifier la p\u00e9riode au champ D) et le d\u00e9tail au champ E).'};
+    if(suj==='MR'&&cond==='LC') return {cl:'x',txt:'Piste ferm\u00e9e',
+      inf:'Piste FERM\u00c9E \u2014 Q-code MR (piste) + LC (ferm\u00e9). '
+        +'D\u00e9duit du Q-code, pas du texte : v\u00e9rifier QUELLE piste au champ E).'};
+    return null;
+  }
+  /* la pastille toute faite, pour les trois endroits qui l'affichent */
+  function ntmOperBadge(n){ var o=ntmOper(n);
+    return o?('<span class="ntm-et '+o.cl+'" title="'+ntmEsc(o.inf)+'">'+o.txt+'</span>'):''; }
   /* L'item D d'un NOTAM restreint son application a certaines heures : \u00ab SS
      PLUS30-SR MINUS30 \u00bb, \u00ab MON-FRI 0600-1800 \u00bb\u2026 Sans lui, un NOTAM actif
      seulement de nuit se lit comme actif en permanence pendant des mois.
@@ -8045,6 +8087,8 @@ function openRelinkChoice(){
   function ntmLigneOaci(n){
     var e=ntmEtat(n), fn=ntmFin(n), h='<div class="ntm-un ntm-oaci">'
       +'<div class="ntm-oid">'+ntmEsc(n.serie||'NOTAM')
+      /* v.641 : ce qu'il CONTRAINT d'abord, ce qu'il EST ensuite */
+      +ntmOperBadge(n)
       +(e?'<span class="ntm-et '+e.cl+'" title="'+ntmEsc(e.inf)+'">'+e.txt+'</span>':'')
       +'</div>';
     var q=ntmQOaci(n); if(q) h+=ntmItem('Q',q);
@@ -8070,6 +8114,7 @@ function openRelinkChoice(){
     return '<div class="ntm-un"><b>'+ntmEsc(n.serie||n.qcode||'NOTAM')+'</b> \u00b7 '
     +ntmDate(n.debut)+' \u2192 '+(ntmFin(n)?ntmDate(ntmFin(n))+(n.estimee?' (est.)':''):'PERM')
     +((n.bas>0||(n.haut!=null&&n.haut<999))?' \u00b7 FL'+n.bas+'\u2013FL'+n.haut:'')
+    +ntmOperBadge(n)
     +(e?'<span class="ntm-et '+e.cl+'" title="'+ntmEsc(e.inf)+'">'+e.txt+'</span>':'')
     +ntmHoraire(n)
     +(n.enSecours?'<span class="ntm-et a" title="Ce NOTAM n’est pas traduit '
@@ -9120,6 +9165,7 @@ function openRelinkChoice(){
     var et=null; try{ et=ntmEtat(n); }catch(_){}
     var h='<div class="wxd-msg wxd-oaci'+(lum?' wxd-lum':'')+'">'
       +'<div class="wxd-oid">'+(lum?'★ ':'')+ntmEsc(n.serie||n.qcode||'NOTAM')
+      +ntmOperBadge(n)
       +(et?'<span class="ntm-et '+et.cl+'" title="'+ntmEsc(et.inf)+'">'+et.txt+'</span>':'')
       +(n.nonTraduit?'<span class="wxd-en">non traduit par le SIA</span>':'')
       +'</div>';
@@ -9151,11 +9197,17 @@ function openRelinkChoice(){
              ['e','\u00e0 fin estim\u00e9e d\u00e9pass\u00e9e'],['a','administratif']];
     var resume=function(lot){
       lot=lot||[]; if(!lot.length) return '';
-      var c={v:0,p:0,e:0,a:0};
-      lot.forEach(function(n){ var e=null;
+      var c={v:0,p:0,e:0,a:0}, op={};
+      lot.forEach(function(n){ var e=null,o=null;
         try{ e=ntmEtat(n); }catch(_){}
-        if(e&&c[e.cl]!=null) c[e.cl]++; });
+        try{ o=ntmOper(n); }catch(_){}
+        if(e&&c[e.cl]!=null) c[e.cl]++;
+        if(o) op[o.txt]=(op[o.txt]||0)+1; });
       var h='<span class="wxd-ares"><span class="wxd-acnt">'+lot.length+' NOTAM</span>';
+      /* v.641 : la CONTRAINTE passe devant l'etat — c'est elle qui decide
+         si le vol tient encore debout */
+      ['AD ferm\u00e9','VFR interdit','Piste ferm\u00e9e'].forEach(function(t){
+        if(op[t]) h+='<span class="ntm-et x">'+(op[t]>1?op[t]+' ':'')+t+'</span>'; });
       ETQ.forEach(function(x){ var n=c[x[0]]; if(!n) return;
         h+='<span class="ntm-et '+x[0]+'">'+n+' '+x[1]
           +((x[0]==='a'&&n>1)?'s':'')+'</span>'; });
