@@ -3083,7 +3083,7 @@ window.__TRACE_MARKUP="\n\n<header>\n  <div class=\"hdr-row1\">\n    <span class
    accessible depuis le bouton ⓘ du bandeau du log, avant toute ouverture de la carte */
 (function(){
   var host=document.createElement('div');
-  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Cartes OACI — origine et mise à jour</b></p>\n    <p style=\"margin-top:-6px\"><b>1/250 000 Région parisienne</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte250\">—</span>.</p>\n    <p style=\"margin-top:-6px\"><b>1/500 000 France</b> — IGN Géoplateforme (SCAN-OACI). Donnée <b>non libre</b>, tenue à jour par l’IGN.</p>\n    <p style=\"margin-top:-6px\"><b>1/1 000 000 France</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte1000\">—</span>.</p>\n    <p>Les deux cartes du SIA sont hébergées à part et lues par plages : seules les tuiles affichées sont téléchargées. Les trois se copient sur l’appareil pour voler sans réseau depuis <b>Profil → Cartes hors-ligne</b>. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.643</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
+  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Cartes OACI — origine et mise à jour</b></p>\n    <p style=\"margin-top:-6px\"><b>1/250 000 Région parisienne</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte250\">—</span>.</p>\n    <p style=\"margin-top:-6px\"><b>1/500 000 France</b> — IGN Géoplateforme (SCAN-OACI). Donnée <b>non libre</b>, tenue à jour par l’IGN.</p>\n    <p style=\"margin-top:-6px\"><b>1/1 000 000 France</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte1000\">—</span>.</p>\n    <p>Les deux cartes du SIA sont hébergées à part et lues par plages : seules les tuiles affichées sont téléchargées. Les trois se copient sur l’appareil pour voler sans réseau depuis <b>Profil → Cartes hors-ligne</b>. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.644</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
   (document.body||document.documentElement).appendChild(host.firstElementChild);
   /* le nom du fichier de la 1/1 000 000 dit son edition : on le lit la ou il
      est vraiment (cartes.json), jamais en dur, sinon il mentirait un jour */
@@ -3134,7 +3134,74 @@ window.__TRACE_MARKUP="\n\n<header>\n  <div class=\"hdr-row1\">\n    <span class
       el.parentNode.appendChild(document.createTextNode('.'));
     });
     nomCarte250(); nomCarte1000();
+    /* v.644 : le releve de geometrie, discret, en pied de panneau — il
+       permet de trancher un probleme d'affichage sans rien deviner */
+    try{
+      var bx=document.querySelector('#infoModal .info-box');
+      if(bx){
+        var old=document.getElementById('infoGeo'); if(old) old.remove();
+        var g=document.createElement('div'); g.id='infoGeo';
+        g.style.cssText='margin-top:10px;padding-top:8px;border-top:1px solid #e3e6ee;'
+          +'font:600 9.5px ui-monospace,monospace;color:#94a3b8;word-break:break-word';
+        g.textContent='\u00c9cran : '+(window.__GEO_IOS?window.__GEO_IOS():'?');
+        bx.appendChild(g);
+      }
+    }catch(e){}
   };
+  /* ===== v.644 : CE QUE L'OS CACHE, MESURE =========================
+     Depuis iOS 26, une application installee peut se voir attribuer une
+     vue plus HAUTE que la zone visible : le bas de la page tombe alors
+     hors de l'ecran et la barre d'onglets s'y perd. Aucun
+     env(safe-area-inset-*) ne le signale. On le mesure donc : l'ecart
+     entre innerHeight (mise en page) et visualViewport.height (visible)
+     est exactement ce qui est cache. */
+  (function(){
+    var r=document.documentElement, dernier=0;
+    function majCache(){
+      try{
+        /* Safari a son propre jeu : sa barre d'outils se retracte au
+           defilement et creuse le meme ecart, legitimement. On ne corrige
+           que l'application installee. */
+        var app=(navigator.standalone===true)
+          ||(window.matchMedia&&window.matchMedia('(display-mode: standalone)').matches);
+        if(!app){ r.style.setProperty('--vv-cache','0px'); dernier=0; return; }
+        /* le clavier retrecit la vue visible : ce n'est pas de l'espace
+           cache, et corriger reviendrait a faire sauter la barre */
+        var ae=document.activeElement, t=ae?String(ae.tagName||'').toUpperCase():'';
+        if(t==='INPUT'||t==='TEXTAREA'||t==='SELECT'||(ae&&ae.isContentEditable)){ return; }
+        /* rien a corriger si l'application n'est pas installee */
+        var vv=window.visualViewport;
+        var vis=vv?vv.height:window.innerHeight;
+        var cache=Math.round(window.innerHeight-vis);
+        /* au-dela de 80 px ce n'est plus une encoche : on s'abstient */
+        if(!isFinite(cache)||cache<0||cache>80) cache=0;
+        r.style.setProperty('--vv-cache',cache+'px');
+        dernier=cache;
+      }catch(e){}
+    }
+    /* ce que l'OS cache, en pixels — lu par le calcul de la barre d'onglets */
+    window.__CACHE_OS=function(){ return dernier; };
+    majCache();
+    window.addEventListener('resize',majCache);
+    window.addEventListener('orientationchange',function(){ setTimeout(majCache,180); });
+    try{ if(window.visualViewport){
+      window.visualViewport.addEventListener('resize',majCache);
+      window.visualViewport.addEventListener('scroll',majCache); } }catch(e){}
+    document.addEventListener('focusout',function(){ setTimeout(majCache,220); });
+    [220,900,2200].forEach(function(d){ setTimeout(majCache,d); });
+    /* le releve, pour trancher sans deviner si le compte n'y est pas */
+    window.__GEO_IOS=function(){
+      var vv=window.visualViewport, cs=getComputedStyle(document.documentElement);
+      var ap=document.querySelector('.approot');
+      var pr=function(p){ try{ return getComputedStyle(document.body).getPropertyValue(p); }catch(e){ return '?'; } };
+      return 'inner '+window.innerHeight+' · visible '+(vv?Math.round(vv.height):'?')
+        +' · cach\u00e9 '+cs.getPropertyValue('--vv-cache').trim()
+        +' · \u00e9cran '+(screen&&screen.height)
+        +' · appli '+((navigator.standalone===true)?'oui':'non')
+        +' · padHaut '+(ap?getComputedStyle(ap).paddingTop:'?')
+        +' · bande '+getComputedStyle(document.body,'::before').height;
+    };
+  })();
   /* iPadOS : les pastilles de fen\xEAtrage (coin haut-gauche) recouvrent le burger
      en mode fen\xEAtr\xE9 \u2192 classe pour d\xE9caler le bandeau carte vers le bas */
   if(/iPad/.test(navigator.userAgent)||(navigator.maxTouchPoints>1&&/Macintosh/.test(navigator.userAgent))) document.documentElement.classList.add('ipados');
@@ -10213,7 +10280,7 @@ const name=(nav.name||"lognav").replace(/[^\w\-]+/g,"_");await window.html2pdf()
           /* écrans clairs (Profil / Image) : pas de bande noire, l'island ne gêne pas */
           body.mp-light::before{display:none!important;}
           html,body{overflow-x:hidden;}
-          .approot{display:flex;flex-direction:column;padding-top:calc(env(safe-area-inset-top) + 1.5px)!important;padding-bottom:110px!important;}
+          .approot{display:flex;flex-direction:column;padding-top:calc(env(safe-area-inset-top) + 1.5px)!important;padding-bottom:calc(110px + var(--vv-cache,0px))!important;}
           .mlog{width:100%!important;max-width:none!important;}
           .mlog-type{max-width:none!important;}
           .mtoolbar{order:-1;position:sticky;top:calc(env(safe-area-inset-top) + 1.5px);z-index:60;margin:0 -12px 12px!important;max-width:none!important;border-radius:0 0 14px 14px!important;padding-top:9px!important;}
@@ -12511,7 +12578,12 @@ window.__CARTE_ADR=function(j,cle){
     measureEnvB(); measureEnvLR();
     var z=bandNow(), hb=dots.offsetHeight||0;
     dots.style.bottom='auto'; dots.style.left='0'; dots.style.right='0';
-    dots.style.top=Math.round(z.vh+z.b-hb)+'px';
+    /* v.644 : « z.vh » est la hauteur de MISE EN PAGE. Depuis iOS 26, une
+       application installee peut en recevoir davantage que ce que l'ecran
+       montre : la barre se posait alors sous le bord inferieur. On retire
+       ce qui est cache — zero partout ailleurs. */
+    var cOS=0; try{ cOS=(window.__CACHE_OS&&window.__CACHE_OS())||0; }catch(e){}
+    dots.style.top=Math.round(z.vh+z.b-hb-cOS)+'px';
     /* le réglage de taille d'interface reste à l'ordinateur : sur téléphone il
        quitte la barre, qui ne garde que les écrans */
     if(scale && scale.parentElement===dots){ try{ document.body.appendChild(scale); }catch(e){}
