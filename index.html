@@ -272,7 +272,11 @@ try{ window.sb=(window.supabase&&window.supabase.createClient)?window.supabase.c
 #trace-host .airac-badge svg{opacity:.9}
 .info-modal{position:fixed;inset:0;z-index:2000;background:rgba(10,20,40,.55);display:grid;place-items:center;padding:20px}
 .info-modal[hidden]{display:none}
-.info-box{background:#fff;max-width:520px;border-radius:14px;padding:22px 24px;box-shadow:0 20px 60px rgba(15,39,76,.35);position:relative;font-size:13px;line-height:1.6;color:#33475b;font-family:"Inter","Poppins",sans-serif}
+.info-box{background:#fff;max-width:520px;border-radius:14px;padding:22px 24px;box-shadow:0 20px 60px rgba(15,39,76,.35);position:relative;font-size:13px;line-height:1.6;color:#33475b;font-family:"Inter","Poppins",sans-serif;
+  /* v.645 : le texte debordait de l'ecran sans pouvoir etre atteint —
+     ni hauteur bornee, ni defilement. On borne a la vue VISIBLE (dvh, et
+     ce que l'OS cache en plus), et l'on fait defiler. */
+  max-height:calc(100dvh - 40px - var(--vv-cache,0px));overflow:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
 .info-box h3{margin:0 0 14px;font-size:15px;color:var(--navy);font-weight:600}
 .info-box p{margin:0 0 12px}
 .info-box p:last-child{margin-bottom:0}
@@ -3083,7 +3087,7 @@ window.__TRACE_MARKUP="\n\n<header>\n  <div class=\"hdr-row1\">\n    <span class
    accessible depuis le bouton ⓘ du bandeau du log, avant toute ouverture de la carte */
 (function(){
   var host=document.createElement('div');
-  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Cartes OACI — origine et mise à jour</b></p>\n    <p style=\"margin-top:-6px\"><b>1/250 000 Région parisienne</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte250\">—</span>.</p>\n    <p style=\"margin-top:-6px\"><b>1/500 000 France</b> — IGN Géoplateforme (SCAN-OACI). Donnée <b>non libre</b>, tenue à jour par l’IGN.</p>\n    <p style=\"margin-top:-6px\"><b>1/1 000 000 France</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte1000\">—</span>.</p>\n    <p>Les deux cartes du SIA sont hébergées à part et lues par plages : seules les tuiles affichées sont téléchargées. Les trois se copient sur l’appareil pour voler sans réseau depuis <b>Profil → Cartes hors-ligne</b>. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.644</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
+  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Cartes OACI — origine et mise à jour</b></p>\n    <p style=\"margin-top:-6px\"><b>1/250 000 Région parisienne</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte250\">—</span>.</p>\n    <p style=\"margin-top:-6px\"><b>1/500 000 France</b> — IGN Géoplateforme (SCAN-OACI). Donnée <b>non libre</b>, tenue à jour par l’IGN.</p>\n    <p style=\"margin-top:-6px\"><b>1/1 000 000 France</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte1000\">—</span>.</p>\n    <p>Les deux cartes du SIA sont hébergées à part et lues par plages : seules les tuiles affichées sont téléchargées. Les trois se copient sur l’appareil pour voler sans réseau depuis <b>Profil → Cartes hors-ligne</b>. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.645</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
   (document.body||document.documentElement).appendChild(host.firstElementChild);
   /* le nom du fichier de la 1/1 000 000 dit son edition : on le lit la ou il
      est vraiment (cartes.json), jamais en dur, sinon il mentirait un jour */
@@ -3141,10 +3145,16 @@ window.__TRACE_MARKUP="\n\n<header>\n  <div class=\"hdr-row1\">\n    <span class
       if(bx){
         var old=document.getElementById('infoGeo'); if(old) old.remove();
         var g=document.createElement('div'); g.id='infoGeo';
-        g.style.cssText='margin-top:10px;padding-top:8px;border-top:1px solid #e3e6ee;'
-          +'font:600 9.5px ui-monospace,monospace;color:#94a3b8;word-break:break-word';
-        g.textContent='\u00c9cran : '+(window.__GEO_IOS?window.__GEO_IOS():'?');
-        bx.appendChild(g);
+        /* v.645 : EN TETE, et non en pied — un releve qu'il faut faire
+           defiler pour atteindre ne sert a rien quand c'est justement le
+           defilement qui est en cause */
+        g.style.cssText='margin:0 0 12px;padding:7px 9px;border-radius:8px;'
+          +'background:#f1f5f9;border:1px solid #e3e6ee;'
+          +'font:600 9.5px ui-monospace,monospace;color:#64748b;word-break:break-word';
+        var ver=''; try{ ver=(document.body.textContent.match(/Version appli : ([0-9][0-9.\-]+)/)||[])[1]||''; }catch(e){}
+        g.textContent='v'+(ver||'?')+' \u00b7 '+(window.__GEO_IOS?window.__GEO_IOS():'?');
+        var cl=bx.querySelector('.close');
+        if(cl&&cl.nextSibling) bx.insertBefore(g,cl.nextSibling); else bx.insertBefore(g,bx.firstChild);
       }
     }catch(e){}
   };
@@ -12522,6 +12532,15 @@ window.__CARTE_ADR=function(j,cle){
     var sh=(window.screen&&window.screen.height)||0;
     var b=(iw<ih&&sh>ih)?(sh-ih):0;
     if(!(b>=20&&b<=140)) b=0;
+    /* v.645 : « b » est la bande que SAFARI reserve en bas pour sa barre
+       d'outils. Une application installee n'en a pas. Et depuis iOS 26,
+       sa fenetre commence SOUS une barre d'etat opaque : l'ecart
+       screen.height - innerHeight y mesure le HAUT, pas le bas. L'ajouter
+       en bas faisait descendre la barre d'onglets hors de l'ecran. */
+    try{
+      if(navigator.standalone===true
+         ||(window.matchMedia&&window.matchMedia('(display-mode: standalone)').matches)) b=0;
+    }catch(e){}
     return {b:b, vh:ih};
   }
   /* Ancrage invisible calé sur la hauteur d'ÉCRAN : la hauteur du document reste
