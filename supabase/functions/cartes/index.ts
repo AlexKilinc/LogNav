@@ -13,18 +13,20 @@
  *   GET ?essai=1&type=...&date=...                  -> journal JSON de la voie SOFIA
  *   GET ?poste=1&op=postTemsi&zone=FRANCE           -> rejouer un POST SOFIA (diagnostic)
  *   GET ?sofia=1&route=LFPN,LFPZ                    -> NOTAM via SOFIA (PIB route étroite)
+ *   GET ?vac=1&ad=LFPN                              -> la planche VAC du SIA (PDF)
+ *   GET ?vac=1&ad=LFPN&essai=1                      -> journal JSON des adresses essayées
  *   GET ?version=1                                  -> version du code déployé
  *
  * Déploiement : Supabase > Edge Functions > fonction « cartes », coller ce
  * fichier EN ENTIER (vérifier que la dernière ligne dans l'éditeur est bien
  * « }); »), déployer, et laisser « Enforce JWT verification » DÉSACTIVÉ.
- * Aucun secret requis. Vérification : ouvrir ?version=1 -> doit répondre 7.45.
+ * Aucun secret requis. Vérification : ouvrir ?version=1 -> doit répondre 7.47.
  * Secret OPTIONNEL : CARTES_WORKER = adresse du Worker Cloudflare de secours
  * (cloudflare/meteo-sofia du dépôt) pour les octets des cartes quand
  * Météo-France refuse l'adresse IP de Supabase.
  */
 
-const VERSION = "7.46";
+const VERSION = "7.47";
 const AERO = "https://aviation.meteo.fr";
 const SOFIA = "https://sofia-briefing.aviation-civile.gouv.fr";
 const UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Safari/605.1.15";
@@ -797,6 +799,130 @@ async function supAip(_q: URLSearchParams): Promise<Response> {
   } catch (e) {
     return reponseJson({ erreur: "SUP AIP indisponibles", detail: String(e).slice(0, 140) }, 502);
   }
+}
+
+/* ================== CARTES VAC — les planches officielles du SIA ==========
+   L'application range les VAC hors ligne ; il lui faut une arrivee. Le SIA
+   publie l'Atlas-VAC dans l'eAIP, un PDF par terrain, a une adresse qui ne
+   depend que du CYCLE AIRAC et du code OACI :
+
+     <SIA>/dvd/eAIP_<JJ_MMM_AAAA>/Atlas-VAC/PDF_AIPparSSection/VAC/AD/AD-2.<OACI>.pdf
+
+   Trois inconnues, qu'on leve en essayant, dans l'ordre, les adresses
+   plausibles et en s'arretant a la premiere qui rend un PDF :
+     - le prefixe : l'eAIP a ete servi avec et sans « /media » ;
+     - le cycle   : celui du jour, puis le precedent (un cycle publie la
+       veille de sa prise d'effet n'est pas encore en ligne partout) ;
+     - la section : AD-2 pour les aerodromes, AD-3 pour les helistations.
+
+   ?vac=1&ad=LFPN           -> le PDF, avec CORS (l'application le range)
+   ?vac=1&ad=LFPN&essai=1   -> le journal des adresses essayees, en JSON
+
+   Memo d'instance : une VAC ne change qu'au cycle AIRAC. On en garde
+   quelques-unes en memoire vive, et on sert un Cache-Control d'un jour. */
+const SIA_VAC = "https://www.sia.aviation-civile.gouv.fr";
+const VAC_DUREE = 6 * 3600e3;
+const VAC_MAX = 12;             /* au-dela, l'instance paierait en memoire */
+const memoVac = new Map<string, { t: number; buf: ArrayBuffer; src: string; cycle: string }>();
+
+/* Les cycles AIRAC se suivent de 28 jours. Ancre : le 29 octobre 2026,
+   cycle 11/26, dont la date de prise d'effet est celle que porte la base
+   embarquee dans l'application. */
+const AIRAC_ANCRE = Date.UTC(2026, 9, 29);
+function airacDebut(t: number): number {
+  const p = 28 * 86400e3;
+  return AIRAC_ANCRE + Math.floor((t - AIRAC_ANCRE) / p) * p;
+}
+const MOIS = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN",
+              "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
+function dossierEaip(ms: number): string {
+  const d = new Date(ms);
+  return String(d.getUTCDate()).padStart(2, "0") + "_" +
+         MOIS[d.getUTCMonth()] + "_" + d.getUTCFullYear();
+}
+function adressesVac(ad: string): { url: string; cycle: string }[] {
+  const t = Date.now(), p = 28 * 86400e3;
+  const cycles = [airacDebut(t), airacDebut(t) - p, airacDebut(t) + p];
+  const out: { url: string; cycle: string }[] = [];
+  for (const c of cycles) {
+    const dos = dossierEaip(c);
+    for (const prefixe of ["/dvd", "/media/dvd"]) {
+      for (const sect of ["AD-2", "AD-3"]) {
+        out.push({ cycle: dos, url: SIA_VAC + prefixe + "/eAIP_" + dos +
+          "/Atlas-VAC/PDF_AIPparSSection/VAC/AD/" + sect + "." + ad + ".pdf" });
+      }
+    }
+  }
+  return out;
+}
+async function vac(q: URLSearchParams): Promise<Response> {
+  const ad = (q.get("ad") || "").trim().toUpperCase();
+  if (!/^[A-Z]{4}$/.test(ad)) {
+    return reponseJson({ erreur: "paramètre attendu : ad=OACI (4 lettres)",
+      version: VERSION }, 400);
+  }
+  const sert = (buf: ArrayBuffer, src: string, cycle: string, voie: string) =>
+    new Response(buf, { headers: {
+      "Content-Type": "application/pdf",
+      "Content-Disposition": 'inline; filename="VAC-' + ad + '.pdf"',
+      "Cache-Control": "public, max-age=86400",
+      "Access-Control-Allow-Origin": "*",
+      "Cross-Origin-Resource-Policy": "cross-origin",
+      "X-Cartes-Version": VERSION,
+      "X-Cartes-Vac": voie,
+      "X-Cartes-Vac-Cycle": cycle,
+      "X-Cartes-Vac-Source": src.replace(/^https?:\/\//, "").slice(0, 150),
+    } });
+
+  const su = memoVac.get(ad);
+  if (su && Date.now() - su.t < VAC_DUREE && q.get("essai") !== "1") {
+    return sert(su.buf, su.src, su.cycle, "memo");
+  }
+  const essais: Record<string, unknown>[] = [];
+  for (const { url, cycle } of adressesVac(ad)) {
+    try {
+      const r = await fetch(url, { headers: {
+        "User-Agent": UA, "Accept": "application/pdf,*/*;q=0.8",
+        "Accept-Language": "fr-FR,fr;q=0.9", "Referer": SIA_VAC + "/",
+      }, redirect: "follow", signal: AbortSignal.timeout(15000) });
+      const ct = (r.headers.get("Content-Type") || "").toLowerCase();
+      if (r.ok && ct.indexOf("pdf") >= 0) {
+        const buf = await r.arrayBuffer();
+        /* une page d'erreur deguisee en PDF n'existe pas, mais un fichier
+           de quelques octets si : on refuse ce qui ne peut pas etre une
+           planche plutot que de ranger un leurre hors ligne. */
+        if (buf.byteLength < 2048) {
+          essais.push({ url: url.slice(0, 150), http: r.status, octets: buf.byteLength,
+            note: "trop court pour être une planche" });
+          continue;
+        }
+        essais.push({ url: url.slice(0, 150), http: r.status, octets: buf.byteLength });
+        if (q.get("essai") === "1") {
+          return reponseJson({ ad, cycle, trouve: url, octets: buf.byteLength,
+            version: VERSION, essais });
+        }
+        memoVac.set(ad, { t: Date.now(), buf, src: url, cycle });
+        if (memoVac.size > VAC_MAX) {
+          /* on jette la plus ancienne : la memoire d'une instance n'est pas
+             un cache, juste un amortisseur */
+          let vieux = "", tv = Infinity;
+          for (const [k, v] of memoVac) if (v.t < tv) { tv = v.t; vieux = k; }
+          if (vieux && vieux !== ad) memoVac.delete(vieux);
+        }
+        return sert(buf, url, cycle, "frais");
+      }
+      essais.push({ url: url.slice(0, 150), http: r.status, contenu: ct.slice(0, 60) });
+    } catch (e) {
+      essais.push({ url: url.slice(0, 150), erreur: String(e).slice(0, 120) });
+    }
+  }
+  if (q.get("essai") === "1") {
+    return reponseJson({ ad, trouve: null, version: VERSION, essais });
+  }
+  return reponseJson({ erreur: "planche VAC introuvable au SIA pour " + ad,
+    motif: "aucune des adresses du cycle ne rend de PDF — le terrain n’a"
+      + " peut-être pas de VAC publiée, ou l’adresse de l’eAIP a changé",
+    ad, version: VERSION, essais }, 404);
 }
 
 /* ================== AZBA / RTBA — activation des zones basse altitude =====
@@ -1683,6 +1809,7 @@ Deno.serve(async (req: Request) => {
     }
     return reponseJson(etat);
   }
+  if (q.get("vac") === "1") return vac(q);
   if (q.get("supaip") === "1") return supAip(q);
   if (q.get("azba") === "1") return azba(q);
   if (q.get("notam") === "1") return notam(q);

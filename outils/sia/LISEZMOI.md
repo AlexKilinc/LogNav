@@ -25,20 +25,34 @@ pile de la carte. Le fichier est **fabriqué**, jamais écrit à la main.
 
 3. Reporter le cycle à **deux** endroits, qui servent de clé de cache :
 
-   - `index.html` → `tardif('ASPT','ASP_TXT.js?v=<cycle>', …)`
-   - `sw.js` → la même adresse dans `PRECACHE`
+   - `index.html` → `window.__AIRAC_DATE='<cycle>'`, juste au-dessus des
+     chargements tardifs. C'est lui que `tardif('ASPT', …)` concatène, et
+     la **seule** ligne à changer côté application ;
+   - `sw.js` → la même adresse dans `PRECACHE`.
 
    Les deux doivent être identiques, sinon le service worker précharge
    une adresse que l'application ne demande jamais. Le banc `test_v656`
    le vérifie.
 
-4. Relancer le banc :
+4. Changer, juste au-dessus, le **libellé du cycle** :
+
+   ```js
+   window.__AIRAC_CYCLE='11/26';
+   ```
+
+   Les **deux** badges s'en servent : celui du bandeau du log et celui du
+   bandeau de la carte. Ils étaient écrits chacun de leur côté, et la
+   carte a annoncé pendant un cycle entier une base qu'elle n'avait plus
+   (`XML AIRAC 10/26` sur une base 11/26). Il n'y a plus qu'une source ;
+   `test_v661` vérifie que les deux badges disent la même chose.
+
+5. Relancer le banc :
 
    ```
-   node test_v656.js
+   node test_v656.js && node test_v661.js
    ```
 
-5. Téléverser sur `main` : `index.html`, `ASP_TXT.js`, `sw.js`.
+6. Téléverser sur `main` : `index.html`, `ASP_TXT.js`, `sw.js`.
 
 ## Ce que ce script NE fait PAS
 
