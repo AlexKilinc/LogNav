@@ -1665,11 +1665,13 @@ html.xtra-on .mtoolbar .tb-info{display:none!important}
   .mtoolbar .tb-info{order:3!important;width:26px!important;height:26px!important;min-width:26px!important;padding:0!important;border-radius:50%!important}
   .mtoolbar .tb-cards{order:10!important;height:38px!important;box-sizing:border-box!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;padding:0 6px!important;min-width:0!important;flex:1 1 34px!important;white-space:nowrap!important;overflow:hidden!important;border-radius:10px!important}     /* badge Vol Aller/Retour masqué sur mobile */
   /* L2 : les 7 boutons (paramètre, annuler, rétablir, Map, Profil, Image, exports) à la même
-     hauteur (38px) et toujours sur UNE seule ligne (chips extensibles, base réduite = pas de repli) */
-  .mtoolbar>*:nth-child(2),.mtoolbar>*:nth-child(3),.mtoolbar>*:nth-child(4){height:38px!important;width:38px!important;min-width:38px!important;padding:0!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;border-radius:10px!important;flex:0 0 auto!important;box-sizing:border-box!important;}
+     hauteur et toujours sur UNE seule ligne (chips extensibles, base réduite = pas de repli).
+     v.650 : 32 px et non 38 — c'est la hauteur des champs avion + vent et
+     du bouton DDV, les seuls voisins de cette ligne sur téléphone. */
+  .mtoolbar>*:nth-child(2),.mtoolbar>*:nth-child(3),.mtoolbar>*:nth-child(4){height:32px!important;width:32px!important;min-width:32px!important;padding:0!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;border-radius:10px!important;flex:0 0 auto!important;box-sizing:border-box!important;}
   .mtoolbar>*:nth-child(10),.mtoolbar>*:nth-child(11),.mtoolbar>*:nth-child(12){height:38px!important;box-sizing:border-box!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;padding:0 6px!important;min-width:0!important;flex:1 1 34px!important;white-space:nowrap!important;overflow:hidden!important;border-radius:10px!important;}
   /* bouton « exports » : carré rouge/rose, visible sur mobile uniquement */
-  .mtoolbar .tb-more{display:inline-flex!important;width:38px!important;height:38px!important;padding:0!important;border-radius:10px!important}
+  .mtoolbar .tb-more{display:inline-flex!important;width:32px!important;height:32px!important;padding:0!important;border-radius:10px!important}
   .mtoolbar .tb-more svg{width:16px!important;height:16px!important}
   /* par défaut la 3e ligne (exports) est masquée → bandeau sur 2 lignes ; le bouton l'affiche */
   .mtoolbar:not(.mob-exp)>*:nth-child(14),
@@ -3106,7 +3108,7 @@ window.__TRACE_MARKUP="\n\n<header>\n  <div class=\"hdr-row1\">\n    <span class
    accessible depuis le bouton ⓘ du bandeau du log, avant toute ouverture de la carte */
 (function(){
   var host=document.createElement('div');
-  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Cartes OACI — origine et mise à jour</b></p>\n    <p style=\"margin-top:-6px\"><b>1/250 000 Région parisienne</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte250\">—</span>.</p>\n    <p style=\"margin-top:-6px\"><b>1/500 000 France</b> — IGN Géoplateforme (SCAN-OACI). Donnée <b>non libre</b>, tenue à jour par l’IGN.</p>\n    <p style=\"margin-top:-6px\"><b>1/1 000 000 France</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte1000\">—</span>.</p>\n    <p>Les deux cartes du SIA sont hébergées à part et lues par plages : seules les tuiles affichées sont téléchargées. Les trois se copient sur l’appareil pour voler sans réseau depuis <b>Profil → Cartes hors-ligne</b>. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.649</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
+  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Cartes OACI — origine et mise à jour</b></p>\n    <p style=\"margin-top:-6px\"><b>1/250 000 Région parisienne</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte250\">—</span>.</p>\n    <p style=\"margin-top:-6px\"><b>1/500 000 France</b> — IGN Géoplateforme (SCAN-OACI). Donnée <b>non libre</b>, tenue à jour par l’IGN.</p>\n    <p style=\"margin-top:-6px\"><b>1/1 000 000 France</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte1000\">—</span>.</p>\n    <p>Les deux cartes du SIA sont hébergées à part et lues par plages : seules les tuiles affichées sont téléchargées. Les trois se copient sur l’appareil pour voler sans réseau depuis <b>Profil → Cartes hors-ligne</b>. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.650</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
   (document.body||document.documentElement).appendChild(host.firstElementChild);
   /* le nom du fichier de la 1/1 000 000 dit son edition : on le lit la ou il
      est vraiment (cartes.json), jamais en dur, sinon il mentirait un jour */
@@ -7202,8 +7204,11 @@ function openRelinkChoice(){
       cote sur un ecran de 380, ce sont six pour cent de largeur perdus — et
       la ligne de NOTAM la plus longue est justement celle qu'on veut lire en
       entier. Le fond nuit suffit a separer les feuilles. */
-   +'@media (max-width:480px){.ntmd-corps{padding:10px 0}'
-   +'.ntmf{border-radius:0;box-shadow:0 6px 18px rgba(0,0,0,.3)}}'
+   /* v.650 : meme retour en arriere que pour la fenetre meteo — les
+      cartes du listing retrouvent leurs coins arrondis et leur marge,
+      pour ressembler a celles du dossier de vol. */
+   +'@media (max-width:480px){'
+   +'.ntmf{box-shadow:0 6px 18px rgba(0,0,0,.3)}}'
    /* Plein ecran (voir .ntmd plus haut) : la barre du bas passe PAR-DESSUS
       la fenetre, comme sur la page meteo — on doit pouvoir rejoindre la
       carte sans fermer le listing. Le corps lui reserve donc sa hauteur,
@@ -10326,7 +10331,14 @@ const name=(nav.name||"lognav").replace(/[^\w\-]+/g,"_");await window.html2pdf()
           body::before{content:"";position:fixed;top:0;left:0;right:0;z-index:98;height:calc(env(safe-area-inset-top) + 2.5px);box-sizing:border-box;background:#0E2348;border-bottom:2.5px solid #e94560;pointer-events:none;}
           /* écrans clairs (Profil / Image) : pas de bande noire, l'island ne gêne pas */
           body.mp-light::before{display:none!important;}
-          html,body{overflow-x:hidden;}
+          /* v.650 : « overflow-x:hidden » sur le BODY en faisait une boite
+             de defilement (overflow-y bascule alors a « auto »), et le
+             bandeau colle se calait sur elle — une boite qui ne defile
+             jamais. Il ne collait donc pas. html garde hidden : il se
+             propage a la fenetre et rogne le debordement lateral. Le body
+             passe a « clip », qui rogne sans creer de boite. */
+          html{overflow-x:hidden;}
+          body{overflow-x:clip;}
           .approot{display:flex;flex-direction:column;padding-top:calc(env(safe-area-inset-top) + 1.5px)!important;padding-bottom:calc(110px + var(--vv-cache,0px))!important;}
           .mlog{width:100%!important;max-width:none!important;}
           .mlog-type{max-width:none!important;}
@@ -13602,10 +13614,11 @@ window.__CARTE_ADR=function(j,cle){
 /* Telephone : la feuille prend toute la largeur. Sur 380 px, 12 px de marge
    de chaque cote coutent une colonne entiere de texte brut. */
 @media (max-width:480px){
-  .wx-list{padding-left:0;padding-right:0}
-  .wxf{border-radius:0;box-shadow:0 6px 18px rgba(0,0,0,.3)}
-  /* ce qui reste sur le fond sombre garde sa marge propre */
-  .wx-list>.wx-addrow{margin-left:12px;margin-right:12px}
+  /* v.650 : la feuille gardait ses coins carres et touchait les bords pour
+     gagner 12 px de texte. Le dossier de vol, lui, a toujours eu des cartes
+     arrondies : l'ecart se voyait d'une fenetre a l'autre. L'arrondi et la
+     marge sont retablis, l'ombre reste allegee. */
+  .wxf{box-shadow:0 6px 18px rgba(0,0,0,.3)}
   /* Cartes : « Validité demain 00:00 UTC · à venir » ne tient pas a cote du
      nom sur un telephone, et se faisait couper — or c'est justement la
      partie qui porte l'information. Elle passe donc a la ligne. */
