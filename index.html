@@ -833,6 +833,9 @@ html,body{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 #trace-host .aspd-f{font:600 11.5px "JetBrains Mono",monospace}
 #trace-host .aspd-txt{margin-top:10px;padding-top:9px;border-top:1px solid var(--line);
   white-space:pre-wrap;line-height:1.45;font-size:11.5px}
+#trace-host .aspd-txt em{display:block;font-style:normal;color:var(--muted);
+  font-weight:600;font-size:11.5px;margin-bottom:4px}
+#trace-host .aspd-src{margin-top:9px;font-size:10px;color:var(--muted)}
 #trace-host main{flex-direction:column}
 #trace-host aside{width:100%;border-left:0;border-top:1px solid var(--line);max-height:46%}
 #trace-host .aside-toggle{display:none}
@@ -3166,6 +3169,11 @@ async function akReset(e){
   window.__ELEV_CHARGE=function(){
     return tardif('ELEV','ELEV_FR.js?v=2026-07-22',
       function(){ return typeof window.ELEV_FR_get==='function'; }); };
+  /* v.656 : le texte reglementaire des espaces — horaires, activite,
+     conditions de penetration. Demande a l'ouverture d'une fiche. */
+  window.__ASP_CHARGE=function(){
+    return tardif('ASPT','ASP_TXT.js?v=2026-10-01',
+      function(){ return !!window.__ASP_TXT; }); };
 })();
 </script>
 <script>
@@ -3174,7 +3182,7 @@ window.__TRACE_MARKUP="\n\n<header>\n  <div class=\"hdr-row1\">\n    <span class
    accessible depuis le bouton ⓘ du bandeau du log, avant toute ouverture de la carte */
 (function(){
   var host=document.createElement('div');
-  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Cartes OACI — origine et mise à jour</b></p>\n    <p style=\"margin-top:-6px\"><b>1/250 000 Région parisienne</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte250\">—</span>.</p>\n    <p style=\"margin-top:-6px\"><b>1/500 000 France</b> — IGN Géoplateforme (SCAN-OACI). Donnée <b>non libre</b>, tenue à jour par l’IGN.</p>\n    <p style=\"margin-top:-6px\"><b>1/1 000 000 France</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte1000\">—</span>.</p>\n    <p>Les deux cartes du SIA sont hébergées à part et lues par plages : seules les tuiles affichées sont téléchargées. Les trois se copient sur l’appareil pour voler sans réseau depuis <b>Profil → Cartes hors-ligne</b>. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.655</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
+  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Cartes OACI — origine et mise à jour</b></p>\n    <p style=\"margin-top:-6px\"><b>1/250 000 Région parisienne</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte250\">—</span>.</p>\n    <p style=\"margin-top:-6px\"><b>1/500 000 France</b> — IGN Géoplateforme (SCAN-OACI). Donnée <b>non libre</b>, tenue à jour par l’IGN.</p>\n    <p style=\"margin-top:-6px\"><b>1/1 000 000 France</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte1000\">—</span>.</p>\n    <p>Les deux cartes du SIA sont hébergées à part et lues par plages : seules les tuiles affichées sont téléchargées. Les trois se copient sur l’appareil pour voler sans réseau depuis <b>Profil → Cartes hors-ligne</b>. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.657</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
   (document.body||document.documentElement).appendChild(host.firstElementChild);
   /* le nom du fichier de la 1/1 000 000 dit son edition : on le lit la ou il
      est vraiment (cartes.json), jamais en dur, sinon il mentirait un jour */
@@ -4260,11 +4268,18 @@ function aspFicheHtml(a){
   if(a.fq&&a.fq.length) h+=kv('Fr\u00e9quences',a.fq.map(function(f){
     return '<span class="aspd-f">'+aspEch(f.ind||f.t||'')+' '
       +((f.f||[]).map(aspEch).join(' \u00b7 '))+'</span>'; }).join('<br>'));
+  /* v.656 : horaires et activite viennent du SIA, au meme titre que les
+     limites — ils se lisent d'un coup d'oeil, donc ils restent dans la
+     grille ; les conditions, plus longues, ont leur bloc en dessous. */
+  const d=(window.__ASP_TXT||{})[a.n]||null;
+  if(d&&d.h) h+=kv('Horaires',aspEch(d.h).replace(/\n/g,'<br>'));
+  if(d&&d.a) h+=kv('Activit\u00e9',aspEch(d.a).replace(/\n/g,'<br>'));
   h+='</div>';
-  /* le texte reglementaire du SIA, s'il a ete embarque */
-  const d=(window.__ASP_TXT||{})[a.n];
-  const txt=(typeof d==='string')?d:(d&&d.txt);
-  if(txt) h+='<div class="aspd-txt">'+aspEch(txt)+'</div>';
+  if(d&&d.r) h+='<div class="aspd-txt"><em>Conditions</em>'+aspEch(d.r)+'</div>';
+  if(d) h+='<div class="aspd-src">Texte SIA \u00b7 cycle AIRAC '
+    +aspEch(window.__ASP_TXT_CYCLE||'?')+'</div>';
+  else if(!window.__ASP_TXT) h+='<div class="aspd-src">'
+    +(window.__ASP_TXT_KO?'texte SIA indisponible':'lecture du texte SIA\u2026')+'</div>';
   return h;
 }
 function aspPile(){
@@ -4278,11 +4293,30 @@ function aspPile(){
 function showAspDetail(i){
   const a=currentHits&&currentHits[i]; if(!a) return;
   const det=document.getElementById('aspDet'); if(!det) return;
+  /* v.656 : le texte du SIA n'est pas charge au demarrage. On le demande
+     ici, et la fiche se redessine a son arrivee si elle est toujours
+     ouverte sur le meme espace. */
+  if(!window.__ASP_TXT&&window.__ASP_CHARGE){
+    window.__ASP_CHARGE().then(function(){
+      /* hors ligne au premier usage : le fichier n'est pas encore en
+         cache. La fiche doit le dire, pas rester sur « lecture… ». */
+      if(!window.__ASP_TXT) window.__ASP_TXT_KO=true;
+      try{ const d2=document.getElementById('aspDet');
+        if(d2&&!d2.hidden&&d2.getAttribute('data-n')===a.n)
+          d2.innerHTML=aspFicheHtml(a), aspRetourBranche(d2);
+      }catch(e){}
+    });
+  }
+  det.setAttribute('data-n',a.n);
   det.innerHTML=aspFicheHtml(a); det.hidden=false;
   document.getElementById('aspList').hidden=true;
   document.getElementById('aspProfile').hidden=true;
   document.getElementById('aspStackTitle').textContent='Espace a\u00e9rien';
   try{ highlightAsp(a); }catch(e){}
+  aspRetourBranche(det);
+}
+/* le bouton « retour » est recree a chaque dessin de la fiche */
+function aspRetourBranche(det){
   const b=det.querySelector('#aspDetBack'); if(b) b.addEventListener('click',aspPile);
 }
 let lastAspPt=null;

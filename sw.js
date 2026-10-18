@@ -16,6 +16,7 @@ const PRECACHE = [
   './index.html',
   './cartes.json',
   './ELEV_FR.js?v=2026-07-22',
+  './ASP_TXT.js?v=2026-10-01',
   './POI_FR.js?v=2026-07-21',
   'https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js',
   'https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js',
