@@ -174,14 +174,21 @@ changement : sautez les phases 3 à 6, elles restent valables plus tard.
 
 ## Phase 3 — Le domaine chez Hostinger (DNS)
 
-Chez Hostinger : **Domaines** > `lognavak.fr` > **DNS / Serveurs de noms** >
-*Gérer les enregistrements DNS*.
+Chez Hostinger : **Domaines** > `lognavak.fr` > **DNS / Serveurs de noms**.
+
+- [ ] **3.0** Vérifier d'abord, en haut de la page, que les **serveurs de
+  noms** sont bien ceux d'Hostinger (du genre `ns1.dns-parking.com` /
+  `ns2.dns-parking.com`). Sinon la zone que vous allez modifier n'est pas
+  celle qui est servie, et rien ne prendra effet.
+
+Puis *Gérer les enregistrements DNS* :
 
 - [ ] **3.1 Supprimer** l'enregistrement **A** sur `@` que Hostinger pose par
   défaut vers sa page de parking. Supprimer aussi un éventuel **CNAME** sur
   `www` vers Hostinger.
 
-- [ ] **3.2 Ajouter quatre enregistrements A** sur le nom `@` :
+- [ ] **3.2 Ajouter les quatre enregistrements A** sur le nom `@`. Ils sont
+  **obligatoires** — c'est eux qui font le travail :
 
 ```
 @   A   185.199.108.153
@@ -190,8 +197,9 @@ Chez Hostinger : **Domaines** > `lognavak.fr` > **DNS / Serveurs de noms** >
 @   A   185.199.111.153
 ```
 
-- [ ] **3.3 Ajouter quatre enregistrements AAAA** (IPv6) sur `@`, si
-  Hostinger le permet. Facultatif mais recommandé :
+- [ ] **3.3 Ajouter les quatre enregistrements AAAA** (IPv6) sur `@`. GitHub
+  recommande de les poser **en plus** des A, jamais à leur place, l'IPv6
+  étant encore inégalement déployé :
 
 ```
 @   AAAA   2606:50c0:8000::153
@@ -200,7 +208,9 @@ Chez Hostinger : **Domaines** > `lognavak.fr` > **DNS / Serveurs de noms** >
 @   AAAA   2606:50c0:8003::153
 ```
 
-- [ ] **3.4 Ajouter un CNAME** pour que `www.lognavak.fr` marche aussi :
+- [ ] **3.4 Ajouter un CNAME** pour `www`, afin que `www.lognavak.fr`
+  fonctionne aussi — c'est lui qui permet à GitHub d'assurer de lui-même la
+  redirection entre les deux formes :
 
 ```
 www   CNAME   alexkilinc.github.io.
@@ -208,12 +218,42 @@ www   CNAME   alexkilinc.github.io.
 
 (avec le point final, si Hostinger le demande)
 
-- [ ] **3.5** Laisser le TTL par défaut. Enregistrer.
+- [ ] **3.5 N'ajoutez AUCUN enregistrement joker** (`*.lognavak.fr`). GitHub
+  l'écrit noir sur blanc : un joker expose à une prise de contrôle du
+  sous-domaine par un tiers, même domaine vérifié. Si Hostinger en a posé un,
+  supprimez-le.
 
-> **Ne me croyez pas sur parole pour ces adresses.** Elles sont stables
-> depuis des années, mais GitHub vérifie lui-même vos enregistrements à
-> l'étape suivante et vous dira s'ils sont faux. C'est cette vérification-là
-> qui fait foi, pas cette liste.
+- [ ] **3.6** Laisser le TTL par défaut. Enregistrer.
+
+### Ces adresses sont-elles les bonnes ?
+
+Oui — elles correspondent à la documentation officielle de GitHub Pages
+(*Managing a custom domain for your GitHub Pages site*), vérifiée au moment
+d'écrire ces lignes. Mais ne me croyez pas sur parole pour autant : vous avez
+**trois moyens de contrôler vous-même**, sans rien demander à personne.
+
+1. **La source, chez GitHub, sans authentification.** Ouvrez
+   `https://api.github.com/meta` dans un navigateur et regardez le champ
+   `pages` : il liste les plages d'adresses que GitHub Pages sert. Les quatre
+   adresses ci-dessus doivent y tomber dedans.
+
+2. **La vérification de GitHub lui-même**, à la phase 4 : dès que vous
+   enregistrez le domaine, il contrôle votre zone et affiche soit *DNS check
+   successful*, soit exactement ce qui ne va pas. **C'est elle qui fait foi.**
+
+3. **Depuis le Terminal du Mac**, une fois le DNS propagé :
+
+```
+dig lognavak.fr      +noall +answer
+dig www.lognavak.fr  +noall +answer
+```
+
+   Le premier doit rendre les quatre `185.199.*.153`, le second
+   `alexkilinc.github.io`.
+
+Je n'ai pas pu faire cette résolution à votre place : ce conteneur n'a pas de
+DNS sortant, et les résolveurs publics y sont refusés. C'est précisément
+pourquoi je vous donne les trois contrôles plutôt qu'une affirmation.
 
 ---
 
@@ -305,6 +345,8 @@ www   CNAME   alexkilinc.github.io.
 | *DNS check* échoue | propagation ou enregistrement fautif | attendre, puis *Check again* ; comparer avec ce que GitHub affiche |
 | Le site retombe sur l'ancienne adresse | le fichier `CNAME` a disparu | le recréer à la racine, contenu : `lognavak.fr` |
 | *Enforce HTTPS* reste grisée après 24 h | certificat non délivré | retirer le domaine, *Save*, le remettre : cela relance la demande |
+| Idem, et la manœuvre ci-dessus n'y change rien | un enregistrement **CAA** sur le domaine interdit à Let's Encrypt d'émettre | chez Hostinger, supprimer le CAA, ou y autoriser `letsencrypt.org` |
+| Un sous-domaine inconnu répond à votre place | un enregistrement **joker** traîne | supprimer `*.lognavak.fr` (voir 3.5) |
 | Je veux tout annuler | — | Settings > Pages > vider *Custom domain* > *Save*. Le site revient sur `alexkilinc.github.io/LogNav/` |
 
 ---
