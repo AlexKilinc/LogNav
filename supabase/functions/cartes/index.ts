@@ -20,7 +20,14 @@
  * Déploiement : Supabase > Edge Functions > fonction « cartes », coller ce
  * fichier EN ENTIER (vérifier que la dernière ligne dans l'éditeur est bien
  * « }); »), déployer, et laisser « Enforce JWT verification » DÉSACTIVÉ.
- * Aucun secret requis. Vérification : ouvrir ?version=1 -> doit répondre 7.48.
+ * Aucun secret requis. Vérification : ouvrir ?version=1 -> doit répondre 7.49.
+ * Secret OPTIONNEL : CARTES_JETON = 1 pour n'accepter que les pilotes
+ * connectés (jeton de session Supabase, envoyé par l'application depuis la
+ * v.671). TANT QUE CE SECRET EST ABSENT, RIEN N'EST VÉRIFIÉ. À n'allumer que
+ * lorsque tous les appareils tournent en v.671 ou plus récent. NE PAS activer
+ * « Enforce JWT verification » à la place : ce verrou répond AVANT la
+ * fonction et refuserait la pré-vérification CORS, qui ne porte jamais
+ * d'en-tête Authorization — tous les appels du navigateur tomberaient.
  * Secret OPTIONNEL : CARTES_ORIGINES = origines autorisées, séparées par des
  * virgules (ex. « https://alexkilinc.github.io,https://lognavak.fr »). TANT
  * QUE CE SECRET EST ABSENT, RIEN N'EST FILTRÉ : le relais se comporte
@@ -30,7 +37,7 @@
  * Météo-France refuse l'adresse IP de Supabase.
  */
 
-const VERSION = "7.48";
+const VERSION = "7.49";
 const AERO = "https://aviation.meteo.fr";
 const SOFIA = "https://sofia-briefing.aviation-civile.gouv.fr";
 const UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Safari/605.1.15";
@@ -1723,6 +1730,50 @@ async function sonde(q: URLSearchParams): Promise<Response> {
   }
 }
 
+/* ===== LA SERRURE (7.49) =============================================
+   Le relais ne doit servir que les pilotes inscrits. « Enforce JWT
+   verification », le verrou de la plateforme, ne convient PAS ici, pour
+   deux raisons :
+     - il répond AVANT la fonction. Or la pré-vérification CORS (OPTIONS)
+       ne porte jamais d'en-tête Authorization : elle recevrait 401, et le
+       navigateur dirait « Failed to fetch » sur TOUS les appels, y compris
+       ceux d'un pilote connecté. Depuis la v.671 chaque appel du relais
+       porte des en-têtes personnalisés, donc chaque appel commence par
+       cette pré-vérification ;
+     - et il ne distingue pas un utilisateur réel de la clé publiable du
+       projet, qui est publique dans la page — il ne fermerait donc rien.
+   On vérifie donc ICI, après OPTIONS et après ?version=1, sur le seul
+   critère qui compte : ce porteur désigne-t-il un utilisateur réel ?
+
+   ÉTEINTE PAR DÉFAUT : sans le secret CARTES_JETON=1, rien n'est vérifié.
+   En cas de panne de la vérification (réseau, secret manquant), on REFUSE :
+   une serrure qui s'ouvre quand elle a un doute n'est pas une serrure. Le
+   remède est immédiat et dans vos mains — retirer le secret. */
+const porteursVus = new Map<string, number>();   /* porteur -> valable jusqu'à */
+async function porteurValide(brut: string): Promise<boolean> {
+  /* Une clé publiable (« sb_publishable_… ») n'est pas un JWT. Trois
+     segments séparés par des points, c'est la forme minimale exigée : elle
+     écarte la clé publique sans le moindre aller-retour. */
+  if (!/^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/.test(brut)) return false;
+  const vu = porteursVus.get(brut);
+  if (vu && vu > Date.now()) return true;   /* déjà vérifié : pas d'aller-retour de plus */
+  const b = (Deno.env.get("SUPABASE_URL") || "").replace(/\/+$/, "");
+  const k = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
+  if (!b || !k) return false;
+  try {
+    const r = await fetch(b + "/auth/v1/user", {
+      headers: { "apikey": k, "Authorization": "Bearer " + brut } });
+    if (!r.ok) return false;
+    const j = await r.json().catch(() => null) as { id?: string } | null;
+    if (!j || !j.id) return false;
+    /* le verdict tient cinq minutes ; la table est bornée pour qu'une rafale
+       de porteurs inventés ne la fasse pas enfler */
+    if (porteursVus.size > 200) porteursVus.clear();
+    porteursVus.set(brut, Date.now() + 5 * 60e3);
+    return true;
+  } catch { return false; }
+}
+
 Deno.serve(async (req: Request) => {
   /* pré-vérification CORS : un fetch avec en-têtes personnalisés commence par
      un OPTIONS ; sans cette réponse, le navigateur dit « Failed to fetch » */
@@ -1762,6 +1813,22 @@ Deno.serve(async (req: Request) => {
       return reponseJson({ erreur: "origine non autorisée",
         motif: "ce relais ne sert que l'application LogNavAK",
         version: VERSION }, 403);
+    }
+  }
+  /* ===== LA SERRURE — voir porteurValide() ===========================
+     Placée APRÈS la pré-vérification CORS et APRÈS ?version=1 : la première
+     doit toujours aboutir, la seconde reste consultable depuis la barre
+     d'adresse pour contrôler un déploiement. Tout le reste, y compris les
+     diagnostics, passe par la serrure. */
+  if ((Deno.env.get("CARTES_JETON") || "").trim() === "1") {
+    const brut = (req.headers.get("Authorization") || "")
+      .replace(/^Bearer\s+/i, "").trim();
+    const admis = await porteurValide(brut);
+    if (!admis) {
+      return reponseJson({ erreur: "session requise",
+        motif: "ce relais ne sert que les pilotes connectés de LogNavAK ; "
+          + "reconnectez-vous dans l'application",
+        version: VERSION }, 401);
     }
   }
   if (q.get("opsofia") === "1") return opSofia(q);
