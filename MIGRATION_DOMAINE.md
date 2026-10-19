@@ -53,6 +53,64 @@ faire : sans ces colonnes, ces deux réglages seront perdus au déménagement.
 
 ---
 
+## « Et une simple redirection de nom de domaine ? »
+
+Question naturelle, et c'est un piège. **Une redirection ne change pas
+l'origine.**
+
+Si Hostinger renvoie `lognavak.fr` vers `alexkilinc.github.io/LogNav/`, le
+navigateur suit et se retrouve sur `alexkilinc.github.io`. C'est cette
+adresse qui s'affiche, qui porte le `localStorage`, l'`IndexedDB` et le
+service worker, et depuis laquelle la PWA s'installe. Vous auriez acheté un
+marque-page : toujours aussi soudé à github.io, et la même perte de données
+le jour d'un vrai déménagement. C'est exactement ce que le domaine devait
+éviter.
+
+### La redirection « masquée » casserait l'application
+
+La variante *masquée* (*cloaking*, *avec cadre*) garde `lognavak.fr` dans la
+barre d'adresse en affichant le site dans une `<iframe>`. **À ne pas
+prendre.** Dans un cadre tiers :
+
+- **le GPS s'arrête** — la géolocalisation en cadre croisé exige une
+  autorisation que vous ne contrôlez pas. Pour une appli de nav, rédhibitoire ;
+- **le stockage est cloisonné ou bloqué** par la protection anti-pistage de
+  Safari → navigations et planches VAC inaccessibles, silencieusement ;
+- **la PWA ne s'installe pas** depuis une page encadrée ;
+- plein écran, orientation, zones sûres de l'encoche : tout se dégrade.
+
+### La variante légitime, si les quatre A records rebutent
+
+Domaine personnalisé = **`www.lognavak.fr`**, donc **un seul enregistrement** :
+
+```
+www   CNAME   alexkilinc.github.io.
+```
+
+Et là une **redirection simple** (non masquée) de l'apex `lognavak.fr` vers
+`https://www.lognavak.fr` a tout son sens : la vraie origine devient
+`www.lognavak.fr`, la PWA s'installe depuis elle, et la redirection ne sert
+qu'à celui qui tape l'adresse sans `www`. Tout le bénéfice est conservé. Prix :
+le `www.` dans l'adresse, et une dépendance au redirecteur d'Hostinger.
+
+### Pourquoi la procédure garde quand même l'apex
+
+Parce qu'elle ajoute déjà le `CNAME` sur `www` : dans cette configuration,
+**GitHub fait lui-même la redirection** entre l'apex et `www`. Les deux
+adresses fonctionnent, sans dépendre du redirecteur d'Hostinger, pour quatre
+lignes à coller au lieu d'une.
+
+### Et faut-il le faire maintenant ?
+
+Honnêtement : **le domaine n'apporte rien aujourd'hui.** C'est une assurance
+contre un déménagement futur. Si le site reste sur GitHub Pages pour
+toujours, il n'aura servi à rien. S'il bouge un jour, il épargne exactement
+la perte de données listée plus haut. **Passer en privé sans toucher au
+domaine est parfaitement cohérent** si l'on préfère ne gérer qu'un seul
+changement : sautez les phases 3 à 6, elles restent valables plus tard.
+
+---
+
 ## Phase 0 — Préparer (avant d'acheter quoi que ce soit)
 
 - [ ] **0.1** Jouer `supabase/profiles_colonnes.sql` dans Supabase > SQL
