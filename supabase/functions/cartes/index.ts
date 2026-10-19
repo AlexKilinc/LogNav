@@ -20,13 +20,17 @@
  * Déploiement : Supabase > Edge Functions > fonction « cartes », coller ce
  * fichier EN ENTIER (vérifier que la dernière ligne dans l'éditeur est bien
  * « }); »), déployer, et laisser « Enforce JWT verification » DÉSACTIVÉ.
- * Aucun secret requis. Vérification : ouvrir ?version=1 -> doit répondre 7.47.
+ * Aucun secret requis. Vérification : ouvrir ?version=1 -> doit répondre 7.48.
+ * Secret OPTIONNEL : CARTES_ORIGINES = origines autorisées, séparées par des
+ * virgules (ex. « https://alexkilinc.github.io,https://lognavak.fr »). TANT
+ * QUE CE SECRET EST ABSENT, RIEN N'EST FILTRÉ : le relais se comporte
+ * exactement comme avant, et un redéploiement ne peut donc rien casser.
  * Secret OPTIONNEL : CARTES_WORKER = adresse du Worker Cloudflare de secours
  * (cloudflare/meteo-sofia du dépôt) pour les octets des cartes quand
  * Météo-France refuse l'adresse IP de Supabase.
  */
 
-const VERSION = "7.47";
+const VERSION = "7.48";
 const AERO = "https://aviation.meteo.fr";
 const SOFIA = "https://sofia-briefing.aviation-civile.gouv.fr";
 const UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Safari/605.1.15";
@@ -1732,6 +1736,34 @@ Deno.serve(async (req: Request) => {
   }
   const q = new URL(req.url).searchParams;
   if (q.get("version") === "1") return reponseJson({ version: VERSION });
+
+  /* ===== GARDE-FOU D'ORIGINE (7.48) ==================================
+     Le relais est appelable par quiconque a lu l'adresse dans la page :
+     « Enforce JWT verification » est désactivé. En attendant la vraie
+     serrure — le jeton de session, que l'application envoie depuis la
+     v.671 —, ce garde-fou écarte l'usage opportuniste et les robots.
+
+     CE QU'IL NE FAIT PAS, et il faut le savoir : l'en-tête Origin se
+     falsifie en trois lignes hors navigateur. Ce n'est pas une serrure,
+     c'est une porte fermée.
+
+     IL EST ÉTEINT PAR DÉFAUT. Sans le secret CARTES_ORIGINES, rien
+     n'est filtré et le comportement est celui d'avant — de sorte que
+     déployer cette version ne peut rien casser. Pour l'allumer :
+       Supabase > Edge Functions > cartes > Secrets
+       CARTES_ORIGINES = https://alexkilinc.github.io
+     (plusieurs origines séparées par des virgules ; ajouter le domaine
+     propre le jour du déménagement, AVANT de basculer le site.) */
+  const origines = (Deno.env.get("CARTES_ORIGINES") || "")
+    .split(",").map((x) => x.trim()).filter(Boolean);
+  if (origines.length) {
+    const o = req.headers.get("Origin") || "";
+    if (!o || !origines.includes(o)) {
+      return reponseJson({ erreur: "origine non autorisée",
+        motif: "ce relais ne sert que l'application LogNavAK",
+        version: VERSION }, 403);
+    }
+  }
   if (q.get("opsofia") === "1") return opSofia(q);
   if (q.get("sonde")) return sonde(q);
   if (q.get("chasse")) return chasse(q);
