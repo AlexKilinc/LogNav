@@ -45,7 +45,7 @@
   html,body{margin:0;padding:0;}
 </style>
 
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 /* v.327 : toutes les pages du log (carte, profil, image, cartes de vol) sont
@@ -3191,7 +3191,7 @@ window.__TRACE_MARKUP="\n\n<header>\n  <div class=\"hdr-row1\">\n    <span class
    accessible depuis le bouton ⓘ du bandeau du log, avant toute ouverture de la carte */
 (function(){
   var host=document.createElement('div');
-  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Cartes OACI — origine et mise à jour</b></p>\n    <p style=\"margin-top:-6px\"><b>1/250 000 Région parisienne</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte250\">—</span>.</p>\n    <p style=\"margin-top:-6px\"><b>1/500 000 France</b> — IGN Géoplateforme (SCAN-OACI). Donnée <b>non libre</b>, tenue à jour par l’IGN.</p>\n    <p style=\"margin-top:-6px\"><b>1/1 000 000 France</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte1000\">—</span>.</p>\n    <p>Les deux cartes du SIA sont hébergées à part et lues par plages : seules les tuiles affichées sont téléchargées. Les trois se copient sur l’appareil pour voler sans réseau depuis <b>Profil → Cartes hors-ligne</b>. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.664</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
+  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Cartes OACI — origine et mise à jour</b></p>\n    <p style=\"margin-top:-6px\"><b>1/250 000 Région parisienne</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte250\">—</span>.</p>\n    <p style=\"margin-top:-6px\"><b>1/500 000 France</b> — IGN Géoplateforme (SCAN-OACI). Donnée <b>non libre</b>, tenue à jour par l’IGN.</p>\n    <p style=\"margin-top:-6px\"><b>1/1 000 000 France</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte1000\">—</span>.</p>\n    <p>Les deux cartes du SIA sont hébergées à part et lues par plages : seules les tuiles affichées sont téléchargées. Les trois se copient sur l’appareil pour voler sans réseau depuis <b>Profil → Cartes hors-ligne</b>. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.665</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
   (document.body||document.documentElement).appendChild(host.firstElementChild);
   /* le nom du fichier de la 1/1 000 000 dit son edition : on le lit la ou il
      est vraiment (cartes.json), jamais en dur, sinon il mentirait un jour */
@@ -17394,6 +17394,10 @@ window.__pickGpx=function(cb){
      +'border:1px solid #2a4372;border-radius:9px;color:#fff;font:700 13px "Poppins",sans-serif;'
      +'padding:9px 10px}',
    '#vacOv .vac-rech input::placeholder{color:#8fa9cc;font-weight:600}',
+   '#vacOv .vac-rech #vacRaz{flex:0 0 auto;width:38px;height:38px;background:rgba(255,255,255,.08);'
+     +'border:1px solid #2a4372;border-radius:9px;color:#cfe0f5;font:700 19px/1 ui-sans-serif;'
+     +'cursor:pointer;padding:0}',
+   '#vacOv .vac-rech #vacRaz[hidden]{display:none}',
    '#vacOv .vac-sect{font:800 10.5px "Poppins",sans-serif;color:#8fa9cc;text-transform:uppercase;'
      +'letter-spacing:.06em;margin:14px 0 6px}',
    '#vacOv .vac-l{display:flex;align-items:center;gap:7px;background:#fff;border-radius:12px;'
@@ -17401,8 +17405,13 @@ window.__pickGpx=function(cb){
    '#vacOv .vac-l:active{background:#EEF4FF}',
    /* la zone du terrain : la grande cible, celle qui ouvre la planche */
    '#vacOv .vac-id{flex:1 1 auto;min-width:0;display:flex;align-items:center;gap:7px}',
-   '#vacOv .vac-l .c{flex:none;width:46px;font:800 12.5px "JetBrains Mono","Space Mono",monospace;'
-     +'color:#16213e}',
+   /* JetBrains Mono est maintenant VRAIMENT chargee (voir l'entete) : ses
+      lettres se distinguent — le N et le M, le I et le l, le 0 barre.
+      Avant, la fonte n'etait pas demandee, on tombait sur la monospace
+      du systeme et la graisse 800 etait fabriquee par le navigateur :
+      les traits se doublaient et LFPM se lisait comme LFPN. */
+   '#vacOv .vac-l .c{flex:none;width:48px;font:700 13px "JetBrains Mono",ui-monospace,monospace;'
+     +'color:#16213e;letter-spacing:.04em}',
    '#vacOv .vac-l .b-fav{flex:none;background:transparent;border:0;padding:2px 1px;'
      +'color:#CBD5E1;font-size:15px;line-height:1;cursor:pointer}',
    '#vacOv .vac-l .b-fav.on{color:#F59E0B}',
@@ -17413,7 +17422,10 @@ window.__pickGpx=function(cb){
    '#vacOv .vac-l button{flex:none;border:0;border-radius:9px;cursor:pointer;'
      +'font:800 11px "Poppins",sans-serif;padding:7px 9px}',
    '#vacOv .vac-l button[disabled]{opacity:.55;cursor:default}',
-   '#vacOv .vac-l .b-vo{background:#2f7d46;color:#fff;padding:7px 12px}',
+   /* Le bleu ciel de la pastille METEO : c'est une couleur de la maison,
+      et « Voir » n'est ni une validation ni un danger — le vert le
+      laissait croire. */
+   '#vacOv .vac-l .b-vo{background:#1E9FE0;color:#fff;padding:7px 12px}',
    /* L'ETAT : petit, parce que c'est le seul geste qui efface. La bordure
       verte dit d'un coup d'oeil que la planche est sur l'appareil. */
    '#vacOv .vac-l .b-etat{flex:none;border-radius:9px;cursor:pointer;padding:6px 7px;'
@@ -17471,7 +17483,9 @@ window.__pickGpx=function(cb){
       +'<button type="button" class="wx-x" id="vacX" title="Fermer" aria-label="Fermer">×</button></div>'
       +'<div class="vac-corps">'
       +'<div class="vac-rech"><input id="vacIn" maxlength="24" placeholder="OACI ou nom d’aérodrome"'
-      +' autocapitalize="characters" autocomplete="off" autocorrect="off" spellcheck="false"></div>'
+      +' autocapitalize="characters" autocomplete="off" autocorrect="off" spellcheck="false">'
+      +'<button type="button" id="vacRaz" title="Effacer la recherche" aria-label="Effacer la recherche"'
+      +' hidden>\u00D7</button></div>'
       +'<div id="vacListe"></div></div>'
       +'<div class="vac-pied"><span id="vacTot"></span>'
       +'<label class="vac-auto" title="Rapatrier d’elles-mêmes les planches du vol et des favoris">'
@@ -17485,7 +17499,16 @@ window.__pickGpx=function(cb){
     function clav(e){ if(e.key==='Escape'&&!document.getElementById('vacVue')) ferme(); }
     document.addEventListener('keydown',clav);
     ov.querySelector('#vacX').onclick=ferme;
-    ov.querySelector('#vacIn').addEventListener('input',function(){ rend(); });
+    /* La croix n'apparait que s'il y a quelque chose a effacer, et elle
+       ramene au panneau principal — planches gardees, terrains du vol,
+       planches rangees — sans refermer la fenetre. */
+    var ent=ov.querySelector('#vacIn'), raz=ov.querySelector('#vacRaz');
+    var majRaz=function(){ raz.hidden=!String(ent.value||'').length; };
+    ent.addEventListener('input',function(){ majRaz(); rend(); });
+    raz.onclick=function(){
+      ent.value=''; majRaz(); rend();
+      try{ ent.focus(); }catch(e){}
+    };
     ov.querySelector('#vacImp').onclick=function(){
       var c=String(ov.querySelector('#vacIn').value||'').trim().toUpperCase();
       if(!/^[A-Z]{4}$/.test(c)){
@@ -17515,7 +17538,8 @@ window.__pickGpx=function(cb){
     var bAuto=ov.querySelector('#vacAuto');
     bAuto.checked=autoActif();
     bAuto.onchange=function(){ autoPose(bAuto.checked); if(bAuto.checked) autoFait(); };
-    if(code) ov.querySelector('#vacIn').value=String(code).toUpperCase();
+    if(code) ent.value=String(code).toUpperCase();
+    majRaz();
     rend();
     try{ ov.querySelector('#vacIn').focus(); }catch(e){}
   }
