@@ -20,7 +20,7 @@
  * Déploiement : Supabase > Edge Functions > fonction « cartes », coller ce
  * fichier EN ENTIER (vérifier que la dernière ligne dans l'éditeur est bien
  * « }); »), déployer, et laisser « Enforce JWT verification » DÉSACTIVÉ.
- * Aucun secret requis. Vérification : ouvrir ?version=1 -> doit répondre 7.49.
+ * Aucun secret requis. Vérification : ouvrir ?version=1 -> doit répondre 7.50.
  * Secret OPTIONNEL : CARTES_JETON = 1 pour n'accepter que les pilotes
  * connectés (jeton de session Supabase, envoyé par l'application depuis la
  * v.671). TANT QUE CE SECRET EST ABSENT, RIEN N'EST VÉRIFIÉ. À n'allumer que
@@ -37,7 +37,7 @@
  * Météo-France refuse l'adresse IP de Supabase.
  */
 
-const VERSION = "7.49";
+const VERSION = "7.50";
 const AERO = "https://aviation.meteo.fr";
 const SOFIA = "https://sofia-briefing.aviation-civile.gouv.fr";
 const UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Safari/605.1.15";
@@ -1749,6 +1749,48 @@ async function sonde(q: URLSearchParams): Promise<Response> {
    En cas de panne de la vérification (réseau, secret manquant), on REFUSE :
    une serrure qui s'ouvre quand elle a un doute n'est pas une serrure. Le
    remède est immédiat et dans vos mains — retirer le secret. */
+/* Pour demander a /auth/v1/user si un porteur est reel, il faut presenter
+   une cle du projet. La 7.49 prenait SUPABASE_SERVICE_ROLE_KEY — or le
+   tableau de bord la marque « Deprecated », comme SUPABASE_ANON_KEY. Elles
+   fonctionnent aujourd'hui, mais la serrure REFUSE en cas de doute : le jour
+   ou elles disparaitraient, elle ne faiblirait pas, elle fermerait tout.
+   On prend donc ce que la plateforme fournit, en commencant par ce qui n'est
+   PAS deprecie, et on garde les anciennes en dernier recours.
+
+   La forme de SUPABASE_PUBLISHABLE_KEYS est un « dictionnaire JSON » dont le
+   schema exact n'est pas garanti et peut changer. Plutot que de parier sur
+   une forme, on ramasse TOUTE chaine qui ressemble a une cle, a n'importe
+   quelle profondeur : un schema qui bouge ne doit pas fermer le relais. */
+function clesDeProjet(): string[] {
+  const l: string[] = [];
+  const ajoute = (v?: string | null) => {
+    const t = (v || "").trim();
+    if (t && !l.includes(t)) l.push(t);
+  };
+  const fouille = (x: unknown, prof = 0): void => {
+    if (prof > 4 || x === null || x === undefined) return;
+    if (typeof x === "string") {
+      if (/^(sb_publishable_|sb_secret_|eyJ)/.test(x)) ajoute(x);
+      return;
+    }
+    if (Array.isArray(x)) { for (const y of x) fouille(y, prof + 1); return; }
+    if (typeof x === "object") {
+      for (const y of Object.values(x as Record<string, unknown>)) fouille(y, prof + 1);
+    }
+  };
+  for (const nom of ["SUPABASE_PUBLISHABLE_KEYS", "SUPABASE_SECRET_KEYS"]) {
+    const brut = (Deno.env.get(nom) || "").trim();
+    if (!brut) continue;
+    try { fouille(JSON.parse(brut)); }
+    catch { fouille(brut); }   /* pas du JSON : c'est peut-etre la cle elle-meme */
+  }
+  /* les deux heritees, en dernier : elles marchent encore, mais elles sont
+     annoncees comme partantes */
+  ajoute(Deno.env.get("SUPABASE_ANON_KEY"));
+  ajoute(Deno.env.get("SUPABASE_SERVICE_ROLE_KEY"));
+  return l;
+}
+
 const porteursVus = new Map<string, number>();   /* porteur -> valable jusqu'à */
 async function porteurValide(brut: string): Promise<boolean> {
   /* Une clé publiable (« sb_publishable_… ») n'est pas un JWT. Trois
@@ -1758,20 +1800,32 @@ async function porteurValide(brut: string): Promise<boolean> {
   const vu = porteursVus.get(brut);
   if (vu && vu > Date.now()) return true;   /* déjà vérifié : pas d'aller-retour de plus */
   const b = (Deno.env.get("SUPABASE_URL") || "").replace(/\/+$/, "");
-  const k = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
-  if (!b || !k) return false;
-  try {
-    const r = await fetch(b + "/auth/v1/user", {
-      headers: { "apikey": k, "Authorization": "Bearer " + brut } });
-    if (!r.ok) return false;
-    const j = await r.json().catch(() => null) as { id?: string } | null;
-    if (!j || !j.id) return false;
-    /* le verdict tient cinq minutes ; la table est bornée pour qu'une rafale
-       de porteurs inventés ne la fasse pas enfler */
-    if (porteursVus.size > 200) porteursVus.clear();
-    porteursVus.set(brut, Date.now() + 5 * 60e3);
-    return true;
-  } catch { return false; }
+  const cles = clesDeProjet();
+  if (!b || !cles.length) return false;
+  for (const k of cles) {
+    let r: Response;
+    try {
+      r = await fetch(b + "/auth/v1/user", {
+        headers: { "apikey": k, "Authorization": "Bearer " + brut } });
+    } catch { return false; }   /* reseau coupe : on refuse, on ne devine pas */
+    const texte = await r.text().catch(() => "");
+    if (r.ok) {
+      let j: { id?: string } | null = null;
+      try { j = JSON.parse(texte); } catch { j = null; }
+      if (!j || !j.id) return false;
+      /* le verdict tient cinq minutes ; la table est bornée pour qu'une rafale
+         de porteurs inventés ne la fasse pas enfler */
+      if (porteursVus.size > 200) porteursVus.clear();
+      porteursVus.set(brut, Date.now() + 5 * 60e3);
+      return true;
+    }
+    /* Distinguer les deux refus possibles : « cette CLE ne va pas » — on
+       essaie la suivante — de « ce PORTEUR ne va pas », qui est un verdict
+       et clot la question. Confondre les deux, c'est soit refuser un pilote
+       a cause d'une cle, soit essayer trois cles pour rien. */
+    if (!/api\s*key/i.test(texte)) return false;
+  }
+  return false;   /* aucune cle du projet n'a permis de trancher */
 }
 
 Deno.serve(async (req: Request) => {
