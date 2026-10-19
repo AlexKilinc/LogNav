@@ -1,6 +1,6 @@
--- LogNavAK — deux colonnes de la table « profiles », à ajouter une fois.
+-- LogNavAK — trois colonnes de la table « profiles », à ajouter une fois.
 --
--- À QUOI ÇA SERT. Ces deux colonnes ne servent qu'à faire SUIVRE deux
+-- À QUOI ÇA SERT. Ces trois colonnes ne servent qu'à faire SUIVRE des
 -- réglages d'un appareil à l'autre (iPhone, iPad, Mac). Sans elles,
 -- l'application marche : elle garde tout dans le cache du navigateur.
 -- Ce qui manque, c'est la synchronisation.
@@ -12,13 +12,21 @@
 --             mêmes : sans la colonne, chaque appareil a sa propre
 --             liste, et donc ses propres planches.
 --
+--   vac_favs  les PLANCHES VAC gardées (l'étoile, dans la fenêtre
+--             « Cartes VAC »). À ne pas confondre avec arx_favs :
+--             celles-là sont des terrains qu'on consulte, celles-ci des
+--             planches qu'on veut sous la main. Ce qui voyage est la
+--             LISTE, jamais les mégaoctets : le PDF reste rangé dans
+--             l'appareil qui l'a téléchargé, et l'autre appareil va
+--             chercher les siens tout seul.
+--
 --   fav_pos   OÙ chaque favori est posé sur la carte. Les favoris
 --             eux-mêmes voyagent déjà (table « favorites ») ; leur
 --             position, elle, ne vivait que dans le cache, et un autre
 --             appareil les remettait à leur place d'usine.
 --
 -- L'application est écrite pour TOLÉRER leur absence : l'envoi de ces
--- deux colonnes est séparé du reste et son échec est ignoré. Rien ne
+-- colonnes est séparé du reste et son échec est ignoré. Rien ne
 -- casse donc si ce fichier n'est jamais joué — on perd seulement le
 -- confort de retrouver ses réglages sur un autre appareil.
 --
@@ -38,10 +46,13 @@ alter table public.profiles
 alter table public.profiles
   add column if not exists fav_pos  jsonb not null default '{}'::jsonb;
 
--- Vérification : les deux lignes doivent apparaître.
+alter table public.profiles
+  add column if not exists vac_favs jsonb not null default '[]'::jsonb;
+
+-- Vérification : les trois lignes doivent apparaître.
 select column_name, data_type, column_default
   from information_schema.columns
  where table_schema = 'public'
    and table_name   = 'profiles'
-   and column_name in ('arx_favs','fav_pos')
+   and column_name in ('arx_favs','fav_pos','vac_favs')
  order by column_name;
