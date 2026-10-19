@@ -20,7 +20,7 @@
  * Déploiement : Supabase > Edge Functions > fonction « cartes », coller ce
  * fichier EN ENTIER (vérifier que la dernière ligne dans l'éditeur est bien
  * « }); »), déployer, et laisser « Enforce JWT verification » DÉSACTIVÉ.
- * Aucun secret requis. Vérification : ouvrir ?version=1 -> doit répondre 7.50.
+ * Aucun secret requis. Vérification : ouvrir ?version=1 -> doit répondre 7.51.
  * Secret OPTIONNEL : CARTES_JETON = 1 pour n'accepter que les pilotes
  * connectés (jeton de session Supabase, envoyé par l'application depuis la
  * v.671). TANT QUE CE SECRET EST ABSENT, RIEN N'EST VÉRIFIÉ. À n'allumer que
@@ -37,7 +37,7 @@
  * Météo-France refuse l'adresse IP de Supabase.
  */
 
-const VERSION = "7.50";
+const VERSION = "7.51";
 const AERO = "https://aviation.meteo.fr";
 const SOFIA = "https://sofia-briefing.aviation-civile.gouv.fr";
 const UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Safari/605.1.15";
@@ -1852,6 +1852,18 @@ Deno.serve(async (req: Request) => {
      falsifie en trois lignes hors navigateur. Ce n'est pas une serrure,
      c'est une porte fermée.
 
+     7.51 — ON NE REFUSE QUE LES ORIGINES FAUSSES, PAS LES ABSENTES.
+     La 7.50 refusait aussi les appels SANS Origin, et c'était une
+     erreur de ma part : une balise <img>, une navigation d'<iframe>,
+     une barre d'adresse n'envoient jamais cet en-tête. Le dossier de
+     vol affichait donc le refus en JSON dans son cadre, le temps que la
+     voie « octets » aboutisse. Or un Origin absent n'est pas un autre
+     site : c'est précisément ce que le garde-fou n'avait jamais prétendu
+     arrêter, puisqu'il suffit de l'omettre pour s'en affranchir. Le
+     filtre garde tout son effet là où il en avait un — un AUTRE site
+     web, dont le navigateur impose l'Origin — et cesse de punir
+     l'application elle-même.
+
      IL EST ÉTEINT PAR DÉFAUT. Sans le secret CARTES_ORIGINES, rien
      n'est filtré et le comportement est celui d'avant — de sorte que
      déployer cette version ne peut rien casser. Pour l'allumer :
@@ -1863,7 +1875,7 @@ Deno.serve(async (req: Request) => {
     .split(",").map((x) => x.trim()).filter(Boolean);
   if (origines.length) {
     const o = req.headers.get("Origin") || "";
-    if (!o || !origines.includes(o)) {
+    if (o && !origines.includes(o)) {
       return reponseJson({ erreur: "origine non autorisée",
         motif: "ce relais ne sert que l'application LogNavAK",
         version: VERSION }, 403);
