@@ -1656,6 +1656,27 @@ html:has(.ovl) #uiScaleBox,html:has(body.rec-full) #uiScaleBox{display:none!impo
 .nc-recal.done{background:linear-gradient(180deg,#16a34a,#12833c);border-color:#16a34a;box-shadow:0 2px 12px rgba(22,163,74,.25);animation:none}
 .nc-recal.done span{color:#d6f5e3}
 .nc-fuelb{font-size:17px!important}
+/* ===== LE CONTROLE EN VOL TIENT DANS L'ECRAN (v.688) =================
+   Le panneau se lit en vol : devoir le faire defiler pour atteindre
+   « Fermer et lancer le chrono » est une manipulation de trop, au pire
+   moment. On rogne les hauteurs — pas les chiffres, qui doivent rester
+   lisibles de loin. Porte par .nc-popv : les memes classes servent
+   ailleurs et n'ont pas a retrecir partout. Le suivi carburant, lui,
+   reste sous la ligne de flottaison : c'est un historique. */
+.nc-popv{gap:9px;padding:11px}
+.nc-popv .nc-recal{padding:9px 12px;font-size:17px;gap:1px}
+.nc-popv .nc-recal span{font-size:11px}
+.nc-popv .nc-fuelb{font-size:15.5px!important;padding:8px 12px}
+.nc-popv .nc-close30{padding:9px 12px;font-size:15px}
+.nc-popv .nc-fuel{gap:6px;padding:9px}
+.nc-popv .nc-fuel-h b{font-size:21px}
+.nc-popv .nc-conso{padding:6px 10px;gap:6px}
+.nc-popv .nc-conso b{font-size:19px}
+.nc-popv .nc-seg button{padding:8px;font-size:13.5px}
+.nc-popv .nc-tkc{padding:6px}
+.nc-popv .nc-tkc i{min-height:0}
+.nc-popv .nc-tkc b{font-size:17px}
+.nc-popv .nc-lbl{margin-top:0}
 .nc-close30{background:#e94560;color:#fff;border:2px solid #ff8fa3;border-radius:12px;padding:14px;font:800 16px "Poppins",sans-serif;cursor:pointer;box-shadow:0 3px 14px rgba(233,69,96,.3);animation:nc30Blink 1.1s ease-in-out infinite}
 @keyframes nc30Blink{0%,100%{box-shadow:0 3px 14px rgba(233,69,96,.3);border-color:#ff8fa3;filter:none}50%{box-shadow:0 0 0 7px rgba(233,69,96,.3),0 3px 14px rgba(233,69,96,.45);border-color:#fff;filter:brightness(1.14)}}
 .nc-close30:active{background:#c73652}
@@ -3495,7 +3516,7 @@ window.__TRACE_MARKUP="\n\n<header>\n  <div class=\"hdr-row1\">\n    <span class
    accessible depuis le bouton ⓘ du bandeau du log, avant toute ouverture de la carte */
 (function(){
   var host=document.createElement('div');
-  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Cartes OACI — origine et mise à jour</b></p>\n    <p style=\"margin-top:-6px\"><b>1/250 000 Région parisienne</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte250\">—</span>.</p>\n    <p style=\"margin-top:-6px\"><b>1/500 000 France</b> — IGN Géoplateforme (SCAN-OACI). Donnée <b>non libre</b>, tenue à jour par l’IGN.</p>\n    <p style=\"margin-top:-6px\"><b>1/1 000 000 France</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte1000\">—</span>.</p>\n    <p>Les deux cartes du SIA sont hébergées à part et lues par plages : seules les tuiles affichées sont téléchargées. Les trois se copient sur l’appareil pour voler sans réseau depuis <b>Profil → Cartes hors-ligne</b>. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.687</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
+  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Cartes OACI — origine et mise à jour</b></p>\n    <p style=\"margin-top:-6px\"><b>1/250 000 Région parisienne</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte250\">—</span>.</p>\n    <p style=\"margin-top:-6px\"><b>1/500 000 France</b> — IGN Géoplateforme (SCAN-OACI). Donnée <b>non libre</b>, tenue à jour par l’IGN.</p>\n    <p style=\"margin-top:-6px\"><b>1/1 000 000 France</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte1000\">—</span>.</p>\n    <p>Les deux cartes du SIA sont hébergées à part et lues par plages : seules les tuiles affichées sont téléchargées. Les trois se copient sur l’appareil pour voler sans réseau depuis <b>Profil → Cartes hors-ligne</b>. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.688</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
   (document.body||document.documentElement).appendChild(host.firstElementChild);
   /* le nom du fichier de la 1/1 000 000 dit son edition : on le lit la ou il
      est vraiment (cartes.json), jamais en dur, sinon il mentirait un jour */
@@ -12924,7 +12945,7 @@ function NavCards({nav,setNav:setNav0,tsvOf,tavOf,capOf,volLocal}){
           h("button",{className:"nc-cancel",onClick:()=>setPop(false)},"Poursuivre le vol"),
           h("button",{className:"nc-stopb",onClick:stopNow},"Terminer"))))):null,
     pop===true?portal(h("div",{className:"nc-ov",onClick:e=>{if(e.target===e.currentTarget)setPop(false);}},
-      h("div",{className:"nc-pop"},
+      h("div",{className:"nc-pop nc-popv"},
         h("div",{className:"nc-pop-h"},h(Ic,{name:"fuelcomp",size:18,sw:1.7}),"Contrôle en vol",
           h("button",{className:"nc-x",onClick:()=>setPop(false),title:"Fermer"},"×")),
         h("button",{className:"nc-recal"+(recalOK?" done":(blink?" alert":"")),onClick:()=>{recal();setRecalOK(true);}},
