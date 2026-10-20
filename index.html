@@ -3386,7 +3386,7 @@ window.__TRACE_MARKUP="\n\n<header>\n  <div class=\"hdr-row1\">\n    <span class
    accessible depuis le bouton ⓘ du bandeau du log, avant toute ouverture de la carte */
 (function(){
   var host=document.createElement('div');
-  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Cartes OACI — origine et mise à jour</b></p>\n    <p style=\"margin-top:-6px\"><b>1/250 000 Région parisienne</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte250\">—</span>.</p>\n    <p style=\"margin-top:-6px\"><b>1/500 000 France</b> — IGN Géoplateforme (SCAN-OACI). Donnée <b>non libre</b>, tenue à jour par l’IGN.</p>\n    <p style=\"margin-top:-6px\"><b>1/1 000 000 France</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte1000\">—</span>.</p>\n    <p>Les deux cartes du SIA sont hébergées à part et lues par plages : seules les tuiles affichées sont téléchargées. Les trois se copient sur l’appareil pour voler sans réseau depuis <b>Profil → Cartes hors-ligne</b>. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.678</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
+  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Cartes OACI — origine et mise à jour</b></p>\n    <p style=\"margin-top:-6px\"><b>1/250 000 Région parisienne</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte250\">—</span>.</p>\n    <p style=\"margin-top:-6px\"><b>1/500 000 France</b> — IGN Géoplateforme (SCAN-OACI). Donnée <b>non libre</b>, tenue à jour par l’IGN.</p>\n    <p style=\"margin-top:-6px\"><b>1/1 000 000 France</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte1000\">—</span>.</p>\n    <p>Les deux cartes du SIA sont hébergées à part et lues par plages : seules les tuiles affichées sont téléchargées. Les trois se copient sur l’appareil pour voler sans réseau depuis <b>Profil → Cartes hors-ligne</b>. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.679</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
   (document.body||document.documentElement).appendChild(host.firstElementChild);
   /* le nom du fichier de la 1/1 000 000 dit son edition : on le lit la ou il
      est vraiment (cartes.json), jamais en dur, sinon il mentirait un jour */
@@ -10482,7 +10482,17 @@ const reperesCouleur=(t,sombre)=>{
    celle que l'utilisateur a pu modifier, et on ecarte les entrees sans nom. */
 function __dedupeFavs(l){var out=[],vus={};(l||[]).forEach(function(f){if(!f)return;
   var k=String(f.name||"").trim().toLowerCase();if(!k||vus[k])return;vus[k]=1;out.push(f);});return out;}
-function migrate(s){if(s&&s.navs){Object.values(s.navs).forEach(n=>{if(n&&(n.type==="ar-diff"||n.type==="ar-inverse"))n.type="ar";if(n&&n.meta&&!n.meta.immat){if(n.meta.conso==="20")n.meta.conso="";if(n.meta.vitesse==="110")n.meta.vitesse=""}if(n&&!n.profilPage)n.profilPage={on:true,notes:[],imgs:[],notesR:[],imgsR:[]};if(n&&n.profilPage&&!n.profilPage.imgs)n.profilPage.imgs=[];if(n&&n.profilPage&&!n.profilPage.notesR)n.profilPage.notesR=[];if(n&&n.profilPage&&!n.profilPage.imgsR)n.profilPage.imgsR=[];if(n&&n.profilPage&&!n.profilPage.marksA)n.profilPage.marksA=[];if(n&&n.profilPage&&!n.profilPage.marksR)n.profilPage.marksR=[];if(n&&n.profilPage&&!n.profilPage.badgePosA)n.profilPage.badgePosA={};if(n&&n.profilPage&&!n.profilPage.badgePosR)n.profilPage.badgePosR={};if(n&&n.profilPage&&!n.profilPage.slopesA)n.profilPage.slopesA={};if(n&&n.profilPage&&!n.profilPage.slopesR)n.profilPage.slopesR={};if(n&&n.profilPage&&!n.profilPage.zonesA)n.profilPage.zonesA=[];if(n&&n.profilPage&&!n.profilPage.zonesR)n.profilPage.zonesR=[]})}if(s&&s.navs&&!s.__altOnPoint){const shift=arr=>{if(!arr||!arr.length)return;for(let i=0;i<arr.length-1;i++){const nx=arr[i+1]||{};arr[i].altVol=nx.altVol||"";arr[i].altMin=nx.altMin||"";arr[i].altMax=nx.altMax||""}for(let i=1;i<arr.length;i++){}};Object.values(s.navs).forEach(n=>{if(!n)return;shift(n.aller);shift(n.retour)});s.__altOnPoint=true}if(s&&s.navs){Object.values(s.navs).forEach(n=>{if(n&&n.profilPage){n.profilPage.showTerrain=false;n.profilPage.showAsp=false}})}if(s&&!s.fuel)s.fuel={regl:"30",club:"30"};if(s&&!s.favorites)s.favorites=[];if(s)s.favorites=__dedupeFavs(s.favorites);if(s){const SEED=[{name:"Sud Dampierre",altVol:"2000",altMax:"2500",altMin:"1000"},{name:"RBT",altVol:"1500",altMax:"1500",altMin:"1000"},{name:"HOL",altVol:"2000",altMax:"2500",altMin:"1000"},{name:"LFPN Sierra",altVol:"1300",altMax:"1500",altMin:"1250"}];const norm=x=>(x||"").trim().toLowerCase();s.favorites.forEach(f=>{if(norm(f.name)==="sierra lfpn")f.name="LFPN Sierra"});try{const p=JSON.parse(localStorage.getItem("lognav_fav_map_pos")||"{}");let ch=false;if(p["Sierra LFPN"]&&!p["LFPN Sierra"]){p["LFPN Sierra"]=p["Sierra LFPN"];delete p["Sierra LFPN"];ch=true}const DEFPOS={"HOL":[48.72245,1.8294],"Sud Dampierre":[48.70218,1.98853],"RBT":[48.65389,1.99428],"LFPN Sierra":[48.7098,2.11034]};const OLDDEFS=[{"Sud Dampierre":[48.69,1.98],"RBT":[48.645,1.83],"HOL":[48.678,1.812],"LFPN Sierra":[48.702,2.077]},{"Sud Dampierre":[48.696,1.986],"RBT":[48.6556,2.0278],"HOL":[48.693,1.838],"LFPN Sierra":[48.712,2.108]}];OLDDEFS.forEach(OD=>{for(const k in OD){if(p[k]&&Math.abs(p[k][0]-OD[k][0])<1e-6&&Math.abs(p[k][1]-OD[k][1])<1e-6){p[k]=DEFPOS[k];ch=true}}});for(const k in DEFPOS){if(!p[k]){p[k]=DEFPOS[k];ch=true}}if(ch)localStorage.setItem("lognav_fav_map_pos",JSON.stringify(p))}catch(e){}/* Les quatre points de reference du secteur sont fournis AVEC l'application :
+function migrate(s){if(s&&s.navs){Object.values(s.navs).forEach(n=>{if(n&&(n.type==="ar-diff"||n.type==="ar-inverse"))n.type="ar";if(n&&n.meta&&!n.meta.immat){if(n.meta.conso==="20")n.meta.conso="";if(n.meta.vitesse==="110")n.meta.vitesse=""}if(n&&!n.profilPage)n.profilPage={on:true,notes:[],imgs:[],notesR:[],imgsR:[]};if(n&&n.profilPage&&!n.profilPage.imgs)n.profilPage.imgs=[];if(n&&n.profilPage&&!n.profilPage.notesR)n.profilPage.notesR=[];if(n&&n.profilPage&&!n.profilPage.imgsR)n.profilPage.imgsR=[];if(n&&n.profilPage&&!n.profilPage.marksA)n.profilPage.marksA=[];if(n&&n.profilPage&&!n.profilPage.marksR)n.profilPage.marksR=[];if(n&&n.profilPage&&!n.profilPage.badgePosA)n.profilPage.badgePosA={};if(n&&n.profilPage&&!n.profilPage.badgePosR)n.profilPage.badgePosR={};if(n&&n.profilPage&&!n.profilPage.slopesA)n.profilPage.slopesA={};if(n&&n.profilPage&&!n.profilPage.slopesR)n.profilPage.slopesR={};if(n&&n.profilPage&&!n.profilPage.zonesA)n.profilPage.zonesA=[];if(n&&n.profilPage&&!n.profilPage.zonesR)n.profilPage.zonesR=[]})}if(s&&s.navs&&!s.__altOnPoint){const shift=arr=>{if(!arr||!arr.length)return;for(let i=0;i<arr.length-1;i++){const nx=arr[i+1]||{};arr[i].altVol=nx.altVol||"";arr[i].altMin=nx.altMin||"";arr[i].altMax=nx.altMax||""}for(let i=1;i<arr.length;i++){}};Object.values(s.navs).forEach(n=>{if(!n)return;shift(n.aller);shift(n.retour)});s.__altOnPoint=true}if(s&&s.navs){Object.values(s.navs).forEach(n=>{if(n&&n.profilPage){n.profilPage.showTerrain=false;n.profilPage.showAsp=false}})}if(s&&!s.fuel)s.fuel={regl:"30",club:"30"};if(s&&!s.favorites)s.favorites=[];if(s)s.favorites=__dedupeFavs(s.favorites);if(s){const SEED=[{name:"Sud Dampierre",altVol:"2000",altMax:"2500",altMin:"1000"},{name:"RBT",altVol:"1500",altMax:"1500",altMin:"1000"},{name:"HOL",altVol:"2000",altMax:"2500",altMin:"1000"},{name:"LFPN Sierra",altVol:"1300",altMax:"1500",altMin:"1250"}];const norm=x=>(x||"").trim().toLowerCase();s.favorites.forEach(f=>{if(norm(f.name)==="sierra lfpn")f.name="LFPN Sierra"});try{const p=JSON.parse(localStorage.getItem("lognav_fav_map_pos")||"{}");let ch=false;if(p["Sierra LFPN"]&&!p["LFPN Sierra"]){p["LFPN Sierra"]=p["Sierra LFPN"];delete p["Sierra LFPN"];ch=true}/* v.679 — LE POINT SIERRA PORTE SA POSITION PUBLIEE.
+   48 42 35 N / 002 06 37 E, soit 48.709722 / 2.110278 : coteau nord de la
+   vallee de Chevreuse, entre Gif-sur-Yvette et Saint-Remy. L'ancienne
+   valeur en etait a 9,8 m — rien en vol, mais autant porter le chiffre
+   publie qu'un arrondi. Elle rejoint OLDDEFS : une position rangee qui
+   vaut encore l'ancien defaut sera donc remise d'elle-meme, ici comme sur
+   les autres appareils, puisque fav_pos se synchronise.
+   CE QUI N'EST PAS TOUCHE : une position DEPLACEE A LA MAIN (bouton FAV,
+   troisieme etat) ne vaut aucun de ces defauts — elle est conservee. On
+   ne remet pas d'autorite le point d'un pilote qui l'a bouge expres. */
+const DEFPOS={"HOL":[48.72245,1.8294],"Sud Dampierre":[48.70218,1.98853],"RBT":[48.65389,1.99428],"LFPN Sierra":[48.709722,2.110278]};const OLDDEFS=[{"Sud Dampierre":[48.69,1.98],"RBT":[48.645,1.83],"HOL":[48.678,1.812],"LFPN Sierra":[48.702,2.077]},{"Sud Dampierre":[48.696,1.986],"RBT":[48.6556,2.0278],"HOL":[48.693,1.838],"LFPN Sierra":[48.712,2.108]},{"LFPN Sierra":[48.7098,2.11034]}];OLDDEFS.forEach(OD=>{for(const k in OD){if(p[k]&&Math.abs(p[k][0]-OD[k][0])<1e-6&&Math.abs(p[k][1]-OD[k][1])<1e-6){p[k]=DEFPOS[k];ch=true}}});for(const k in DEFPOS){if(!p[k]){p[k]=DEFPOS[k];ch=true}}if(ch)localStorage.setItem("lognav_fav_map_pos",JSON.stringify(p))}catch(e){}/* Les quatre points de reference du secteur sont fournis AVEC l'application :
    ils doivent etre la pour tout le monde, sur un compte neuf comme sur un
    compte ancien. Ils n'etaient semes qu'UNE fois (drapeau __favSeed) : une
    liste perdue en route — synchro croisee, dedoublonnage, appareil change —
@@ -17508,6 +17518,60 @@ window.__pickGpx=function(cb){
       .then(function(){ return o; }); }
   function efface(code){
     return tx('readwrite').then(function(s){ return pr(s['delete'](code)); }); }
+  /* ---------- la sortir de l'application ----------------------------
+     « Voir » montre la planche, « Local » la range dans l'application.
+     Il manquait de quoi la mettre dans SES fichiers a soi — un dossier de
+     vol imprime, un envoi a un instructeur, une consultation sans
+     l'application. C'est ce que fait ce bouton.
+
+     DEUX VOIES, parce que les appareils ne se ressemblent pas :
+       - sur iPhone et iPad, la feuille de partage ouvre « Enregistrer
+         dans Fichiers » : c'est le geste du systeme, et le seul qui range
+         vraiment un PDF quelque part ;
+       - ailleurs, le telechargement ordinaire, qui tombe dans le dossier
+         de telechargement.
+     La feuille de partage exige d'etre appelee DANS le geste du doigt.
+     Quand la planche est deja la, la lecture est immediate et l'on tient
+     dans le delai ; quand il faut d'abord la telecharger, on ne tente pas
+     le partage — on telecharge, et le second appui, lui, l'offrira. */
+  function nomFichier(code){
+    var c=String(window.__AIRAC_CYCLE||'').replace(/[^0-9]+/g,'-').replace(/^-|-$/g,'');
+    return 'VAC-'+code+(c?('-AIRAC-'+c):'')+'.pdf'; }
+  function versDisque(blob,nom){
+    var u=URL.createObjectURL(blob);
+    var a=document.createElement('a');
+    a.href=u; a.download=nom; a.rel='noopener';
+    document.body.appendChild(a); a.click();
+    setTimeout(function(){ try{ a.remove(); URL.revokeObjectURL(u); }catch(e){} },4000);
+  }
+  function partage(blob,nom){
+    try{
+      if(!(navigator.share&&navigator.canShare)) return null;
+      var f=new File([blob],nom,{type:'application/pdf'});
+      if(!navigator.canShare({files:[f]})) return null;
+      return navigator.share({files:[f],title:nom});
+    }catch(e){ return null; }
+  }
+  function enregistre(code,deja){
+    return lire(code).then(function(o){
+      if(o&&o.blob) return o;
+      return telecharge(code).then(function(r){
+        return r.ok?lire(code):null; });
+    }).then(function(o){
+      if(!o||!o.blob) return {ok:false,motif:'planche indisponible'};
+      var nom=nomFichier(code);
+      /* « deja » : la planche etait sur l'appareil AVANT le geste, donc
+         aucune attente reseau ne s'est glissee entre le doigt et ici */
+      var pp=deja?partage(o.blob,nom):null;
+      if(pp&&pp.then) return pp.then(function(){ return {ok:true,voie:'partage'}; },
+        function(e){
+          /* l'abandon de la feuille de partage n'est pas une panne */
+          if(e&&String(e.name)==='AbortError') return {ok:true,voie:'abandon'};
+          versDisque(o.blob,nom); return {ok:true,voie:'disque'}; });
+      versDisque(o.blob,nom);
+      return {ok:true,voie:'disque'};
+    });
+  }
   function inventaire(){
     return tx('readonly').then(function(s){
       return Promise.all([pr(s.getAllKeys()),pr(s.getAll())]).then(function(r){
@@ -18022,6 +18086,12 @@ window.__pickGpx=function(cb){
      +'font:800 9.5px "Poppins",sans-serif;letter-spacing:.02em;'
      +'background:#fff;color:#64748b;border:1.5px solid #CBD5E1}',
    '#vacOv .vac-l .b-etat.ici{color:#166534;border-color:#22C55E;background:#F0FDF4}',
+   /* ENREGISTRER : meme discretion que l'etat, une icone seule. Elle ne
+      doit pas se confondre avec « Voir », qui est l'action courante. */
+   '#vacOv .vac-l .b-dl{flex:none;display:inline-flex;align-items:center;'
+     +'justify-content:center;padding:6px 7px;background:#fff;color:#1E9FE0;'
+     +'border:1.5px solid #CBD5E1;border-radius:9px}',
+   '#vacOv .vac-l .b-dl svg{display:block;width:14px;height:14px}',
    '#vacOv .vac-vide{color:#8fa9cc;font:600 12px "Poppins",sans-serif;padding:4px 2px 2px}',
    /* le pied porte des boutons : sur iPhone installe, il doit rester
       au-dessus de la barre d'accueil, sans quoi on appuie a cote */
@@ -18173,6 +18243,22 @@ window.__pickGpx=function(cb){
     voir.title='Voir la planche';
     d.appendChild(voir);
 
+    /* v.679 : sortir la planche de l'application — vers Fichiers sur
+       iPhone, vers le dossier de telechargement ailleurs. Une icone et
+       non un mot : la ligne est deja chargee, et sur telephone chaque
+       caractere se dispute la largeur. */
+    var dl=document.createElement('button');
+    dl.type='button'; dl.className='b-dl';
+    dl.setAttribute('aria-label','Enregistrer la planche');
+    dl.title='Enregistrer la planche dans vos fichiers'
+      +(a?'':' (elle sera d’abord téléchargée)');
+    dl.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" '
+      +'fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" '
+      +'stroke-linejoin="round"><path d="M12 3v11"></path>'
+      +'<path d="M7.5 9.5 12 14l4.5-4.5"></path>'
+      +'<path d="M4.5 17.5v1.5a1.5 1.5 0 0 0 1.5 1.5h12a1.5 1.5 0 0 0 1.5-1.5v-1.5"></path></svg>';
+    d.appendChild(dl);
+
     var etat=document.createElement('button');
     etat.type='button';
     etat.className='b-etat'+(a?' ici':'');
@@ -18197,6 +18283,18 @@ window.__pickGpx=function(cb){
     };
     voir.onclick=ouvre1;
     d.onclick=ouvre1;
+
+    dl.onclick=function(ev){
+      ev.stopPropagation();
+      var dedans=dl.innerHTML;
+      dl.disabled=true;
+      return enregistre(code,!!a).then(function(r){
+        dl.disabled=false; dl.innerHTML=dedans;
+        if(!r.ok){ alerte('Enregistrement impossible pour '+code+' : '+r.motif
+          +'\n\nVous pouvez déposer le PDF vous-même avec « Importer… ».'); return; }
+        rend();   /* la planche vient peut-être d’arriver sur l’appareil */
+      },function(){ dl.disabled=false; dl.innerHTML=dedans; });
+    };
 
     etat.onclick=function(ev){
       ev.stopPropagation();
@@ -18272,6 +18370,7 @@ window.__pickGpx=function(cb){
   window.__VAC_AUTO=auto;              /* differe : appele a chaque changement du log */
   window.__VAC_AUTO_TOUT_DE_SUITE=autoFait;   /* sans attendre : banc et interrupteur */
   window.__VAC_FAVORIS=favoris;          /* favoris de la Recherche aerodrome */
+  window.__VAC_ENREGISTRE=enregistre;    /* sortir une planche vers les fichiers */
   window.__VAC_PLANCHES_GARDEES=favsVac;
   window.__VAC_BASCULE_GARDEE=basculeFav;
 })();
