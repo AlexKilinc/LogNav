@@ -3516,7 +3516,7 @@ window.__TRACE_MARKUP="\n\n<header>\n  <div class=\"hdr-row1\">\n    <span class
    accessible depuis le bouton ⓘ du bandeau du log, avant toute ouverture de la carte */
 (function(){
   var host=document.createElement('div');
-  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Cartes OACI — origine et mise à jour</b></p>\n    <p style=\"margin-top:-6px\"><b>1/250 000 Région parisienne</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte250\">—</span>.</p>\n    <p style=\"margin-top:-6px\"><b>1/500 000 France</b> — IGN Géoplateforme (SCAN-OACI). Donnée <b>non libre</b>, tenue à jour par l’IGN.</p>\n    <p style=\"margin-top:-6px\"><b>1/1 000 000 France</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte1000\">—</span>.</p>\n    <p>Les deux cartes du SIA sont hébergées à part et lues par plages : seules les tuiles affichées sont téléchargées. Les trois se copient sur l’appareil pour voler sans réseau depuis <b>Profil → Cartes hors-ligne</b>. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.688</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
+  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Cartes OACI — origine et mise à jour</b></p>\n    <p style=\"margin-top:-6px\"><b>1/250 000 Région parisienne</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte250\">—</span>.</p>\n    <p style=\"margin-top:-6px\"><b>1/500 000 France</b> — IGN Géoplateforme (SCAN-OACI). Donnée <b>non libre</b>, tenue à jour par l’IGN.</p>\n    <p style=\"margin-top:-6px\"><b>1/1 000 000 France</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte1000\">—</span>.</p>\n    <p>Les deux cartes du SIA sont hébergées à part et lues par plages : seules les tuiles affichées sont téléchargées. Les trois se copient sur l’appareil pour voler sans réseau depuis <b>Profil → Cartes hors-ligne</b>. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.689</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
   (document.body||document.documentElement).appendChild(host.firstElementChild);
   /* le nom du fichier de la 1/1 000 000 dit son edition : on le lit la ou il
      est vraiment (cartes.json), jamais en dur, sinon il mentirait un jour */
@@ -10906,6 +10906,12 @@ const volLocal=()=>{
   n.cardRec=true;          /* la trace, c'est la raison d'etre du vol local */
   setApp(a=>({...a,navs:{...a.navs,[n.id]:n},currentId:n.id}));
   setHist({past:[],future:[]});
+  /* ET L'ON ENCHAINE. L'ecran d'accueil des cartes est le MEME avant et
+     apres : un Play, un bouton « Vol local ». Le pilote appuyait, la
+     navigation etait bien creee, et rien ne bougeait sous ses yeux — le
+     bouton semblait mort. Il mene donc la ou il promet d'aller : la
+     preparation du vol s'ouvre dans la foulee (v.689). */
+  try{ window.__VOL_LOCAL_GO=n.id; }catch(e){}
 };
 const regenInverse=()=>setNav({retour:buildInverse(nav.aller)});const fileRef=React.useRef(null);const mapRef=React.useRef(null);const toggleMapPage=()=>setNav({mapPage:{...nav.mapPage||{img:"",fit:"contain"},on:!(nav.mapPage&&nav.mapPage.on)}});const toggleProfilPage=()=>setNav({profilPage:{...nav.profilPage||{notes:[]},on:!(nav.profilPage&&nav.profilPage.on)}});const toggleCardPage=()=>{const on=!(nav.cardPage&&nav.cardPage.on);if(on&&nav.flight&&nav.flight.tEnd){alert("Vol d\xE9j\xE0 effectu\xE9 \u2014 navigation en consultation. Utilisez \xAB R\xE9utiliser \xBB (\u2699 > Ouvrir une navigation) pour pr\xE9parer un nouveau vol.");return}setNav({cardPage:{...nav.cardPage||{},on}})};const[pdfBusy,setPdfBusy]=useState(false);const[guard,setGuard]=useState(null);const guardAction=(label,act)=>{const m=VG_MESSAGES[Math.floor(Math.random()*VG_MESSAGES.length)];setGuard({label,act,msg:m,done:false})};const exportPDF=async()=>{const loadScript=src=>new Promise((res,rej)=>{const s=document.createElement("script");s.src=src;s.onload=res;s.onerror=rej;document.head.appendChild(s)});/* declaree HORS du try : le « finally » qui remet la carte en place est un
    bloc voisin, il ne verrait pas une variable declaree dans le try. */
@@ -11275,14 +11281,12 @@ const name=(nav.name||"lognav").replace(/[^\w\-]+/g,"_");await window.html2pdf()
              l'ecran la ramene pour quelques secondes (v.684). Deux classes
              sur <html> : la regle l'emporte sur celle du dessus. */
           html.mp-flying.mp-appel #mtabs{display:flex!important;}
-          /* la poignee : elle ne fait rien, elle DIT qu'il y a quelque chose
-             a toucher la. Sans elle, le geste serait un secret. */
-          .mp-poignee{position:fixed;left:50%;transform:translateX(-50%);
-            bottom:calc(4px + env(safe-area-inset-bottom,0px));width:46px;height:4px;
-            border-radius:999px;background:rgba(255,255,255,.34);z-index:93;
-            display:none;pointer-events:none;transition:opacity .25s ease}
-          html.mp-flying .mp-poignee{display:block}
-          html.mp-flying.mp-appel .mp-poignee{opacity:0}
+          /* v.689 : LA POIGNEE EST RETIREE. Posee en v.684 pour dire ou
+             toucher, elle tombait pile sur le nom de fin de branche, en
+             bas de la carte — un trait gris en travers d'une donnee de
+             vol. Une decoration ne passe pas devant une donnee. Le mot
+             affiche au premier vol suffit a faire connaitre le geste. */
+          .mp-poignee{display:none!important}
           /* page météo : la barre reste accessible au-dessus du panneau, qui lui
              réserve sa hauteur en bas de liste */
           html:has(#wxOv) #mtabs{z-index:5200!important;}
@@ -12352,6 +12356,15 @@ function NavCards({nav,setNav:setNav0,tsvOf,tavOf,capOf,volLocal}){
     setSelBlock(block);
     if(!t0&&!clrRef.current){ clrRef.current=true; setNav({flight:{...F,atis:{},atisA:{},hmStart:"",hmEnd:"",pitot:false}}); }
     setMode("setup"); };
+  /* « Vol local » vient de creer ce vol : on ouvre sa preparation, une
+     fois, et seulement si rien n'est commence. */
+  React.useEffect(()=>{ try{
+    if(!window.__VOL_LOCAL_GO) return;
+    if(!nav||!nav.local||t0) return;
+    if(nav.id && window.__VOL_LOCAL_GO!==nav.id) return;
+    window.__VOL_LOCAL_GO=null;
+    setTimeout(()=>{ try{ openSetup(); }catch(e){} },60);
+  }catch(e){} });
   /* ---- ATIS (propre au vol) : départ et arrivée ---- */
   /* le modal et l'alerte sortent de la feuille (portail) : sinon ils suivraient le
      décalage de la page et resteraient invisibles depuis les autres pages */
@@ -14262,12 +14275,10 @@ window.__CARTE_ADR=function(j,cle){
       +'.ovl,.qdm-tap,.nc-end,.nc-pop,.nc-ov')) return;
     appelleBarre();
   },{passive:true,capture:true});
-  /* la poignee, posee une fois pour toutes ; le CSS decide quand elle parait */
-  try{
-    var poi=document.createElement('div');
-    poi.className='mp-poignee'; poi.setAttribute('aria-hidden','true');
-    document.documentElement.appendChild(poi);
-  }catch(e){}
+  /* v.689 : plus de poignee — voir le commentaire du CSS. Et l'on retire
+     celle qu'une version precedente aurait laissee dans la page. */
+  try{ var vieille=document.querySelector('.mp-poignee');
+    if(vieille) vieille.remove(); }catch(e){}
   try{ new MutationObserver(function(){ apply(); }).observe(document.body,{childList:true,subtree:true}); }catch(e){}
   setInterval(apply,900);
   if(mq.addEventListener) mq.addEventListener('change',apply);
