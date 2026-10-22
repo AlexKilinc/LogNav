@@ -20,7 +20,7 @@
  * Déploiement : Supabase > Edge Functions > fonction « cartes », coller ce
  * fichier EN ENTIER (vérifier que la dernière ligne dans l'éditeur est bien
  * « }); »), déployer, et laisser « Enforce JWT verification » DÉSACTIVÉ.
- * Aucun secret requis. Vérification : ouvrir ?version=1 -> doit répondre 7.52.
+ * Aucun secret requis. Vérification : ouvrir ?version=1 -> doit répondre 7.53.
  * Secret OPTIONNEL : CARTES_JETON = 1 pour n'accepter que les pilotes
  * connectés (jeton de session Supabase, envoyé par l'application depuis la
  * v.671). TANT QUE CE SECRET EST ABSENT, RIEN N'EST VÉRIFIÉ. À n'allumer que
@@ -37,7 +37,7 @@
  * Météo-France refuse l'adresse IP de Supabase.
  */
 
-const VERSION = "7.52";
+const VERSION = "7.53";
 
 /* ===== TOUT APPEL SORTANT A UN DELAI (7.52) =========================
    Quinze des dix-neuf appels du relais n'en avaient aucun. Si SOFIA,
@@ -992,6 +992,17 @@ async function vac(q: URLSearchParams): Promise<Response> {
       essais.push({ url: url.slice(0, 150), http: r.status, contenu: ct.slice(0, 60) });
     } catch (e) {
       essais.push({ url: url.slice(0, 150), erreur: String(e).slice(0, 120) });
+      /* 7.52 : UNE ADRESSE MUETTE SUFFIT. Mesure au banc : le SIA
+         injoignable, et les douze adresses candidates s'enchainaient a
+         quinze secondes chacune — CENT QUATRE-VINGTS SECONDES avant de
+         rendre la main, pour une application qui attend vingt-deux. Un
+         404 FRANC, lui, ne dit rien du SIA : on essaie l'adresse
+         suivante, comme avant. */
+      if (estDelai(e)) {
+        essais.push({ arret: "le SIA n'a pas répondu dans le temps imparti",
+          note: "adresses suivantes non essayées" });
+        break;
+      }
     }
   }
   if (q.get("essai") === "1") {
@@ -1628,7 +1639,14 @@ async function notamSofia(q: URLSearchParams): Promise<Response> {
       try {
         const r = await sofiaPib(route, { ...opts, duration: du });
         pib = r.pib; trace = r.trace; dureeServie = du; break;
-      } catch (e) { panne = e; }
+      } catch (e) {
+        panne = e;
+        /* 7.52 : meme regle que partout. Les paliers servent a retomber
+           sur une fenetre plus courte quand SOFIA REFUSE la longue ; ils
+           ne servent a rien quand SOFIA SE TAIT — et l'on cumulait alors
+           leurs attentes (quarante secondes mesurees au banc). */
+        if (estDelai(e)) break;
+      }
     }
     if (!pib) throw panne;
     const { notams, couverts } = sofiaAplatis(pib.listnotams);
