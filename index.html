@@ -3702,7 +3702,7 @@ window.__TRACE_MARKUP="\n\n<header>\n  <div class=\"hdr-row1\">\n    <span class
    accessible depuis le bouton ⓘ du bandeau du log, avant toute ouverture de la carte */
 (function(){
   var host=document.createElement('div');
-  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Cartes OACI — origine et mise à jour</b></p>\n    <p style=\"margin-top:-6px\"><b>1/250 000 Région parisienne</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte250\">—</span>.</p>\n    <p style=\"margin-top:-6px\"><b>1/500 000 France</b> — IGN Géoplateforme (SCAN-OACI). Donnée <b>non libre</b>, tenue à jour par l’IGN.</p>\n    <p style=\"margin-top:-6px\"><b>1/1 000 000 France</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte1000\">—</span>.</p>\n    <p>Les deux cartes du SIA sont hébergées à part et lues par plages : seules les tuiles affichées sont téléchargées. Les trois se copient sur l’appareil pour voler sans réseau depuis <b>Profil → Cartes hors-ligne</b>. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.704</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
+  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Cartes OACI — origine et mise à jour</b></p>\n    <p style=\"margin-top:-6px\"><b>1/250 000 Région parisienne</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte250\">—</span>.</p>\n    <p style=\"margin-top:-6px\"><b>1/500 000 France</b> — IGN Géoplateforme (SCAN-OACI). Donnée <b>non libre</b>, tenue à jour par l’IGN.</p>\n    <p style=\"margin-top:-6px\"><b>1/1 000 000 France</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte1000\">—</span>.</p>\n    <p>Les deux cartes du SIA sont hébergées à part et lues par plages : seules les tuiles affichées sont téléchargées. Les trois se copient sur l’appareil pour voler sans réseau depuis <b>Profil → Cartes hors-ligne</b>. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.705</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
   (document.body||document.documentElement).appendChild(host.firstElementChild);
   /* le nom du fichier de la 1/1 000 000 dit son edition : on le lit la ou il
      est vraiment (cartes.json), jamais en dur, sinon il mentirait un jour */
@@ -8757,7 +8757,8 @@ function openRelinkChoice(){
     azbaVoirFrance();
     azbaCharge(function(d){
       if(!azbaOn) return;
-      if(!d){ if(typeof showToast==='function') showToast('AZBA indisponibles \u00b7 '+(azbaErr||'?'));
+      if(!d){ if(typeof showToast==='function') showToast('AZBA indisponibles \u00b7 '
+          +(azbaErr||'?')+' \u00b7 consultez les NOTAM');
         azbaOn=false; try{ map.removeLayer(azbaGroup); map.removeLayer(azbaLabG); }catch(e){}
         azbaLegende(false);
         if(zb) zb.classList.remove('on'); ntmOutilsMaj(); azbaRendVue(); return; }
@@ -9231,8 +9232,12 @@ function openRelinkChoice(){
       try{ azbaCharge(function(){
         if(ntmHote!==h2) return;
         if(azbaData) ntmDossier();
-        else ntmHoteMot('Zones AZBA indisponibles (réseau ou relais).',true); }); }
-      catch(e){ ntmHoteMot('Zones AZBA indisponibles (réseau ou relais).',true); }
+        else ntmHoteMot('Zones AZBA indisponibles (réseau ou relais). '
+          +'Consigne officielle dans ce cas : consultez les NOTAM pour '
+          +'connaître l’activité des zones très basses altitudes.',true); }); }
+      catch(e){ ntmHoteMot('Zones AZBA indisponibles (réseau ou relais). '
+          +'Consigne officielle dans ce cas : consultez les NOTAM pour '
+          +'connaître l’activité des zones très basses altitudes.',true); }
       return; }
     ntmHoteMot('Chargement des NOTAM, SUP AIP et AZBA…',false);
     var hote=ntmHote;
@@ -9554,7 +9559,11 @@ function openRelinkChoice(){
             +(sgeo>0?', '+sgeo+' sans contour publié':'')+')'
             +'. À des fins de préparation : se référer aux cartes officielles.</div>'; }
       }
-      if(!azbaData) html+='<div class="ntm-un">'+(azbaErr?('AZBA indisponibles \u00b7 '+ntmEsc(azbaErr)):'chargement\u2026')+'</div>';
+      if(!azbaData) html+='<div class="ntm-un">'+(azbaErr
+        ?('AZBA indisponibles \u00b7 '+ntmEsc(azbaErr)
+          +' \u2014 consultez les NOTAM pour conna\u00eetre l\u2019activit\u00e9 des '
+          +'zones tr\u00e8s basses altitudes.')
+        :'chargement\u2026')+'</div>';
       else if(!azZ.length) html+='<div class="ntm-un">aucun cr\u00e9neau dans les 48 prochaines heures</div>';
       else azZ.forEach(function(z){ var cr=azbaFen(z,48);
         html+='<div class="ntm-un"><b>'+ntmEsc(z.nom)+'</b>'
@@ -10262,7 +10271,13 @@ function openRelinkChoice(){
       +fen.txt+' \u00b7 version courte. Cette fen\u00eatre est celle publi\u00e9e par le SIA ; '
       +'elle ne suit pas la date saisie pour le vol.</div>'
       +ddvAvertVol(fen);
-    if(d.azba==null) h+='<div class="wxd-vide">AZBA '+(fige?'non fig\u00e9s pour ce vol':'indisponibles')+'.</div>';
+    /* « non figes pour ce vol » n'est pas une panne : le vol a ete
+       enregistre sans AZBA, il n'y a rien a consulter ailleurs. La
+       consigne NOTAM ne s'ajoute donc QUE sur l'indisponibilite. */
+    if(d.azba==null) h+='<div class="wxd-vide">AZBA '+(fige
+      ?'non fig\u00e9s pour ce vol.'
+      :'indisponibles \u2014 consultez les NOTAM pour conna\u00eetre '
+       +'l\u2019activit\u00e9 des zones tr\u00e8s basses altitudes.')+'</div>';
     else if(!d.azba.length) h+='<div class="wxd-msg">aucun cr\u00e9neau dans les 48 prochaines heures</div>';
     else h+=ddvCroquis(d);
     if(d.azba&&d.azba.length) d.azba.forEach(function(z){
@@ -18357,8 +18372,9 @@ window.__pickGpx=function(cb){
             vb.disabled=false;
             return maj().then(function(){
               if(r&&r.ok){ try{ window.__VAC_VOIR&&window.__VAC_VOIR(ad); }catch(e){} }
-              else alert('Planche VAC indisponible pour '+ad+' : '+((r&&r.motif)||'')
-                +'\n\nVous pouvez la déposer vous-même depuis la pastille VAC du bandeau.');
+              else alert(window.__VAC_PHRASE
+                ? window.__VAC_PHRASE(ad,r&&r.motif)
+                : ('Planche VAC indisponible pour '+ad+' : '+((r&&r.motif)||'')));
             });
           });
         });
@@ -18672,6 +18688,45 @@ window.__pickGpx=function(cb){
 
   /* Le relais rend la planche officielle du SIA. Un echec n'est jamais
      fatal : il porte sa raison en clair, et l'import manuel reste ouvert. */
+  /* v.705 : DIRE LAQUELLE DES PANNES, ET CE QUI RESTE. Un rapatriement
+     qui echoue n'est presque jamais « cette planche n'existe pas » : le
+     plus souvent la source est a terre — le SIA a arrete SOFIA VAC le
+     22/10/2026. Deux choses comptent pour le pilote : savoir que c'est le
+     service et non son terrain, et savoir que les planches DEJA rangees
+     sur l'appareil s'ouvrent quand meme. La seconde est la plus utile des
+     deux, et c'est celle qui manquait. */
+  function vacPhrase(code,motif){
+    var m=String(motif||''), t, p;
+    if(navigator.onLine===false){
+      t='Pas de connexion';
+      p='Une planche ne se rapatrie qu’en ligne.'; }
+    else if(/relais non configur/i.test(m)){
+      t='Relais non configuré';
+      p='L’application n’a pas d’adresse de relais : rien ne peut être rapatrié.'; }
+    else if(/session|jeton|401/i.test(m)){
+      t='Session expirée';
+      p='Reconnectez-vous, puis réessayez.'; }
+    else if(/délai dépassé|abort/i.test(m)){
+      t='Le service des planches ne répond pas';
+      p='Le SIA (SOFIA VAC) n’a pas répondu dans le délai. '
+       +'Cela arrive quand le service est arrêté ou saturé.'; }
+    else if(/\b5\d\d\b/.test(m)){
+      t='Le service des planches est indisponible';
+      p='Le SIA (SOFIA VAC) a refusé la demande.'; }
+    else if(/\b404\b|introuvable|aucune planche/i.test(m)){
+      t='Aucune planche publiée pour ce terrain';
+      p='Le SIA n’en propose pas sous ce code.'; }
+    else {
+      t='Planche VAC indisponible';
+      p=''; }
+    return t+' — '+code
+      +(p?'\n\n'+p:'')
+      +(m?'\n\nMotif : '+m:'')
+      +'\n\nLes planches déjà rangées sur l’appareil restent consultables, '
+      +'service coupé ou non. Vous pouvez aussi déposer le PDF vous-même '
+      +'(pastille VAC du bandeau, « Importer… »).';
+  }
+
   function telecharge(code){
     code=String(code||'').trim().toUpperCase();
     if(!/^[A-Z]{4}$/.test(code)) return Promise.resolve({ok:false,motif:'code OACI invalide'});
@@ -18687,7 +18742,11 @@ window.__pickGpx=function(cb){
           return r.text().then(function(txt){
             var m='';
             try{ var o=JSON.parse(txt)||{}; m=o.motif||o.erreur||''; }catch(e){}
-            throw new Error(m||('le relais répond '+r.status));
+            /* v.705 : LE STATUT RESTE DANS LE MOTIF. Quand le relais
+               joignait un « erreur » a sa reponse, le code HTTP etait
+               perdu — et vacPhrase ne pouvait plus distinguer un 401
+               d'un 503. Les deux voyagent desormais ensemble. */
+            throw new Error((m?m+' · ':'')+'relais '+r.status);
           });
         }
         return r.blob();
@@ -19356,8 +19415,7 @@ window.__pickGpx=function(cb){
       return telecharge(code).then(function(r){
         occupe(voir,false,'Voir');
         if(r.ok){ rend(); return vue(code); }
-        alerte('Planche VAC indisponible pour '+code+' : '+r.motif
-          +'\n\nVous pouvez la déposer vous-même avec « Importer… ».');
+        alerte(vacPhrase(code,r.motif));
       });
     };
     voir.onclick=ouvre1;
@@ -19442,6 +19500,9 @@ window.__pickGpx=function(cb){
   window.__VAC_OPEN=ouvre;
   window.__VAC_VOIR=vue;
   window.__VAC_TELECHARGE=telecharge;
+  /* la fiche AERODROME vit dans un autre module et rapatrie la meme
+     planche : elle doit rendre la meme phrase, pas une autre. */
+  window.__VAC_PHRASE=vacPhrase;
   window.__VAC_IMPORTE=importe;
   window.__VAC_INVENTAIRE=inventaire;
   window.__VAC_EFFACE=efface;
