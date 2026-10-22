@@ -20,12 +20,16 @@
  * Déploiement : Supabase > Edge Functions > fonction « cartes », coller ce
  * fichier EN ENTIER (vérifier que la dernière ligne dans l'éditeur est bien
  * « }); »), déployer, et laisser « Enforce JWT verification » DÉSACTIVÉ.
- * Aucun secret requis. Vérification : ouvrir ?version=1 -> doit répondre 7.54.
+ * Aucun secret requis. Vérification : ouvrir ?version=1 -> doit répondre 7.55.
  * Secret OPTIONNEL : AEROWEB_HOTE = l'hôte des images de Météo-France,
- * si un jour il change (« https://aeroweb.meteo.fr », annoncé en test au
- * 22/10/2026). ABSENT, c'est aviation.meteo.fr — le comportement
+ * si un jour il change. ABSENT, c'est aviation.meteo.fr — le comportement
  * d'aujourd'hui. Le jour de la bascule, c'est une ligne à changer dans
  * Supabase, sans redéploiement.
+ * NE PAS Y METTRE « https://aeroweb.meteo.fr » TANT QUE SON PROPRE BANDEAU
+ * demande de ne pas l'utiliser en opérationnel : ce site est en test. Le
+ * relais l'écarte de lui-même (7.55) — ce secret est le seul moyen de
+ * l'autoriser, et il ne doit être posé que le jour où Météo-France le
+ * déclarera officiel.
  * Secret OPTIONNEL : CARTES_JETON = 1 pour n'accepter que les pilotes
  * connectés (jeton de session Supabase, envoyé par l'application depuis la
  * v.671). TANT QUE CE SECRET EST ABSENT, RIEN N'EST VÉRIFIÉ. À n'allumer que
@@ -42,7 +46,7 @@
  * Météo-France refuse l'adresse IP de Supabase.
  */
 
-const VERSION = "7.54";
+const VERSION = "7.55";
 
 /* ===== TOUT APPEL SORTANT A UN DELAI (7.52) =========================
    Quinze des dix-neuf appels du relais n'en avaient aucun. Si SOFIA,
@@ -101,9 +105,22 @@ const AERO = ((): string => {
   const h = (Deno.env.get("AEROWEB_HOTE") || "").trim().replace(/\/+$/, "");
   return /^https?:\/\/[^/]+$/.test(h) ? h : "https://aviation.meteo.fr";
 })();
-/* les hotes connus de Meteo-France : l'ancien, le nouveau, et celui
-   qu'un secret aurait pose. Sert a reconnaitre un lien deja chez eux. */
-const HOTES_METEO = [AERO, "https://aviation.meteo.fr", "https://aeroweb.meteo.fr"];
+/* LE SITE EN TEST N'EST PAS OPERATIONNEL (7.55). aeroweb.meteo.fr porte
+   son propre bandeau : « ne pas utiliser en operationnel ». Un lien signe
+   qui pointerait dessus ne doit donc jamais etre suivi — ni rendu au
+   navigateur du pilote, ni lu pour ses octets. Le seul hote qui a le
+   droit de servir est l'hote CONFIGURE : aviation.meteo.fr par defaut,
+   ou celui qu'un secret AEROWEB_HOTE declare le jour de la bascule. */
+const HOTE_ESSAI = "https://aeroweb.meteo.fr";
+function surHoteOfficiel(u: string): boolean {
+  return u.startsWith(AERO + "/");
+}
+function siteEnEssai(u: string): boolean {
+  return AERO !== HOTE_ESSAI && u.startsWith(HOTE_ESSAI + "/");
+}
+function hoteDe(u: string): string {
+  return u.replace(/^(https?:\/\/[^/]+).*$/, "$1");
+}
 const SOFIA = "https://sofia-briefing.aviation-civile.gouv.fr";
 const UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Safari/605.1.15";
 
@@ -439,18 +456,25 @@ async function viaSofia(type: string, date: string, journal: Record<string, unkn
        layer, toute retouche provoque un « internal error » chez Météo-France.
        La couche vraie voyage à côté (JSON et en-tête), jamais dans le lien. */
     const chemin = tri[0].url.replace(/^https?:\/\/[^/]+/, "");
-    /* 7.54 : ON NE JETTE PLUS L'HOTE D'UN LIEN ABSOLU. La reecriture sur
-       AERO n'a de sens que pour un lien RELATIF — resolu faute de mieux
-       contre l'hote de SOFIA, alors que l'image vit ailleurs. Un lien qui
-       porte deja son hote sait ou il va : le reecrire l'enverrait sur le
-       mauvais serveur le jour ou la source signera chez elle
-       (aeroweb.meteo.fr, annonce en test). Aujourd'hui les liens arrivent
-       relatifs : le comportement ne change pas d'un iota. */
-    const horsMeteo = !tri[0].relatif
-      && !HOTES_METEO.some((h) => tri[0].url.startsWith(h + "/"));
-    const pourNavigateur = tri[0].relatif
-      ? AERO + chemin
-      : (horsMeteo ? AERO + chemin : tri[0].url);
+    /* 7.55 : UN LIEN ABSOLU N'EST GARDE QUE S'IL EST DEJA SUR L'HOTE
+       OFFICIEL. La 7.54 respectait l'hote de tout lien absolu — y compris
+       celui du site EN TEST, qui s'interdit lui-meme l'usage
+       operationnel. Le suivre en silence servirait au pilote un document
+       de vol compose sur un site marque « ne pas utiliser ». Tout hote
+       autre que l'officiel est donc ecarte et reporte sur lui — ce que
+       faisait la 7.51, et qui marche aujourd'hui, les liens arrivant
+       relatifs. Le jour de la bascule, AEROWEB_HOTE dira quel hote est
+       devenu l'officiel, et ce lien-la sera garde. */
+    const garde = !tri[0].relatif && surHoteOfficiel(tri[0].url);
+    if (!tri[0].relatif && !garde) {
+      journal.push({ hoteEcarte: hoteDe(tri[0].url),
+        note: siteEnEssai(tri[0].url)
+          ? "lien signé sur le site EN TEST (aeroweb.meteo.fr) : écarté, "
+            + "reporté sur l'hôte officiel — poser AEROWEB_HOTE le jour où "
+            + "Météo-France le déclarera opérationnel"
+          : "lien signé sur un hôte non officiel : reporté sur l'hôte officiel" });
+    }
+    const pourNavigateur = garde ? tri[0].url : AERO + chemin;
     /* urlOrigine : l'adresse TELLE QUE SOFIA l'a donnée — c'est sur son
        hôte d'origine que le relais, lui, peut aller chercher les octets. */
     return { url: pourNavigateur, couche: tri[0].couche, date: tri[0].date,
@@ -2396,6 +2420,13 @@ Deno.serve(async (req: Request) => {
     for (const cible of aEssayer) {
       if (dejaVu.has(cible)) continue;
       dejaVu.add(cible);
+      /* 7.55 : le relais ne lit aucun octet depuis le site en test. Son
+         adresse peut arriver ici par urlOrigine — l'adresse telle que
+         SOFIA l'a donnee. On la note comme ecartee, et on passe. */
+      if (siteEnEssai(cible)) {
+        essaisImg.push({ cible, ecarte: "site en test — non opérationnel" });
+        continue;
+      }
       try {
         /* les témoins de session ne se présentent qu'à l'hôte qui les a posés */
         const enTetes: Record<string, string> = {
