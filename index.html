@@ -3702,7 +3702,7 @@ window.__TRACE_MARKUP="\n\n<header>\n  <div class=\"hdr-row1\">\n    <span class
    accessible depuis le bouton ⓘ du bandeau du log, avant toute ouverture de la carte */
 (function(){
   var host=document.createElement('div');
-  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Cartes OACI — origine et mise à jour</b></p>\n    <p style=\"margin-top:-6px\"><b>1/250 000 Région parisienne</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte250\">—</span>.</p>\n    <p style=\"margin-top:-6px\"><b>1/500 000 France</b> — IGN Géoplateforme (SCAN-OACI). Donnée <b>non libre</b>, tenue à jour par l’IGN.</p>\n    <p style=\"margin-top:-6px\"><b>1/1 000 000 France</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte1000\">—</span>.</p>\n    <p>Les deux cartes du SIA sont hébergées à part et lues par plages : seules les tuiles affichées sont téléchargées. Les trois se copient sur l’appareil pour voler sans réseau depuis <b>Profil → Cartes hors-ligne</b>. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.702</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
+  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Cartes OACI — origine et mise à jour</b></p>\n    <p style=\"margin-top:-6px\"><b>1/250 000 Région parisienne</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte250\">—</span>.</p>\n    <p style=\"margin-top:-6px\"><b>1/500 000 France</b> — IGN Géoplateforme (SCAN-OACI). Donnée <b>non libre</b>, tenue à jour par l’IGN.</p>\n    <p style=\"margin-top:-6px\"><b>1/1 000 000 France</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte1000\">—</span>.</p>\n    <p>Les deux cartes du SIA sont hébergées à part et lues par plages : seules les tuiles affichées sont téléchargées. Les trois se copient sur l’appareil pour voler sans réseau depuis <b>Profil → Cartes hors-ligne</b>. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.705</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
   (document.body||document.documentElement).appendChild(host.firstElementChild);
   /* le nom du fichier de la 1/1 000 000 dit son edition : on le lit la ou il
      est vraiment (cartes.json), jamais en dur, sinon il mentirait un jour */
@@ -8757,7 +8757,8 @@ function openRelinkChoice(){
     azbaVoirFrance();
     azbaCharge(function(d){
       if(!azbaOn) return;
-      if(!d){ if(typeof showToast==='function') showToast('AZBA indisponibles \u00b7 '+(azbaErr||'?'));
+      if(!d){ if(typeof showToast==='function') showToast('AZBA indisponibles \u00b7 '
+          +(azbaErr||'?')+' \u00b7 consultez les NOTAM');
         azbaOn=false; try{ map.removeLayer(azbaGroup); map.removeLayer(azbaLabG); }catch(e){}
         azbaLegende(false);
         if(zb) zb.classList.remove('on'); ntmOutilsMaj(); azbaRendVue(); return; }
@@ -9231,8 +9232,12 @@ function openRelinkChoice(){
       try{ azbaCharge(function(){
         if(ntmHote!==h2) return;
         if(azbaData) ntmDossier();
-        else ntmHoteMot('Zones AZBA indisponibles (réseau ou relais).',true); }); }
-      catch(e){ ntmHoteMot('Zones AZBA indisponibles (réseau ou relais).',true); }
+        else ntmHoteMot('Zones AZBA indisponibles (réseau ou relais). '
+          +'Consigne officielle dans ce cas : consultez les NOTAM pour '
+          +'connaître l’activité des zones très basses altitudes.',true); }); }
+      catch(e){ ntmHoteMot('Zones AZBA indisponibles (réseau ou relais). '
+          +'Consigne officielle dans ce cas : consultez les NOTAM pour '
+          +'connaître l’activité des zones très basses altitudes.',true); }
       return; }
     ntmHoteMot('Chargement des NOTAM, SUP AIP et AZBA…',false);
     var hote=ntmHote;
@@ -9554,7 +9559,11 @@ function openRelinkChoice(){
             +(sgeo>0?', '+sgeo+' sans contour publié':'')+')'
             +'. À des fins de préparation : se référer aux cartes officielles.</div>'; }
       }
-      if(!azbaData) html+='<div class="ntm-un">'+(azbaErr?('AZBA indisponibles \u00b7 '+ntmEsc(azbaErr)):'chargement\u2026')+'</div>';
+      if(!azbaData) html+='<div class="ntm-un">'+(azbaErr
+        ?('AZBA indisponibles \u00b7 '+ntmEsc(azbaErr)
+          +' \u2014 consultez les NOTAM pour conna\u00eetre l\u2019activit\u00e9 des '
+          +'zones tr\u00e8s basses altitudes.')
+        :'chargement\u2026')+'</div>';
       else if(!azZ.length) html+='<div class="ntm-un">aucun cr\u00e9neau dans les 48 prochaines heures</div>';
       else azZ.forEach(function(z){ var cr=azbaFen(z,48);
         html+='<div class="ntm-un"><b>'+ntmEsc(z.nom)+'</b>'
@@ -10262,7 +10271,13 @@ function openRelinkChoice(){
       +fen.txt+' \u00b7 version courte. Cette fen\u00eatre est celle publi\u00e9e par le SIA ; '
       +'elle ne suit pas la date saisie pour le vol.</div>'
       +ddvAvertVol(fen);
-    if(d.azba==null) h+='<div class="wxd-vide">AZBA '+(fige?'non fig\u00e9s pour ce vol':'indisponibles')+'.</div>';
+    /* « non figes pour ce vol » n'est pas une panne : le vol a ete
+       enregistre sans AZBA, il n'y a rien a consulter ailleurs. La
+       consigne NOTAM ne s'ajoute donc QUE sur l'indisponibilite. */
+    if(d.azba==null) h+='<div class="wxd-vide">AZBA '+(fige
+      ?'non fig\u00e9s pour ce vol.'
+      :'indisponibles \u2014 consultez les NOTAM pour conna\u00eetre '
+       +'l\u2019activit\u00e9 des zones tr\u00e8s basses altitudes.')+'</div>';
     else if(!d.azba.length) h+='<div class="wxd-msg">aucun cr\u00e9neau dans les 48 prochaines heures</div>';
     else h+=ddvCroquis(d);
     if(d.azba&&d.azba.length) d.azba.forEach(function(z){
@@ -15424,8 +15439,16 @@ window.__pickGpx=function(cb){
     if(!u){ cb(null); return; }
     if(!/\/functions\/v1\/cartes\?/.test(u)){ cb(u); return; }
     var su=wxLienSu(u); if(su!==undefined){ cb(su); return; }
+    /* v.703 : VINGT-DEUX SECONDES, pas douze. Le relais doit aller
+       chercher le lien chez SOFIA — une session complete, que son propre
+       code chiffre a « 2 a 6 s » —, et sa fonction peut etre endormie :
+       le demarrage a froid s'ajoute. Douze secondes etaient en dessous du
+       cout reel, et l'on abandonnait une reponse qui arrivait. Le relais,
+       lui, se donne douze secondes par appel amont et quinze de budget
+       (7.52) : vingt-deux lui laissent le temps de conclure et de dire
+       pourquoi, plutot que de nous laisser deviner. */
     var ac=('AbortController' in window)?new AbortController():null;
-    var t=ac?setTimeout(function(){ try{ ac.abort(); }catch(e){} },12000):null;
+    var t=ac?setTimeout(function(){ try{ ac.abort(); }catch(e){} },22000):null;
     var o={cache:'no-store'}; if(ac) o.signal=ac.signal;
     fetch(u+'&lien=1&_='+Date.now(),o).then(function(r){
       if(t) clearTimeout(t);
@@ -15433,10 +15456,17 @@ window.__pickGpx=function(cb){
         /* le corps porte souvent la vraie raison : « session requise »,
            « aucun lien signe obtenu »... on la garde pour l'afficher */
         return r.text().then(function(tx){
-          var d='HTTP '+r.status;
-          try{ var j=JSON.parse(tx); if(j&&j.erreur) d+=' · '+String(j.erreur).slice(0,90); }
-          catch(e2){}
-          wxMotif(wxCoucheDe(u)||u,d); throw 0; },function(){ throw 0; });
+          var d='HTTP '+r.status, c=(r.status===401||r.status===403)?'session':'relais';
+          try{ var j=JSON.parse(tx);
+            if(j&&j.erreur) d+=' · '+String(j.erreur).slice(0,90);
+            /* le relais distingue deja les deux : « aucun lien signé
+               obtenu » veut dire qu'il a parlé mais que l'amont s'est tu,
+               et son journal porte une échéance non publiée le cas échéant */
+            var jr=JSON.stringify(j&&j.sofia||'');
+            if(/nonPubliee/.test(jr)) c='pasencore';
+            else if(r.status===404||/aucun lien|catalogue|SOFIA/i.test(d+jr)) c='amont';
+          }catch(e2){}
+          wxMotif(wxCoucheDe(u)||u,d,c); throw 0; },function(){ throw 0; });
       }
       return r.json(); })
     .then(function(j){
@@ -15444,11 +15474,14 @@ window.__pickGpx=function(cb){
       /* garde-fou de couche : jamais un WINTEM a la place d'un TEMSI */
       if(l){ var veut=wxCoucheDe(u), recu=(j&&j.couche)||wxCoucheDe(l);
         if(veut&&recu&&!wxMemeCouche(veut,recu)) l=null;
-        if(!l) wxMotif(veut||u,'le relais a rendu une autre couche'); }
-      if(!l&&j&&j.erreur) wxMotif(wxCoucheDe(u)||u,String(j.erreur).slice(0,110));
+        if(!l) wxMotif(veut||u,'le relais a rendu une autre couche','relais'); }
+      if(!l&&j&&j.erreur) wxMotif(wxCoucheDe(u)||u,String(j.erreur).slice(0,110),'amont');
+      if(!l&&!(j&&j.erreur)) wxMotif(wxCoucheDe(u)||u,'aucun lien rendu','amont');
       wxLiens[u]={t:Date.now(),l:l}; cb(l); })
     .catch(function(e){ if(t) clearTimeout(t);
-      if(e&&e.name==='AbortError') wxMotif(wxCoucheDe(u)||u,'délai dépassé (12 s)');
+      if(e&&e.name==='AbortError') wxMotif(wxCoucheDe(u)||u,'délai dépassé (22 s)','muet');
+      else if(e&&e!==0) wxMotif(wxCoucheDe(u)||u,
+        String((e&&e.message)||e).slice(0,80),'reseau');
       wxLiens[u]={t:Date.now(),l:null}; cb(null); });
   }
   /* la meme chose pour une liste : dans l'ordre, sans doublon, sans trou */
@@ -15728,11 +15761,54 @@ window.__pickGpx=function(cb){
      donc le motif reel du dernier echec, par couche, et on l'affiche sous
      le message : le diagnostic vit la ou la panne se voit. */
   var wxMotifs={};
-  function wxMotif(cle,txt){ try{
-    wxMotifs[String(cle||'')]={t:Date.now(),m:String(txt||'')}; }catch(e){} }
+  function wxMotif(cle,txt,cause){ try{
+    wxMotifs[String(cle||'')]={t:Date.now(),m:String(txt||''),
+      c:String(cause||'')}; }catch(e){} }
   function wxMotifDe(cle){ try{
     var m=wxMotifs[String(cle||'')];
     return (m&&Date.now()-m.t<600000)?m.m:''; }catch(e){ return ''; } }
+  function wxCauseDe(cle){ try{
+    var m=wxMotifs[String(cle||'')];
+    if(!m||Date.now()-m.t>=600000) return '';
+    /* hors-ligne l'emporte sur tout : inutile d'accuser un service
+       quand c'est l'appareil qui n'est pas connecte */
+    try{ if(navigator&&navigator.onLine===false) return 'horsligne'; }catch(e2){}
+    return m.c||''; }catch(e){ return ''; } }
+  /* ===== LE MOT DE CHAQUE PANNE (v.704) ===========================
+     Une phrase par cause, et chacune dit QUOI FAIRE. L'ancien message
+     — « une carte a venir n'est publiee que peu avant sa validite » —
+     ne vaut que pour le dernier cas ; partout ailleurs il envoyait le
+     pilote attendre une publication qui n'etait pas en cause. */
+  function wxPhrase(cause){
+    switch(cause){
+      case 'horsligne': return {t:'Pas de connexion.',
+        p:'L’appareil n’est pas connecté au réseau. Les cartes se chargent '
+         +'en ligne : reconnectez-vous pour les obtenir.'};
+      case 'session': return {t:'Session expirée.',
+        p:'Le service n’accepte que les pilotes connectés. Reconnectez-vous '
+         +'dans l’application, puis rouvrez la carte.'};
+      case 'muet': return {t:'Le service météo ne répond pas.',
+        p:'Le relais n’a rien renvoyé dans le temps imparti. Il est '
+         +'peut-être en train de démarrer : réessayez dans une minute.'};
+      case 'relais': return {t:'Le service météo a répondu une erreur.',
+        p:'Le relais est joignable mais n’a pas pu servir la carte. '
+         +'Le détail est ci-dessous ; réessayez plus tard.'};
+      case 'amont': return {t:'Météo-France ne répond pas.',
+        p:'Le relais a bien répondu, mais la source officielle n’a rien '
+         +'donné : le service semble indisponible. Il n’existe pas d’autre '
+         +'source officielle pour cette carte — préparez le vol avec les '
+         +'METAR, TAF et SIGMET, qui viennent d’ailleurs.'};
+      case 'image': return {t:'L’image n’arrive pas.',
+        p:'Le lien a bien été obtenu, mais Météo-France ne sert pas '
+         +'l’image. Réessayez dans un instant.'};
+      case 'pasencore': return {t:'Carte pas encore publiée.',
+        p:'Une carte à venir n’est publiée que peu avant sa validité : '
+         +'réessayez plus tard.'};
+      default: return {t:'Carte indisponible.',
+        p:'Une carte à venir n’est publiée que peu avant sa validité : '
+         +'réessayez plus tard. Sinon, vérifiez la connexion.'};
+    }
+  }
   /* pour le banc et le diagnostic : l'etat de la chaine des cartes */
   try{ window.__WX_MOTIFS=function(){ return JSON.parse(JSON.stringify(wxMotifs)); }; }catch(e){}
   function wxCatalogue(type){
@@ -15746,20 +15822,22 @@ window.__pickGpx=function(cb){
        sans fin. Passe ce delai on rend null, et l'appelant retombe sur
        l'echeance estimee plutot que sur rien. */
     var ac=('AbortController' in window)?new AbortController():null;
-    var t=ac?setTimeout(function(){ try{ ac.abort(); }catch(e){} },12000):null;
+    var t=ac?setTimeout(function(){ try{ ac.abort(); }catch(e){} },22000):null;
     var o={cache:'no-store'}; if(ac) o.signal=ac.signal;
     return fetch(base+'/functions/v1/cartes?dates=1&type='+encodeURIComponent(type)
         +'&_='+Date.now(),o)
       .then(function(r){ if(t) clearTimeout(t);
-        if(!r.ok){ wxMotif(type,'catalogue : HTTP '+r.status); throw 0; }
+        if(!r.ok){ wxMotif(type,'catalogue : HTTP '+r.status,
+          (r.status===401||r.status===403)?'session':'relais'); throw 0; }
         return r.json(); })
       .then(function(j){ var d=(j&&j.dates)||[];
         /* catalogue muet : on ne sait pas, et on ne fera pas semblant */
         if(!d.length){ wxMotif(type,'catalogue vide'
-          +((j&&j.erreur)?' · '+String(j.erreur).slice(0,80):'')); return null; }
+          +((j&&j.erreur)?' · '+String(j.erreur).slice(0,80):''),'amont'); return null; }
         wxCatMemo[type]={t:Date.now(),dates:d}; return d; })
       .catch(function(e){ if(t) clearTimeout(t);
-        if(e&&e.name==='AbortError') wxMotif(type,'catalogue : délai dépassé (12 s)');
+        if(e&&e.name==='AbortError') wxMotif(type,'catalogue : délai dépassé (22 s)','muet');
+        else wxMotif(type,'catalogue : '+String((e&&e.message)||e||'réseau').slice(0,80),'reseau');
         return null; });
   }
   function wxDeDate14(s){ s=String(s||'');
@@ -17563,10 +17641,11 @@ window.__pickGpx=function(cb){
           }
         });
       },function(){ var el=dos.querySelector('#wxdCartes');
-        var mot=wxMotifDe('sigwx/fr/france')||wxMotifDe('sigwx/fr/euroc')
-          ||wxMotifDe('wintemp/fr/france/fl020');
-        if(el) el.innerHTML='<span class="wxd-vide">catalogue des cartes inaccessible.'
-          +(mot?' <b>'+wxEchap(mot)+'</b>':'')+'</span>'; });
+        var cl=['sigwx/fr/france','sigwx/fr/euroc','wintemp/fr/france/fl020']
+          .filter(function(k){ return wxMotifDe(k); })[0]||'';
+        var mot=wxMotifDe(cl), ph=wxPhrase(wxCauseDe(cl));
+        if(el) el.innerHTML='<span class="wxd-vide"><b>'+wxEchap(ph.t)+'</b> '
+          +wxEchap(ph.p)+(mot?' <b>'+wxEchap(mot)+'</b>':'')+'</span>'; });
     }
     /* ---- Visionneuse plein ecran : pincement, molette, double toucher ---- */
     /* Le relais sait dire, en JSON, le lien le plus recent d'une couche avec
@@ -17649,10 +17728,10 @@ window.__pickGpx=function(cb){
           /* v.702 : LE MOTIF REEL, s'il est connu. Sans lui, le message
              n'avancait qu'une hypothese — alors que le relais avait peut-
              etre dit « session requise » ou n'avait pas repondu du tout. */
-          var mot=wxMotifDe(wxCoucheDe((urls&&urls[0])||'')||'');
-          corps.innerHTML='<div class="wxc-vmsg"><b>Carte indisponible.</b><br><br>'
-            +'Une carte \u00e0 venir n\u2019est publi\u00e9e que peu avant sa validit\u00e9 : '
-            +'r\u00e9essayez plus tard. Sinon, v\u00e9rifiez la connexion.'
+          var cle=wxCoucheDe((urls&&urls[0])||'')||'';
+          var mot=wxMotifDe(cle), ph=wxPhrase(wxCauseDe(cle));
+          corps.innerHTML='<div class="wxc-vmsg"><b>'+wxEchap(ph.t)+'</b><br><br>'
+            +wxEchap(ph.p)
             +(mot?'<br><br><span class="wxc-vwhy">Relais : '+wxEchap(mot)+'</span>':'')
             +(liens[0]?'<br><br><a class="wxc-vlien" href="'+String(liens[0]).replace(/"/g,'&quot;')
               +'" target="_blank" rel="noopener">Ouvrir la carte dans un onglet \u2197</a>':'')
@@ -17676,7 +17755,7 @@ window.__pickGpx=function(cb){
           var fini0=false;
           var tImg=setTimeout(function(){ if(fini0) return; fini0=true;
             wxMotif(wxCoucheDe(urls[0])||'',
-              'l\u2019image de M\u00e9t\u00e9o-France n\u2019est pas venue (15 s)');
+              'l\u2019image de M\u00e9t\u00e9o-France n\u2019est pas venue (15 s)','image');
             k=1; essai(); },15000);
           im0.onload=function(){ if(fini0) return; fini0=true; clearTimeout(tImg);
             corps.innerHTML=''; corps.appendChild(im0); wxZoom(corps,im0); };
@@ -17686,7 +17765,7 @@ window.__pickGpx=function(cb){
              montre donc que la voie stricte ; absente -> message honnete. */
           im0.onerror=function(){ if(fini0) return; fini0=true; clearTimeout(tImg);
             wxMotif(wxCoucheDe(urls[0])||'',
-              'M\u00e9t\u00e9o-France a refus\u00e9 l\u2019image sign\u00e9e');
+              'M\u00e9t\u00e9o-France a refus\u00e9 l\u2019image sign\u00e9e','image');
             k=1; essai(); };
           im0.src=liens[0];
         });
@@ -18293,8 +18372,9 @@ window.__pickGpx=function(cb){
             vb.disabled=false;
             return maj().then(function(){
               if(r&&r.ok){ try{ window.__VAC_VOIR&&window.__VAC_VOIR(ad); }catch(e){} }
-              else alert('Planche VAC indisponible pour '+ad+' : '+((r&&r.motif)||'')
-                +'\n\nVous pouvez la déposer vous-même depuis la pastille VAC du bandeau.');
+              else alert(window.__VAC_PHRASE
+                ? window.__VAC_PHRASE(ad,r&&r.motif)
+                : ('Planche VAC indisponible pour '+ad+' : '+((r&&r.motif)||'')));
             });
           });
         });
@@ -18608,6 +18688,45 @@ window.__pickGpx=function(cb){
 
   /* Le relais rend la planche officielle du SIA. Un echec n'est jamais
      fatal : il porte sa raison en clair, et l'import manuel reste ouvert. */
+  /* v.705 : DIRE LAQUELLE DES PANNES, ET CE QUI RESTE. Un rapatriement
+     qui echoue n'est presque jamais « cette planche n'existe pas » : le
+     plus souvent la source est a terre — le SIA a arrete SOFIA VAC le
+     22/10/2026. Deux choses comptent pour le pilote : savoir que c'est le
+     service et non son terrain, et savoir que les planches DEJA rangees
+     sur l'appareil s'ouvrent quand meme. La seconde est la plus utile des
+     deux, et c'est celle qui manquait. */
+  function vacPhrase(code,motif){
+    var m=String(motif||''), t, p;
+    if(navigator.onLine===false){
+      t='Pas de connexion';
+      p='Une planche ne se rapatrie qu’en ligne.'; }
+    else if(/relais non configur/i.test(m)){
+      t='Relais non configuré';
+      p='L’application n’a pas d’adresse de relais : rien ne peut être rapatrié.'; }
+    else if(/session|jeton|401/i.test(m)){
+      t='Session expirée';
+      p='Reconnectez-vous, puis réessayez.'; }
+    else if(/délai dépassé|abort/i.test(m)){
+      t='Le service des planches ne répond pas';
+      p='Le SIA (SOFIA VAC) n’a pas répondu dans le délai. '
+       +'Cela arrive quand le service est arrêté ou saturé.'; }
+    else if(/\b5\d\d\b/.test(m)){
+      t='Le service des planches est indisponible';
+      p='Le SIA (SOFIA VAC) a refusé la demande.'; }
+    else if(/\b404\b|introuvable|aucune planche/i.test(m)){
+      t='Aucune planche publiée pour ce terrain';
+      p='Le SIA n’en propose pas sous ce code.'; }
+    else {
+      t='Planche VAC indisponible';
+      p=''; }
+    return t+' — '+code
+      +(p?'\n\n'+p:'')
+      +(m?'\n\nMotif : '+m:'')
+      +'\n\nLes planches déjà rangées sur l’appareil restent consultables, '
+      +'service coupé ou non. Vous pouvez aussi déposer le PDF vous-même '
+      +'(pastille VAC du bandeau, « Importer… »).';
+  }
+
   function telecharge(code){
     code=String(code||'').trim().toUpperCase();
     if(!/^[A-Z]{4}$/.test(code)) return Promise.resolve({ok:false,motif:'code OACI invalide'});
@@ -18623,7 +18742,11 @@ window.__pickGpx=function(cb){
           return r.text().then(function(txt){
             var m='';
             try{ var o=JSON.parse(txt)||{}; m=o.motif||o.erreur||''; }catch(e){}
-            throw new Error(m||('le relais répond '+r.status));
+            /* v.705 : LE STATUT RESTE DANS LE MOTIF. Quand le relais
+               joignait un « erreur » a sa reponse, le code HTTP etait
+               perdu — et vacPhrase ne pouvait plus distinguer un 401
+               d'un 503. Les deux voyagent desormais ensemble. */
+            throw new Error((m?m+' · ':'')+'relais '+r.status);
           });
         }
         return r.blob();
@@ -19292,8 +19415,7 @@ window.__pickGpx=function(cb){
       return telecharge(code).then(function(r){
         occupe(voir,false,'Voir');
         if(r.ok){ rend(); return vue(code); }
-        alerte('Planche VAC indisponible pour '+code+' : '+r.motif
-          +'\n\nVous pouvez la déposer vous-même avec « Importer… ».');
+        alerte(vacPhrase(code,r.motif));
       });
     };
     voir.onclick=ouvre1;
@@ -19378,6 +19500,9 @@ window.__pickGpx=function(cb){
   window.__VAC_OPEN=ouvre;
   window.__VAC_VOIR=vue;
   window.__VAC_TELECHARGE=telecharge;
+  /* la fiche AERODROME vit dans un autre module et rapatrie la meme
+     planche : elle doit rendre la meme phrase, pas une autre. */
+  window.__VAC_PHRASE=vacPhrase;
   window.__VAC_IMPORTE=importe;
   window.__VAC_INVENTAIRE=inventaire;
   window.__VAC_EFFACE=efface;
