@@ -20,7 +20,12 @@
  * Déploiement : Supabase > Edge Functions > fonction « cartes », coller ce
  * fichier EN ENTIER (vérifier que la dernière ligne dans l'éditeur est bien
  * « }); »), déployer, et laisser « Enforce JWT verification » DÉSACTIVÉ.
- * Aucun secret requis. Vérification : ouvrir ?version=1 -> doit répondre 7.53.
+ * Aucun secret requis. Vérification : ouvrir ?version=1 -> doit répondre 7.54.
+ * Secret OPTIONNEL : AEROWEB_HOTE = l'hôte des images de Météo-France,
+ * si un jour il change (« https://aeroweb.meteo.fr », annoncé en test au
+ * 22/10/2026). ABSENT, c'est aviation.meteo.fr — le comportement
+ * d'aujourd'hui. Le jour de la bascule, c'est une ligne à changer dans
+ * Supabase, sans redéploiement.
  * Secret OPTIONNEL : CARTES_JETON = 1 pour n'accepter que les pilotes
  * connectés (jeton de session Supabase, envoyé par l'application depuis la
  * v.671). TANT QUE CE SECRET EST ABSENT, RIEN N'EST VÉRIFIÉ. À n'allumer que
@@ -37,7 +42,7 @@
  * Météo-France refuse l'adresse IP de Supabase.
  */
 
-const VERSION = "7.53";
+const VERSION = "7.54";
 
 /* ===== TOUT APPEL SORTANT A UN DELAI (7.52) =========================
    Quinze des dix-neuf appels du relais n'en avaient aucun. Si SOFIA,
@@ -88,12 +93,23 @@ function estDelai(e: unknown): boolean {
   return n === "AbortError" || n === "TimeoutError"
     || /abort|timed? ?out|délai/i.test(String(e));
 }
-const AERO = "https://aviation.meteo.fr";
+/* L'HOTE DES IMAGES, REGLABLE (7.54). Meteo-France annonce un nouveau
+   site — aeroweb.meteo.fr, en test au 22/10/2026. Le jour ou il
+   remplacera l'ancien, ce secret suffira : AEROWEB_HOTE. Absent, rien
+   ne change. */
+const AERO = ((): string => {
+  const h = (Deno.env.get("AEROWEB_HOTE") || "").trim().replace(/\/+$/, "");
+  return /^https?:\/\/[^/]+$/.test(h) ? h : "https://aviation.meteo.fr";
+})();
+/* les hotes connus de Meteo-France : l'ancien, le nouveau, et celui
+   qu'un secret aurait pose. Sert a reconnaitre un lien deja chez eux. */
+const HOTES_METEO = [AERO, "https://aviation.meteo.fr", "https://aeroweb.meteo.fr"];
 const SOFIA = "https://sofia-briefing.aviation-civile.gouv.fr";
 const UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Safari/605.1.15";
 
 /* Un lien d'image : couche, validité, adresse complète. */
-type Lien = { url: string; couche: string; date: string; brut?: string; urlOrigine?: string };
+type Lien = { url: string; couche: string; date: string; brut?: string;
+  urlOrigine?: string; relatif?: boolean };
 
 /* Déterre les adresses affiche_image.php d'un texte, quelles que soient les
    échappures (\/ des JSON, &amp; du HTML) et la forme des paramètres. */
@@ -134,7 +150,12 @@ function recolteSofia(texte: string): Lien[] {
         for (const it of ((z && z[fam]) || []) as Record<string, unknown>[]) {
           if (!it || !it.link) continue;
           let u = String(it.link);
-          if (!/^https?:/.test(u)) { try { u = new URL(u, SOFIA + "/sofia/pages/").href; } catch { continue; } }
+          /* 7.54 : on RETIENT si l'adresse etait relative. Un lien relatif a
+             ete resolu contre l'hote de SOFIA et devra etre reporte sur
+             celui des images ; un lien absolu, lui, porte deja le sien et
+             doit etre respecte — ce sera le cas du nouveau site. */
+          const relatif = !/^https?:/.test(u);
+          if (relatif) { try { u = new URL(u, SOFIA + "/sofia/pages/").href; } catch { continue; } }
           let couche = "", brut = "";
           if (fam === "wintem") {
             brut = String(it.level ?? "");
@@ -158,7 +179,7 @@ function recolteSofia(texte: string): Lien[] {
             date = q2.get("echeance") || q2.get("date") || ""; } catch { /* rien */ }
           const md = String(it.date || "").match(/^(\d{2}) (\d{2}) (\d{4}) (\d{2}):(\d{2})/);
           if (md) date = md[3] + md[2] + md[1] + md[4] + md[5] + "00";
-          if (couche) out.push({ url: u, couche, date, brut });
+          if (couche) out.push({ url: u, couche, date, brut, relatif });
         }
       }
     }
@@ -418,10 +439,21 @@ async function viaSofia(type: string, date: string, journal: Record<string, unkn
        layer, toute retouche provoque un « internal error » chez Météo-France.
        La couche vraie voyage à côté (JSON et en-tête), jamais dans le lien. */
     const chemin = tri[0].url.replace(/^https?:\/\/[^/]+/, "");
-    /* urlOrigine : l'adresse TELLE QUE SOFIA l'a donnée. Le lien rendu est
-       réécrit sur l'hôte AERO pour le navigateur du pilote, mais c'est sur
-       son hôte d'origine que le relais, lui, peut aller chercher les octets. */
-    return { url: AERO + chemin, couche: tri[0].couche, date: tri[0].date,
+    /* 7.54 : ON NE JETTE PLUS L'HOTE D'UN LIEN ABSOLU. La reecriture sur
+       AERO n'a de sens que pour un lien RELATIF — resolu faute de mieux
+       contre l'hote de SOFIA, alors que l'image vit ailleurs. Un lien qui
+       porte deja son hote sait ou il va : le reecrire l'enverrait sur le
+       mauvais serveur le jour ou la source signera chez elle
+       (aeroweb.meteo.fr, annonce en test). Aujourd'hui les liens arrivent
+       relatifs : le comportement ne change pas d'un iota. */
+    const horsMeteo = !tri[0].relatif
+      && !HOTES_METEO.some((h) => tri[0].url.startsWith(h + "/"));
+    const pourNavigateur = tri[0].relatif
+      ? AERO + chemin
+      : (horsMeteo ? AERO + chemin : tri[0].url);
+    /* urlOrigine : l'adresse TELLE QUE SOFIA l'a donnée — c'est sur son
+       hôte d'origine que le relais, lui, peut aller chercher les octets. */
+    return { url: pourNavigateur, couche: tri[0].couche, date: tri[0].date,
       urlOrigine: tri[0].url };
   }
   return null;

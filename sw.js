@@ -10,7 +10,7 @@
      hors-ligne de l'app) et fichiers .pmtiles (copie IndexedDB dédiée).
    À maintenir : si une bibliothèque change de version dans index.html,
    reporter l'URL ici et incrémenter CACHE. */
-const CACHE = 'lognav-app-v2';
+const CACHE = 'lognav-app-v3';   /* v3 : planches météo plus jamais en cache */
 const PRECACHE = [
   './',
   './index.html',
@@ -31,6 +31,24 @@ const PRECACHE = [
   'https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700;800&family=Oxanium:wght@700;800&family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500&family=Space+Mono:wght@400;700&display=swap'
 ];
 const SKIP = [
+  /* ===== LES PLANCHES DE METEO-FRANCE NE SE METTENT JAMAIS EN CACHE ====
+     Elles arrivaient ici par defaut, et la strategie par defaut est
+     « cache d'abord, ?v= ignore ». Deux consequences, toutes deux graves
+     pour un document de vol :
+       · une planche servie en « opaque » etait MISE EN CACHE, sans fin
+         de validite — alors que son lien signe, lui, meurt en quelques
+         heures ;
+       · et « ignoreSearch » fait correspondre deux adresses qui ne
+         different que par leur requete : affiche_image.php?ID_CARTE=1
+         et ?ID_CARTE=2 sont LE MEME enregistrement. Une TEMSI pouvait
+         donc etre servie a la place d'une WINTEM, ou la carte d'hier a
+         la place de celle d'aujourd'hui.
+     Ces adresses sont signees, datees et nominatives : elles ne doivent
+     ni etre gardees ni etre confondues. Le nouveau site annonce en test
+     (aeroweb.meteo.fr) est exclu d'avance. */
+  /aviation\.meteo\.fr/i,
+  /aeroweb\.meteo\.fr/i,
+  /sofia-briefing/i,
   /aviationweather\.gov/i,
   /corsproxy\.io/i,
   /allorigins\.win/i,
