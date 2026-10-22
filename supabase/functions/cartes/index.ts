@@ -20,7 +20,7 @@
  * Déploiement : Supabase > Edge Functions > fonction « cartes », coller ce
  * fichier EN ENTIER (vérifier que la dernière ligne dans l'éditeur est bien
  * « }); »), déployer, et laisser « Enforce JWT verification » DÉSACTIVÉ.
- * Aucun secret requis. Vérification : ouvrir ?version=1 -> doit répondre 7.51.
+ * Aucun secret requis. Vérification : ouvrir ?version=1 -> doit répondre 7.52.
  * Secret OPTIONNEL : CARTES_JETON = 1 pour n'accepter que les pilotes
  * connectés (jeton de session Supabase, envoyé par l'application depuis la
  * v.671). TANT QUE CE SECRET EST ABSENT, RIEN N'EST VÉRIFIÉ. À n'allumer que
@@ -37,7 +37,57 @@
  * Météo-France refuse l'adresse IP de Supabase.
  */
 
-const VERSION = "7.51";
+const VERSION = "7.52";
+
+/* ===== TOUT APPEL SORTANT A UN DELAI (7.52) =========================
+   Quinze des dix-neuf appels du relais n'en avaient aucun. Si SOFIA,
+   Meteo-France, le SIA ou autorouter tardent, le relais attendait avec
+   eux — indefiniment —, le navigateur abandonnait au bout de douze
+   secondes et la carte n'arrivait jamais (« Relais : delai depasse »,
+   constate sur iPhone le 22/10).
+
+   On enveloppe donc le fetch du module : tout appel qui ne porte pas
+   deja son propre signal recoit DELAI_AMONT. Envelopper plutot que
+   retoucher quinze endroits, c'est la garantie qu'aucun appel futur ne
+   sera oublie — et les quatre qui ont deja leur signal (le Worker a
+   25 s, par exemple) gardent le leur. */
+const DELAI_AMONT = 12000;
+const FETCH_NU = globalThis.fetch.bind(globalThis);
+globalThis.fetch = ((entree: Request | URL | string, init?: RequestInit) => {
+  const o: RequestInit = { ...(init || {}) };
+  if (!o.signal) {
+    try { o.signal = AbortSignal.timeout(DELAI_AMONT); } catch { /* pas supporte : tant pis */ }
+  }
+  return FETCH_NU(entree as Request, o);
+}) as typeof fetch;
+
+/* ===== LE BUDGET DE LA REQUETE ======================================
+   Un delai par appel ne suffit pas : opsPour() rend jusqu'a DIX-HUIT
+   variantes de POST pour le WINTEM. Un SOFIA muet, et ce sont dix-huit
+   attentes de douze secondes qui s'enchainent — le relais rendrait la
+   main plusieurs minutes trop tard. Les boucles consultent donc un
+   budget commun et s'arretent quand il est epuise, en le disant.
+
+   La valeur est posee au debut de chaque requete. Deux requetes servies
+   par la meme instance au meme instant partagent cette horloge : la
+   borne peut alors tomber un peu tot pour l'une des deux. C'est un
+   garde-fou, pas une comptabilite — mieux vaut repondre un peu tot que
+   ne pas repondre. */
+const BUDGET_MS = 15000;
+let tDebut = Date.now();
+function budgetFini(): boolean { return (Date.now() - tDebut) > BUDGET_MS; }
+/* UN SEUL DELAI DEPASSE SUFFIT A CONCLURE. Le budget seul ne suffisait
+   pas : la premiere forme du WINTEM consomme douze secondes avant
+   d'echouer, la deuxieme part quand meme (douze secondes restaient au
+   compteur) et l'on rendait la main a vingt-quatre. Or un amont qui ne
+   repond pas a la premiere ne repondra pas davantage a la dix-huitieme :
+   on s'arrete des le premier silence. Une erreur FRANCHE, elle, ne dit
+   rien de l'amont — on continue d'essayer les formes suivantes. */
+function estDelai(e: unknown): boolean {
+  const n = (e as { name?: string } | null)?.name || "";
+  return n === "AbortError" || n === "TimeoutError"
+    || /abort|timed? ?out|délai/i.test(String(e));
+}
 const AERO = "https://aviation.meteo.fr";
 const SOFIA = "https://sofia-briefing.aviation-civile.gouv.fr";
 const UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Safari/605.1.15";
@@ -318,9 +368,20 @@ function memeCouche(req: string, lien: string): boolean {
 
 async function viaSofia(type: string, date: string, journal: Record<string, unknown>[], souple = false): Promise<Lien | null> {
   for (const jeu of opsPour(type)) {
+    /* 7.52 : on n'essaie pas la seizieme forme si le temps est deja passe */
+    if (budgetFini()) {
+      journal.push({ arret: "budget de la requête épuisé",
+        note: "SOFIA n'a pas répondu assez vite ; formes restantes non essayées" });
+      break;
+    }
     let texte = "";
     try { texte = await posteSofia(jeu.op, jeu.champs); } catch (e) {
       journal.push({ op: jeu.op, champs: jeu.champs, erreur: String(e).slice(0, 100) });
+      if (estDelai(e)) {
+        journal.push({ arret: "SOFIA n'a pas répondu dans le temps imparti",
+          note: "formes suivantes non essayées : un amont muet le reste" });
+        break;
+      }
       continue;
     }
     let liens = recolteSofia(texte);
@@ -409,9 +470,15 @@ async function datesDe(q: URLSearchParams): Promise<Response> {
   if (!type) return reponseJson({ erreur: "type attendu (ex. sigwx/fr/euroc)" }, 400);
   const journal: Record<string, unknown>[] = [];
   for (const jeu of opsPour(type)) {
+    if (budgetFini()) {
+      journal.push({ arret: "budget de la requête épuisé" });
+      break;
+    }
     let texte = "";
     try { texte = await posteSofia(jeu.op, jeu.champs); } catch (e) {
-      journal.push({ op: jeu.op, erreur: String(e).slice(0, 80) }); continue;
+      journal.push({ op: jeu.op, erreur: String(e).slice(0, 80) });
+      if (estDelai(e)) { journal.push({ arret: "SOFIA muet" }); break; }
+      continue;
     }
     let liens = recolteSofia(texte);
     if (!liens.length) liens = recolte(texte, SOFIA + "/sofia/pages/");
@@ -1829,6 +1896,7 @@ async function porteurValide(brut: string): Promise<boolean> {
 }
 
 Deno.serve(async (req: Request) => {
+  tDebut = Date.now();            /* 7.52 : le budget de CETTE requête */
   /* pré-vérification CORS : un fetch avec en-têtes personnalisés commence par
      un OPTIONS ; sans cette réponse, le navigateur dit « Failed to fetch » */
   if (req.method === "OPTIONS") {
