@@ -1818,11 +1818,25 @@ html.mp-flying .nc-end .nm{text-decoration:underline;text-decoration-style:dotte
 .rvring{position:fixed;inset:0;z-index:130;pointer-events:none;
   /* le trait est la SOURCE : c'est lui le point le plus clair */
   border:3px solid #ff5a78;
-  border-radius:calc(env(safe-area-inset-top,0px) * .95);
-  /* la retombee en deux temps — serree, puis large et pale. C'est elle
-     qui fait lire « lueur » plutot que « bordure epaisse ». */
-  box-shadow:inset 0 0 12px rgba(233,69,96,.5),
-             inset 0 0 36px rgba(233,69,96,.22);
+  /* v.714 : UN RAYON PAR COIN, ET SEULEMENT LA OU L'ECRAN TOURNE.
+     La barre d'etat etant opaque (voir l'en-tete du fichier), la vue web
+     commence SOUS elle : ses angles du haut sont vifs, et il faut les
+     laisser vifs. En bas, elle touche le bord physique de la dalle, qui
+     est arrondi — un angle vif s'y ferait rogner par le masque.
+     Le rayon ne se deduit pas de la HAUTEUR de l'encoche : il vaut
+     ~55 px sur tous les iPhone a coins arrondis. « min(55px, encoche x
+     10) » repond donc a la seule question qui compte — y a-t-il une
+     encoche de ce cote ? — et rend 0 ou 55. */
+  border-radius:min(55px,calc(env(safe-area-inset-top,0px) * 10))
+                min(55px,calc(env(safe-area-inset-top,0px) * 10))
+                min(55px,calc(env(safe-area-inset-bottom,0px) * 10))
+                min(55px,calc(env(safe-area-inset-bottom,0px) * 10));
+  /* la retombee en deux temps — serree, puis large et pale —, et un
+     trait interieur net d'un pixel : sans lui la lueur se dissolvait
+     sur la page claire du log, alors qu'elle eclatait sur le navy. */
+  box-shadow:inset 0 0 0 1px rgba(255,138,163,.55),
+             inset 0 0 14px rgba(233,69,96,.55),
+             inset 0 0 40px rgba(233,69,96,.26);
   animation:rvLueur 3.2s ease-in-out infinite}
 /* LA RESPIRATION SE FAIT SUR L'OPACITE. Animer une box-shadow plein
    ecran la fait repeindre a chaque image, sur le fil principal ;
@@ -1833,8 +1847,9 @@ html.mp-flying .nc-end .nm{text-decoration:underline;text-decoration-style:dotte
   .rvring{animation:none;opacity:1}}
 /* une modification en attente appuie la lueur : le bouton reste le
    signal, le cadre ne fait que le souligner. */
-.rvring.chg{box-shadow:inset 0 0 16px rgba(233,69,96,.62),
-            inset 0 0 46px rgba(233,69,96,.3)}
+.rvring.chg{box-shadow:inset 0 0 0 1px rgba(255,138,163,.7),
+            inset 0 0 18px rgba(233,69,96,.68),
+            inset 0 0 50px rgba(233,69,96,.34)}
 /* EN CONSULTATION, CE QUI MENE A L'EDITEUR. Un pointille bleu ciel, et
    le mot « Corriger » en haut a droite du bloc : discret sur la feuille,
    mais sans ambiguite. Rien de tout cela ne s'imprime. */
@@ -3769,7 +3784,7 @@ window.__TRACE_MARKUP="\n\n<header>\n  <div class=\"hdr-row1\">\n    <span class
    accessible depuis le bouton ⓘ du bandeau du log, avant toute ouverture de la carte */
 (function(){
   var host=document.createElement('div');
-  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Cartes OACI — origine et mise à jour</b></p>\n    <p style=\"margin-top:-6px\"><b>1/250 000 Région parisienne</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte250\">—</span>.</p>\n    <p style=\"margin-top:-6px\"><b>1/500 000 France</b> — IGN Géoplateforme (SCAN-OACI). Donnée <b>non libre</b>, tenue à jour par l’IGN.</p>\n    <p style=\"margin-top:-6px\"><b>1/1 000 000 France</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte1000\">—</span>.</p>\n    <p>Les deux cartes du SIA sont hébergées à part et lues par plages : seules les tuiles affichées sont téléchargées. Les trois se copient sur l’appareil pour voler sans réseau depuis <b>Profil → Cartes hors-ligne</b>. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.713</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
+  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Cartes OACI — origine et mise à jour</b></p>\n    <p style=\"margin-top:-6px\"><b>1/250 000 Région parisienne</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte250\">—</span>.</p>\n    <p style=\"margin-top:-6px\"><b>1/500 000 France</b> — IGN Géoplateforme (SCAN-OACI). Donnée <b>non libre</b>, tenue à jour par l’IGN.</p>\n    <p style=\"margin-top:-6px\"><b>1/1 000 000 France</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte1000\">—</span>.</p>\n    <p>Les deux cartes du SIA sont hébergées à part et lues par plages : seules les tuiles affichées sont téléchargées. Les trois se copient sur l’appareil pour voler sans réseau depuis <b>Profil → Cartes hors-ligne</b>. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.714</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
   (document.body||document.documentElement).appendChild(host.firstElementChild);
   /* le nom du fichier de la 1/1 000 000 dit son edition : on le lit la ou il
      est vraiment (cartes.json), jamais en dur, sinon il mentirait un jour */
