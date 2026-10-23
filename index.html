@@ -1834,17 +1834,15 @@ html.mp-flying .nc-end .nm{text-decoration:underline;text-decoration-style:dotte
   /* la retombee en deux temps — serree, puis large et pale —, et un
      trait interieur net d'un pixel : sans lui la lueur se dissolvait
      sur la page claire du log, alors qu'elle eclatait sur le navy. */
-  box-shadow:inset 0 0 0 1px rgba(255,138,163,.55),
-             inset 0 0 14px rgba(233,69,96,.55),
-             inset 0 0 40px rgba(233,69,96,.26);
-  animation:rvLueur 3.2s ease-in-out infinite}
-/* LA RESPIRATION SE FAIT SUR L'OPACITE. Animer une box-shadow plein
-   ecran la fait repeindre a chaque image, sur le fil principal ;
-   l'opacite est composee par le processeur graphique. Meme effet a
-   l'oeil, rien a payer sur un telephone qui affiche deja une carte. */
-@keyframes rvLueur{0%,100%{opacity:.72}50%{opacity:1}}
-@media (prefers-reduced-motion:reduce){
-  .rvring{animation:none;opacity:1}}
+  box-shadow:inset 0 0 0 1px rgba(255,138,163,.6),
+             inset 0 0 15px rgba(233,69,96,.6),
+             inset 0 0 42px rgba(233,69,96,.28)}
+/* v.715 : LA LUEUR NE RESPIRE PLUS. Elle garde sa valeur haute, fixe.
+   Une couche de composition plein ecran qui s'anime au-dessus du bord
+   du haut est exactement ce qui rallume le flou d'iOS 26 sur la zone de
+   la barre d'etat (voir la note de la v.691, plus haut dans ce
+   fichier). On y perd un mouvement ; on y gagne un ecran qui ne se
+   brouille pas en vol. */
 /* une modification en attente appuie la lueur : le bouton reste le
    signal, le cadre ne fait que le souligner. */
 .rvring.chg{box-shadow:inset 0 0 0 1px rgba(255,138,163,.7),
@@ -3784,7 +3782,7 @@ window.__TRACE_MARKUP="\n\n<header>\n  <div class=\"hdr-row1\">\n    <span class
    accessible depuis le bouton ⓘ du bandeau du log, avant toute ouverture de la carte */
 (function(){
   var host=document.createElement('div');
-  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Cartes OACI — origine et mise à jour</b></p>\n    <p style=\"margin-top:-6px\"><b>1/250 000 Région parisienne</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte250\">—</span>.</p>\n    <p style=\"margin-top:-6px\"><b>1/500 000 France</b> — IGN Géoplateforme (SCAN-OACI). Donnée <b>non libre</b>, tenue à jour par l’IGN.</p>\n    <p style=\"margin-top:-6px\"><b>1/1 000 000 France</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte1000\">—</span>.</p>\n    <p>Les deux cartes du SIA sont hébergées à part et lues par plages : seules les tuiles affichées sont téléchargées. Les trois se copient sur l’appareil pour voler sans réseau depuis <b>Profil → Cartes hors-ligne</b>. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.714</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
+  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Cartes OACI — origine et mise à jour</b></p>\n    <p style=\"margin-top:-6px\"><b>1/250 000 Région parisienne</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte250\">—</span>.</p>\n    <p style=\"margin-top:-6px\"><b>1/500 000 France</b> — IGN Géoplateforme (SCAN-OACI). Donnée <b>non libre</b>, tenue à jour par l’IGN.</p>\n    <p style=\"margin-top:-6px\"><b>1/1 000 000 France</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte1000\">—</span>.</p>\n    <p>Les deux cartes du SIA sont hébergées à part et lues par plages : seules les tuiles affichées sont téléchargées. Les trois se copient sur l’appareil pour voler sans réseau depuis <b>Profil → Cartes hors-ligne</b>. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.715</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
   (document.body||document.documentElement).appendChild(host.firstElementChild);
   /* le nom du fichier de la 1/1 000 000 dit son edition : on le lit la ou il
      est vraiment (cartes.json), jamais en dur, sinon il mentirait un jour */
@@ -11075,8 +11073,19 @@ function LogNavVFR(){const[app,setApp]=useState(()=>load()||migrate(initApp()));
   const[review,setReview]=useState(null);const reviewSnap=React.useRef(null);
   const marqueRevue=()=>setReview(r=>(r&&!r.dirty)?{...r,dirty:true}:r);
   React.useEffect(()=>{ try{
-    document.documentElement.classList.toggle("mp-review",!!review);
-    window.__LOGNAV_REVIEW=!!review; }catch(e){} },[review]);
+    const d=document.documentElement;
+    d.classList.toggle("mp-review",!!review);
+    window.__LOGNAV_REVIEW=!!review;
+    /* v.715 : ON FORCE LE REDESSIN DES BANDES DU HAUT. En quittant la
+       consultation, WebKit peut garder sa couche floutee telle quelle
+       jusqu'au prochain redessin — c'est le flou que le pilote voyait
+       survivre a la fermeture. 160 ms d'une opacite imperceptiblement
+       differente suffisent, et rien ne bouge a l'oeil. */
+    d.classList.add("mp-repeint");
+    clearTimeout(window.__RV_REPEINT);
+    window.__RV_REPEINT=setTimeout(function(){
+      try{ d.classList.remove("mp-repeint"); }catch(e){} },160);
+  }catch(e){} },[review]);
 const[modal,setModal]=useState(null);const[draft,setDraft]=useState({});const[drawer,setDrawer]=useState(false);const[gpxMenu,setGpxMenu]=useState(false);const[mMore,setMMore]=useState(false);const gpxFileRef=React.useRef(null);const[sec,setSec]=useState({compte:true,courante:true,carbu:true,ouvrir:true});const[login,setLogin]=useState({email:"",pwd:"",err:""});const[showPwd,setShowPwd]=useState(false);/* Aucune identite en dur : index.html est servi publiquement, tout ce qui y
    figure est lisible par n'importe qui. Sans session, il n'y a donc PAS
    d'utilisateur — les deux points d'affichage savent deja le dire
@@ -11517,8 +11526,18 @@ React.createElement("style",null,`
              le bord du haut est peint d'une seule couleur unie. Le trait
              rouge descend donc dans un element a lui, juste sous la bande :
              meme dessin a l'ecran, bande unie. */
-          body::before{content:"";position:fixed;top:0;left:0;right:0;z-index:98;height:env(safe-area-inset-top);background:#0E2348;pointer-events:none}
-          html::before{content:"";position:fixed;top:env(safe-area-inset-top);left:0;right:0;z-index:98;height:2.5px;background:#e94560;pointer-events:none}
+          /* v.715 : PLAN 140, AU-DESSUS DU CADRE DE CONSULTATION (130). Le
+             cadre recouvrait ces deux bandes, et le bord du haut
+             cessait d'etre l'aplat uni dont WebKit a besoin pour ne
+             PAS flouter la zone de la barre d'etat. */
+          body::before{content:"";position:fixed;top:0;left:0;right:0;z-index:140;height:env(safe-area-inset-top);background:#0E2348;pointer-events:none}
+          html::before{content:"";position:fixed;top:env(safe-area-inset-top);left:0;right:0;z-index:140;height:2.5px;background:#e94560;pointer-events:none}
+          /* v.715 : LE REPEINT DE SORTIE. En quittant la consultation,
+             WebKit peut garder sa couche floutee telle quelle jusqu'au
+             prochain redessin — c'est le flou qui survit a la
+             fermeture. Une opacite imperceptiblement differente, posee
+             160 ms, force ce redessin sans rien changer a l'oeil. */
+          html.mp-repeint body::before,html.mp-repeint::before{opacity:.999}
           /* v.685 : la bande vaut pour TOUS les écrans, clairs compris.
              Elle en était retirée « parce que l'island ne gêne pas » — mais
              l'island se retrouvait alors sur fond clair, et iOS, qui teinte
