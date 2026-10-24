@@ -1,0 +1,10 @@
+# LOGNAVAK — Worker « meteo-sofia » : TEMSI/WINTEM depuis SOFIA, PDF avec CORS.
+# Déploiement : voir LISEZMOI.md. Aucun secret requis (AEROWEB_ID optionnel).
+name = "lognavak-meteo-sofia"
+main = "src/index.js"
+compatibility_date = "2026-08-26"
+workers_dev = true
+
+# [vars] ne sert qu'aux bancs d'essai (bases de remplacement) — ne rien y
+# mettre en production : les vraies adresses sont écrites dans le code.
+# AEROWEB_ID se pose en secret : `wrangler secret put AEROWEB_ID`
