@@ -1868,7 +1868,7 @@ html.mp-flying .nc-end .nm{text-decoration:underline;text-decoration-style:dotte
 .fv-ov{position:fixed;inset:0;z-index:125;background:#0E2348;
   display:flex;flex-direction:column;box-sizing:border-box;
   padding:calc(env(safe-area-inset-top,0px) + 8px) 8px calc(env(safe-area-inset-bottom,0px) + 8px)}
-.fv-win{flex:1 1 auto;min-height:0;background:#fff;color:#16213E;border-radius:14px;
+.fv-win{position:relative;flex:1 1 auto;min-height:0;background:#fff;color:#16213E;border-radius:14px;
   display:flex;flex-direction:column;overflow:hidden;box-shadow:0 10px 30px rgba(0,0,0,.35)}
 .fv-hd{flex:none;display:flex;align-items:center;gap:8px;padding:12px 12px 10px;
   border-bottom:2px solid #e94560;background:#fff}
@@ -1934,6 +1934,9 @@ html.mp-flying .nc-end .nm{text-decoration:underline;text-decoration-style:dotte
 .fvp-ch.fvp-br{break-inside:auto;page-break-inside:auto}
 .fvp-ch h2{margin:0 0 5px;font:800 8.5pt "Poppins",sans-serif;letter-spacing:.1em;
   text-transform:uppercase;color:#16213E}
+/* v.720 : un titre ne reste pas seul en bas de page — la note manuscrite
+   le laissait au pied de la premiere, ses pages sur la suivante */
+.fvp-ch h2{break-after:avoid;page-break-after:avoid}
 .fvp-g{display:grid;grid-template-columns:repeat(4,1fr);gap:6px 12px}
 .fvp-i{min-width:0}
 .fvp-i>span{display:block;font:600 7.5pt "Poppins",sans-serif;color:#5A6B85}
@@ -1957,6 +1960,67 @@ html.mp-flying .nc-end .nm{text-decoration:underline;text-decoration-style:dotte
   html.pr-fv body>*:not(.fv-pr){display:none!important}
   html.pr-fv body>.fv-pr{display:block!important}
 }
+/* ===== NOTE MANUSCRITE ET PHOTOS DANS LA FENETRE (v.720) ============
+   La note s'ecrit dans un editeur qui prend TOUT le corps de la fenetre :
+   une zone d'ecriture capte le doigt (touch-action:none), posee au milieu
+   d'une page qui defile elle empecherait de la faire defiler. Plein
+   cadre, elle a aussi a peu pres les proportions de l'ecran « Note », ou
+   la note a ete ecrite.
+   Les photos : vignette, legende, retrait. Toucher la vignette l'agrandit
+   dans la fenetre meme — un aplat opaque, pas un calque transparent. */
+.fv-btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;margin-top:10px;
+  border:1.5px solid #16213E;background:#fff;color:#16213E;border-radius:10px;padding:9px 14px;
+  font:800 13px "Poppins",sans-serif;cursor:pointer;-webkit-appearance:none;appearance:none}
+.fv-btn-p{margin-top:0;background:#e94560;border-color:#e94560;color:#fff}
+.fv-vide{font:600 13px "Poppins",sans-serif;color:#8A97AB;padding:4px 0}
+.fv-np-l{display:flex;gap:8px;overflow-x:auto;padding-bottom:2px}
+.fv-np{position:relative;flex:none;width:30%;border:1px solid #C9D3E1;border-radius:8px;
+  overflow:hidden;background:#fff;cursor:pointer}
+.fv-np i{position:absolute;right:5px;bottom:3px;font:700 10px "Poppins",sans-serif;
+  font-style:normal;color:#94a3b8}
+.fv-ph-l{display:flex;flex-direction:column;gap:8px}
+.fv-ph{display:flex;align-items:center;gap:10px}
+.fv-ph-v{flex:none;width:72px;height:72px;border:1px solid #C9D3E1;border-radius:8px;overflow:hidden;
+  padding:0;background:#F3F6FA;cursor:pointer;display:flex;align-items:center;justify-content:center;
+  font:600 11px "Poppins",sans-serif;color:#8A97AB;-webkit-appearance:none;appearance:none}
+.fv-ph-v img{display:block;width:100%;height:100%;object-fit:cover}
+.fv-ph-t{flex:1 1 auto;min-width:0;font:600 16px "Poppins",sans-serif;color:#16213E;background:#fff;
+  border:1px solid #C9D3E1;border-radius:8px;padding:8px 9px;box-sizing:border-box;
+  -webkit-appearance:none;appearance:none}
+.fv-ph-t:focus{border-color:#e94560;outline:none}
+.fv-ph-x{flex:none;width:36px;height:36px;border:1px solid #f0c2c2;background:#fff;color:#b91c1c;
+  border-radius:10px;font:700 18px/1 ui-sans-serif;cursor:pointer;-webkit-appearance:none;appearance:none}
+.fv-ed{flex:1 1 auto;min-height:0;display:flex;flex-direction:column}
+.fv-edh{flex:none;display:flex;align-items:center;gap:8px;padding:8px 12px;border-bottom:1px solid #EEF1F6}
+.fv-edh b{flex:1;min-width:0;font:800 11.5px "Poppins",sans-serif;letter-spacing:.08em;
+  text-transform:uppercase;color:#16213E}
+.fv-edz{flex:1 1 auto;min-height:0;display:flex;flex-direction:column}
+/* LES PROPORTIONS DE LA FEUILLE. La note est rangee en coordonnees de 0 a
+   1 : ecrite dans une zone plus trapue que l'ecran « Note », elle s'y
+   relirait etiree. La zone prend donc la hauteur disponible et la largeur
+   qui en decoule ; les filets pointilles en marquent les bords. */
+.fv-edz .npad-zone{align-self:center;aspect-ratio:var(--fvr,auto);max-width:100%;
+  border-left:1px dashed #C9D3E1;border-right:1px dashed #C9D3E1;box-sizing:border-box}
+.fv-pv{position:absolute;inset:0;z-index:3;background:#0E2348;display:flex;flex-direction:column;
+  border-radius:14px;overflow:hidden}
+.fv-pvh{flex:none;display:flex;align-items:center;gap:8px;padding:10px 12px;border-bottom:2px solid #e94560}
+.fv-pvh b{flex:1;min-width:0;color:#fff;font:800 14px "Poppins",sans-serif;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fv-pvc{flex:1 1 auto;min-height:0;display:flex;align-items:center;justify-content:center;
+  padding:10px;color:#cbd5e1;font:600 13px "Poppins",sans-serif;text-align:center}
+.fv-pvc img{max-width:100%;max-height:100%;object-fit:contain;border-radius:6px}
+/* au resume imprime : les pages de note en vignettes, trois par rang ;
+   les photos deux par rang, jamais coupees */
+.fvp-np-l{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.fvp-np{break-inside:avoid;page-break-inside:avoid}
+.fvp-npc{border:1px solid #C9D3E1;border-radius:4px;overflow:hidden;background:#fff}
+.fvp-np span{display:block;font:600 7.5pt "Poppins",sans-serif;color:#5A6B85;margin-top:2px}
+.fvp-ph-l{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.fvp-ph{margin:0;break-inside:avoid;page-break-inside:avoid}
+.fvp-ph img{display:block;width:100%;max-height:95mm;object-fit:contain;border-radius:4px}
+.fvp-ph figcaption{font:600 8.5pt "Poppins",sans-serif;color:#3B4A63;margin-top:3px}
+.fvp-ph-abs{border:1px dashed #C9D3E1;padding:18px 8px;text-align:center;
+  font:600 8pt "Poppins",sans-serif;color:#8A97AB}
 /* EN CONSULTATION, CE QUI MENE A L'EDITEUR. Un pointille bleu ciel, et
    le mot « Corriger » en haut a droite du bloc : discret sur la feuille,
    mais sans ambiguite. Rien de tout cela ne s'imprime. */
@@ -3893,7 +3957,7 @@ window.__TRACE_MARKUP="\n\n<header>\n  <div class=\"hdr-row1\">\n    <span class
    accessible depuis le bouton ⓘ du bandeau du log, avant toute ouverture de la carte */
 (function(){
   var host=document.createElement('div');
-  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Cartes OACI — origine et mise à jour</b></p>\n    <p style=\"margin-top:-6px\"><b>1/250 000 Région parisienne</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte250\">—</span>.</p>\n    <p style=\"margin-top:-6px\"><b>1/500 000 France</b> — IGN Géoplateforme (SCAN-OACI). Donnée <b>non libre</b>, tenue à jour par l’IGN.</p>\n    <p style=\"margin-top:-6px\"><b>1/1 000 000 France</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte1000\">—</span>.</p>\n    <p>Les deux cartes du SIA sont hébergées à part et lues par plages : seules les tuiles affichées sont téléchargées. Les trois se copient sur l’appareil pour voler sans réseau depuis <b>Profil → Cartes hors-ligne</b>. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.719</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
+  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Cartes OACI — origine et mise à jour</b></p>\n    <p style=\"margin-top:-6px\"><b>1/250 000 Région parisienne</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte250\">—</span>.</p>\n    <p style=\"margin-top:-6px\"><b>1/500 000 France</b> — IGN Géoplateforme (SCAN-OACI). Donnée <b>non libre</b>, tenue à jour par l’IGN.</p>\n    <p style=\"margin-top:-6px\"><b>1/1 000 000 France</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte1000\">—</span>.</p>\n    <p>Les deux cartes du SIA sont hébergées à part et lues par plages : seules les tuiles affichées sont téléchargées. Les trois se copient sur l’appareil pour voler sans réseau depuis <b>Profil → Cartes hors-ligne</b>. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.720</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
   (document.body||document.documentElement).appendChild(host.firstElementChild);
   /* le nom du fichier de la 1/1 000 000 dit son edition : on le lit la ou il
      est vraiment (cartes.json), jamais en dur, sinon il mentirait un jour */
@@ -11414,13 +11478,16 @@ const enregistrerRevue=()=>{if(!review)return;try{reviewSnap.current=JSON.string
 const annulerRevue=()=>{if(!review||!reviewSnap.current)return;let o=null;try{o=JSON.parse(reviewSnap.current);}catch(e){return;}const id=review.id;setApp(a=>({...a,navs:{...a.navs,[id]:o}}));setHist({past:[],future:[]});setReview(r=>r?{...r,dirty:false}:r);try{(window.__MESSAGE||function(){})("Vol remis dans son \u00e9tat d\u2019origine");}catch(e){}};
 const quitterRevue=()=>{if(review&&review.dirty){if(!window.confirm("Des modifications n\u2019ont pas \u00e9t\u00e9 enregistr\u00e9es.\n\nQuitter sans les enregistrer ? Le vol sera remis dans l\u2019\u00e9tat o\u00f9 vous l\u2019avez trouv\u00e9."))return;annulerRevue();}setReview(null);reviewSnap.current=null;};
 const flownAt=n=>{const f=n&&n.flight||{};if(f.t0)return f.t0;/* v.695 : un vol TERMINE est un vol vole. Sans cette ligne, un vol arrete par le bouton rouge (t0 remis a zero, aucune heure reelle saisie) ne portait aucune date dans la liste ni dans le bandeau de consultation. */if(f.tEnd)return f.tEnd;const any=arr=>(arr||[]).some(l=>String(l&&l.hReel||"").trim()!=="");return(any(n&&n.aller)||any(n&&n.retour))?(n&&n.createdAt||0):0};const blankLegs=arr=>(arr||[]).map(l=>({...l,hReel:"",hEst:"",wDir:"",wKt:""}));/* r\xE9utiliser : on garde la pr\xE9paration (route, altitudes, radio, notes) et on
-   efface tout ce qui appartient au vol pr\xE9c\xE9dent (heures r\xE9elles, ATIS, carburant) */const reuseNav=id=>{const src=app.navs[id||app.currentId];if(!src)return;const n={...src,id:uid(),createdAt:Date.now(),meta:{...src.meta,date:"",ventDir:"",ventKt:""},aller:blankLegs(src.aller),retour:blankLegs(src.retour),flight:{}};setApp(a=>({...a,navs:{...a.navs,[n.id]:n},currentId:n.id}));setHist({past:[],future:[]});setDrawer(false);return n.id};const delNav=id=>setApp(a=>{const navs={...a.navs};delete navs[id];let cur=a.currentId;if(cur===id){const k=Object.keys(navs);cur=k[0]||null;if(!cur){const n=newNav();navs[n.id]=n;cur=n.id}}return{...a,navs,currentId:cur}});
+   efface tout ce qui appartient au vol pr\xE9c\xE9dent (heures r\xE9elles, ATIS, carburant) *//* v.720 : les photos appartiennent AU VOL. Reutiliser une navigation ne
+   les emporte pas (deux vols pointant la meme image : retirer l'une
+   effacerait l'autre), et supprimer une navigation retire ses images de
+   l'appareil et du nuage. */const __photosDe=ids=>{try{const l=[];(ids||[]).forEach(k=>{const x=app.navs[k];((x&&x.photos)||[]).forEach(q=>{if(q&&q.id)l.push(q.id)})});if(l.length&&window.__PHOTOS)window.__PHOTOS.retire(l)}catch(e){}};const reuseNav=id=>{const src=app.navs[id||app.currentId];if(!src)return;const n={...src,id:uid(),createdAt:Date.now(),meta:{...src.meta,date:"",ventDir:"",ventKt:""},aller:blankLegs(src.aller),retour:blankLegs(src.retour),flight:{},photos:[]};setApp(a=>({...a,navs:{...a.navs,[n.id]:n},currentId:n.id}));setHist({past:[],future:[]});setDrawer(false);return n.id};const delNav=id=>{__photosDe([id]);setApp(a=>{const navs={...a.navs};delete navs[id];let cur=a.currentId;if(cur===id){const k=Object.keys(navs);cur=k[0]||null;if(!cur){const n=newNav();navs[n.id]=n;cur=n.id}}return{...a,navs,currentId:cur}})};
 /* v.716 : LE MEME GESTE, POUR UN LOT. On ne boucle pas sur delNav —
    chaque appel reconstruirait l'etat et choisirait une navigation
    courante intermediaire, pour la jeter au tour suivant. Une seule
    passe, et la meme garantie qu'a l'unite : il reste toujours au
    moins une navigation. */
-const delNavs=(ids)=>setApp(a=>{
+const delNavs=(ids)=>{__photosDe(ids);setApp(a=>{
   const jeter={}; (ids||[]).forEach(k=>{ jeter[k]=1; });
   const navs={};
   Object.keys(a.navs).forEach(k=>{ if(!jeter[k]) navs[k]=a.navs[k]; });
@@ -11428,7 +11495,7 @@ const delNavs=(ids)=>setApp(a=>{
   if(jeter[cur]||!navs[cur]){ const k=Object.keys(navs); cur=k[0]||null; }
   if(!cur){ const n=newNav(); navs[n.id]=n; cur=n.id; }
   return {...a,navs,currentId:cur};
-});/* VOL LOCAL (v.680) : un vol qu'on n'a pas prepare — tour de piste,
+});};/* VOL LOCAL (v.680) : un vol qu'on n'a pas prepare — tour de piste,
    local, entrainement. Il n'y a pas de trajet a tracer, mais il y a les
    memes choses a garder qu'ailleurs : l'heure de depart, celle d'arrivee,
    l'ATIS, le QNH et la trace. On fabrique donc le log MINIMAL qui permet
@@ -12711,6 +12778,27 @@ function FenetreVol({nav,onClose,onSave}){
   React.useEffect(()=>()=>fvDesarme(),[]);
   const [d,setD]=React.useState(()=>JSON.parse(JSON.stringify(nav)));
   const [sale,setSale]=React.useState(false);
+  /* v.720 : la note manuscrite et les photos */
+  const [mode,setMode]=React.useState(null);          /* "note" : l'editeur plein cadre */
+  const [urls,setUrls]=React.useState({});            /* id -> adresse ; "" : introuvable */
+  const [vue,setVue]=React.useState(null);            /* la photo agrandie */
+  const [charge,setCharge]=React.useState(0);         /* photos en cours de reduction */
+  const ajoutes=React.useRef([]);                     /* posees depuis l'ouverture, pas encore enregistrees */
+  const base=React.useRef((nav.photos||[]).map(q=>q.id));   /* celles du vol enregistre */
+  const fic=React.useRef(null);
+  const P=window.__PHOTOS||null;
+  /* les proportions de la feuille ou la note s'ecrit : l'ecran « Note »
+     du telephone, mesure s'il est la ; sinon celles d'un iPhone */
+  const R=React.useMemo(()=>{ try{ const z=document.querySelector("#notepad .npad-zone");
+      const r=z&&z.getBoundingClientRect(); if(r&&r.width>60&&r.height>60) return r.width/r.height; }catch(e){}
+    return 0.52; },[]);
+  const lesIds=(d.photos||[]).map(q=>q.id).join(",");
+  React.useEffect(()=>{ if(!P) return; let vivant=true;
+    (d.photos||[]).forEach(q=>{ if(urls[q.id]!==undefined) return;
+      P.url(q.id).then(u=>{ if(vivant) setUrls(o=>({...o,[q.id]:u||""})); }); });
+    return ()=>{ vivant=false; }; },[lesIds]);
+  /* ce qui n'a pas pu monter (hors connexion) est relance a l'ouverture */
+  React.useEffect(()=>{ try{ P&&P.relance((nav.photos||[]).map(q=>q.id)); }catch(e){} },[]);
   const pad=n=>String(n).padStart(2,"0");
   const hhmm=ms=>{ if(!ms) return ""; const x=new Date(ms); return pad(x.getHours())+":"+pad(x.getMinutes()); };
   const maj=f=>{ setD(o=>{ const n=JSON.parse(JSON.stringify(o)); n.meta=n.meta||{}; n.flight=n.flight||{}; f(n); return n; }); setSale(true); };
@@ -12767,8 +12855,62 @@ function FenetreVol({nav,onClose,onSave}){
         h("div",{className:"fv-grid"},
           champ("Pr\u00e9vue",L[fin].hEst,v=>maj(n=>{ n[cle][fin].hEst=v; }),{type:"time"}),
           champ("R\u00e9elle",L[fin].hReel,v=>maj(n=>{ n[cle][fin].hReel=v; }),{type:"time"})))); };
-  const ferme=()=>{ if(sale&&!window.confirm("Des modifications n\u2019ont pas \u00e9t\u00e9 enregistr\u00e9es.\n\nFermer sans les enregistrer ?")) return; onClose(); };
-  const enregistre=()=>{ if(!sale) return; onSave(d); setSale(false); };
+  /* LES PHOTOS ET L'ENREGISTREMENT. Une photo ajoutee est rangee tout de
+     suite sur l'appareil — il faut bien l'afficher —, mais elle
+     n'appartient au vol qu'a « Enregistrer ». Fermer sans enregistrer
+     jette donc celles posees entre-temps ; enregistrer jette celles
+     qu'on a retirees. Aucune image ne reste sans vol. */
+  const ferme=()=>{ if(sale&&!window.confirm("Des modifications n\u2019ont pas \u00e9t\u00e9 enregistr\u00e9es.\n\nFermer sans les enregistrer ?")) return;
+    const orph=ajoutes.current.filter(id=>base.current.indexOf(id)<0);
+    if(orph.length&&P) P.retire(orph);
+    onClose(); };
+  const enregistre=()=>{ if(!sale) return; onSave(d); setSale(false);
+    const gardees=(d.photos||[]).map(q=>q.id);
+    const parties=base.current.concat(ajoutes.current).filter(id=>gardees.indexOf(id)<0);
+    if(parties.length&&P) P.retire(parties);
+    base.current=gardees; ajoutes.current=[]; };
+  const ajoutePhotos=l=>{
+    if(!P){ window.alert("Les photos ne sont pas disponibles sur cet appareil."); return; }
+    l=(l||[]).filter(f=>/^image\//.test(f.type||"")||/\.(jpe?g|png|heic|heif|webp|gif)$/i.test(f.name||""));
+    if(!l.length) return;
+    setCharge(c=>c+l.length);
+    l.reduce((pr,f)=>pr.then(()=>P.ajoute(f).then(r=>{ ajoutes.current.push(r.id);
+        maj(n=>{ n.photos=(n.photos||[]).concat([{id:r.id,w:r.w,h:r.h,quand:r.quand,legende:""}]); }); },
+      ()=>{ window.alert("Cette image n\u2019a pas pu \u00eatre ajout\u00e9e : "+(f.name||"fichier")); })
+      .then(()=>setCharge(c=>c-1))),Promise.resolve()); };
+  const retirePhoto=id=>{ if(!window.confirm("Retirer cette photo du vol ?")) return;
+    maj(n=>{ n.photos=(n.photos||[]).filter(q=>q.id!==id); }); setVue(null); };
+  const pagesNote=npadPages(d.notePad).map((t,i)=>({t,i})).filter(x=>x.t&&x.t.length);
+  const chapNote=()=>chap("Note manuscrite",
+    pagesNote.length?h("div",{className:"fv-np-l"},pagesNote.map(x=>
+        h("div",{key:x.i,className:"fv-np",style:{aspectRatio:String(R)},onClick:()=>setMode("note")},
+          h(NoteSvg,{traits:x.t,R}),h("i",null,"p. "+(x.i+1)))))
+      :h("div",{className:"fv-vide"},"Aucune note manuscrite pour ce vol."),
+    h("button",{type:"button",className:"fv-btn fv-note-go",onClick:()=>setMode("note")},
+      pagesNote.length?"Modifier la note":"\u00c9crire une note"));
+  const editeurNote=()=>h("div",{className:"fv-ed"},
+    h("div",{className:"fv-edh"},h("b",null,"Note manuscrite"),
+      h("button",{type:"button",className:"fv-btn fv-btn-p fv-note-ok",onClick:()=>setMode(null)},"Termin\u00e9")),
+    h("div",{className:"fv-edz",style:{"--fvr":String(R)}},h(NotePad,{nav:d,setNav:q=>maj(n=>{ Object.assign(n,q); })})));
+  const chapPhotos=()=>chap("Photos",
+    (d.photos||[]).length?h("div",{className:"fv-ph-l"},(d.photos||[]).map(q=>h("div",{key:q.id,className:"fv-ph"},
+        h("button",{type:"button",className:"fv-ph-v",onClick:()=>setVue(q.id),"aria-label":"Agrandir la photo"},
+          urls[q.id]?h("img",{src:urls[q.id],alt:""}):h("span",null,urls[q.id]===""?"absente":"\u2026")),
+        h("input",{className:"fv-ph-t",type:"text",value:q.legende||"",placeholder:"L\u00e9gende",
+          onChange:e=>{ const v=e.target.value; maj(n=>{ const o=(n.photos||[]).find(x=>x.id===q.id); if(o) o.legende=v; }); }}),
+        h("button",{type:"button",className:"fv-ph-x",onClick:()=>retirePhoto(q.id),"aria-label":"Retirer la photo",
+          title:"Retirer cette photo du vol"},"\u00d7"))))
+      :h("div",{className:"fv-vide"},"Aucune photo pour ce vol."),
+    charge>0?h("div",{className:"fv-vide"},"Ajout en cours\u2026"):null,
+    h("button",{type:"button",className:"fv-btn fv-ph-go",onClick:()=>fic.current&&fic.current.click()},"+ Ajouter une photo"),
+    h("input",{ref:fic,className:"fv-file",type:"file",accept:"image/*",multiple:true,style:{display:"none"},
+      onChange:e=>{ const l=[...(e.target.files||[])]; e.target.value=""; ajoutePhotos(l); }}));
+  const pv=vue?(d.photos||[]).find(q=>q.id===vue):null;
+  const visionneuse=()=>pv?h("div",{className:"fv-pv",role:"dialog","aria-label":"Photo du vol"},
+    h("div",{className:"fv-pvh"},h("b",null,pv.legende||"Photo"),
+      h("button",{type:"button",className:"fv-x",onClick:()=>setVue(null),"aria-label":"Fermer la photo"},"\u00d7")),
+    h("div",{className:"fv-pvc"},urls[pv.id]?h("img",{src:urls[pv.id],alt:pv.legende||""})
+      :"Cette photo n\u2019est pas encore arriv\u00e9e sur cet appareil.")):null;
   /* LE TIRAGE. Tout se fait dans le geste du doigt — Safari peut refuser
      un print() differe. Le format A4 portrait est pose en FIN de corps :
      une regle @page se departage par l'ordre, et le log de nav pose la
@@ -12835,6 +12977,15 @@ function FenetreVol({nav,onClose,onSave}){
       it("D\u00e9gagements",(M.degag||[]).join(" "),"fvp-l"),
       riche("Note, d\u00e9gagement, TEM\u2026 (log papier)",M.notesP4),
       riche("M\u00e9t\u00e9o (log papier)",M.meteoP4))),
+    pagesNote.length?h("section",{className:"fvp-ch fvp-br"},h("h2",null,"Note manuscrite"),
+      h("div",{className:"fvp-np-l"},pagesNote.map(x=>h("div",{key:x.i,className:"fvp-np"},
+        h("div",{className:"fvp-npc",style:{aspectRatio:String(R)}},h(NoteSvg,{traits:x.t,R})),
+        pagesNote.length>1?h("span",null,"Page "+(x.i+1)):null)))):null,
+    (d.photos||[]).length?h("section",{className:"fvp-ch fvp-br"},h("h2",null,"Photos"),
+      h("div",{className:"fvp-ph-l"},(d.photos||[]).map(q=>h("figure",{key:q.id,className:"fvp-ph"},
+        urls[q.id]?h("img",{src:urls[q.id],alt:""})
+          :h("div",{className:"fvp-ph-abs"},"Photo non disponible sur cet appareil"),
+        q.legende?h("figcaption",null,q.legende):null)))):null,
     h("div",{className:"fvp-pied"},"LOGNAVAK \u2014 r\u00e9sum\u00e9 de vol",h("span",{className:"fvp-tire"})));
   const portail=el=>{ try{ return ReactDOM.createPortal(el,document.body); }catch(e){ return null; } };
   const jour=(()=>{ const t=F.t0||F.tEnd; if(t){ const x=new Date(t);
@@ -12853,7 +13004,10 @@ function FenetreVol({nav,onClose,onSave}){
           h(Ic,{name:"printer",size:18,sw:2})),
         h("button",{type:"button",className:"fv-x",onClick:ferme,"aria-label":"Fermer",
           title:"Fermer \u2014 les modifications non enregistr\u00e9es seront abandonn\u00e9es"},"\u00d7")),
-      h("div",{className:"fv-co"},
+      mode==="note"?editeurNote():null,
+      /* le corps reste monte pendant l'edition de la note : les notes
+         riches gardent leur contenu, la page sa position */
+      h("div",{className:"fv-co",style:mode==="note"?{display:"none"}:undefined},
         chap("Le vol",
           champ("Nom",d.name,v=>maj(n=>{ n.name=v; }),{large:1}),
           h("div",{className:"fv-grid"},
@@ -12895,7 +13049,22 @@ function FenetreVol({nav,onClose,onSave}){
           h(FvRiche,{init:M.notesP4,lab:"Note, d\u00e9gagement, TEM\u2026 (log papier)",
             onChange:v=>maj(n=>{ n.meta.notesP4=v; })}),
           h(FvRiche,{init:M.meteoP4,lab:"M\u00e9t\u00e9o (log papier)",
-            onChange:v=>maj(n=>{ n.meta.meteoP4=v; })}))))));
+            onChange:v=>maj(n=>{ n.meta.meteoP4=v; })})),
+        chapNote(),
+        chapPhotos()),
+      vue?visionneuse():null)));
+}
+/* une page de note en SVG : le trait reste net a toute taille, et
+   l'epaisseur suit la regle de l'ecran (reference 520 px de large) */
+function NoteSvg({traits,R}){
+  const h=React.createElement, L=1000, H=Math.round(L/(R||0.52));
+  return h("svg",{viewBox:"0 0 "+L+" "+H,width:"100%",height:"100%",preserveAspectRatio:"none",
+    "aria-hidden":"true",style:{display:"block"}},
+    (traits||[]).map((t,j)=>{ const q=(t&&t.p)||[]; if(!q.length) return null;
+      const e=Math.max(1,(t.e||3)*L/520);
+      if(q.length===1) return h("circle",{key:j,cx:q[0][0]*L,cy:q[0][1]*H,r:e/2,fill:t.c||"#16213e"});
+      return h("polyline",{key:j,fill:"none",stroke:t.c||"#16213e",strokeWidth:e,
+        strokeLinecap:"round",strokeLinejoin:"round",points:q.map(z=>(z[0]*L)+","+(z[1]*H)).join(" ")}); }));
 }
 /* le texte riche des notes du log : la zone garde son propre contenu — on
    ne le lui reecrit qu'a l'ouverture. Defini HORS de la fenetre : recree a
@@ -20132,6 +20301,145 @@ window.__pickGpx=function(cb){
   window.__VAC_ENREGISTRE=enregistre;    /* sortir une planche vers les fichiers */
   window.__VAC_PLANCHES_GARDEES=favsVac;
   window.__VAC_BASCULE_GARDEE=basculeFav;
+})();
+</script>
+<script>
+/* ===================================================================
+   PHOTOS D'UN VOL (v.720)
+   -------------------------------------------------------------------
+   Une photo pese des centaines de kilooctets : dans la navigation, elle
+   ferait deborder le stockage de la page (5 Mo sur iOS) et alourdirait
+   chaque synchronisation. On fait donc comme pour les documents :
+     - l'APPAREIL (IndexedDB) garde l'image, reduite a 1600 px de cote,
+       en JPEG. C'est elle qu'on affiche, sans reseau ;
+     - le RANGEMENT DE FICHIERS de Supabase (seau « docs », dossier
+       <pilote>/vols/) garde l'original pour les autres appareils ;
+     - la NAVIGATION ne garde que la reference : identifiant, taille,
+       legende. Quelques octets, qui voyagent avec le vol.
+   Hors connexion, la photo reste sur l'appareil et monte plus tard : a
+   chaque ouverture de la fenetre, ce qui n'est pas monte est relance.
+   Les regles d'acces du seau (documents.sql) couvrent deja ce dossier :
+   le premier dossier du chemin est l'identifiant du pilote.
+   =================================================================== */
+(function(){
+  'use strict';
+  var DB='lognav_photos', ST='p', VER=1, SEAU='docs', COTE=1600, QUAL=0.82;
+  var _db=null, _urls={}, _envois={};
+  function idb(){
+    return new Promise(function(res,rej){
+      if(_db) return res(_db);
+      try{
+        var rq=indexedDB.open(DB,VER);
+        rq.onupgradeneeded=function(){ try{ rq.result.createObjectStore(ST); }catch(e){} };
+        rq.onsuccess=function(){ _db=rq.result; res(_db); };
+        rq.onerror=function(){ rej(rq.error||new Error('IndexedDB refuse')); };
+      }catch(e){ rej(e); }
+    });
+  }
+  function tx(mode){ return idb().then(function(d){ return d.transaction(ST,mode).objectStore(ST); }); }
+  function pr(rq){ return new Promise(function(res,rej){
+    rq.onsuccess=function(){ res(rq.result); }; rq.onerror=function(){ rej(rq.error); }; }); }
+  function lire(id){ return tx('readonly').then(function(s){ return pr(s.get(id)); })
+    .catch(function(){ return null; }); }
+  function range(o){ return tx('readwrite').then(function(s){ return pr(s.put(o,o.id)); })
+    .then(function(){ return o; }); }
+  function efface(id){ return tx('readwrite')
+    .then(function(s){ return pr(s['delete'](id)); }).catch(function(){}); }
+  function sb(){ try{ return window.sb||null; }catch(e){ return null; } }
+  function moi(){
+    return new Promise(function(res){
+      var c=sb(); if(!c||!c.auth) return res(null);
+      try{ c.auth.getSession().then(function(r){
+        res((r&&r.data&&r.data.session&&r.data.session.user)||null); },
+        function(){ res(null); }); }catch(e){ res(null); }
+    });
+  }
+  function chemin(u,id){ return u.id+'/vols/'+id+'.jpg'; }
+  /* reduite et recompressee : une photo d'iPhone fait 3 a 5 Mo, 1600 px
+     suffisent largement a relire une feuille ou un tableau de bord. Le
+     navigateur redresse lui-meme l'image d'apres son orientation EXIF. */
+  function compresse(file){
+    return new Promise(function(res,rej){
+      var u=URL.createObjectURL(file), im=new Image();
+      im.onload=function(){
+        try{
+          var W=im.naturalWidth||im.width, H=im.naturalHeight||im.height;
+          var sc=Math.min(1,COTE/Math.max(W,H));
+          var w=Math.max(1,Math.round(W*sc)), h=Math.max(1,Math.round(H*sc));
+          var cv=document.createElement('canvas'); cv.width=w; cv.height=h;
+          var g=cv.getContext('2d'); g.fillStyle='#fff'; g.fillRect(0,0,w,h); g.drawImage(im,0,0,w,h);
+          URL.revokeObjectURL(u);
+          cv.toBlob(function(b){ b?res({blob:b,w:w,h:h}):rej(new Error('compression impossible')); },
+            'image/jpeg',QUAL);
+        }catch(e){ URL.revokeObjectURL(u); rej(e); }
+      };
+      im.onerror=function(){ URL.revokeObjectURL(u); rej(new Error('image illisible')); };
+      im.src=u;
+    });
+  }
+  /* un envoi par photo a la fois ; un retrait l'attend, sinon un envoi
+     encore en route reposerait au nuage une image qu'on vient d'en ôter */
+  function monte(id){
+    if(_envois[id]) return _envois[id];
+    var e=monte0(id); _envois[id]=e;
+    e.then(function(){ if(_envois[id]===e) delete _envois[id]; });
+    return e;
+  }
+  function monte0(id){
+    return lire(id).then(function(o){
+      if(!o||!o.blob) return false;
+      if(o.monte) return true;
+      return moi().then(function(u){
+        var c=sb(); if(!u||!c||!c.storage) return false;
+        return c.storage.from(SEAU).upload(chemin(u,id),o.blob,{upsert:true,contentType:'image/jpeg'})
+          .then(function(r){
+            if(r&&r.error) return false;
+            o.monte=true; return range(o).then(function(){ return true; });
+          },function(){ return false; });
+      });
+    }).catch(function(){ return false; });
+  }
+  function ajoute(file){
+    return compresse(file).then(function(c){
+      var id='ph'+Date.now().toString(36)+Math.random().toString(36).slice(2,7), q=Date.now();
+      return range({id:id,blob:c.blob,w:c.w,h:c.h,monte:false,quand:q}).then(function(){
+        monte(id);
+        return {id:id,w:c.w,h:c.h,quand:q};
+      });
+    });
+  }
+  /* l'adresse a afficher : l'appareil d'abord ; sinon le nuage, et la
+     photo descendue y reste — on ne la retelecharge pas a chaque fois */
+  function url(id){
+    if(_urls[id]) return Promise.resolve(_urls[id]);
+    return lire(id).then(function(o){
+      if(o&&o.blob) return (_urls[id]=URL.createObjectURL(o.blob));
+      return moi().then(function(u){
+        var c=sb(); if(!u||!c||!c.storage) return null;
+        return c.storage.from(SEAU).download(chemin(u,id)).then(function(r){
+          var b=r&&!r.error&&r.data; if(!b) return null;
+          return range({id:id,blob:b,w:0,h:0,monte:true,quand:Date.now()}).then(function(){
+            return (_urls[id]=URL.createObjectURL(b)); });
+        },function(){ return null; });
+      });
+    }).catch(function(){ return null; });
+  }
+  /* retirer : l'appareil, puis le nuage. Hors connexion, la copie du
+     nuage reste — elle n'est plus referencee par aucun vol. */
+  function retire(ids){
+    return Promise.all((ids||[]).map(function(id){
+      try{ if(_urls[id]){ URL.revokeObjectURL(_urls[id]); delete _urls[id]; } }catch(e){}
+      return Promise.resolve(_envois[id]).then(function(){ return efface(id); })
+        .then(function(){ return moi(); }).then(function(u){
+        var c=sb(); if(!u||!c||!c.storage) return;
+        return c.storage.from(SEAU).remove([chemin(u,id)]).then(function(){},function(){});
+      }).catch(function(){});
+    }));
+  }
+  function relance(ids){ return Promise.all((ids||[]).map(monte)); }
+  function etat(id){ return lire(id).then(function(o){
+    return o?(o.monte?'nuage':'appareil'):'absent'; }); }
+  window.__PHOTOS={ajoute:ajoute,url:url,retire:retire,relance:relance,etat:etat};
 })();
 </script>
 <script>
