@@ -1909,6 +1909,54 @@ html.mp-flying .nc-end .nm{text-decoration:underline;text-decoration-style:dotte
   color:#16213E;padding:10px 0 2px}
 .fv-chk input{width:20px;height:20px;accent-color:#e94560;margin:0}
 @media print{.fv-ov{display:none!important}}
+/* ===== LE RESUME DE VOL A L'IMPRESSION (v.719) ======================
+   La fenetre ne s'imprime pas telle quelle : des champs de saisie dans un
+   panneau fixe qui defile, c'est une page coupee. Elle compose donc a cote
+   d'elle un RESUME — texte nu, chapitres separes du meme trait
+   rouge-rose — porte directement par <body> (portail), invisible a
+   l'ecran. Le bouton pose « pr-fv » sur <html> le temps du tirage : tout
+   le reste du document est alors masque, et la page passe en A4 portrait.
+   Ces regles ne vivent que sous @media print : rien ne change a l'ecran,
+   ni le bord du haut (aucun element fixe, aucune transparence). */
+.fv-imp{flex:none;width:36px;height:36px;border:1px solid #C3CEDD;background:#F3F6FA;color:#16213E;
+  border-radius:10px;display:inline-flex;align-items:center;justify-content:center;padding:0;
+  cursor:pointer;-webkit-appearance:none;appearance:none}
+.fv-pr{display:none}
+.fv-pr{color:#16213E;font-family:"Poppins",system-ui,sans-serif;background:#fff;
+  -webkit-print-color-adjust:exact;print-color-adjust:exact}
+.fvp-hd{border-bottom:2.5px solid #e94560;padding-bottom:7px}
+.fvp-mq{font:700 8.5pt "Poppins",sans-serif;letter-spacing:.12em;text-transform:uppercase;color:#e94560}
+.fvp-hd h1{margin:2px 0 0;font:800 18pt/1.15 "Poppins",sans-serif;color:#16213E}
+.fvp-nom{font:600 11pt "Poppins",sans-serif;color:#3B4A63}
+.fvp-ch{border-top:1.5px solid #e94560;padding:7px 0 3px;margin-top:9px;
+  break-inside:avoid;page-break-inside:avoid}
+.fvp-hd+.fvp-ch{border-top:0;margin-top:3px}
+.fvp-ch.fvp-br{break-inside:auto;page-break-inside:auto}
+.fvp-ch h2{margin:0 0 5px;font:800 8.5pt "Poppins",sans-serif;letter-spacing:.1em;
+  text-transform:uppercase;color:#16213E}
+.fvp-g{display:grid;grid-template-columns:repeat(4,1fr);gap:6px 12px}
+.fvp-i{min-width:0}
+.fvp-i>span{display:block;font:600 7.5pt "Poppins",sans-serif;color:#5A6B85}
+.fvp-i>b{display:block;font:700 10.5pt "Poppins",sans-serif;color:#16213E;overflow-wrap:anywhere}
+.fvp-d{grid-column:span 2}
+.fvp-l{grid-column:1/-1}
+.fvp-t{width:100%;border-collapse:collapse;font:600 9.5pt "Poppins",sans-serif}
+.fvp-t th{font:700 7.5pt "Poppins",sans-serif;color:#5A6B85;text-align:left;
+  border-bottom:1.5px solid #e94560;padding:3px 5px}
+.fvp-t td{padding:4px 5px;border-bottom:1px solid #E3E8F0;color:#16213E}
+.fvp-t tr{break-inside:avoid;page-break-inside:avoid}
+.fvp-t .fvp-arr td{font-weight:800}
+.fvp-x{margin:0;font:500 10pt/1.45 "Poppins",sans-serif;color:#16213E;white-space:pre-wrap;
+  overflow-wrap:anywhere}
+.fvp-pied{margin-top:12px;border-top:1px solid #E3E8F0;padding-top:5px;
+  font:600 7.5pt "Poppins",sans-serif;color:#8A97AB}
+@media print{
+  html.pr-fv,html.pr-fv body{background:#fff!important;height:auto!important;min-height:0!important;
+    overflow:visible!important;margin:0!important;padding:0!important;zoom:1!important}
+  html.pr-fv::before,html.pr-fv body::before{display:none!important;content:none!important}
+  html.pr-fv body>*:not(.fv-pr){display:none!important}
+  html.pr-fv body>.fv-pr{display:block!important}
+}
 /* EN CONSULTATION, CE QUI MENE A L'EDITEUR. Un pointille bleu ciel, et
    le mot « Corriger » en haut a droite du bloc : discret sur la feuille,
    mais sans ambiguite. Rien de tout cela ne s'imprime. */
@@ -3845,7 +3893,7 @@ window.__TRACE_MARKUP="\n\n<header>\n  <div class=\"hdr-row1\">\n    <span class
    accessible depuis le bouton ⓘ du bandeau du log, avant toute ouverture de la carte */
 (function(){
   var host=document.createElement('div');
-  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Cartes OACI — origine et mise à jour</b></p>\n    <p style=\"margin-top:-6px\"><b>1/250 000 Région parisienne</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte250\">—</span>.</p>\n    <p style=\"margin-top:-6px\"><b>1/500 000 France</b> — IGN Géoplateforme (SCAN-OACI). Donnée <b>non libre</b>, tenue à jour par l’IGN.</p>\n    <p style=\"margin-top:-6px\"><b>1/1 000 000 France</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte1000\">—</span>.</p>\n    <p>Les deux cartes du SIA sont hébergées à part et lues par plages : seules les tuiles affichées sont téléchargées. Les trois se copient sur l’appareil pour voler sans réseau depuis <b>Profil → Cartes hors-ligne</b>. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.718</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
+  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Cartes OACI — origine et mise à jour</b></p>\n    <p style=\"margin-top:-6px\"><b>1/250 000 Région parisienne</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte250\">—</span>.</p>\n    <p style=\"margin-top:-6px\"><b>1/500 000 France</b> — IGN Géoplateforme (SCAN-OACI). Donnée <b>non libre</b>, tenue à jour par l’IGN.</p>\n    <p style=\"margin-top:-6px\"><b>1/1 000 000 France</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte1000\">—</span>.</p>\n    <p>Les deux cartes du SIA sont hébergées à part et lues par plages : seules les tuiles affichées sont téléchargées. Les trois se copient sur l’appareil pour voler sans réseau depuis <b>Profil → Cartes hors-ligne</b>. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.719</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
   (document.body||document.documentElement).appendChild(host.firstElementChild);
   /* le nom du fichier de la 1/1 000 000 dit son edition : on le lit la ou il
      est vraiment (cartes.json), jamais en dur, sinon il mentirait un jour */
@@ -12651,8 +12699,16 @@ function NoteImpression({nav}){
    Et elle ne passe par aucun des mecanismes qui ont fait naitre le flou
    du haut : son fond est un aplat opaque, elle ne change pas d'ecran, et
    elle n'est pas le mode consultation. */
+/* le tirage du resume : la marque et le format de page tombent au
+   « afterprint », ou a la fermeture de la fenetre — iOS n'emet pas
+   toujours « afterprint ». Pas de minuterie : l'apercu de Chrome refait
+   la mise en page a chaque reglage et doit retrouver ces regles (le
+   constat du 24 aout sur le dossier de vol). */
+function fvDesarme(){ try{ document.documentElement.classList.remove('pr-fv');
+  const q=document.getElementById('fvPage'); if(q) q.remove(); }catch(e){} }
 function FenetreVol({nav,onClose,onSave}){
   const h=React.createElement;
+  React.useEffect(()=>()=>fvDesarme(),[]);
   const [d,setD]=React.useState(()=>JSON.parse(JSON.stringify(nav)));
   const [sale,setSale]=React.useState(false);
   const pad=n=>String(n).padStart(2,"0");
@@ -12713,16 +12769,88 @@ function FenetreVol({nav,onClose,onSave}){
           champ("R\u00e9elle",L[fin].hReel,v=>maj(n=>{ n[cle][fin].hReel=v; }),{type:"time"})))); };
   const ferme=()=>{ if(sale&&!window.confirm("Des modifications n\u2019ont pas \u00e9t\u00e9 enregistr\u00e9es.\n\nFermer sans les enregistrer ?")) return; onClose(); };
   const enregistre=()=>{ if(!sale) return; onSave(d); setSale(false); };
+  /* LE TIRAGE. Tout se fait dans le geste du doigt — Safari peut refuser
+     un print() differe. Le format A4 portrait est pose en FIN de corps :
+     une regle @page se departage par l'ordre, et le log de nav pose la
+     sienne (paysage) plus haut. */
+  const imprime=()=>{ try{
+      document.documentElement.classList.add('pr-fv');
+      if(!document.getElementById('fvPage')){ const st=document.createElement('style');
+        st.id='fvPage'; st.textContent='@page{size:A4 portrait;margin:12mm}';
+        document.body.appendChild(st); }
+      if(!window.__FVIMP_LIE){ window.__FVIMP_LIE=1; window.addEventListener('afterprint',fvDesarme); }
+      const t=document.querySelector('.fv-pr .fvp-tire'), n=new Date();
+      if(t) t.textContent=" \u00b7 imprim\u00e9 le "+pad(n.getDate())+"/"+pad(n.getMonth()+1)+"/"
+        +n.getFullYear()+" \u00e0 "+pad(n.getHours())+":"+pad(n.getMinutes());
+      window.__TITRE_TIRAGE&&window.__TITRE_TIRAGE("R\u00e9sum\u00e9 de vol",d.name,M.date);
+    }catch(e){}
+    try{ window.print(); }catch(e){} };
+  const tx=v=>(v==null||v==="")?"\u2014":String(v);
+  const it=(lab,val,cl)=>h("div",{className:"fvp-i"+(cl?" "+cl:"")},h("span",null,lab),h("b",null,tx(val)));
+  const pch=(titre,...e)=>h("section",{className:"fvp-ch"},h("h2",null,titre),...e);
+  const atx=k=>{ const a=at(k); return [a.let?("Info "+String(a.let).toUpperCase()):"",a.rwy?("piste "+a.rwy):""]
+    .filter(Boolean).join(" \u00b7 "); };
+  const vtx=(dir,kt)=>(dir||kt)?((dir?dir+"\u00b0":"\u2014")+" / "+(kt?kt+" kt":"\u2014")):"";
+  const ptable=(cle,titre)=>{ const L=d[cle]||[]; if(L.length<2) return null; const fin=L.length-1;
+    return h("section",{className:"fvp-ch fvp-br"},h("h2",null,titre),
+      h("table",{className:"fvp-t"},
+        h("thead",null,h("tr",null,...["Branche","Rm","Distance","Altitude","Vent","D\u00e9part pr\u00e9vu","D\u00e9part r\u00e9el"]
+          .map(x=>h("th",{key:x},x)))),
+        h("tbody",null,
+          ...L.slice(0,-1).map((l,i)=>h("tr",{key:cle+i},
+            h("td",null,(l.position||"?")+" \u2192 "+((L[i+1]||{}).position||"?")),
+            h("td",null,l.rm?l.rm+"\u00b0":"\u2014"),
+            h("td",null,l.dist?l.dist+" NM":"\u2014"),
+            h("td",null,l.altVol?l.altVol+" ft":"\u2014"),
+            h("td",null,tx([l.wDir,l.wKt].filter(x=>x!=null&&x!=="").join("/"))),
+            h("td",null,tx(l.hEst)),h("td",null,tx(l.hReel)))),
+          h("tr",{key:cle+"fin",className:"fvp-arr"},
+            h("td",{colSpan:5},"Arriv\u00e9e \u00b7 "+(L[fin].position||"?")),
+            h("td",null,tx(L[fin].hEst)),h("td",null,tx(L[fin].hReel)))))); };
+  const riche=(lab,html)=>html?h("div",{className:"fvp-i fvp-l"},h("span",null,lab),
+    h("div",{className:"fvp-x",dangerouslySetInnerHTML:{__html:html}})):null;
+  const resume=()=>h("div",{className:"fv-pr","aria-hidden":"true"},
+    h("div",{className:"fvp-hd"},
+      h("div",{className:"fvp-mq"},"LOGNAVAK \u00b7 R\u00e9sum\u00e9 de vol"),
+      h("h1",null,jour?("Vol du "+jour):"Vol enregistr\u00e9"),
+      h("div",{className:"fvp-nom"},tx(d.name))),
+    pch("Le vol",h("div",{className:"fvp-g"},
+      it("Date",jour),
+      it("Avion",[M.immat,M.modele].filter(Boolean).join(" \u00b7 ")),
+      it("Commandant de bord",M.commandant,"fvp-d"))),
+    pch("Horaires",h("div",{className:"fvp-g"},
+      it("D\u00e9part",hhmm(F.t0)),it("Arriv\u00e9e",hhmm(F.tEnd)),
+      it("Dur\u00e9e de vol",duree(F.t0,F.tEnd)),it("Temps horam\u00e8tre",hmDuree()),
+      it("Horam\u00e8tre d\u00e9part",F.hmStart),it("Horam\u00e8tre arriv\u00e9e",F.hmEnd))),
+    pch("Conditions",h("div",{className:"fvp-g"},
+      it("Vent",vtx(M.ventDir,M.ventKt)),it("QNH",F.qnh),
+      it("ATIS d\u00e9part",atx("atis")),it("ATIS arriv\u00e9e",atx("atisA")))),
+    pch("Carburant",h("div",{className:"fvp-g"},
+      it("Carburant au d\u00e9part",(F.fuel||{}).total?((F.fuel||{}).total+" L"):""),
+      it("Pitot",F.pitot?"V\u00e9rifi\u00e9":"Non coch\u00e9"))),
+    ptable("aller",d.type==="ar"?"Branches \u2014 aller":"Branches"),
+    d.type==="ar"?ptable("retour","Branches \u2014 retour"):null,
+    pch("Notes",h("div",{className:"fvp-g"},
+      h("div",{className:"fvp-i fvp-l"},h("span",null,"Notes du vol"),h("p",{className:"fvp-x"},tx(F.notesVol))),
+      it("D\u00e9gagements",(M.degag||[]).join(" "),"fvp-l"),
+      riche("Note, d\u00e9gagement, TEM\u2026 (log papier)",M.notesP4),
+      riche("M\u00e9t\u00e9o (log papier)",M.meteoP4))),
+    h("div",{className:"fvp-pied"},"LOGNAVAK \u2014 r\u00e9sum\u00e9 de vol",h("span",{className:"fvp-tire"})));
+  const portail=el=>{ try{ return ReactDOM.createPortal(el,document.body); }catch(e){ return null; } };
   const jour=(()=>{ const t=F.t0||F.tEnd; if(t){ const x=new Date(t);
       return pad(x.getDate())+"/"+pad(x.getMonth()+1)+"/"+x.getFullYear(); }
     if(M.date){ const q=M.date.split("-"); return q[2]+"/"+q[1]+"/"+q[0]; } return ""; })();
-  return h("div",{className:"fv-ov",role:"dialog","aria-modal":"true","aria-label":"D\u00e9tail du vol"},
+  return h(React.Fragment,null,portail(resume()),
+  h("div",{className:"fv-ov",role:"dialog","aria-modal":"true","aria-label":"D\u00e9tail du vol"},
     h("div",{className:"fv-win"},
       h("div",{className:"fv-hd"},
         h("div",{className:"fv-ti"},h("b",null,jour?("Vol du "+jour):"Vol enregistr\u00e9"),
           h("i",null,d.name||"\u2014")),
         h("button",{type:"button",className:"fv-ok"+(sale?" on":""),disabled:!sale,onClick:enregistre,
           title:"Enregistrer les corrections de ce vol"},"Enregistrer"),
+        h("button",{type:"button",className:"fv-imp",onClick:imprime,"aria-label":"Imprimer le r\u00e9sum\u00e9 du vol",
+          title:"Imprimer le r\u00e9sum\u00e9 du vol, tel qu\u2019il est affich\u00e9 (A4 portrait)"},
+          h(Ic,{name:"printer",size:18,sw:2})),
         h("button",{type:"button",className:"fv-x",onClick:ferme,"aria-label":"Fermer",
           title:"Fermer \u2014 les modifications non enregistr\u00e9es seront abandonn\u00e9es"},"\u00d7")),
       h("div",{className:"fv-co"},
@@ -12745,7 +12873,7 @@ function FenetreVol({nav,onClose,onSave}){
             champ("Vent (\u00b0)",M.ventDir,v=>maj(n=>{ n.meta.ventDir=v; }),{num:1}),
             champ("Vent (kt)",M.ventKt,v=>maj(n=>{ n.meta.ventKt=v; }),{num:1}),
             champ("QNH",F.qnh,v=>maj(n=>{ n.flight.qnh=v; }),{num:1}),
-            lecture("",""),
+            h("div",{"aria-hidden":"true"}),
             champ("ATIS d\u00e9part \u2014 lettre",at("atis").let,v=>poseAtis("atis","let",String(v).toUpperCase().slice(0,1))),
             champ("Piste au d\u00e9part",at("atis").rwy,v=>poseAtis("atis","rwy",v)),
             champ("ATIS arriv\u00e9e \u2014 lettre",at("atisA").let,v=>poseAtis("atisA","let",String(v).toUpperCase().slice(0,1))),
@@ -12767,7 +12895,7 @@ function FenetreVol({nav,onClose,onSave}){
           h(FvRiche,{init:M.notesP4,lab:"Note, d\u00e9gagement, TEM\u2026 (log papier)",
             onChange:v=>maj(n=>{ n.meta.notesP4=v; })}),
           h(FvRiche,{init:M.meteoP4,lab:"M\u00e9t\u00e9o (log papier)",
-            onChange:v=>maj(n=>{ n.meta.meteoP4=v; })})))));
+            onChange:v=>maj(n=>{ n.meta.meteoP4=v; })}))))));
 }
 /* le texte riche des notes du log : la zone garde son propre contenu — on
    ne le lui reecrit qu'a l'ouverture. Defini HORS de la fenetre : recree a
