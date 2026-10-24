@@ -1899,6 +1899,14 @@ html.mp-flying .nc-end .nm{text-decoration:underline;text-decoration-style:dotte
   background:#fff;border:1px solid #C9D3E1;border-radius:8px;padding:8px 9px;min-width:0;
   width:100%;box-sizing:border-box;-webkit-appearance:none;appearance:none}
 .fv-f textarea{resize:vertical}
+/* v.722 : TOUTES LES CASES A LA MEME HAUTEUR. Safari iOS ecrase un champ
+   date ou heure VIDE (sa hauteur tombe a celle du cadre seul) et centre
+   la valeur d'un champ rempli : la fenetre montrait des cases etroites
+   au milieu des autres. Une hauteur fixe pour toute case d'une ligne, et
+   la valeur calee a gauche comme partout ailleurs. */
+.fv-f input,.fv-ph-t{height:42px;line-height:24px;display:block}
+.fv-f input::-webkit-date-and-time-value{text-align:left;margin:0;min-height:24px}
+.fv-f input::-webkit-datetime-edit{padding:0}
 .fv-rich{min-height:64px;outline:none}
 .fv-f input:focus,.fv-f textarea:focus,.fv-rich:focus{border-color:#e94560;outline:none}
 .fv-ro{font:700 15px "Poppins",sans-serif;color:#16213E;padding:8px 0}
@@ -1909,6 +1917,14 @@ html.mp-flying .nc-end .nm{text-decoration:underline;text-decoration-style:dotte
   color:#16213E;padding:10px 0 2px}
 .fv-chk input{width:20px;height:20px;accent-color:#e94560;margin:0}
 @media print{.fv-ov{display:none!important}}
+/* v.722 : la fenetre s'ouvre aussi sur ordinateur (« Cards » en
+   consultation). Centree, de largeur lisible, et au-dessus du cadre
+   rouge-rose de la consultation (plan 130). Les bandes du haut, qui
+   doivent passer devant elle, n'existent que sur telephone. */
+@media (min-width:821px){
+  .fv-ov{z-index:135;align-items:center;padding:24px}
+  .fv-win{width:100%;max-width:760px}
+}
 /* ===== LE RESUME DE VOL A L'IMPRESSION (v.719) ======================
    La fenetre ne s'imprime pas telle quelle : des champs de saisie dans un
    panneau fixe qui defile, c'est une page coupee. Elle compose donc a cote
@@ -3957,7 +3973,7 @@ window.__TRACE_MARKUP="\n\n<header>\n  <div class=\"hdr-row1\">\n    <span class
    accessible depuis le bouton ⓘ du bandeau du log, avant toute ouverture de la carte */
 (function(){
   var host=document.createElement('div');
-  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Cartes OACI — origine et mise à jour</b></p>\n    <p style=\"margin-top:-6px\"><b>1/250 000 Région parisienne</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte250\">—</span>.</p>\n    <p style=\"margin-top:-6px\"><b>1/500 000 France</b> — IGN Géoplateforme (SCAN-OACI). Donnée <b>non libre</b>, tenue à jour par l’IGN.</p>\n    <p style=\"margin-top:-6px\"><b>1/1 000 000 France</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte1000\">—</span>.</p>\n    <p>Les deux cartes du SIA sont hébergées à part et lues par plages : seules les tuiles affichées sont téléchargées. Les trois se copient sur l’appareil pour voler sans réseau depuis <b>Profil → Cartes hors-ligne</b>. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.721</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
+  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Cartes OACI — origine et mise à jour</b></p>\n    <p style=\"margin-top:-6px\"><b>1/250 000 Région parisienne</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte250\">—</span>.</p>\n    <p style=\"margin-top:-6px\"><b>1/500 000 France</b> — IGN Géoplateforme (SCAN-OACI). Donnée <b>non libre</b>, tenue à jour par l’IGN.</p>\n    <p style=\"margin-top:-6px\"><b>1/1 000 000 France</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte1000\">—</span>.</p>\n    <p>Les deux cartes du SIA sont hébergées à part et lues par plages : seules les tuiles affichées sont téléchargées. Les trois se copient sur l’appareil pour voler sans réseau depuis <b>Profil → Cartes hors-ligne</b>. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.722</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
   (document.body||document.documentElement).appendChild(host.firstElementChild);
   /* le nom du fichier de la 1/1 000 000 dit son edition : on le lit la ou il
      est vraiment (cartes.json), jamais en dur, sinon il mentirait un jour */
@@ -11482,7 +11498,16 @@ const avant=(review&&review.avant)||{id:app.currentId,hist:hist,y:(window.scroll
 try{reviewSnap.current=JSON.stringify(src);}catch(e){reviewSnap.current=null;}setApp(a=>({...a,currentId:id}));setHist({past:[],future:[]});setDrawer(false);setReview({id:id,dirty:false,avant:avant});try{window.scrollTo(0,0);}catch(e){}};
 /* v.718 : la fenetre ecrit sa copie d'un seul coup, sur le vol relu —
    jamais sur la navigation courante. */
-const enregistrerFen=(id,n)=>{setApp(a=>a.navs[id]?({...a,navs:{...a.navs,[id]:{...n,id:id}}}):a);try{(window.__MESSAGE||function(){})("Vol enregistr\u00e9");}catch(e){}};
+/* v.722 : EN CONSULTATION SUR ORDINATEUR, « CARDS » OUVRE LE RESUME. Les
+   cartes sont un outil de vol ; pour relire un vol fait, c'est la fenetre
+   de detail, comme sur telephone. Le menu de gauche (module des ecrans)
+   passe par ici, la barre d'outils aussi. */
+window.__VOIR_FENETRE=()=>{if(!review)return false;setFenVol(review.id);return true;};
+/* enregistrer depuis la fenetre PENDANT une consultation : le vol tel
+   qu'enregistre devient le nouvel etat de reference — sans quoi fermer la
+   consultation avec « abandonner » defaisait ce que la fenetre venait
+   d'enregistrer. */
+const enregistrerFen=(id,n)=>{if(review&&review.id===id){try{reviewSnap.current=JSON.stringify({...n,id:id});}catch(e){}setReview(r=>r?{...r,dirty:false}:r);}setApp(a=>a.navs[id]?({...a,navs:{...a.navs,[id]:{...n,id:id}}}):a);try{(window.__MESSAGE||function(){})("Vol enregistr\u00e9");}catch(e){}};
 const enregistrerRevue=()=>{if(!review)return;try{reviewSnap.current=JSON.stringify(app.navs[review.id]);}catch(e){}setReview(r=>r?{...r,dirty:false}:r);try{(window.__MESSAGE||function(){})("Modifications enregistr\u00e9es");}catch(e){}};
 const annulerRevue=()=>{if(!review||!reviewSnap.current)return;let o=null;try{o=JSON.parse(reviewSnap.current);}catch(e){return;}const id=review.id;setApp(a=>({...a,navs:{...a.navs,[id]:o}}));setHist({past:[],future:[]});setReview(r=>r?{...r,dirty:false}:r);try{(window.__MESSAGE||function(){})("Vol remis dans son \u00e9tat d\u2019origine");}catch(e){}};
 const quitterRevue=()=>{if(review&&review.dirty){if(!window.confirm("Des modifications n\u2019ont pas \u00e9t\u00e9 enregistr\u00e9es.\n\nQuitter sans les enregistrer ? Le vol sera remis dans l\u2019\u00e9tat o\u00f9 vous l\u2019avez trouv\u00e9."))return;annulerRevue();}
@@ -12089,7 +12114,7 @@ React.createElement("style",null,`
       window.__PRLOG_T=setTimeout(function(){
         try{ document.documentElement.classList.remove('pr-log'); }catch(e){} },60000);
     }catch(e){}
-    const __go=()=>{try{window.print()}catch(e){}};if(window.__CARTE_AVANT_TIRAGE)window.__CARTE_AVANT_TIRAGE(__go);else __go()})},title:"Imprimer ou cr\xE9er le PDF via la bo\xEEte d'impression (A4 paysage). "+"L'en-t\xEAte et le pied de page (adresse, date, heure) appartiennent au "+"navigateur, pas \xE0 l'appli : pour les retirer, d\xE9cochez \xAB En-t\xEAtes et "+"pieds de page \xBB dans la bo\xEEte d'impression.",style:btn(RED)},React.createElement(Ic,{name:"printer"})," Print LOG"),React.createElement("button",{className:"tb-pr tb-save",onClick:()=>guardAction("SAVE",()=>{try{save(app)}catch(e){}}),title:"Enregistrer la navigation dans l'appli",style:btn(BLUE2)},React.createElement(Ic,{name:"download"})," ","SAVE"),React.createElement("button",{className:"tb-ddv",onClick:()=>{try{const arrL=nav.aller||[];const cs=[];const seen=new Set();const add=(pos,role)=>{const c=String(pos||"").trim().toUpperCase();if(c.length===4&&AERO_POS[c]&&!seen.has(c)){seen.add(c);cs.push({code:c,role:role})}};arrL.forEach((l,i)=>add(l.position,i===0?"dep":(i===arrL.length-1?"arr":"mid")));if(nav.type==="ar")(nav.retour||[]).forEach(l=>add(l.position,"mid"));((nav.meta&&nav.meta.degag)||[]).forEach(c=>add(c,"deg"));window.__WX_OPEN&&window.__WX_OPEN({codes:cs,date:nav.meta.date,onglet:"dossier",complet:true})}catch(e){}},title:"Dossier de vol (DDV) : m\xE9t\xE9o, NOTAM et SUP AIP retenus",style:btn(RED)},React.createElement(Ic,{name:"folder"})," ","Print DDV"),React.createElement("button",{className:"tb-mpi tb-cards",onClick:toggleCardPage,style:nav.cardPage&&nav.cardPage.on?{...btn(SLATE)}:{...ghostW},title:"Log de nav en cartes de branche pour le vol : heure de d\xE9part, dur\xE9e, ETA"},React.createElement(Ic,{name:"play"})," ",nav.cardPage&&nav.cardPage.on?"Cards \u2715":"Cards"),React.createElement("button",{className:"tb-info tb-sync",title:"Synchroniser maintenant : envoie les modifications locales puis r\xE9cup\xE8re celles des autres appareils \u2014 sans red\xE9marrer l'appli",
+    const __go=()=>{try{window.print()}catch(e){}};if(window.__CARTE_AVANT_TIRAGE)window.__CARTE_AVANT_TIRAGE(__go);else __go()})},title:"Imprimer ou cr\xE9er le PDF via la bo\xEEte d'impression (A4 paysage). "+"L'en-t\xEAte et le pied de page (adresse, date, heure) appartiennent au "+"navigateur, pas \xE0 l'appli : pour les retirer, d\xE9cochez \xAB En-t\xEAtes et "+"pieds de page \xBB dans la bo\xEEte d'impression.",style:btn(RED)},React.createElement(Ic,{name:"printer"})," Print LOG"),React.createElement("button",{className:"tb-pr tb-save",onClick:()=>guardAction("SAVE",()=>{try{save(app)}catch(e){}}),title:"Enregistrer la navigation dans l'appli",style:btn(BLUE2)},React.createElement(Ic,{name:"download"})," ","SAVE"),React.createElement("button",{className:"tb-ddv",onClick:()=>{try{const arrL=nav.aller||[];const cs=[];const seen=new Set();const add=(pos,role)=>{const c=String(pos||"").trim().toUpperCase();if(c.length===4&&AERO_POS[c]&&!seen.has(c)){seen.add(c);cs.push({code:c,role:role})}};arrL.forEach((l,i)=>add(l.position,i===0?"dep":(i===arrL.length-1?"arr":"mid")));if(nav.type==="ar")(nav.retour||[]).forEach(l=>add(l.position,"mid"));((nav.meta&&nav.meta.degag)||[]).forEach(c=>add(c,"deg"));window.__WX_OPEN&&window.__WX_OPEN({codes:cs,date:nav.meta.date,onglet:"dossier",complet:true})}catch(e){}},title:"Dossier de vol (DDV) : m\xE9t\xE9o, NOTAM et SUP AIP retenus",style:btn(RED)},React.createElement(Ic,{name:"folder"})," ","Print DDV"),React.createElement("button",{className:"tb-mpi tb-cards",onClick:()=>{if(review){setFenVol(review.id);return;}toggleCardPage();},style:nav.cardPage&&nav.cardPage.on?{...btn(SLATE)}:{...ghostW},title:"Log de nav en cartes de branche pour le vol : heure de d\xE9part, dur\xE9e, ETA"},React.createElement(Ic,{name:"play"})," ",nav.cardPage&&nav.cardPage.on?"Cards \u2715":"Cards"),React.createElement("button",{className:"tb-info tb-sync",title:"Synchroniser maintenant : envoie les modifications locales puis r\xE9cup\xE8re celles des autres appareils \u2014 sans red\xE9marrer l'appli",
   onClick:async e=>{const el=e.currentTarget;if(el.classList.contains("spin"))return;el.classList.add("spin");
     const say=t=>{try{const d=document.createElement("div");d.textContent=t;d.style.cssText="position:fixed;left:50%;top:64px;transform:translateX(-50%);z-index:100001;background:#0f172a;color:#fff;border-radius:18px;padding:8px 16px;font:700 12.5px Poppins,ui-sans-serif;box-shadow:0 6px 20px rgba(0,0,0,.4)";document.body.appendChild(d);setTimeout(()=>{try{d.remove()}catch(_){}},2200);}catch(_){}};
     try{const r=window.__SYNC_NOW?await window.__SYNC_NOW():"nosb";
@@ -15257,6 +15282,9 @@ window.__CARTE_ADR=function(j,cle){
         var etaitOuvert=fermeMeteo();
         if(act==='meteo'){ if(!etaitOuvert){
           var w=document.querySelector('.wx-badge'); if(w) w.click(); } return; }
+        /* v.722 : en consultation, « Cards » ouvre le resume du vol */
+        if(t.getAttribute('data-k')==='cards'&&document.documentElement.classList.contains('mp-review')
+          &&window.__VOIR_FENETRE&&window.__VOIR_FENETRE()) return;
         var i=parseInt(t.getAttribute('data-i'),10);
         if(!isNaN(i)) versSection(i);
       });
