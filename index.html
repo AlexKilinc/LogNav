@@ -1858,6 +1858,169 @@ html.mp-flying .nc-end .nm{text-decoration:underline;text-decoration-style:dotte
 .rvring.chg{box-shadow:inset 0 0 0 1px rgba(255,138,163,.7),
             inset 0 0 18px rgba(233,69,96,.68),
             inset 0 0 50px rgba(233,69,96,.34)}
+/* ===== LA FENETRE « VOIR » DU TELEPHONE (v.718) =====================
+   Fond blanc, texte bleu nuit, chapitres separes d'un trait rouge-rose.
+   L'ARRIERE-PLAN EST UN APLAT OPAQUE du navy de la bande du haut : ni
+   transparence, ni flou d'arriere-plan, ni animation. C'est la condition
+   que la v.691 avait identifiee pour qu'iOS 26 ne floute pas le bord du
+   haut — et la fenetre ne change pas d'ecran, ne pose ni bandeau ni cadre
+   fixes : aucun des mecanismes qui ont fait naitre le flou. */
+.fv-ov{position:fixed;inset:0;z-index:125;background:#0E2348;
+  display:flex;flex-direction:column;box-sizing:border-box;
+  padding:calc(env(safe-area-inset-top,0px) + 8px) 8px calc(env(safe-area-inset-bottom,0px) + 8px)}
+.fv-win{position:relative;flex:1 1 auto;min-height:0;background:#fff;color:#16213E;border-radius:14px;
+  display:flex;flex-direction:column;overflow:hidden;box-shadow:0 10px 30px rgba(0,0,0,.35)}
+.fv-hd{flex:none;display:flex;align-items:center;gap:8px;padding:12px 12px 10px;
+  border-bottom:2px solid #e94560;background:#fff}
+.fv-ti{flex:1;min-width:0}
+.fv-ti b{display:block;font:800 15px "Poppins",sans-serif;color:#16213E;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fv-ti i{display:block;font:600 11.5px "Poppins",sans-serif;font-style:normal;color:#5A6B85;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fv-ok{flex:none;border:1px solid #D7DEE8;background:#EEF2F7;color:#9AA8BA;border-radius:10px;
+  padding:8px 12px;font:800 13px "Poppins",sans-serif;cursor:default;
+  -webkit-appearance:none;appearance:none}
+.fv-ok.on{background:#e94560;border-color:#e94560;color:#fff;cursor:pointer;
+  box-shadow:0 2px 10px rgba(233,69,96,.35)}
+.fv-x{flex:none;width:36px;height:36px;border:1px solid #C3CEDD;background:#F3F6FA;color:#16213E;
+  border-radius:10px;font:700 18px/1 ui-sans-serif;cursor:pointer;-webkit-appearance:none;appearance:none}
+.fv-co{flex:1 1 auto;min-height:0;overflow:auto;-webkit-overflow-scrolling:touch;
+  overscroll-behavior:contain;padding:2px 14px 22px}
+.fv-ch{border-top:2px solid #e94560;padding:12px 0 6px;margin-top:12px}
+.fv-ch:first-child{border-top:0;margin-top:0}
+.fv-ch h3{margin:0 0 9px;font:800 11.5px "Poppins",sans-serif;letter-spacing:.08em;
+  text-transform:uppercase;color:#16213E}
+.fv-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px 10px}
+.fv-f{display:flex;flex-direction:column;gap:3px;min-width:0;margin-bottom:2px}
+.fv-f.fv-l{grid-column:1/-1}
+.fv-f>span{font:700 11px "Poppins",sans-serif;color:#5A6B85;min-height:14px}
+/* 16 px : en dessous, iOS zoome sur le champ touche */
+.fv-f input,.fv-f textarea,.fv-rich{font:600 16px "Poppins",sans-serif;color:#16213E;
+  background:#fff;border:1px solid #C9D3E1;border-radius:8px;padding:8px 9px;min-width:0;
+  width:100%;box-sizing:border-box;-webkit-appearance:none;appearance:none}
+.fv-f textarea{resize:vertical}
+.fv-rich{min-height:64px;outline:none}
+.fv-f input:focus,.fv-f textarea:focus,.fv-rich:focus{border-color:#e94560;outline:none}
+.fv-ro{font:700 15px "Poppins",sans-serif;color:#16213E;padding:8px 0}
+.fv-br{padding:8px 0 12px;border-bottom:1px solid #EEF1F6}
+.fv-br:last-child{border-bottom:0}
+.fv-brt{font:800 14px "Poppins",sans-serif;color:#16213E;margin-bottom:7px}
+.fv-chk{display:flex;align-items:center;gap:10px;font:700 14px "Poppins",sans-serif;
+  color:#16213E;padding:10px 0 2px}
+.fv-chk input{width:20px;height:20px;accent-color:#e94560;margin:0}
+@media print{.fv-ov{display:none!important}}
+/* ===== LE RESUME DE VOL A L'IMPRESSION (v.719) ======================
+   La fenetre ne s'imprime pas telle quelle : des champs de saisie dans un
+   panneau fixe qui defile, c'est une page coupee. Elle compose donc a cote
+   d'elle un RESUME — texte nu, chapitres separes du meme trait
+   rouge-rose — porte directement par <body> (portail), invisible a
+   l'ecran. Le bouton pose « pr-fv » sur <html> le temps du tirage : tout
+   le reste du document est alors masque, et la page passe en A4 portrait.
+   Ces regles ne vivent que sous @media print : rien ne change a l'ecran,
+   ni le bord du haut (aucun element fixe, aucune transparence). */
+.fv-imp{flex:none;width:36px;height:36px;border:1px solid #C3CEDD;background:#F3F6FA;color:#16213E;
+  border-radius:10px;display:inline-flex;align-items:center;justify-content:center;padding:0;
+  cursor:pointer;-webkit-appearance:none;appearance:none}
+.fv-pr{display:none}
+.fv-pr{color:#16213E;font-family:"Poppins",system-ui,sans-serif;background:#fff;
+  -webkit-print-color-adjust:exact;print-color-adjust:exact}
+.fvp-hd{border-bottom:2.5px solid #e94560;padding-bottom:7px}
+.fvp-mq{font:700 8.5pt "Poppins",sans-serif;letter-spacing:.12em;text-transform:uppercase;color:#e94560}
+.fvp-hd h1{margin:2px 0 0;font:800 18pt/1.15 "Poppins",sans-serif;color:#16213E}
+.fvp-nom{font:600 11pt "Poppins",sans-serif;color:#3B4A63}
+.fvp-ch{border-top:1.5px solid #e94560;padding:7px 0 3px;margin-top:9px;
+  break-inside:avoid;page-break-inside:avoid}
+.fvp-hd+.fvp-ch{border-top:0;margin-top:3px}
+.fvp-ch.fvp-br{break-inside:auto;page-break-inside:auto}
+.fvp-ch h2{margin:0 0 5px;font:800 8.5pt "Poppins",sans-serif;letter-spacing:.1em;
+  text-transform:uppercase;color:#16213E}
+/* v.720 : un titre ne reste pas seul en bas de page — la note manuscrite
+   le laissait au pied de la premiere, ses pages sur la suivante */
+.fvp-ch h2{break-after:avoid;page-break-after:avoid}
+.fvp-g{display:grid;grid-template-columns:repeat(4,1fr);gap:6px 12px}
+.fvp-i{min-width:0}
+.fvp-i>span{display:block;font:600 7.5pt "Poppins",sans-serif;color:#5A6B85}
+.fvp-i>b{display:block;font:700 10.5pt "Poppins",sans-serif;color:#16213E;overflow-wrap:anywhere}
+.fvp-d{grid-column:span 2}
+.fvp-l{grid-column:1/-1}
+.fvp-t{width:100%;border-collapse:collapse;font:600 9.5pt "Poppins",sans-serif}
+.fvp-t th{font:700 7.5pt "Poppins",sans-serif;color:#5A6B85;text-align:left;
+  border-bottom:1.5px solid #e94560;padding:3px 5px}
+.fvp-t td{padding:4px 5px;border-bottom:1px solid #E3E8F0;color:#16213E}
+.fvp-t tr{break-inside:avoid;page-break-inside:avoid}
+.fvp-t .fvp-arr td{font-weight:800}
+.fvp-x{margin:0;font:500 10pt/1.45 "Poppins",sans-serif;color:#16213E;white-space:pre-wrap;
+  overflow-wrap:anywhere}
+.fvp-pied{margin-top:12px;border-top:1px solid #E3E8F0;padding-top:5px;
+  font:600 7.5pt "Poppins",sans-serif;color:#8A97AB}
+@media print{
+  html.pr-fv,html.pr-fv body{background:#fff!important;height:auto!important;min-height:0!important;
+    overflow:visible!important;margin:0!important;padding:0!important;zoom:1!important}
+  html.pr-fv::before,html.pr-fv body::before{display:none!important;content:none!important}
+  html.pr-fv body>*:not(.fv-pr){display:none!important}
+  html.pr-fv body>.fv-pr{display:block!important}
+}
+/* ===== NOTE MANUSCRITE ET PHOTOS DANS LA FENETRE (v.720) ============
+   La note s'ecrit dans un editeur qui prend TOUT le corps de la fenetre :
+   une zone d'ecriture capte le doigt (touch-action:none), posee au milieu
+   d'une page qui defile elle empecherait de la faire defiler. Plein
+   cadre, elle a aussi a peu pres les proportions de l'ecran « Note », ou
+   la note a ete ecrite.
+   Les photos : vignette, legende, retrait. Toucher la vignette l'agrandit
+   dans la fenetre meme — un aplat opaque, pas un calque transparent. */
+.fv-btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;margin-top:10px;
+  border:1.5px solid #16213E;background:#fff;color:#16213E;border-radius:10px;padding:9px 14px;
+  font:800 13px "Poppins",sans-serif;cursor:pointer;-webkit-appearance:none;appearance:none}
+.fv-btn-p{margin-top:0;background:#e94560;border-color:#e94560;color:#fff}
+.fv-vide{font:600 13px "Poppins",sans-serif;color:#8A97AB;padding:4px 0}
+.fv-np-l{display:flex;gap:8px;overflow-x:auto;padding-bottom:2px}
+.fv-np{position:relative;flex:none;width:30%;border:1px solid #C9D3E1;border-radius:8px;
+  overflow:hidden;background:#fff;cursor:pointer}
+.fv-np i{position:absolute;right:5px;bottom:3px;font:700 10px "Poppins",sans-serif;
+  font-style:normal;color:#94a3b8}
+.fv-ph-l{display:flex;flex-direction:column;gap:8px}
+.fv-ph{display:flex;align-items:center;gap:10px}
+.fv-ph-v{flex:none;width:72px;height:72px;border:1px solid #C9D3E1;border-radius:8px;overflow:hidden;
+  padding:0;background:#F3F6FA;cursor:pointer;display:flex;align-items:center;justify-content:center;
+  font:600 11px "Poppins",sans-serif;color:#8A97AB;-webkit-appearance:none;appearance:none}
+.fv-ph-v img{display:block;width:100%;height:100%;object-fit:cover}
+.fv-ph-t{flex:1 1 auto;min-width:0;font:600 16px "Poppins",sans-serif;color:#16213E;background:#fff;
+  border:1px solid #C9D3E1;border-radius:8px;padding:8px 9px;box-sizing:border-box;
+  -webkit-appearance:none;appearance:none}
+.fv-ph-t:focus{border-color:#e94560;outline:none}
+.fv-ph-x{flex:none;width:36px;height:36px;border:1px solid #f0c2c2;background:#fff;color:#b91c1c;
+  border-radius:10px;font:700 18px/1 ui-sans-serif;cursor:pointer;-webkit-appearance:none;appearance:none}
+.fv-ed{flex:1 1 auto;min-height:0;display:flex;flex-direction:column}
+.fv-edh{flex:none;display:flex;align-items:center;gap:8px;padding:8px 12px;border-bottom:1px solid #EEF1F6}
+.fv-edh b{flex:1;min-width:0;font:800 11.5px "Poppins",sans-serif;letter-spacing:.08em;
+  text-transform:uppercase;color:#16213E}
+.fv-edz{flex:1 1 auto;min-height:0;display:flex;flex-direction:column}
+/* LES PROPORTIONS DE LA FEUILLE. La note est rangee en coordonnees de 0 a
+   1 : ecrite dans une zone plus trapue que l'ecran « Note », elle s'y
+   relirait etiree. La zone prend donc la hauteur disponible et la largeur
+   qui en decoule ; les filets pointilles en marquent les bords. */
+.fv-edz .npad-zone{align-self:center;aspect-ratio:var(--fvr,auto);max-width:100%;
+  border-left:1px dashed #C9D3E1;border-right:1px dashed #C9D3E1;box-sizing:border-box}
+.fv-pv{position:absolute;inset:0;z-index:3;background:#0E2348;display:flex;flex-direction:column;
+  border-radius:14px;overflow:hidden}
+.fv-pvh{flex:none;display:flex;align-items:center;gap:8px;padding:10px 12px;border-bottom:2px solid #e94560}
+.fv-pvh b{flex:1;min-width:0;color:#fff;font:800 14px "Poppins",sans-serif;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fv-pvc{flex:1 1 auto;min-height:0;display:flex;align-items:center;justify-content:center;
+  padding:10px;color:#cbd5e1;font:600 13px "Poppins",sans-serif;text-align:center}
+.fv-pvc img{max-width:100%;max-height:100%;object-fit:contain;border-radius:6px}
+/* au resume imprime : les pages de note en vignettes, trois par rang ;
+   les photos deux par rang, jamais coupees */
+.fvp-np-l{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.fvp-np{break-inside:avoid;page-break-inside:avoid}
+.fvp-npc{border:1px solid #C9D3E1;border-radius:4px;overflow:hidden;background:#fff}
+.fvp-np span{display:block;font:600 7.5pt "Poppins",sans-serif;color:#5A6B85;margin-top:2px}
+.fvp-ph-l{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.fvp-ph{margin:0;break-inside:avoid;page-break-inside:avoid}
+.fvp-ph img{display:block;width:100%;max-height:95mm;object-fit:contain;border-radius:4px}
+.fvp-ph figcaption{font:600 8.5pt "Poppins",sans-serif;color:#3B4A63;margin-top:3px}
+.fvp-ph-abs{border:1px dashed #C9D3E1;padding:18px 8px;text-align:center;
+  font:600 8pt "Poppins",sans-serif;color:#8A97AB}
 /* EN CONSULTATION, CE QUI MENE A L'EDITEUR. Un pointille bleu ciel, et
    le mot « Corriger » en haut a droite du bloc : discret sur la feuille,
    mais sans ambiguite. Rien de tout cela ne s'imprime. */
@@ -3794,7 +3957,7 @@ window.__TRACE_MARKUP="\n\n<header>\n  <div class=\"hdr-row1\">\n    <span class
    accessible depuis le bouton ⓘ du bandeau du log, avant toute ouverture de la carte */
 (function(){
   var host=document.createElement('div');
-  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Cartes OACI — origine et mise à jour</b></p>\n    <p style=\"margin-top:-6px\"><b>1/250 000 Région parisienne</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte250\">—</span>.</p>\n    <p style=\"margin-top:-6px\"><b>1/500 000 France</b> — IGN Géoplateforme (SCAN-OACI). Donnée <b>non libre</b>, tenue à jour par l’IGN.</p>\n    <p style=\"margin-top:-6px\"><b>1/1 000 000 France</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte1000\">—</span>.</p>\n    <p>Les deux cartes du SIA sont hébergées à part et lues par plages : seules les tuiles affichées sont téléchargées. Les trois se copient sur l’appareil pour voler sans réseau depuis <b>Profil → Cartes hors-ligne</b>. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.717</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
+  host.innerHTML="<div class=\"info-modal\" id=\"infoModal\" hidden>\n  <div class=\"info-box\">\n    <button class=\"close\" id=\"infoClose\" title=\"Fermer\">×</button>\n    <h3>Informations &amp; mentions légales</h3>\n    <p><b>Appli — non officielle, non validée DGAC.</b> Aérodromes, VOR/NDB et espaces aériens : données officielles SIA (XML-SIA, AIRAC), non certifiées navigation. Clic droit / double-clic = pile des espaces. Route vraie sur loxodromie ; cap magnétique = Rv − déclinaison.</p>\n    <p><b>Cartes OACI — origine et mise à jour</b></p>\n    <p style=\"margin-top:-6px\"><b>1/250 000 Région parisienne</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte250\">—</span>.</p>\n    <p style=\"margin-top:-6px\"><b>1/500 000 France</b> — IGN Géoplateforme (SCAN-OACI). Donnée <b>non libre</b>, tenue à jour par l’IGN.</p>\n    <p style=\"margin-top:-6px\"><b>1/1 000 000 France</b> — SIA, Licence Ouverte, fichier PMTiles créé à partir du PDF IGN-SIA et renouvelé à chaque édition semestrielle du SIA. Dernière version : <span id=\"infoCarte1000\">—</span>.</p>\n    <p>Les deux cartes du SIA sont hébergées à part et lues par plages : seules les tuiles affichées sont téléchargées. Les trois se copient sur l’appareil pour voler sans réseau depuis <b>Profil → Cartes hors-ligne</b>. Vérifiez toute information sur la source officielle (SIA / SOFIA-Briefing) avant vol.</p>\n    <p>Une préparation minutieuse de vos navigations, mise à jour de vos cartes… comme appris durant votre PPL, est nécessaire avant tout vol.</p>\n    <p style=\"color:#8a8f98;font-size:11px;margin-bottom:4px\">Version appli : 2026-07-22.721</p>\n    <p class=\"flysafe\">Fly Safe ✈</p>\n  </div>\n</div>";
   (document.body||document.documentElement).appendChild(host.firstElementChild);
   /* le nom du fichier de la 1/1 000 000 dit son edition : on le lit la ou il
      est vraiment (cartes.json), jamais en dur, sinon il mentirait un jour */
@@ -11124,6 +11287,11 @@ const[modal,setModal]=useState(null);const[draft,setDraft]=useState({});const[dr
    un tableau = on coche. Il ne va pas dans app : c'est un geste en
    cours, pas un reglage a garder. */
 const[selNav,setSelNav]=useState(null);
+/* v.718 : la fenetre « Voir » du telephone — l'identifiant du vol
+   relu, ou null. Elle ne touche ni a la navigation courante ni au
+   mode consultation. */
+const[fenVol,setFenVol]=useState(null);
+
 const basculeSel=(id)=>setSelNav(l=>{ if(!l) return l;
   return l.indexOf(id)<0 ? l.concat([id]) : l.filter(x=>x!==id); });
 const[gpxMenu,setGpxMenu]=useState(false);const[mMore,setMMore]=useState(false);const gpxFileRef=React.useRef(null);const[sec,setSec]=useState({compte:true,courante:true,carbu:true,ouvrir:true});const[login,setLogin]=useState({email:"",pwd:"",err:""});const[showPwd,setShowPwd]=useState(false);/* Aucune identite en dur : index.html est servi publiquement, tout ce qui y
@@ -11295,18 +11463,46 @@ const inserBouge=(b,i,d)=>{movePoint(b,i,d);setInserDirty(true)};const changeTyp
 /* « Voir » : le vol s'ouvre tel qu'il a ete vole, et l'on prend une
    photo de la navigation AVANT d'y toucher — c'est elle que rend
    « Annuler ». */
-const voirNav=id=>{const src=app.navs[id];if(!src)return;try{reviewSnap.current=JSON.stringify(src);}catch(e){reviewSnap.current=null;}setApp(a=>({...a,currentId:id}));setHist({past:[],future:[]});setDrawer(false);setReview({id:id,dirty:false});try{window.scrollTo(0,0);}catch(e){}};
+const voirNav=id=>{const src=app.navs[id];if(!src)return;/* v.718 : SUR TELEPHONE, UNE FENETRE. Les cartes de navigation sont un
+   outil de vol, pas de relecture : « Voir » n'y mene plus. Et la
+   fenetre evite tout ce qui a fait naitre le flou du haut — pas de
+   bandeau ni de cadre fixes, pas de changement d'ecran. Un telephone
+   couche compte aussi : il est etroit en hauteur, et tactile. */
+let tel=false;try{tel=window.matchMedia("(max-width:820px)").matches||window.matchMedia("(pointer:coarse) and (max-height:520px)").matches;}catch(e){}
+if(tel){setDrawer(false);setFenVol(id);return;}
+/* v.721 : D'OU L'ON VIENT. La consultation fait du vol relu la navigation
+   courante — c'est ce qui permet de le corriger sur le log papier. Mais le
+   pilote preparait peut-etre une autre navigation : on retient laquelle,
+   son historique d'annulation et l'endroit de la page ou il etait, et la
+   croix l'y ramene. Passer d'un vieux vol a un autre sans fermer garde le
+   point de depart d'origine ; une modification en suspens sur le premier
+   est d'abord proposee a l'abandon, comme a la croix. */
+if(review&&review.dirty){if(!window.confirm("Des modifications n\u2019ont pas \u00e9t\u00e9 enregistr\u00e9es.\n\nOuvrir un autre vol sans les enregistrer ? Le vol sera remis dans l\u2019\u00e9tat o\u00f9 vous l\u2019avez trouv\u00e9."))return;annulerRevue();}
+const avant=(review&&review.avant)||{id:app.currentId,hist:hist,y:(window.scrollY||0)};
+try{reviewSnap.current=JSON.stringify(src);}catch(e){reviewSnap.current=null;}setApp(a=>({...a,currentId:id}));setHist({past:[],future:[]});setDrawer(false);setReview({id:id,dirty:false,avant:avant});try{window.scrollTo(0,0);}catch(e){}};
+/* v.718 : la fenetre ecrit sa copie d'un seul coup, sur le vol relu —
+   jamais sur la navigation courante. */
+const enregistrerFen=(id,n)=>{setApp(a=>a.navs[id]?({...a,navs:{...a.navs,[id]:{...n,id:id}}}):a);try{(window.__MESSAGE||function(){})("Vol enregistr\u00e9");}catch(e){}};
 const enregistrerRevue=()=>{if(!review)return;try{reviewSnap.current=JSON.stringify(app.navs[review.id]);}catch(e){}setReview(r=>r?{...r,dirty:false}:r);try{(window.__MESSAGE||function(){})("Modifications enregistr\u00e9es");}catch(e){}};
 const annulerRevue=()=>{if(!review||!reviewSnap.current)return;let o=null;try{o=JSON.parse(reviewSnap.current);}catch(e){return;}const id=review.id;setApp(a=>({...a,navs:{...a.navs,[id]:o}}));setHist({past:[],future:[]});setReview(r=>r?{...r,dirty:false}:r);try{(window.__MESSAGE||function(){})("Vol remis dans son \u00e9tat d\u2019origine");}catch(e){}};
-const quitterRevue=()=>{if(review&&review.dirty){if(!window.confirm("Des modifications n\u2019ont pas \u00e9t\u00e9 enregistr\u00e9es.\n\nQuitter sans les enregistrer ? Le vol sera remis dans l\u2019\u00e9tat o\u00f9 vous l\u2019avez trouv\u00e9."))return;annulerRevue();}setReview(null);reviewSnap.current=null;};
+const quitterRevue=()=>{if(review&&review.dirty){if(!window.confirm("Des modifications n\u2019ont pas \u00e9t\u00e9 enregistr\u00e9es.\n\nQuitter sans les enregistrer ? Le vol sera remis dans l\u2019\u00e9tat o\u00f9 vous l\u2019avez trouv\u00e9."))return;annulerRevue();}
+/* v.721 : retour a la navigation qu'on preparait, avec son historique
+   d'annulation, a l'endroit de la page ou l'on etait. Si l'on relisait
+   la navigation courante elle-meme, son historique repart de la : les
+   corrections de la consultation sont dedans. */
+const av=review&&review.avant;setReview(null);reviewSnap.current=null;
+if(av&&av.id){setApp(a=>a.navs[av.id]?({...a,currentId:av.id}):a);if(av.id!==review.id)setHist(av.hist||{past:[],future:[]});setTimeout(()=>{try{window.scrollTo(0,av.y||0);}catch(e){}},90);}};
 const flownAt=n=>{const f=n&&n.flight||{};if(f.t0)return f.t0;/* v.695 : un vol TERMINE est un vol vole. Sans cette ligne, un vol arrete par le bouton rouge (t0 remis a zero, aucune heure reelle saisie) ne portait aucune date dans la liste ni dans le bandeau de consultation. */if(f.tEnd)return f.tEnd;const any=arr=>(arr||[]).some(l=>String(l&&l.hReel||"").trim()!=="");return(any(n&&n.aller)||any(n&&n.retour))?(n&&n.createdAt||0):0};const blankLegs=arr=>(arr||[]).map(l=>({...l,hReel:"",hEst:"",wDir:"",wKt:""}));/* r\xE9utiliser : on garde la pr\xE9paration (route, altitudes, radio, notes) et on
-   efface tout ce qui appartient au vol pr\xE9c\xE9dent (heures r\xE9elles, ATIS, carburant) */const reuseNav=id=>{const src=app.navs[id||app.currentId];if(!src)return;const n={...src,id:uid(),createdAt:Date.now(),meta:{...src.meta,date:"",ventDir:"",ventKt:""},aller:blankLegs(src.aller),retour:blankLegs(src.retour),flight:{}};setApp(a=>({...a,navs:{...a.navs,[n.id]:n},currentId:n.id}));setHist({past:[],future:[]});setDrawer(false);return n.id};const delNav=id=>setApp(a=>{const navs={...a.navs};delete navs[id];let cur=a.currentId;if(cur===id){const k=Object.keys(navs);cur=k[0]||null;if(!cur){const n=newNav();navs[n.id]=n;cur=n.id}}return{...a,navs,currentId:cur}});
+   efface tout ce qui appartient au vol pr\xE9c\xE9dent (heures r\xE9elles, ATIS, carburant) *//* v.720 : les photos appartiennent AU VOL. Reutiliser une navigation ne
+   les emporte pas (deux vols pointant la meme image : retirer l'une
+   effacerait l'autre), et supprimer une navigation retire ses images de
+   l'appareil et du nuage. */const __photosDe=ids=>{try{const l=[];(ids||[]).forEach(k=>{const x=app.navs[k];((x&&x.photos)||[]).forEach(q=>{if(q&&q.id)l.push(q.id)})});if(l.length&&window.__PHOTOS)window.__PHOTOS.retire(l)}catch(e){}};const reuseNav=id=>{const src=app.navs[id||app.currentId];if(!src)return;const n={...src,id:uid(),createdAt:Date.now(),meta:{...src.meta,date:"",ventDir:"",ventKt:""},aller:blankLegs(src.aller),retour:blankLegs(src.retour),flight:{},photos:[]};setApp(a=>({...a,navs:{...a.navs,[n.id]:n},currentId:n.id}));setHist({past:[],future:[]});setDrawer(false);return n.id};const delNav=id=>{__photosDe([id]);setApp(a=>{const navs={...a.navs};delete navs[id];let cur=a.currentId;if(cur===id){const k=Object.keys(navs);cur=k[0]||null;if(!cur){const n=newNav();navs[n.id]=n;cur=n.id}}return{...a,navs,currentId:cur}})};
 /* v.716 : LE MEME GESTE, POUR UN LOT. On ne boucle pas sur delNav —
    chaque appel reconstruirait l'etat et choisirait une navigation
    courante intermediaire, pour la jeter au tour suivant. Une seule
    passe, et la meme garantie qu'a l'unite : il reste toujours au
    moins une navigation. */
-const delNavs=(ids)=>setApp(a=>{
+const delNavs=(ids)=>{__photosDe(ids);setApp(a=>{
   const jeter={}; (ids||[]).forEach(k=>{ jeter[k]=1; });
   const navs={};
   Object.keys(a.navs).forEach(k=>{ if(!jeter[k]) navs[k]=a.navs[k]; });
@@ -11314,7 +11510,7 @@ const delNavs=(ids)=>setApp(a=>{
   if(jeter[cur]||!navs[cur]){ const k=Object.keys(navs); cur=k[0]||null; }
   if(!cur){ const n=newNav(); navs[n.id]=n; cur=n.id; }
   return {...a,navs,currentId:cur};
-});/* VOL LOCAL (v.680) : un vol qu'on n'a pas prepare — tour de piste,
+});};/* VOL LOCAL (v.680) : un vol qu'on n'a pas prepare — tour de piste,
    local, entrainement. Il n'y a pas de trajet a tracer, mais il y a les
    memes choses a garder qu'ailleurs : l'heure de depart, celle d'arrivee,
    l'ATIS, le QNH et la trace. On fabrique donc le log MINIMAL qui permet
@@ -11439,6 +11635,7 @@ const name=(nav.name||"lognav").replace(/[^\w\-]+/g,"_");await window.html2pdf()
 /* LE BANDEAU DE CONSULTATION. Ocre : la couleur ne sert nulle part
    ailleurs dans l'application, et le lisere fait le tour de l'ecran —
    on ne peut pas croire qu'on prepare le prochain vol. */
+(fenVol&&app.navs[fenVol])?React.createElement(FenetreVol,{key:"fenvol"+fenVol,nav:app.navs[fenVol],onClose:()=>setFenVol(null),onSave:n=>enregistrerFen(fenVol,n)}):null,
 review?React.createElement("div",{className:"rvbar"+(review.dirty?" chg":""),key:"rvbar"},
   React.createElement("div",{className:"rvtxt"},
     React.createElement("b",null,
@@ -11914,7 +12111,7 @@ const rvBox=(quoi,titre,el)=>review?React.createElement("div",{className:"rv-edi
       if(r.width&&(e.clientX-r.left)/r.width>0.76) q="atisA"; }catch(e2){} }
     rvGo(q); }},el,
   React.createElement("span",{className:"rv-crayon"},"Corriger")):el;
-const P4=React.createElement("div",{className:"log-p4",style:{width:PANEL,borderLeft:`1px solid ${HAIR}`,display:"flex",flexDirection:"column",minWidth:0,padding:"4px 6px",overflow:"visible"}},rvBox("hm","Consultation : toucher pour reprendre les heures, l\u2019horam\u00e8tre et le carburant dans les cartes du vol",React.createElement(CarbuHoraires,{nav})),React.createElement("div",{style:{display:"flex",alignItems:"baseline",gap:8,padding:"5px 2px 7px",font:"600 10px ui-sans-serif",color:INK,lineHeight:1}},React.createElement("span",{style:{whiteSpace:"nowrap"}},"Heure pos\xE9e Max (Fuel)"),React.createElement("span",{style:{flex:1,borderBottom:`1px solid #999`,alignSelf:"stretch",transform:"translateY(-1px)",display:"flex",alignItems:"flex-end",justifyContent:"center",font:"800 11px ui-sans-serif",color:INK}},(()=>{try{const F=nav.flight||{};const tot=parseFloat(String((F.fuel||{}).total||"").replace(",","."));const cons=parseFloat(String((nav.meta||{}).conso||"").replace(",","."));if(!(F.t0&&tot>0&&cons>0))return "";const mn=tot/cons*60-30;if(mn<=0)return "";const d=new Date(F.t0+mn*60000);const p=n=>String(n).padStart(2,"0");return p(d.getHours())+":"+p(d.getMinutes());}catch(e){return ""}})()),React.createElement("span",{style:{display:"inline-flex",alignItems:"center",gap:4,whiteSpace:"nowrap"}},"PITO",React.createElement("span",{style:{display:"inline-block",width:10,height:10,border:`1.2px solid ${INK}`,borderRadius:2,boxSizing:"border-box",transform:"translateY(1px)",textAlign:"center",font:"800 7px/7px ui-sans-serif",color:INK}},(nav.flight&&nav.flight.pitot)?"\u2713":"")),React.createElement("span",{style:{display:"inline-flex",alignItems:"center",gap:4,whiteSpace:"nowrap"}},"Xmax",xmaxVal(nav.meta)!=null?React.createElement(React.Fragment,null,React.createElement("b",{style:{color:RED,fontSize:13}},xmaxVal(nav.meta),"\xB0"),React.createElement("span",{className:"no-print",style:{display:"inline-flex"}},React.createElement(Info,{text:xmaxTip(nav.meta),pos:"bottomLeft"}))):React.createElement("span",{style:{display:"inline-block",width:40,borderBottom:`1px solid #999`,height:13}}))),rvBox("atis","Consultation : toucher pour reprendre l\u2019ATIS, le vent et le QNH dans les cartes du vol \u2014 la colonne de droite ouvre l\u2019ATIS d\u2019arriv\u00e9e",React.createElement(RTable,{header:["ATIS","D\xE9part","\xC9tape","Arriv\xE9e"],widths:[1.35,1,1,1],bodyH:21,merge:{from:5,to:7,label:"Nuages"},plis:[12],grands:[12],rows:(function(){var FL=nav.flight||{},A=FL.atis||{},B=FL.atisA||{};
+const P4=React.createElement("div",{className:"log-p4",style:{width:PANEL,borderLeft:`1px solid ${HAIR}`,display:"flex",flexDirection:"column",minWidth:0,padding:"4px 6px",overflow:"visible"}},rvBox("hm","Consultation : toucher pour reprendre les heures, l\u2019horam\u00e8tre et le carburant dans les cartes du vol",React.createElement(CarbuHoraires,{nav})),React.createElement("div",{style:{display:"flex",alignItems:"baseline",gap:8,padding:"5px 2px 7px",font:"600 10px ui-sans-serif",color:INK,lineHeight:1}},React.createElement("span",{style:{whiteSpace:"nowrap"}},"Heure pos\xE9e Max (Fuel)"),React.createElement("span",{style:{flex:1,borderBottom:`1px solid #999`,alignSelf:"stretch",transform:"translateY(-1px)",display:"flex",alignItems:"flex-end",justifyContent:"center",font:"800 11px ui-sans-serif",color:INK}},(()=>{try{const F=nav.flight||{};const tot=parseFloat(String((F.fuel||{}).total||"").replace(",","."));const cons=parseFloat(String((nav.meta||{}).conso||"").replace(",","."));if(!(F.t0&&tot>0&&cons>0))return "";const mn=tot/cons*60-30;if(mn<=0)return "";const d=new Date(F.t0+mn*60000);const p=n=>String(n).padStart(2,"0");return p(d.getHours())+":"+p(d.getMinutes());}catch(e){return ""}})()),React.createElement("span",{onClick:review?()=>setNav({flight:{...(nav.flight||{}),pitot:!(nav.flight&&nav.flight.pitot)}}):undefined,title:review?"Toucher pour cocher ou d\u00e9cocher le Pitot":undefined,style:{display:"inline-flex",alignItems:"center",gap:4,whiteSpace:"nowrap",cursor:review?"pointer":"default"}},"PITO",React.createElement("span",{style:{display:"inline-block",width:10,height:10,border:`1.2px solid ${INK}`,borderRadius:2,boxSizing:"border-box",transform:"translateY(1px)",textAlign:"center",font:"800 7px/7px ui-sans-serif",color:INK}},(nav.flight&&nav.flight.pitot)?"\u2713":"")),React.createElement("span",{style:{display:"inline-flex",alignItems:"center",gap:4,whiteSpace:"nowrap"}},"Xmax",xmaxVal(nav.meta)!=null?React.createElement(React.Fragment,null,React.createElement("b",{style:{color:RED,fontSize:13}},xmaxVal(nav.meta),"\xB0"),React.createElement("span",{className:"no-print",style:{display:"inline-flex"}},React.createElement(Info,{text:xmaxTip(nav.meta),pos:"bottomLeft"}))):React.createElement("span",{style:{display:"inline-block",width:40,borderBottom:`1px solid #999`,height:13}}))),rvBox("atis","Consultation : toucher pour reprendre l\u2019ATIS, le vent et le QNH dans les cartes du vol \u2014 la colonne de droite ouvre l\u2019ATIS d\u2019arriv\u00e9e",React.createElement(RTable,{header:["ATIS","D\xE9part","\xC9tape","Arriv\xE9e"],widths:[1.35,1,1,1],bodyH:21,merge:{from:5,to:7,label:"Nuages"},plis:[12],grands:[12],rows:(function(){var FL=nav.flight||{},A=FL.atis||{},B=FL.atisA||{};
 var tr=function(v){return String(v==null?"":v).trim()};
 var vis=function(X){return X.cavok?"CAVOK":(tr(X.visi)?tr(X.visi)+" km":"")};
 var pi=function(X){var r=tr(X.rwy);return (r||X.rwyH||X.rwyD)?(r+(X.rwyS||"")+(X.rwyH?" herbe":(X.rwyD?" dur":""))):""};
@@ -11939,7 +12136,11 @@ return [["Fr\xE9quence","","",""],
 ["QNH",tr(FL.qnh),"",tr(B.qnh)],
 ["Xpdr",tr(A.xpdr),"",tr(B.xpdr)],
 ["Coucher",(function(){var v=tr(A.nuit);if(v)return v;try{var s1=sunNight((nav.aller[0]||{}).position,nav.meta.date);return s1?s1.night:""}catch(e){return ""}})(),"",(function(){var v=tr(B.nuit);if(v)return v;try{var s2=sunNight((nav.aller[nav.aller.length-1]||{}).position,nav.meta.date);return s2?s2.night:""}catch(e){return ""}})()],
-["Info ATIS",inf(A),"",inf(B)]];})()})),React.createElement("div",{style:{display:"flex",gap:8,padding:"4px 2px 0",flex:1,minHeight:0}},React.createElement("div",{style:{flex:1,minWidth:0,display:"flex",flexDirection:"column"}},React.createElement("div",{style:{fontSize:9.5,fontWeight:700,color:INK,marginBottom:2}},"Note, D\u00e9gagement, TEM\u2026 :"),(function(){var dg=((nav.meta&&nav.meta.degag)||[]).filter(Boolean);return dg.length?React.createElement("div",{style:{fontSize:11,fontWeight:700,color:INK,marginBottom:3}},"D\u00e9gagement : "+dg.join(" \u00b7 ")):null;})(),(function(){var FL=(nav.flight||{});var vn=String(FL.notesVol||"").trim();return (vn||FL.tEnd||String(FL.hmEnd||"").trim())?React.createElement(VolNote,{value:FL.notesVol||"",onChange:function(t){setNav({flight:Object.assign({},FL,{notesVol:t})});}}):null;})(),React.createElement("div",{className:"p4z",style:{flex:1,display:"flex",flexDirection:"column",minHeight:0}},React.createElement(RichInline,{value:nav.meta.notesP4||"",onChange:h=>setNav({meta:{...nav.meta,notesP4:h}})}))),React.createElement("div",{style:{flex:1,minWidth:0,display:"flex",flexDirection:"column"}},React.createElement("div",{style:{fontSize:9.5,fontWeight:700,color:INK,marginBottom:2}},"M\xE9t\xE9o :"),React.createElement("div",{className:"p4z",style:{flex:1,display:"flex",flexDirection:"column",minHeight:0}},React.createElement(RichInline,{value:nav.meta.meteoP4||"",onChange:h=>setNav({meta:{...nav.meta,meteoP4:h}})})))));const Foot=React.createElement("div",{className:"lfoot",style:{borderTop:`1px solid ${INK}`,display:"flex"}},React.createElement(FootCell,{w:P1W,title:"TRANSPONDEUR et N\xB0",big:true},React.createElement("div",null,React.createElement("b",{style:{color:INK}},"Transpondeur")," \xB7 ",React.createElement("b",{style:{color:INK}},"7700")," d\xE9tresse \xB7 ",React.createElement("b",{style:{color:INK}},"7600")," radio \xB7 ",React.createElement("b",{style:{color:INK}},"7500")," illicite"),React.createElement("div",null,React.createElement("b",{style:{color:INK}},"Fr\xE9quences")," \xB7 ",React.createElement("b",{style:{color:INK}},"121.500")," secours \xB7 ",React.createElement("b",{style:{color:INK}},"123.500")," g\xE9n\xE9ral"),React.createElement("div",null,React.createElement("b",{style:{color:INK}},"T\xE9l\xE9phone")," \xB7 ",React.createElement("b",{style:{color:INK}},"191")," urgence a\xE9ronautique")),React.createElement(FootCell,{w:MIDW,title:"TRAZMER",boldFirst:true,big:true},"Top \xB7 Route/Cap \xB7 Alt \xB7 Zone \xB7 Moteur/Med \xB7 Estim\xE9e/Ess \xB7 Radio/RNav"),React.createElement(FootCell,{w:MIDW2,title:"VERDOS",boldFirst:true,big:true,title2:"PANNE MOTEUR",boldFirst2:true,children2:"Vitesse finesse \xB7 Trajectoire \xB7 Pompe \xB7 Magn\xE9to \xB7 Essence \xB7 Mixture \xB7 Radio \xB7 Balise"},"Vent \xB7 \xC9tat \xB7 Relief \xB7 Distance \xB7 Obstacle \xB7 Soleil"),React.createElement(FootCell,{w:RIGHTW,title:"BRIEFING ARRIV\xC9E",last:true,big:true,boldFirst:true},"Contr\xF4l\xE9 O/N \xB7 CAP O/N \xB7 Arriv\xE9e N-S-E-W \xE0 __ ft \xB7 Altitude approche, Aire \xE0 signaux \xB7 VAC approche \xB7 V finale __ kt \xB7 Volets position \xB7 Vent direction \xB7 Piste dur/herbe \xB7 Limitations ? \xB7 Remise de gaz et sens TdP \xB7 Alt s\xE9cu __ ft et TdP __ ft"));const frame=(children,pageBreak)=>React.createElement("div",{className:"sheet sheet-log",style:{width:"100%",maxWidth:1180,aspectRatio:"297 / 210",margin:"0 auto",background:"#fff",boxShadow:"0 4px 18px rgba(0,0,0,.12)",border:`1px solid ${HAIR}`,display:"flex",flexDirection:"column",overflow:"hidden",position:"relative",WebkitPrintColorAdjust:"exact",printColorAdjust:"exact",...pageBreak?{breakAfter:"page",pageBreakAfter:"always"}:{}}},Head,React.createElement(DoubleSep,null),React.createElement("div",{style:{flex:1,display:"flex",overflow:"hidden",position:"relative"}},React.createElement("div",{style:{width:GRIDWRAP,display:"flex",flexDirection:"column",minWidth:0,overflow:"auto"}},React.createElement(LogHeader,null),React.createElement("div",{style:{height:4}}),children),P4),Foot,FOLDS.map((x,i)=>React.createElement(FoldLine,{key:i,left:x})));const windActive=!!(num(nav.meta.vitesse)&&nav.meta.ventKt&&num(nav.meta.ventDir||0)>=0&&nav.meta.ventDir!=="");const blocAller=React.createElement(LogBlock,{title:`LOG BRANCHE ${(nav.type!=="ar"&&nav.single==="retour")?"VOL RETOUR":"VOL ALLER"} \u2014 ${oriIcao||"d\xE9part"} \u2192 ${destIcao||"arriv\xE9e"}`,block:"aller",legs:nav.aller,openLeg,addPoint,totals:tAller,accent:DARKGRAD,fuel:hasRetour?"":fuelInfo(tAller.temps),rowH,windActive,tavOf,tsvOf,capOf,inserOn:inserer==="aller",inserDirty,onInsererOpen:()=>inserOuvre("aller"),onInsererSave:inserFerme,onInsererCancel:inserAbandonne,movePoint:inserBouge,hoverBr,setHoverBr});const blocRetour=hasRetour&&React.createElement(LogBlock,{title:`LOG BRANCHE VOL RETOUR \u2014 ${retOriIcao||destIcao||"arriv\xE9e"} \u2192 ${retDestIcao||oriIcao||"d\xE9part"}`,block:"retour",legs:nav.retour,openLeg,addPoint,totals:tRetour,accent:SLATE,windActive,tavOf,tsvOf,capOf,regen:regenInverse,desync:inverseDesync,syncArmed,setSyncArmed,rowH,inserOn:inserer==="retour",inserDirty,onInsererOpen:()=>inserOuvre("retour"),onInsererSave:inserFerme,onInsererCancel:inserAbandonne,movePoint:inserBouge,hoverBr,setHoverBr});if(!split){return frame(React.createElement(React.Fragment,null,blocAller,hasRetour&&React.createElement(DoubleSep,null),blocRetour,hasRetour&&React.createElement(DoubleSep,null),hasRetour&&React.createElement(GrandTotal,{dist:grandDist,temps:grandTemps,tempsSv:grandTempsSv,fuel:fuelInfo(grandTemps),windActive})))}return React.createElement(React.Fragment,null,frame(blocAller,true),React.createElement("div",{className:"no-print",style:{height:16}}),frame(React.createElement(React.Fragment,null,blocRetour,React.createElement(DoubleSep,null),React.createElement(GrandTotal,{dist:grandDist,temps:grandTemps,tempsSv:grandTempsSv,fuel:fuelInfo(grandTemps),windActive}))))})(),mapState!==0&&React.createElement(React.Fragment,null,React.createElement("div",{className:"no-print",style:{height:24}}),React.createElement("div",{className:"sheet",style:{width:"100%",maxWidth:1180,aspectRatio:"297 / 210",margin:"0 auto",background:"transparent",position:"relative",zIndex:30,isolation:"isolate",overflow:"visible",display:"flex",flexDirection:"column",WebkitPrintColorAdjust:"exact",printColorAdjust:"exact",breakBefore:"page",pageBreakBefore:"always"}},React.createElement(TraceHost,{show:mapState!==0}))),nav.cardPage&&nav.cardPage.on!==false&&React.createElement(React.Fragment,null,React.createElement("div",{className:"no-print",style:{height:16}}),React.createElement("div",{id:"navcards",className:"sheet no-print"},React.createElement(NavCards,{nav,setNav,tsvOf,tavOf,capOf,volLocal,revue:!!review}))),
+["Info ATIS",inf(A),"",inf(B)]];})()})),React.createElement("div",{style:{display:"flex",gap:8,padding:"4px 2px 0",flex:1,minHeight:0}},React.createElement("div",{style:{flex:1,minWidth:0,display:"flex",flexDirection:"column"}},React.createElement("div",{style:{fontSize:9.5,fontWeight:700,color:INK,marginBottom:2}},"Note, D\u00e9gagement, TEM\u2026 :"),(function(){var dg=((nav.meta&&nav.meta.degag)||[]).filter(Boolean);/* v.718 : en consultation, les degagements se corrigent — et
+   s'ajoutent s'il n'y en avait pas. L'invite vide ne s'imprime pas. */
+var edDg=review?function(){var v=window.prompt("D\u00e9gagements \u2014 codes OACI s\u00e9par\u00e9s par des espaces :",dg.join(" "));if(v==null)return;var l=String(v).toUpperCase().split(/[^A-Z0-9]+/).filter(Boolean);setNav({meta:{...nav.meta,degag:l}});}:null;
+if(!dg.length)return review?React.createElement("div",{className:"no-print",onClick:edDg,title:"Toucher pour ajouter un d\u00e9gagement",style:{fontSize:11,fontWeight:700,color:"#9aa3b0",marginBottom:3,cursor:"pointer"}},"D\u00e9gagement : \u2014"):null;
+return React.createElement("div",{onClick:edDg||undefined,title:edDg?"Toucher pour corriger les d\u00e9gagements":undefined,style:{fontSize:11,fontWeight:700,color:INK,marginBottom:3,cursor:edDg?"pointer":"default"}},"D\u00e9gagement : "+dg.join(" \u00b7 "));})(),(function(){var FL=(nav.flight||{});var vn=String(FL.notesVol||"").trim();return (vn||FL.tEnd||String(FL.hmEnd||"").trim())?React.createElement(VolNote,{value:FL.notesVol||"",onChange:function(t){setNav({flight:Object.assign({},FL,{notesVol:t})});}}):null;})(),React.createElement("div",{className:"p4z",style:{flex:1,display:"flex",flexDirection:"column",minHeight:0}},React.createElement(RichInline,{value:nav.meta.notesP4||"",onChange:h=>setNav({meta:{...nav.meta,notesP4:h}})}))),React.createElement("div",{style:{flex:1,minWidth:0,display:"flex",flexDirection:"column"}},React.createElement("div",{style:{fontSize:9.5,fontWeight:700,color:INK,marginBottom:2}},"M\xE9t\xE9o :"),React.createElement("div",{className:"p4z",style:{flex:1,display:"flex",flexDirection:"column",minHeight:0}},React.createElement(RichInline,{value:nav.meta.meteoP4||"",onChange:h=>setNav({meta:{...nav.meta,meteoP4:h}})})))));const Foot=React.createElement("div",{className:"lfoot",style:{borderTop:`1px solid ${INK}`,display:"flex"}},React.createElement(FootCell,{w:P1W,title:"TRANSPONDEUR et N\xB0",big:true},React.createElement("div",null,React.createElement("b",{style:{color:INK}},"Transpondeur")," \xB7 ",React.createElement("b",{style:{color:INK}},"7700")," d\xE9tresse \xB7 ",React.createElement("b",{style:{color:INK}},"7600")," radio \xB7 ",React.createElement("b",{style:{color:INK}},"7500")," illicite"),React.createElement("div",null,React.createElement("b",{style:{color:INK}},"Fr\xE9quences")," \xB7 ",React.createElement("b",{style:{color:INK}},"121.500")," secours \xB7 ",React.createElement("b",{style:{color:INK}},"123.500")," g\xE9n\xE9ral"),React.createElement("div",null,React.createElement("b",{style:{color:INK}},"T\xE9l\xE9phone")," \xB7 ",React.createElement("b",{style:{color:INK}},"191")," urgence a\xE9ronautique")),React.createElement(FootCell,{w:MIDW,title:"TRAZMER",boldFirst:true,big:true},"Top \xB7 Route/Cap \xB7 Alt \xB7 Zone \xB7 Moteur/Med \xB7 Estim\xE9e/Ess \xB7 Radio/RNav"),React.createElement(FootCell,{w:MIDW2,title:"VERDOS",boldFirst:true,big:true,title2:"PANNE MOTEUR",boldFirst2:true,children2:"Vitesse finesse \xB7 Trajectoire \xB7 Pompe \xB7 Magn\xE9to \xB7 Essence \xB7 Mixture \xB7 Radio \xB7 Balise"},"Vent \xB7 \xC9tat \xB7 Relief \xB7 Distance \xB7 Obstacle \xB7 Soleil"),React.createElement(FootCell,{w:RIGHTW,title:"BRIEFING ARRIV\xC9E",last:true,big:true,boldFirst:true},"Contr\xF4l\xE9 O/N \xB7 CAP O/N \xB7 Arriv\xE9e N-S-E-W \xE0 __ ft \xB7 Altitude approche, Aire \xE0 signaux \xB7 VAC approche \xB7 V finale __ kt \xB7 Volets position \xB7 Vent direction \xB7 Piste dur/herbe \xB7 Limitations ? \xB7 Remise de gaz et sens TdP \xB7 Alt s\xE9cu __ ft et TdP __ ft"));const frame=(children,pageBreak)=>React.createElement("div",{className:"sheet sheet-log",style:{width:"100%",maxWidth:1180,aspectRatio:"297 / 210",margin:"0 auto",background:"#fff",boxShadow:"0 4px 18px rgba(0,0,0,.12)",border:`1px solid ${HAIR}`,display:"flex",flexDirection:"column",overflow:"hidden",position:"relative",WebkitPrintColorAdjust:"exact",printColorAdjust:"exact",...pageBreak?{breakAfter:"page",pageBreakAfter:"always"}:{}}},Head,React.createElement(DoubleSep,null),React.createElement("div",{style:{flex:1,display:"flex",overflow:"hidden",position:"relative"}},React.createElement("div",{style:{width:GRIDWRAP,display:"flex",flexDirection:"column",minWidth:0,overflow:"auto"}},React.createElement(LogHeader,null),React.createElement("div",{style:{height:4}}),children),P4),Foot,FOLDS.map((x,i)=>React.createElement(FoldLine,{key:i,left:x})));const windActive=!!(num(nav.meta.vitesse)&&nav.meta.ventKt&&num(nav.meta.ventDir||0)>=0&&nav.meta.ventDir!=="");const blocAller=React.createElement(LogBlock,{title:`LOG BRANCHE ${(nav.type!=="ar"&&nav.single==="retour")?"VOL RETOUR":"VOL ALLER"} \u2014 ${oriIcao||"d\xE9part"} \u2192 ${destIcao||"arriv\xE9e"}`,block:"aller",legs:nav.aller,openLeg,addPoint,totals:tAller,accent:DARKGRAD,fuel:hasRetour?"":fuelInfo(tAller.temps),rowH,windActive,tavOf,tsvOf,capOf,inserOn:inserer==="aller",inserDirty,onInsererOpen:()=>inserOuvre("aller"),onInsererSave:inserFerme,onInsererCancel:inserAbandonne,movePoint:inserBouge,hoverBr,setHoverBr});const blocRetour=hasRetour&&React.createElement(LogBlock,{title:`LOG BRANCHE VOL RETOUR \u2014 ${retOriIcao||destIcao||"arriv\xE9e"} \u2192 ${retDestIcao||oriIcao||"d\xE9part"}`,block:"retour",legs:nav.retour,openLeg,addPoint,totals:tRetour,accent:SLATE,windActive,tavOf,tsvOf,capOf,regen:regenInverse,desync:inverseDesync,syncArmed,setSyncArmed,rowH,inserOn:inserer==="retour",inserDirty,onInsererOpen:()=>inserOuvre("retour"),onInsererSave:inserFerme,onInsererCancel:inserAbandonne,movePoint:inserBouge,hoverBr,setHoverBr});if(!split){return frame(React.createElement(React.Fragment,null,blocAller,hasRetour&&React.createElement(DoubleSep,null),blocRetour,hasRetour&&React.createElement(DoubleSep,null),hasRetour&&React.createElement(GrandTotal,{dist:grandDist,temps:grandTemps,tempsSv:grandTempsSv,fuel:fuelInfo(grandTemps),windActive})))}return React.createElement(React.Fragment,null,frame(blocAller,true),React.createElement("div",{className:"no-print",style:{height:16}}),frame(React.createElement(React.Fragment,null,blocRetour,React.createElement(DoubleSep,null),React.createElement(GrandTotal,{dist:grandDist,temps:grandTemps,tempsSv:grandTempsSv,fuel:fuelInfo(grandTemps),windActive}))))})(),mapState!==0&&React.createElement(React.Fragment,null,React.createElement("div",{className:"no-print",style:{height:24}}),React.createElement("div",{className:"sheet",style:{width:"100%",maxWidth:1180,aspectRatio:"297 / 210",margin:"0 auto",background:"transparent",position:"relative",zIndex:30,isolation:"isolate",overflow:"visible",display:"flex",flexDirection:"column",WebkitPrintColorAdjust:"exact",printColorAdjust:"exact",breakBefore:"page",pageBreakBefore:"always"}},React.createElement(TraceHost,{show:mapState!==0}))),nav.cardPage&&nav.cardPage.on!==false&&React.createElement(React.Fragment,null,React.createElement("div",{className:"no-print",style:{height:16}}),React.createElement("div",{id:"navcards",className:"sheet no-print"},React.createElement(NavCards,{nav,setNav,tsvOf,tavOf,capOf,volLocal,revue:!!review}))),
 React.createElement(React.Fragment,null,React.createElement("div",{className:"no-print",style:{height:16}}),
   React.createElement("div",{id:"notepad",className:"sheet no-print",style:{width:"100%",maxWidth:1180,aspectRatio:"297 / 210",margin:"0 auto",background:"#fff",boxShadow:"0 4px 18px rgba(0,0,0,.12)",border:`1px solid ${HAIR}`,position:"relative",overflow:"hidden",display:"flex",flexDirection:"column",WebkitPrintColorAdjust:"exact",printColorAdjust:"exact",breakBefore:"page",pageBreakBefore:"always"}},
     React.createElement(NotePad,{nav,setNav})),
@@ -12570,6 +12771,325 @@ function NoteImpression({nav}){
             points:p.map(q=>(q[0]*L)+","+(q[1]*H)).join(" ")});
         })),
       pages.length>1?h("div",{className:"npad-impr-n"},"Note — page "+(i+1)+" / "+pages.length):null)));
+}
+
+/* ===== LA FENETRE « VOIR » DU TELEPHONE (v.718) =========================
+   Tout le detail d'un vol fait, modifiable. Fond blanc, texte bleu nuit,
+   chapitres separes d'un trait rouge-rose.
+   Elle travaille sur une COPIE : rien n'est ecrit tant qu'on n'a pas
+   touche « Enregistrer ».
+   Et elle ne passe par aucun des mecanismes qui ont fait naitre le flou
+   du haut : son fond est un aplat opaque, elle ne change pas d'ecran, et
+   elle n'est pas le mode consultation. */
+/* le tirage du resume : la marque et le format de page tombent au
+   « afterprint », ou a la fermeture de la fenetre — iOS n'emet pas
+   toujours « afterprint ». Pas de minuterie : l'apercu de Chrome refait
+   la mise en page a chaque reglage et doit retrouver ces regles (le
+   constat du 24 aout sur le dossier de vol). */
+function fvDesarme(){ try{ document.documentElement.classList.remove('pr-fv');
+  const q=document.getElementById('fvPage'); if(q) q.remove(); }catch(e){} }
+function FenetreVol({nav,onClose,onSave}){
+  const h=React.createElement;
+  React.useEffect(()=>()=>fvDesarme(),[]);
+  const [d,setD]=React.useState(()=>JSON.parse(JSON.stringify(nav)));
+  const [sale,setSale]=React.useState(false);
+  /* v.720 : la note manuscrite et les photos */
+  const [mode,setMode]=React.useState(null);          /* "note" : l'editeur plein cadre */
+  const [urls,setUrls]=React.useState({});            /* id -> adresse ; "" : introuvable */
+  const [vue,setVue]=React.useState(null);            /* la photo agrandie */
+  const [charge,setCharge]=React.useState(0);         /* photos en cours de reduction */
+  const ajoutes=React.useRef([]);                     /* posees depuis l'ouverture, pas encore enregistrees */
+  const base=React.useRef((nav.photos||[]).map(q=>q.id));   /* celles du vol enregistre */
+  const fic=React.useRef(null);
+  const P=window.__PHOTOS||null;
+  /* les proportions de la feuille ou la note s'ecrit : l'ecran « Note »
+     du telephone, mesure s'il est la ; sinon celles d'un iPhone */
+  const R=React.useMemo(()=>{ try{ const z=document.querySelector("#notepad .npad-zone");
+      const r=z&&z.getBoundingClientRect(); if(r&&r.width>60&&r.height>60) return r.width/r.height; }catch(e){}
+    return 0.52; },[]);
+  const lesIds=(d.photos||[]).map(q=>q.id).join(",");
+  React.useEffect(()=>{ if(!P) return; let vivant=true;
+    (d.photos||[]).forEach(q=>{ if(urls[q.id]!==undefined) return;
+      P.url(q.id).then(u=>{ if(vivant) setUrls(o=>({...o,[q.id]:u||""})); }); });
+    return ()=>{ vivant=false; }; },[lesIds]);
+  /* ce qui n'a pas pu monter (hors connexion) est relance a l'ouverture */
+  React.useEffect(()=>{ try{ P&&P.relance((nav.photos||[]).map(q=>q.id)); }catch(e){} },[]);
+  const pad=n=>String(n).padStart(2,"0");
+  const hhmm=ms=>{ if(!ms) return ""; const x=new Date(ms); return pad(x.getHours())+":"+pad(x.getMinutes()); };
+  const maj=f=>{ setD(o=>{ const n=JSON.parse(JSON.stringify(o)); n.meta=n.meta||{}; n.flight=n.flight||{}; f(n); return n; }); setSale(true); };
+  const M=d.meta||{}, F=d.flight||{};
+  /* une heure du jour, sur le jour qu'avait deja le vol */
+  const poseHeure=(cle,v)=>maj(n=>{
+    if(!v){ n.flight[cle]=null; return; }
+    const p=v.split(":"), ref=n.flight[cle]||n.flight.t0||n.flight.tEnd
+      ||(n.meta.date?Date.parse(n.meta.date+"T12:00:00"):Date.now());
+    const x=new Date(ref); x.setHours(parseInt(p[0],10)||0,parseInt(p[1],10)||0,0,0);
+    let ms=x.getTime();
+    if(cle==="tEnd"&&n.flight.t0&&ms<n.flight.t0) ms+=86400000;   /* vol passant minuit */
+    n.flight[cle]=ms; });
+  /* corriger la DATE deplace aussi les heures de depart et d'arrivee :
+     c'est sur elles que l'historique date le vol */
+  const poseDate=v=>maj(n=>{ n.meta.date=v; if(!v) return;
+    const q=v.split("-").map(Number);
+    ["t0","tEnd"].forEach(k=>{ const t=n.flight[k]; if(!t) return;
+      const x=new Date(t); x.setFullYear(q[0],q[1]-1,q[2]); n.flight[k]=x.getTime(); });
+    if(n.flight.t0&&n.flight.tEnd&&n.flight.tEnd<n.flight.t0) n.flight.tEnd+=86400000; });
+  const champ=(lab,val,on,o)=>{ o=o||{};
+    const att={value:val==null?"":val,onChange:e=>on(e.target.value)};
+    if(!o.zone){ att.type=o.type||"text"; if(o.num) att.inputMode="decimal"; }
+    else att.rows=3;
+    if(o.ph) att.placeholder=o.ph;
+    return h("label",{className:"fv-f"+(o.large?" fv-l":"")},h("span",null,lab),
+      h(o.zone?"textarea":"input",att)); };
+  const lecture=(lab,val)=>h("div",{className:"fv-f"},h("span",null,lab),
+    h("div",{className:"fv-ro"},val||"\u2014"));
+  const chap=(titre,...e)=>h("section",{className:"fv-ch"},h("h3",null,titre),...e);
+  const duree=(a,b)=>{ if(!a||!b||b<a) return ""; const m=Math.round((b-a)/60000);
+    return Math.floor(m/60)+"h"+pad(m%60); };
+  const hmDuree=()=>{ const a=parseFloat(String(F.hmStart||"").replace(",",".")),
+    b=parseFloat(String(F.hmEnd||"").replace(",","."));
+    return (isFinite(a)&&isFinite(b)&&b>=a)?((b-a).toFixed(2).replace(".",",")+" h"):""; };
+  const at=k=>(F[k]||{});
+  const poseAtis=(k,c,v)=>maj(n=>{ n.flight[k]=Object.assign({},n.flight[k]||{}); n.flight[k][c]=v; });
+  const branches=(cle,titre)=>{ const L=d[cle]||[]; if(L.length<2) return null;
+    const fin=L.length-1;
+    return chap(titre,
+      ...L.slice(0,-1).map((l,i)=>h("div",{className:"fv-br",key:cle+i},
+        h("div",{className:"fv-brt"},(l.position||"?")+" \u2192 "+((L[i+1]||{}).position||"?")),
+        h("div",{className:"fv-grid"},
+          champ("Rm (\u00b0)",l.rm,v=>maj(n=>{ n[cle][i].rm=v; }),{num:1}),
+          champ("Distance (NM)",l.dist,v=>maj(n=>{ n[cle][i].dist=v; }),{num:1}),
+          champ("Altitude (ft)",l.altVol,v=>maj(n=>{ n[cle][i].altVol=v; }),{num:1}),
+          champ("Vent (\u00b0 / kt)",[l.wDir,l.wKt].filter(x=>x!=null&&x!=="").join("/"),
+            v=>maj(n=>{ const p=String(v).split(/[^0-9]+/); n[cle][i].wDir=p[0]||""; n[cle][i].wKt=p[1]||""; }),
+            {ph:"\u00b0/kt"}),
+          champ("Pr\u00e9vue \u00e0 "+(l.position||"?"),l.hEst,v=>maj(n=>{ n[cle][i].hEst=v; }),{type:"time"}),
+          champ("R\u00e9elle \u00e0 "+(l.position||"?"),l.hReel,v=>maj(n=>{ n[cle][i].hReel=v; }),{type:"time"})))),
+      h("div",{className:"fv-br",key:cle+"fin"},
+        h("div",{className:"fv-brt"},"Arriv\u00e9e \u00b7 "+(L[fin].position||"?")),
+        h("div",{className:"fv-grid"},
+          champ("Pr\u00e9vue",L[fin].hEst,v=>maj(n=>{ n[cle][fin].hEst=v; }),{type:"time"}),
+          champ("R\u00e9elle",L[fin].hReel,v=>maj(n=>{ n[cle][fin].hReel=v; }),{type:"time"})))); };
+  /* LES PHOTOS ET L'ENREGISTREMENT. Une photo ajoutee est rangee tout de
+     suite sur l'appareil — il faut bien l'afficher —, mais elle
+     n'appartient au vol qu'a « Enregistrer ». Fermer sans enregistrer
+     jette donc celles posees entre-temps ; enregistrer jette celles
+     qu'on a retirees. Aucune image ne reste sans vol. */
+  const ferme=()=>{ if(sale&&!window.confirm("Des modifications n\u2019ont pas \u00e9t\u00e9 enregistr\u00e9es.\n\nFermer sans les enregistrer ?")) return;
+    const orph=ajoutes.current.filter(id=>base.current.indexOf(id)<0);
+    if(orph.length&&P) P.retire(orph);
+    onClose(); };
+  const enregistre=()=>{ if(!sale) return; onSave(d); setSale(false);
+    const gardees=(d.photos||[]).map(q=>q.id);
+    const parties=base.current.concat(ajoutes.current).filter(id=>gardees.indexOf(id)<0);
+    if(parties.length&&P) P.retire(parties);
+    base.current=gardees; ajoutes.current=[]; };
+  const ajoutePhotos=l=>{
+    if(!P){ window.alert("Les photos ne sont pas disponibles sur cet appareil."); return; }
+    l=(l||[]).filter(f=>/^image\//.test(f.type||"")||/\.(jpe?g|png|heic|heif|webp|gif)$/i.test(f.name||""));
+    if(!l.length) return;
+    setCharge(c=>c+l.length);
+    l.reduce((pr,f)=>pr.then(()=>P.ajoute(f).then(r=>{ ajoutes.current.push(r.id);
+        maj(n=>{ n.photos=(n.photos||[]).concat([{id:r.id,w:r.w,h:r.h,quand:r.quand,legende:""}]); }); },
+      ()=>{ window.alert("Cette image n\u2019a pas pu \u00eatre ajout\u00e9e : "+(f.name||"fichier")); })
+      .then(()=>setCharge(c=>c-1))),Promise.resolve()); };
+  const retirePhoto=id=>{ if(!window.confirm("Retirer cette photo du vol ?")) return;
+    maj(n=>{ n.photos=(n.photos||[]).filter(q=>q.id!==id); }); setVue(null); };
+  const pagesNote=npadPages(d.notePad).map((t,i)=>({t,i})).filter(x=>x.t&&x.t.length);
+  const chapNote=()=>chap("Note manuscrite",
+    pagesNote.length?h("div",{className:"fv-np-l"},pagesNote.map(x=>
+        h("div",{key:x.i,className:"fv-np",style:{aspectRatio:String(R)},onClick:()=>setMode("note")},
+          h(NoteSvg,{traits:x.t,R}),h("i",null,"p. "+(x.i+1)))))
+      :h("div",{className:"fv-vide"},"Aucune note manuscrite pour ce vol."),
+    h("button",{type:"button",className:"fv-btn fv-note-go",onClick:()=>setMode("note")},
+      pagesNote.length?"Modifier la note":"\u00c9crire une note"));
+  const editeurNote=()=>h("div",{className:"fv-ed"},
+    h("div",{className:"fv-edh"},h("b",null,"Note manuscrite"),
+      h("button",{type:"button",className:"fv-btn fv-btn-p fv-note-ok",onClick:()=>setMode(null)},"Termin\u00e9")),
+    h("div",{className:"fv-edz",style:{"--fvr":String(R)}},h(NotePad,{nav:d,setNav:q=>maj(n=>{ Object.assign(n,q); })})));
+  const chapPhotos=()=>chap("Photos",
+    (d.photos||[]).length?h("div",{className:"fv-ph-l"},(d.photos||[]).map(q=>h("div",{key:q.id,className:"fv-ph"},
+        h("button",{type:"button",className:"fv-ph-v",onClick:()=>setVue(q.id),"aria-label":"Agrandir la photo"},
+          urls[q.id]?h("img",{src:urls[q.id],alt:""}):h("span",null,urls[q.id]===""?"absente":"\u2026")),
+        h("input",{className:"fv-ph-t",type:"text",value:q.legende||"",placeholder:"L\u00e9gende",
+          onChange:e=>{ const v=e.target.value; maj(n=>{ const o=(n.photos||[]).find(x=>x.id===q.id); if(o) o.legende=v; }); }}),
+        h("button",{type:"button",className:"fv-ph-x",onClick:()=>retirePhoto(q.id),"aria-label":"Retirer la photo",
+          title:"Retirer cette photo du vol"},"\u00d7"))))
+      :h("div",{className:"fv-vide"},"Aucune photo pour ce vol."),
+    charge>0?h("div",{className:"fv-vide"},"Ajout en cours\u2026"):null,
+    h("button",{type:"button",className:"fv-btn fv-ph-go",onClick:()=>fic.current&&fic.current.click()},"+ Ajouter une photo"),
+    h("input",{ref:fic,className:"fv-file",type:"file",accept:"image/*",multiple:true,style:{display:"none"},
+      onChange:e=>{ const l=[...(e.target.files||[])]; e.target.value=""; ajoutePhotos(l); }}));
+  const pv=vue?(d.photos||[]).find(q=>q.id===vue):null;
+  const visionneuse=()=>pv?h("div",{className:"fv-pv",role:"dialog","aria-label":"Photo du vol"},
+    h("div",{className:"fv-pvh"},h("b",null,pv.legende||"Photo"),
+      h("button",{type:"button",className:"fv-x",onClick:()=>setVue(null),"aria-label":"Fermer la photo"},"\u00d7")),
+    h("div",{className:"fv-pvc"},urls[pv.id]?h("img",{src:urls[pv.id],alt:pv.legende||""})
+      :"Cette photo n\u2019est pas encore arriv\u00e9e sur cet appareil.")):null;
+  /* LE TIRAGE. Tout se fait dans le geste du doigt — Safari peut refuser
+     un print() differe. Le format A4 portrait est pose en FIN de corps :
+     une regle @page se departage par l'ordre, et le log de nav pose la
+     sienne (paysage) plus haut. */
+  const imprime=()=>{ try{
+      document.documentElement.classList.add('pr-fv');
+      if(!document.getElementById('fvPage')){ const st=document.createElement('style');
+        st.id='fvPage'; st.textContent='@page{size:A4 portrait;margin:12mm}';
+        document.body.appendChild(st); }
+      if(!window.__FVIMP_LIE){ window.__FVIMP_LIE=1; window.addEventListener('afterprint',fvDesarme); }
+      const t=document.querySelector('.fv-pr .fvp-tire'), n=new Date();
+      if(t) t.textContent=" \u00b7 imprim\u00e9 le "+pad(n.getDate())+"/"+pad(n.getMonth()+1)+"/"
+        +n.getFullYear()+" \u00e0 "+pad(n.getHours())+":"+pad(n.getMinutes());
+      window.__TITRE_TIRAGE&&window.__TITRE_TIRAGE("R\u00e9sum\u00e9 de vol",d.name,M.date);
+    }catch(e){}
+    try{ window.print(); }catch(e){} };
+  const tx=v=>(v==null||v==="")?"\u2014":String(v);
+  const it=(lab,val,cl)=>h("div",{className:"fvp-i"+(cl?" "+cl:"")},h("span",null,lab),h("b",null,tx(val)));
+  const pch=(titre,...e)=>h("section",{className:"fvp-ch"},h("h2",null,titre),...e);
+  const atx=k=>{ const a=at(k); return [a.let?("Info "+String(a.let).toUpperCase()):"",a.rwy?("piste "+a.rwy):""]
+    .filter(Boolean).join(" \u00b7 "); };
+  const vtx=(dir,kt)=>(dir||kt)?((dir?dir+"\u00b0":"\u2014")+" / "+(kt?kt+" kt":"\u2014")):"";
+  const ptable=(cle,titre)=>{ const L=d[cle]||[]; if(L.length<2) return null; const fin=L.length-1;
+    return h("section",{className:"fvp-ch fvp-br"},h("h2",null,titre),
+      h("table",{className:"fvp-t"},
+        h("thead",null,h("tr",null,...["Branche","Rm","Distance","Altitude","Vent","D\u00e9part pr\u00e9vu","D\u00e9part r\u00e9el"]
+          .map(x=>h("th",{key:x},x)))),
+        h("tbody",null,
+          ...L.slice(0,-1).map((l,i)=>h("tr",{key:cle+i},
+            h("td",null,(l.position||"?")+" \u2192 "+((L[i+1]||{}).position||"?")),
+            h("td",null,l.rm?l.rm+"\u00b0":"\u2014"),
+            h("td",null,l.dist?l.dist+" NM":"\u2014"),
+            h("td",null,l.altVol?l.altVol+" ft":"\u2014"),
+            h("td",null,tx([l.wDir,l.wKt].filter(x=>x!=null&&x!=="").join("/"))),
+            h("td",null,tx(l.hEst)),h("td",null,tx(l.hReel)))),
+          h("tr",{key:cle+"fin",className:"fvp-arr"},
+            h("td",{colSpan:5},"Arriv\u00e9e \u00b7 "+(L[fin].position||"?")),
+            h("td",null,tx(L[fin].hEst)),h("td",null,tx(L[fin].hReel)))))); };
+  const riche=(lab,html)=>html?h("div",{className:"fvp-i fvp-l"},h("span",null,lab),
+    h("div",{className:"fvp-x",dangerouslySetInnerHTML:{__html:html}})):null;
+  const resume=()=>h("div",{className:"fv-pr","aria-hidden":"true"},
+    h("div",{className:"fvp-hd"},
+      h("div",{className:"fvp-mq"},"LOGNAVAK \u00b7 R\u00e9sum\u00e9 de vol"),
+      h("h1",null,jour?("Vol du "+jour):"Vol enregistr\u00e9"),
+      h("div",{className:"fvp-nom"},tx(d.name))),
+    pch("Le vol",h("div",{className:"fvp-g"},
+      it("Date",jour),
+      it("Avion",[M.immat,M.modele].filter(Boolean).join(" \u00b7 ")),
+      it("Commandant de bord",M.commandant,"fvp-d"))),
+    pch("Horaires",h("div",{className:"fvp-g"},
+      it("D\u00e9part",hhmm(F.t0)),it("Arriv\u00e9e",hhmm(F.tEnd)),
+      it("Dur\u00e9e de vol",duree(F.t0,F.tEnd)),it("Temps horam\u00e8tre",hmDuree()),
+      it("Horam\u00e8tre d\u00e9part",F.hmStart),it("Horam\u00e8tre arriv\u00e9e",F.hmEnd))),
+    pch("Conditions",h("div",{className:"fvp-g"},
+      it("Vent",vtx(M.ventDir,M.ventKt)),it("QNH",F.qnh),
+      it("ATIS d\u00e9part",atx("atis")),it("ATIS arriv\u00e9e",atx("atisA")))),
+    pch("Carburant",h("div",{className:"fvp-g"},
+      it("Carburant au d\u00e9part",(F.fuel||{}).total?((F.fuel||{}).total+" L"):""),
+      it("Pitot",F.pitot?"V\u00e9rifi\u00e9":"Non coch\u00e9"))),
+    ptable("aller",d.type==="ar"?"Branches \u2014 aller":"Branches"),
+    d.type==="ar"?ptable("retour","Branches \u2014 retour"):null,
+    pch("Notes",h("div",{className:"fvp-g"},
+      h("div",{className:"fvp-i fvp-l"},h("span",null,"Notes du vol"),h("p",{className:"fvp-x"},tx(F.notesVol))),
+      it("D\u00e9gagements",(M.degag||[]).join(" "),"fvp-l"),
+      riche("Note, d\u00e9gagement, TEM\u2026 (log papier)",M.notesP4),
+      riche("M\u00e9t\u00e9o (log papier)",M.meteoP4))),
+    pagesNote.length?h("section",{className:"fvp-ch fvp-br"},h("h2",null,"Note manuscrite"),
+      h("div",{className:"fvp-np-l"},pagesNote.map(x=>h("div",{key:x.i,className:"fvp-np"},
+        h("div",{className:"fvp-npc",style:{aspectRatio:String(R)}},h(NoteSvg,{traits:x.t,R})),
+        pagesNote.length>1?h("span",null,"Page "+(x.i+1)):null)))):null,
+    (d.photos||[]).length?h("section",{className:"fvp-ch fvp-br"},h("h2",null,"Photos"),
+      h("div",{className:"fvp-ph-l"},(d.photos||[]).map(q=>h("figure",{key:q.id,className:"fvp-ph"},
+        urls[q.id]?h("img",{src:urls[q.id],alt:""})
+          :h("div",{className:"fvp-ph-abs"},"Photo non disponible sur cet appareil"),
+        q.legende?h("figcaption",null,q.legende):null)))):null,
+    h("div",{className:"fvp-pied"},"LOGNAVAK \u2014 r\u00e9sum\u00e9 de vol",h("span",{className:"fvp-tire"})));
+  const portail=el=>{ try{ return ReactDOM.createPortal(el,document.body); }catch(e){ return null; } };
+  const jour=(()=>{ const t=F.t0||F.tEnd; if(t){ const x=new Date(t);
+      return pad(x.getDate())+"/"+pad(x.getMonth()+1)+"/"+x.getFullYear(); }
+    if(M.date){ const q=M.date.split("-"); return q[2]+"/"+q[1]+"/"+q[0]; } return ""; })();
+  return h(React.Fragment,null,portail(resume()),
+  h("div",{className:"fv-ov",role:"dialog","aria-modal":"true","aria-label":"D\u00e9tail du vol"},
+    h("div",{className:"fv-win"},
+      h("div",{className:"fv-hd"},
+        h("div",{className:"fv-ti"},h("b",null,jour?("Vol du "+jour):"Vol enregistr\u00e9"),
+          h("i",null,d.name||"\u2014")),
+        h("button",{type:"button",className:"fv-ok"+(sale?" on":""),disabled:!sale,onClick:enregistre,
+          title:"Enregistrer les corrections de ce vol"},"Enregistrer"),
+        h("button",{type:"button",className:"fv-imp",onClick:imprime,"aria-label":"Imprimer le r\u00e9sum\u00e9 du vol",
+          title:"Imprimer le r\u00e9sum\u00e9 du vol, tel qu\u2019il est affich\u00e9 (A4 portrait)"},
+          h(Ic,{name:"printer",size:18,sw:2})),
+        h("button",{type:"button",className:"fv-x",onClick:ferme,"aria-label":"Fermer",
+          title:"Fermer \u2014 les modifications non enregistr\u00e9es seront abandonn\u00e9es"},"\u00d7")),
+      mode==="note"?editeurNote():null,
+      /* le corps reste monte pendant l'edition de la note : les notes
+         riches gardent leur contenu, la page sa position */
+      h("div",{className:"fv-co",style:mode==="note"?{display:"none"}:undefined},
+        chap("Le vol",
+          champ("Nom",d.name,v=>maj(n=>{ n.name=v; }),{large:1}),
+          h("div",{className:"fv-grid"},
+            champ("Date",M.date,poseDate,{type:"date"}),
+            champ("Avion",M.immat,v=>maj(n=>{ n.meta.immat=v; })),
+            champ("Commandant de bord",M.commandant,v=>maj(n=>{ n.meta.commandant=v; }),{large:1}))),
+        chap("Horaires",
+          h("div",{className:"fv-grid"},
+            champ("D\u00e9part",hhmm(F.t0),v=>poseHeure("t0",v),{type:"time"}),
+            champ("Arriv\u00e9e",hhmm(F.tEnd),v=>poseHeure("tEnd",v),{type:"time"}),
+            lecture("Dur\u00e9e de vol",duree(F.t0,F.tEnd)),
+            lecture("Temps horam\u00e8tre",hmDuree()),
+            champ("Horam\u00e8tre d\u00e9part",F.hmStart,v=>maj(n=>{ n.flight.hmStart=v; }),{num:1}),
+            champ("Horam\u00e8tre arriv\u00e9e",F.hmEnd,v=>maj(n=>{ n.flight.hmEnd=v; }),{num:1}))),
+        chap("Conditions",
+          h("div",{className:"fv-grid"},
+            champ("Vent (\u00b0)",M.ventDir,v=>maj(n=>{ n.meta.ventDir=v; }),{num:1}),
+            champ("Vent (kt)",M.ventKt,v=>maj(n=>{ n.meta.ventKt=v; }),{num:1}),
+            champ("QNH",F.qnh,v=>maj(n=>{ n.flight.qnh=v; }),{num:1}),
+            h("div",{"aria-hidden":"true"}),
+            champ("ATIS d\u00e9part \u2014 lettre",at("atis").let,v=>poseAtis("atis","let",String(v).toUpperCase().slice(0,1))),
+            champ("Piste au d\u00e9part",at("atis").rwy,v=>poseAtis("atis","rwy",v)),
+            champ("ATIS arriv\u00e9e \u2014 lettre",at("atisA").let,v=>poseAtis("atisA","let",String(v).toUpperCase().slice(0,1))),
+            champ("Piste \u00e0 l\u2019arriv\u00e9e",at("atisA").rwy,v=>poseAtis("atisA","rwy",v)))),
+        chap("Carburant",
+          h("div",{className:"fv-grid"},
+            champ("Carburant au d\u00e9part (L)",(F.fuel||{}).total,
+              v=>maj(n=>{ n.flight.fuel=Object.assign({},n.flight.fuel||{},{total:v}); }),{num:1})),
+          h("label",{className:"fv-chk"},
+            h("input",{type:"checkbox",checked:!!F.pitot,onChange:e=>{ const c=e.target.checked; maj(n=>{ n.flight.pitot=c; }); }}),
+            "Pitot v\u00e9rifi\u00e9")),
+        branches("aller",d.type==="ar"?"Branches \u2014 aller":"Branches"),
+        d.type==="ar"?branches("retour","Branches \u2014 retour"):null,
+        chap("Notes",
+          champ("Notes du vol",F.notesVol,v=>maj(n=>{ n.flight.notesVol=v; }),{zone:1,large:1}),
+          champ("D\u00e9gagements",(M.degag||[]).join(" "),
+            v=>maj(n=>{ n.meta.degag=String(v).toUpperCase().split(/[^A-Z0-9]+/).filter(Boolean); }),
+            {large:1,ph:"LFOC LFPG"}),
+          h(FvRiche,{init:M.notesP4,lab:"Note, d\u00e9gagement, TEM\u2026 (log papier)",
+            onChange:v=>maj(n=>{ n.meta.notesP4=v; })}),
+          h(FvRiche,{init:M.meteoP4,lab:"M\u00e9t\u00e9o (log papier)",
+            onChange:v=>maj(n=>{ n.meta.meteoP4=v; })})),
+        chapNote(),
+        chapPhotos()),
+      vue?visionneuse():null)));
+}
+/* une page de note en SVG : le trait reste net a toute taille, et
+   l'epaisseur suit la regle de l'ecran (reference 520 px de large) */
+function NoteSvg({traits,R}){
+  const h=React.createElement, L=1000, H=Math.round(L/(R||0.52));
+  return h("svg",{viewBox:"0 0 "+L+" "+H,width:"100%",height:"100%",preserveAspectRatio:"none",
+    "aria-hidden":"true",style:{display:"block"}},
+    (traits||[]).map((t,j)=>{ const q=(t&&t.p)||[]; if(!q.length) return null;
+      const e=Math.max(1,(t.e||3)*L/520);
+      if(q.length===1) return h("circle",{key:j,cx:q[0][0]*L,cy:q[0][1]*H,r:e/2,fill:t.c||"#16213e"});
+      return h("polyline",{key:j,fill:"none",stroke:t.c||"#16213e",strokeWidth:e,
+        strokeLinecap:"round",strokeLinejoin:"round",points:q.map(z=>(z[0]*L)+","+(z[1]*H)).join(" ")}); }));
+}
+/* le texte riche des notes du log : la zone garde son propre contenu — on
+   ne le lui reecrit qu'a l'ouverture. Defini HORS de la fenetre : recree a
+   chaque rendu, il serait remonte a chaque frappe et le curseur sauterait. */
+function FvRiche({init,lab,onChange}){
+  const h=React.createElement, ref=React.useRef(null);
+  React.useEffect(()=>{ if(ref.current) ref.current.innerHTML=init||""; },[]);
+  return h("div",{className:"fv-f fv-l"},h("span",null,lab),
+    h("div",{ref,className:"fv-rich",contentEditable:true,suppressContentEditableWarning:true,
+      onInput:e=>onChange(e.currentTarget.innerHTML)}));
 }
 
 function NavCards({nav,setNav:setNav0,tsvOf,tavOf,capOf,volLocal,revue}){
@@ -19796,6 +20316,145 @@ window.__pickGpx=function(cb){
   window.__VAC_ENREGISTRE=enregistre;    /* sortir une planche vers les fichiers */
   window.__VAC_PLANCHES_GARDEES=favsVac;
   window.__VAC_BASCULE_GARDEE=basculeFav;
+})();
+</script>
+<script>
+/* ===================================================================
+   PHOTOS D'UN VOL (v.720)
+   -------------------------------------------------------------------
+   Une photo pese des centaines de kilooctets : dans la navigation, elle
+   ferait deborder le stockage de la page (5 Mo sur iOS) et alourdirait
+   chaque synchronisation. On fait donc comme pour les documents :
+     - l'APPAREIL (IndexedDB) garde l'image, reduite a 1600 px de cote,
+       en JPEG. C'est elle qu'on affiche, sans reseau ;
+     - le RANGEMENT DE FICHIERS de Supabase (seau « docs », dossier
+       <pilote>/vols/) garde l'original pour les autres appareils ;
+     - la NAVIGATION ne garde que la reference : identifiant, taille,
+       legende. Quelques octets, qui voyagent avec le vol.
+   Hors connexion, la photo reste sur l'appareil et monte plus tard : a
+   chaque ouverture de la fenetre, ce qui n'est pas monte est relance.
+   Les regles d'acces du seau (documents.sql) couvrent deja ce dossier :
+   le premier dossier du chemin est l'identifiant du pilote.
+   =================================================================== */
+(function(){
+  'use strict';
+  var DB='lognav_photos', ST='p', VER=1, SEAU='docs', COTE=1600, QUAL=0.82;
+  var _db=null, _urls={}, _envois={};
+  function idb(){
+    return new Promise(function(res,rej){
+      if(_db) return res(_db);
+      try{
+        var rq=indexedDB.open(DB,VER);
+        rq.onupgradeneeded=function(){ try{ rq.result.createObjectStore(ST); }catch(e){} };
+        rq.onsuccess=function(){ _db=rq.result; res(_db); };
+        rq.onerror=function(){ rej(rq.error||new Error('IndexedDB refuse')); };
+      }catch(e){ rej(e); }
+    });
+  }
+  function tx(mode){ return idb().then(function(d){ return d.transaction(ST,mode).objectStore(ST); }); }
+  function pr(rq){ return new Promise(function(res,rej){
+    rq.onsuccess=function(){ res(rq.result); }; rq.onerror=function(){ rej(rq.error); }; }); }
+  function lire(id){ return tx('readonly').then(function(s){ return pr(s.get(id)); })
+    .catch(function(){ return null; }); }
+  function range(o){ return tx('readwrite').then(function(s){ return pr(s.put(o,o.id)); })
+    .then(function(){ return o; }); }
+  function efface(id){ return tx('readwrite')
+    .then(function(s){ return pr(s['delete'](id)); }).catch(function(){}); }
+  function sb(){ try{ return window.sb||null; }catch(e){ return null; } }
+  function moi(){
+    return new Promise(function(res){
+      var c=sb(); if(!c||!c.auth) return res(null);
+      try{ c.auth.getSession().then(function(r){
+        res((r&&r.data&&r.data.session&&r.data.session.user)||null); },
+        function(){ res(null); }); }catch(e){ res(null); }
+    });
+  }
+  function chemin(u,id){ return u.id+'/vols/'+id+'.jpg'; }
+  /* reduite et recompressee : une photo d'iPhone fait 3 a 5 Mo, 1600 px
+     suffisent largement a relire une feuille ou un tableau de bord. Le
+     navigateur redresse lui-meme l'image d'apres son orientation EXIF. */
+  function compresse(file){
+    return new Promise(function(res,rej){
+      var u=URL.createObjectURL(file), im=new Image();
+      im.onload=function(){
+        try{
+          var W=im.naturalWidth||im.width, H=im.naturalHeight||im.height;
+          var sc=Math.min(1,COTE/Math.max(W,H));
+          var w=Math.max(1,Math.round(W*sc)), h=Math.max(1,Math.round(H*sc));
+          var cv=document.createElement('canvas'); cv.width=w; cv.height=h;
+          var g=cv.getContext('2d'); g.fillStyle='#fff'; g.fillRect(0,0,w,h); g.drawImage(im,0,0,w,h);
+          URL.revokeObjectURL(u);
+          cv.toBlob(function(b){ b?res({blob:b,w:w,h:h}):rej(new Error('compression impossible')); },
+            'image/jpeg',QUAL);
+        }catch(e){ URL.revokeObjectURL(u); rej(e); }
+      };
+      im.onerror=function(){ URL.revokeObjectURL(u); rej(new Error('image illisible')); };
+      im.src=u;
+    });
+  }
+  /* un envoi par photo a la fois ; un retrait l'attend, sinon un envoi
+     encore en route reposerait au nuage une image qu'on vient d'en ôter */
+  function monte(id){
+    if(_envois[id]) return _envois[id];
+    var e=monte0(id); _envois[id]=e;
+    e.then(function(){ if(_envois[id]===e) delete _envois[id]; });
+    return e;
+  }
+  function monte0(id){
+    return lire(id).then(function(o){
+      if(!o||!o.blob) return false;
+      if(o.monte) return true;
+      return moi().then(function(u){
+        var c=sb(); if(!u||!c||!c.storage) return false;
+        return c.storage.from(SEAU).upload(chemin(u,id),o.blob,{upsert:true,contentType:'image/jpeg'})
+          .then(function(r){
+            if(r&&r.error) return false;
+            o.monte=true; return range(o).then(function(){ return true; });
+          },function(){ return false; });
+      });
+    }).catch(function(){ return false; });
+  }
+  function ajoute(file){
+    return compresse(file).then(function(c){
+      var id='ph'+Date.now().toString(36)+Math.random().toString(36).slice(2,7), q=Date.now();
+      return range({id:id,blob:c.blob,w:c.w,h:c.h,monte:false,quand:q}).then(function(){
+        monte(id);
+        return {id:id,w:c.w,h:c.h,quand:q};
+      });
+    });
+  }
+  /* l'adresse a afficher : l'appareil d'abord ; sinon le nuage, et la
+     photo descendue y reste — on ne la retelecharge pas a chaque fois */
+  function url(id){
+    if(_urls[id]) return Promise.resolve(_urls[id]);
+    return lire(id).then(function(o){
+      if(o&&o.blob) return (_urls[id]=URL.createObjectURL(o.blob));
+      return moi().then(function(u){
+        var c=sb(); if(!u||!c||!c.storage) return null;
+        return c.storage.from(SEAU).download(chemin(u,id)).then(function(r){
+          var b=r&&!r.error&&r.data; if(!b) return null;
+          return range({id:id,blob:b,w:0,h:0,monte:true,quand:Date.now()}).then(function(){
+            return (_urls[id]=URL.createObjectURL(b)); });
+        },function(){ return null; });
+      });
+    }).catch(function(){ return null; });
+  }
+  /* retirer : l'appareil, puis le nuage. Hors connexion, la copie du
+     nuage reste — elle n'est plus referencee par aucun vol. */
+  function retire(ids){
+    return Promise.all((ids||[]).map(function(id){
+      try{ if(_urls[id]){ URL.revokeObjectURL(_urls[id]); delete _urls[id]; } }catch(e){}
+      return Promise.resolve(_envois[id]).then(function(){ return efface(id); })
+        .then(function(){ return moi(); }).then(function(u){
+        var c=sb(); if(!u||!c||!c.storage) return;
+        return c.storage.from(SEAU).remove([chemin(u,id)]).then(function(){},function(){});
+      }).catch(function(){});
+    }));
+  }
+  function relance(ids){ return Promise.all((ids||[]).map(monte)); }
+  function etat(id){ return lire(id).then(function(o){
+    return o?(o.monte?'nuage':'appareil'):'absent'; }); }
+  window.__PHOTOS={ajoute:ajoute,url:url,retire:retire,relance:relance,etat:etat};
 })();
 </script>
 <script>
